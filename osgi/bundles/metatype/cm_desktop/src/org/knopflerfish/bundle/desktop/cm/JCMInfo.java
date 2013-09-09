@@ -104,12 +104,13 @@ public class JCMInfo
     repaint();
   }
 
-  private void renderBundleWithMetadata(Bundle bundle)
+  private void renderBundleWithMetadata(final Bundle bundle)
   {
     final String[] servicePIDs = mti.getPids();
     servicePIDBox = new JComboBox(servicePIDs);
     servicePIDBox.setEnabled(servicePIDs != null && servicePIDs.length > 0);
     servicePIDBox.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         final int ix = servicePIDBox.getSelectedIndex();
@@ -117,7 +118,7 @@ public class JCMInfo
           return;
         } else {
           final String pid = (String) servicePIDBox.getSelectedItem();
-          setServiceOCD(pid);
+          setServiceOCD(pid, bundle);
         }
       }
     });
@@ -126,6 +127,7 @@ public class JCMInfo
     factoryPIDBox = new JComboBox(factoryPIDs);
     factoryPIDBox.setEnabled(factoryPIDs != null && factoryPIDs.length > 0);
     factoryPIDBox.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         final int ix = factoryPIDBox.getSelectedIndex();
@@ -133,7 +135,7 @@ public class JCMInfo
           return;
         } else {
           final String pid = (String) factoryPIDBox.getSelectedItem();
-          setFactoryOCD(pid);
+          setFactoryOCD(pid, bundle);
         }
       }
     });
@@ -154,10 +156,10 @@ public class JCMInfo
     // Set either the first service or the first factory as displayed
     if (servicePIDs != null && servicePIDs.length > 0) {
       main.add(jcmService, BorderLayout.CENTER);
-      setServiceOCD(servicePIDs[0]);
+      setServiceOCD(servicePIDs[0], bundle);
     } else if (factoryPIDs != null && factoryPIDs.length > 0) {
       main.add(jcmService, BorderLayout.CENTER);
-      setFactoryOCD(factoryPIDs[0]);
+      setFactoryOCD(factoryPIDs[0], bundle);
     } else {
       // Neither service PID nor factory PID found in provider; leave the rest
       // of the main-panel empty.
@@ -229,22 +231,22 @@ public class JCMInfo
     return "#" + b.getBundleId() + "  " + Util.getBundleName(b);
   }
 
-  void setServiceOCD(String pid)
+  void setServiceOCD(String pid, Bundle bundle)
   {
     try {
       final ObjectClassDefinition ocd = mti.getObjectClassDefinition(pid, null);
 
-      jcmService.setServiceOCD(pid, ocd);
+      jcmService.setServiceOCD(pid, bundle, ocd);
     } catch (final Throwable t) {
       Activator.log.error("Failed to set service pid=" + pid, t);
     }
   }
 
-  void setFactoryOCD(String pid)
+  void setFactoryOCD(String pid, Bundle bundle)
   {
     final ObjectClassDefinition ocd = mti.getObjectClassDefinition(pid, null);
 
-    jcmService.setFactoryOCD(pid, ocd);
+    jcmService.setFactoryOCD(pid, bundle, ocd);
   }
 
   void stop()
@@ -280,6 +282,7 @@ class JHTML
     html.setCaretPosition(0);
 
     html.addHyperlinkListener(new HyperlinkListener() {
+      @Override
       public void hyperlinkUpdate(HyperlinkEvent ev)
       {
         if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -316,6 +319,7 @@ class JHTML
       Activator.log.error("Failed to set html", e);
     }
     SwingUtilities.invokeLater(new Runnable() {
+      @Override
       public void run()
       {
         try {
