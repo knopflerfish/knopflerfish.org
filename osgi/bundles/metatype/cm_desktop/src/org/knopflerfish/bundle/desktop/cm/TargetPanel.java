@@ -95,15 +95,10 @@ public class TargetPanel
   private final String[] targetedPids = new String[MAX_SIZE];
 
   /**
-   * Array with the configurations for each of the target PIDs.
-   */
-  private final Configuration[] targetedCfgs = new Configuration[MAX_SIZE];
-
-  /**
-   * Mapping from factory configuration instance PID to the actual
+   * Mapping from (factory) configuration instance PID to the actual
    * configuration.
    */
-  private final Map<String, Configuration> factoryInstancePid2Cfg =
+  private final Map<String, Configuration> pid2Cfg =
     new HashMap<String, Configuration>();
 
   /**
@@ -175,6 +170,12 @@ public class TargetPanel
   private String nextFactoryPidToSelect;
 
   /**
+   * The configuration instance to select when {@link #updateSelection(boolean)}
+   * is called with false.
+   */
+  private String nextPidToSelect;
+
+  /**
    * Creates a targeted PID selection panel.
    *
    * @param owner
@@ -215,7 +216,6 @@ public class TargetPanel
     // Unregister the configuration listener.
     srCfgListener.unregister();
   }
-
 
   private void buildTargetSelectionBox()
   {
@@ -382,11 +382,6 @@ public class TargetPanel
    */
   void updateSelection(boolean selectBest)
   {
-    if (selectBest
-        || (!isFactoryPid && targetedCfgs[selectedTargetLevel] == null)) {
-      selectBest = true;
-      selectedTargetLevel = 0;
-    }
     if (isFactoryPid) {
       updateSelectionFactoryPID(selectBest ? "" : getSelectedPid());
     } else {
@@ -409,22 +404,44 @@ public class TargetPanel
    */
   private void updateSelectionPID(boolean selectBest)
   {
-    String tpid = null;
-    for (int i = 0; i < MAX_SIZE && null != (tpid = targetedPids[i]); i++) {
-      rbs[i].setToolTipText(TARGET_LEVEL_PID_TOOLTIPS[i] + tpid
-                            + "</code></p></html>");
+    synchronized (pid2Cfg) {
+      if (selectBest) {
+        selectedTargetLevel = 0;
+      }
+      pid2Cfg.clear();
 
-      targetedCfgs[i] = CMDisplayer.getConfig(tpid);
-      if (targetedCfgs[i] != null) {
-        if (selectBest) {
-          selectedTargetLevel = i;
-          rbs[i].setSelected(true);
+      // Find the targeted PIDs that has a configuration and handle
+      // nextPidToSelect
+      String tpid = null;
+      for (int i = 0; i < MAX_SIZE && null != (tpid = targetedPids[i]); i++) {
+        rbs[i].setToolTipText(TARGET_LEVEL_PID_TOOLTIPS[i] + tpid
+                              + "</code></p></html>");
+
+        final Configuration cfg = CMDisplayer.getConfig(tpid);
+        if (cfg != null) {
+          pid2Cfg.put(cfg.getPid(), cfg);
+          if (tpid.equals(nextPidToSelect)) {
+            selectedTargetLevel = i;
+            rbs[i].setSelected(true);
+            nextPidToSelect = null;
+          }
+          icons[i].setIcon(openDocumentIcon);
+          icons[i].setToolTipText("exists");
+        } else {
+          icons[i].setIcon(newDocumentIcon);
+          icons[i].setToolTipText("to be created");
         }
-        icons[i].setIcon(openDocumentIcon);
-        icons[i].setToolTipText("exists");
-      } else {
-        icons[i].setIcon(newDocumentIcon);
-        icons[i].setToolTipText("to be created");
+      }
+      nextPidToSelect = null;
+
+      // Update selection to the best configuration when requested or needed.
+      if (selectBest || pid2Cfg.get(targetedPids[selectedTargetLevel]) == null) {
+        for (int i = 0; i < MAX_SIZE && null != (tpid = targetedPids[i]); i++) {
+          if (pid2Cfg.get(tpid) != null) {
+            selectedTargetLevel = i;
+            rbs[i].setSelected(true);
+          }
+        }
       }
     }
   }
@@ -440,8 +457,8 @@ public class TargetPanel
    */
   private void updateSelectionFactoryPID(String selectedPid)
   {
-    synchronized (factoryInstancePid2Cfg) {
-      factoryInstancePid2Cfg.clear();
+    synchronized (pid2Cfg) {
+      pid2Cfg.clear();
       if (selectedPid == null) {
         selectedPid = "";
       }
@@ -453,7 +470,7 @@ public class TargetPanel
                                                        + targetedPids[i] + ")");
           if (configs != null) {
             for (final Configuration cfg : configs) {
-              factoryInstancePid2Cfg.put(cfg.getPid(), cfg);
+              pid2Cfg.put(cfg.getPid(), cfg);
             }
           }
         } catch (final Exception e) {
@@ -464,12 +481,12 @@ public class TargetPanel
       }
 
       final SortedSet<String> instancePIDs =
-        new TreeSet<String>(factoryInstancePid2Cfg.keySet());
+        new TreeSet<String>(pid2Cfg.keySet());
       instancePIDs.add(FACTORY_PID_DEFAULTS);
 
       final DefaultComboBoxModel model =
         new DefaultComboBoxModel(instancePIDs.toArray());
-      if (nextFactoryPidToSelect != null ) {
+      if (nextFactoryPidToSelect != null) {
         if (instancePIDs.contains(nextFactoryPidToSelect)) {
           selectedPid = nextFactoryPidToSelect;
         }
@@ -480,7 +497,7 @@ public class TargetPanel
       }
       model.setSelectedItem(selectedPid);
       fbox.setModel(model);
-      final Configuration selectedCfg = factoryInstancePid2Cfg.get(selectedPid);
+      final Configuration selectedCfg = pid2Cfg.get(selectedPid);
 
       // Update the targeted PID selectors to match the target selectors in the
       // factory PID of the selected instance.
@@ -547,18 +564,14 @@ public class TargetPanel
    */
   Configuration getSelectedConfiguration()
   {
-    if (isFactoryPid) {
-      Configuration cfg = factoryInstancePid2Cfg.get(getSelectedPid());
-      // Check that the found configuration is targeted according to the current
-      // target selection.
-      if (cfg != null
-          && !cfg.getFactoryPid().equals(targetedPids[selectedTargetLevel])) {
-        cfg = null;
-      }
-      return cfg;
-    } else {
-      return targetedCfgs[selectedTargetLevel];
+    Configuration res = pid2Cfg.get(getSelectedPid());
+    if (res != null && isFactoryPid
+        && !res.getFactoryPid().equals(targetedPids[selectedTargetLevel])) {
+      // Found factory configuration instance with a target specification that
+      // differs from the one currently selected. Nothing to return.
+      res = null;
     }
+    return res;
   }
 
   /**
@@ -597,8 +610,8 @@ public class TargetPanel
         cfg =
           CMDisplayer.getCA()
               .getConfiguration(targetedPids[selectedTargetLevel], null);
-        // The new configuration shall be the selected one.
-        targetedCfgs[selectedTargetLevel] = cfg;
+        // Let the next call to updateSelection(false) select the new PID.
+        nextPidToSelect = cfg.getPid();
       }
     }
 
@@ -666,7 +679,7 @@ public class TargetPanel
     // Existing (targeted) configurations except the selected one are the other
     // alternatives.
     if (isFactoryPid) {
-      for (final Configuration cfg : factoryInstancePid2Cfg.values()) {
+      for (final Configuration cfg : pid2Cfg.values()) {
         res.add(new ConfigurationAlternative(cfg.getPid(), cfg));
       }
     } else {
@@ -674,7 +687,7 @@ public class TargetPanel
         if (i == selectedTargetLevel) {
           continue;
         }
-        final Configuration cfg = targetedCfgs[i];
+        final Configuration cfg = pid2Cfg.get(targetedPids[i]);
         if (cfg != null) {
           res.add(new ConfigurationAlternative(
                                                ALTERNATIVE_TARGET_LEVEL_NAMES[i],
