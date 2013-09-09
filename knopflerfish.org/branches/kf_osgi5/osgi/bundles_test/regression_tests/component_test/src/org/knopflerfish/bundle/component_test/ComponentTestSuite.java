@@ -34,20 +34,41 @@
 
 package org.knopflerfish.bundle.component_test;
 
-import java.io.*;
-import java.lang.reflect.*;
-import java.util.*;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
-import junit.framework.*;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
-import org.osgi.framework.*;
-import org.osgi.service.component.*;
-import org.osgi.service.log.*;
-
-import org.knopflerfish.service.component_test.*;
+import org.knopflerfish.service.component_test.ComponentATest;
+import org.knopflerfish.service.component_test.TestService;
+import org.knopflerfish.service.component_test.TestService2;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.component.ComponentConstants;
+import org.osgi.service.component.ComponentFactory;
+import org.osgi.service.component.ComponentInstance;
+import org.osgi.service.log.LogEntry;
+import org.osgi.service.log.LogListener;
+import org.osgi.service.log.LogReaderService;
+import org.osgi.service.log.LogService;
+import org.osgi.util.tracker.ServiceTracker;
 
 public class ComponentTestSuite extends TestSuite implements ComponentATest
 {
+  public static final long SLEEP_TIME = 300;
+
   private BundleContext bc;
 
   private int counter = 0;
@@ -66,6 +87,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new Test7());
     addTest(new Test8());
     addTest(new Test9());
+    addTest(new Test10());
   }
 
   public void bump(int count) {
@@ -110,7 +132,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          Bundle c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
          c1.start();
 
-         ServiceReference ref = bc.getServiceReference
+         ServiceReference<?> ref = bc.getServiceReference
            ("org.knopflerfish.bundle.componentA_test.ComponentA1");
 
          assertNotNull("Could not get service reference for A1", ref);
@@ -131,7 +153,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          Object obj = bc.getService(ref);
 
          try {
-           Thread.sleep(1000);
+           Thread.sleep(SLEEP_TIME);
          } catch (Exception e) {}
 
          assertNotNull("Could not get service object for A1", obj);
@@ -140,7 +162,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          bc.ungetService(ref);
 
          try {
-           Thread.sleep(1000);
+           Thread.sleep(SLEEP_TIME);
          } catch (Exception e) {}
 
          assertEquals("Should have been deactivate bumped", 11, counter);
@@ -188,9 +210,9 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
     public void runTest() {
       Bundle c1 = null;
-      ServiceReference sr = null;
-      ServiceRegistration reg = null;
-      ServiceRegistration reg2 = null;
+      ServiceReference<?> sr = null;
+      ServiceRegistration<?> reg = null;
+      ServiceRegistration<?> reg2 = null;
       try {
         counter = 0;
         gotCircularError = false;
@@ -200,7 +222,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
         c1.start();
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
         assertNull("Should be null (1)", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA"));
         assertNull("Should be null (2)", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
@@ -209,12 +231,12 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertTrue("Should have got circular error message", gotCircularError);
         lrs.removeLogListener(this);
 
-        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable());
-        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable<String, Object>());
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String, Object>());
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
-        ServiceReference ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA");
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA");
         assertNotNull("Should get service A", bc.getService(ref));
 
         ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB");
@@ -227,7 +249,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         reg.unregister();
         reg = null;
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
         assertNull("Should be null (1(2))", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA"));
         assertNull("Should be null (2(2))", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
         assertNull("Should be null (3(2))", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
@@ -279,7 +301,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          Bundle c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
          c1.start();
 
-         ServiceReference ref = bc.getServiceReference
+         ServiceReference<?> ref = bc.getServiceReference
            ("org.knopflerfish.bundle.componentA_test.ComponentP");
          assertNotNull("Could not get service reference for component P", ref);
 
@@ -462,10 +484,10 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          buE.start();
 
          try {
-           Thread.sleep(1000);
+           Thread.sleep(SLEEP_TIME);
          } catch (InterruptedException ie) {}
 
-         ServiceReference e1SR = bc.getServiceReference
+         ServiceReference<?> e1SR = bc.getServiceReference
            ("org.knopflerfish.service.componentE_test.ComponentE1");
 
          assertNotNull("Could not get service reference for E1", e1SR);
@@ -480,13 +502,13 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          assertNotNull("Could not get service object for E1", e1);
 
          // Check that no E2 instance have been injected into e1 yet.
-         Method getE2Method = e1.getClass().getMethod("getE2", null);
+         Method getE2Method = e1.getClass().getMethod("getE2", (Class[])null);
          assertNull("No E2 service yet",
                     getE2Method.invoke(e1, new Object[]{}));
          System.out.println("Initially no E2 service bound to E1.");
 
          // Prepare to create an E2 component instance
-         ServiceReference[] e2FactorySRs = bc.getServiceReferences
+         ServiceReference<?>[] e2FactorySRs = bc.getServiceReferences
            (ComponentFactory.class.getName(),
             "(" +ComponentConstants.COMPONENT_FACTORY
             +"=componentE_test.E2-factory)");
@@ -500,11 +522,11 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
          // Create an E2 component instance
          System.out.println("Creating E2 component instance.");
-         ComponentInstance e2Inst = e2Factory.newInstance((Dictionary) null);
+         ComponentInstance e2Inst = e2Factory.newInstance((Dictionary<String,Object>) null);
          assertNotNull("No E2 instance", e2Inst);
 
          try {
-           Thread.sleep(1000);
+           Thread.sleep(SLEEP_TIME);
          } catch (InterruptedException ie) {}
 
 
@@ -519,7 +541,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          e2Inst = null;
 
          try {
-           Thread.sleep(1000);
+           Thread.sleep(SLEEP_TIME);
          } catch (InterruptedException ie) {}
 
          // Check that the E2 instance have been unbound from e1.
@@ -529,11 +551,11 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
          // Create a second E2 component instance
          System.out.println("Creating second E2 component instance.");
-         e2Inst = e2Factory.newInstance((Dictionary) null);
+         e2Inst = e2Factory.newInstance((Dictionary<String,Object>) null);
          assertNotNull("No E2 instance (2)", e2Inst);
 
          try {
-           Thread.sleep(1000);
+           Thread.sleep(SLEEP_TIME);
          } catch (InterruptedException ie) {}
 
 
@@ -548,7 +570,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          e2Inst = null;
 
          try {
-           Thread.sleep(1000);
+           Thread.sleep(SLEEP_TIME);
          } catch (InterruptedException ie) {}
 
          // Check that the second E2 instance have been unbound from e1.
@@ -587,10 +609,10 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          bu2.start();
 
          try {
-           Thread.sleep(1000);
+           Thread.sleep(SLEEP_TIME);
          } catch (InterruptedException ie) {}
 
-         final ServiceReference[] srs = bc.getServiceReferences
+         final ServiceReference<?>[] srs = bc.getServiceReferences
            ("org.knopflerfish.service.component2_test.Component", null);
 
          assertEquals("Expected 2 service references", 2, srs.length);
@@ -604,7 +626,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
            assertNotNull("Could not get service object "+i, s);
 
            // Call the service method to double check.
-           final Method getMethod = s.getClass().getMethod("get", null);
+           final Method getMethod = s.getClass().getMethod("get", (Class[])null);
 
            final String v = (String) getMethod.invoke(s, new Object[]{});
            assertEquals("s.get(" +i +")", "C"+(i+1), v);
@@ -649,19 +671,19 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
     public void runTest() {
       Bundle c1 = null;
-      ServiceRegistration reg = null;
-      ServiceRegistration reg2 = null;
+      ServiceRegistration<?> reg = null;
+      ServiceRegistration<?> reg2 = null;
       try {
-        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
-        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable());
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String,Object>());
+        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable<String,Object>());
 
         counter = 0;
         c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
         c1.start();
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
-        ServiceReference ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB");
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB");
         assertNotNull("Should get serviceRef B", ref);
         assertNotNull("Should get service B", bc.getService(ref));
 
@@ -670,11 +692,11 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertNotNull("Should get service C", bc.getService(ref));
 
         assertEquals("Should have been activate(B&C)/bind(C) bumped", 102, counter);
-        Hashtable p = new Hashtable();
+        Hashtable<String, Object> p = new Hashtable<String,Object>();
         p.put("block","yes");
         reg2.setProperties(p);
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
         assertNull("Should not get B", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
         assertNotNull("Should still get C", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
         assertEquals("Should have been deactivate B", 112, counter);
@@ -682,7 +704,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         reg.unregister();
         reg = null;
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
         assertNull("Should not get C", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
         assertEquals("Should have been deactivate/unbind C bumped", 1122, counter);
@@ -739,20 +761,20 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
     public void runTest() {
       Bundle c1 = null;
-      ServiceRegistration reg = null;
-      ServiceRegistration regSecond = null;
-      ServiceRegistration reg2 = null;
+      ServiceRegistration<?> reg = null;
+      ServiceRegistration<?> regSecond = null;
+      ServiceRegistration<?> reg2 = null;
       try {
-        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
-        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable());
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String,Object>());
+        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable<String,Object>());
 
         counter = 0;
         c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
         c1.start();
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
-        ServiceReference ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB");
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB");
         assertNotNull("Should get serviceRef B", ref);
         assertNotNull("Should get service B", bc.getService(ref));
 
@@ -761,14 +783,14 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertNotNull("Should get service C", bc.getService(ref));
 
         assertEquals("Should have been activate(B&C)/bind(C) bumped", 102, counter);
-        regSecond = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
-        Hashtable p = new Hashtable();
+        regSecond = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String,Object>());
+        Hashtable<String,Object> p = new Hashtable<String,Object>();
         p.put(Constants.SERVICE_RANKING, new Integer(7));
         regSecond.setProperties(p);
         reg.unregister();
         reg = null;
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
         assertNotNull("Should still get B", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
         assertNotNull("Should still get C", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
         assertEquals("Should have been deactivate B", 1202, counter);
@@ -776,7 +798,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         regSecond.unregister();
         regSecond = null;
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
         assertNull("Should not get B", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
         assertNull("Should not get C", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
         assertEquals("Should have been deactivate/unbind C bumped", 3322, counter);
@@ -837,9 +859,9 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         c1 = Util.installBundle(bc, "componentX_test-1.0.0.jar");
         c1.start();
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
-        ServiceReference ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentX");
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentX");
         assertNotNull("Should get serviceRef X", ref);
         org.knopflerfish.service.componentX_test.ComponentX x =
           (org.knopflerfish.service.componentX_test.ComponentX)bc.getService(ref);
@@ -883,7 +905,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         // Restart components
         c1.start();
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
         ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentY");
         assertNotNull("Should get serviceRef Y", ref);
@@ -957,15 +979,15 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         c1 = Util.installBundle(bc, "componentU_test-1.0.0.jar");
         c1.start();
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
-        ServiceReference ref = bc.getServiceReference("org.knopflerfish.service.componentU_test.ComponentX");
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentU_test.ComponentX");
         assertNull("Should not get serviceRef X", ref);
 
         
-        ServiceRegistration reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+        ServiceRegistration<?> reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String,Object>());
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
         ref = bc.getServiceReference("org.knopflerfish.service.componentU_test.ComponentX");
         assertNotNull("Should get serviceRef X", ref);
@@ -977,7 +999,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         reg.unregister();
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
         ref = bc.getServiceReference("org.knopflerfish.service.componentU_test.ComponentX");
         assertNull("Should not get serviceRef X", ref);
@@ -1038,7 +1060,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         c1 = Util.installBundle(bc, "componentF_test-1.0.0.jar");
         c1.start();
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
         ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentX");
         assertNull("Should not get serviceRef X", ref);
@@ -1165,7 +1187,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         c1 = Util.installBundle(bc, "componentF_test-1.0.0.jar");
         c1.start();
 
-        Thread.sleep(1000);
+        Thread.sleep(SLEEP_TIME);
 
         ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentX");
         assertNull("Should not get serviceRef X", ref);
@@ -1244,6 +1266,255 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
             be.printStackTrace();
             fail("Test9: got uninstall exception " + be);
           }
+        }
+      }
+    }
+  }
+
+  private class Test10 extends FWTestCase  {
+
+    /**
+     * Test that SCR handles targeted CM pids.
+     * 
+     */
+
+    public void runTest() {
+      Bundle b1 = null;
+      ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> cmt = null;
+      try {
+        b1 = Util.installBundle(bc, "componentC_test-1.0.0.jar");
+        b1.start();
+
+        cmt = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class.getName(), null);
+        cmt.open();
+        
+        Thread.sleep(SLEEP_TIME);
+
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentX");
+        assertNull("Should not get serviceRef X", ref);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentY");
+        assertNotNull("Should get serviceRef Y", ref);
+        org.knopflerfish.service.componentC_test.ComponentY y =
+            (org.knopflerfish.service.componentC_test.ComponentY)bc.getService(ref);
+        assertNull("Config pid null", y.getProp(Constants.SERVICE_PID));
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentZ");
+        assertNull("Should not get serviceRef Z", ref);
+
+        StringBuffer targetedPid = new StringBuffer("componentC_test.factory");
+        ConfigurationAdmin ca = cmt.getService();
+        Configuration c = ca.getConfiguration(targetedPid.toString(), "?");
+        Dictionary<String, Object> props = new Hashtable<String, Object>();
+        props.put("base", new Integer(1));
+        c.update(props);
+        
+        Thread.sleep(SLEEP_TIME);
+
+        ServiceReference<?> [] refs = bc.getServiceReferences(ComponentFactory.class.getName(),
+            "(&(component.name=componentC_test.factory)(component.factory=componentC_test.X))");
+        assertTrue("Should get one serviceRef factory", refs != null && refs.length == 1);
+        ComponentFactory cf = (ComponentFactory) bc.getService(refs[0]);
+        assertNotNull("Should get componentCactory", cf);
+        Dictionary<String, Object> iprops = new Hashtable<String, Object>();
+        iprops.put("iprop", "first");
+        cf.newInstance(iprops);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentX");
+        assertNotNull("Should get serviceRef X", ref);
+        org.knopflerfish.service.componentC_test.ComponentX x =
+            (org.knopflerfish.service.componentC_test.ComponentX)bc.getService(ref);
+        assertEquals(targetedPid.toString(), x.getProp(Constants.SERVICE_PID));
+        assertEquals(new Integer(1), x.getProp("base"));
+        assertEquals("first", x.getProp("iprop"));
+
+        Thread.sleep(SLEEP_TIME);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentZ");
+        assertNotNull("Should get serviceRef Z", ref);
+        org.knopflerfish.service.componentC_test.ComponentZ z =
+            (org.knopflerfish.service.componentC_test.ComponentZ)bc.getService(ref);
+        assertEquals("Check x ref calls", 1, z.getXStatus());
+
+        String bsnPid  = targetedPid.append('|').append(b1.getSymbolicName()).toString();
+        targetedPid.append('|').append(b1.getVersion().toString());
+        targetedPid.append('|').append(b1.getLocation().toString());
+        Configuration c2 = ca.getConfiguration(targetedPid.toString(), "?");
+        props.put("base", new Integer(2));
+        c2.update(props);
+
+        Thread.sleep(SLEEP_TIME);
+
+        assertEquals(targetedPid.toString(), x.getProp(Constants.SERVICE_PID));
+        assertEquals(new Integer(2), x.getProp("base"));
+        assertEquals("first", x.getProp("iprop"));
+
+        Configuration c3 = ca.getConfiguration(bsnPid, "?");
+        props.put("base", new Integer(4));
+        c3.update(props);
+
+        Thread.sleep(SLEEP_TIME);
+
+        assertEquals(targetedPid.toString(), x.getProp(Constants.SERVICE_PID));
+        assertEquals(new Integer(2), x.getProp("base"));
+        assertEquals("first", x.getProp("iprop"));
+        
+        c2.delete();
+
+        Thread.sleep(SLEEP_TIME);
+
+        assertEquals(bsnPid, x.getProp(Constants.SERVICE_PID));
+        assertEquals(new Integer(4), x.getProp("base"));
+        assertEquals("first", x.getProp("iprop"));
+
+        c.delete();
+
+        Thread.sleep(SLEEP_TIME);
+
+        assertEquals(bsnPid, x.getProp(Constants.SERVICE_PID));
+        assertEquals(new Integer(4), x.getProp("base"));
+        assertEquals("first", x.getProp("iprop"));
+
+        assertEquals("Check x ref calls", 6000001, z.getXStatus());
+        
+        c3.delete();
+        
+        Thread.sleep(SLEEP_TIME);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentX");
+        assertNull("Should not get serviceRef X", ref);
+        ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentZ");
+        assertNull("Should not get serviceRef Z", ref);
+
+        c = ca.getConfiguration("c|test", "?");
+        props = new Hashtable<String, Object>();
+        props.put("factory", "no");
+        c.update(props);
+
+        Thread.sleep(SLEEP_TIME);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentY");
+        assertNotNull("Should get serviceRef Y", ref);
+        y = (org.knopflerfish.service.componentC_test.ComponentY)bc.getService(ref);
+        assertEquals("c|test", y.getProp(Constants.SERVICE_PID));
+        assertEquals("no", y.getProp("factory"));
+        c.delete();
+        
+        Thread.sleep(SLEEP_TIME);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentY");
+        assertNotNull("Should get serviceRef Y", ref);
+        assertNull("Config pid null", y.getProp(Constants.SERVICE_PID));
+        assertNull(y.getProp("factory"));
+        
+        targetedPid.setLength(0);
+        targetedPid.append("c|test");
+        c = ca.createFactoryConfiguration(targetedPid.toString(), "?");
+        props.put("factory", "first");
+        c.update(props);
+
+        Thread.sleep(SLEEP_TIME);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentY");
+        assertNotNull("Should get serviceRef Y", ref);
+        y = (org.knopflerfish.service.componentC_test.ComponentY)bc.getService(ref);
+        assertEquals("c|test", y.getProp(ConfigurationAdmin.SERVICE_FACTORYPID));
+        assertEquals("first", y.getProp("factory"));
+
+        targetedPid.append('|').append(b1.getSymbolicName());
+        c2 = ca.createFactoryConfiguration(targetedPid.toString(), "?");
+        props.put("factory", "second");
+        c2.update(props);
+
+        Thread.sleep(SLEEP_TIME);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentC_test.ComponentY", null);
+        assertTrue("Should get two serviceRef Y", refs != null && refs.length == 2);
+        org.knopflerfish.service.componentC_test.ComponentY y2 =
+            (org.knopflerfish.service.componentC_test.ComponentY) bc.getService(refs[0]);
+        if (y2 == y) {
+          y2 = (org.knopflerfish.service.componentC_test.ComponentY) bc.getService(refs[1]);
+          assertNotSame(y, y2);
+        } else {
+          assertEquals(y, bc.getService(refs[1]));
+        }
+        assertEquals(targetedPid.toString(), y2.getProp(ConfigurationAdmin.SERVICE_FACTORYPID));
+        assertEquals("second", y2.getProp("factory"));
+
+        targetedPid.append('|').append(b1.getVersion());
+        c3 = ca.createFactoryConfiguration(targetedPid.toString(), "?");
+        props.put("factory", "third");
+        c3.update(props);
+
+        Thread.sleep(SLEEP_TIME);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentC_test.ComponentY", null);
+        assertTrue("Should get three serviceRef Y", refs != null && refs.length == 3);
+        org.knopflerfish.service.componentC_test.ComponentY y3 = null;
+        for (ServiceReference<?> yr : refs) {
+          if ("third".equals(yr.getProperty("factory"))) {
+            y3 = (org.knopflerfish.service.componentC_test.ComponentY) bc.getService(yr);
+            break;
+          }
+        }
+        assertNotNull(y3);
+        assertEquals(targetedPid.toString(), y3.getProp(ConfigurationAdmin.SERVICE_FACTORYPID));
+        assertEquals("third", y3.getProp("factory"));
+
+        Configuration c4 = ca.createFactoryConfiguration("c|test", "?");
+        props.put("factory", "fourth");
+        c4.update(props);
+
+        Thread.sleep(SLEEP_TIME);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentC_test.ComponentY", null);
+        assertTrue("Should get four serviceRef Y", refs != null && refs.length == 4);
+        org.knopflerfish.service.componentC_test.ComponentY y4 = null;
+        for (ServiceReference<?> yr : refs) {
+          if ("fourth".equals(yr.getProperty("factory"))) {
+            y4 = (org.knopflerfish.service.componentC_test.ComponentY) bc.getService(yr);
+            break;
+          }
+        }
+        assertNotNull(y4);
+        assertEquals("c|test", y4.getProp(ConfigurationAdmin.SERVICE_FACTORYPID));
+        assertEquals("fourth", y4.getProp("factory"));
+        
+        c.delete();
+        c3.delete();
+        c4.delete();
+        
+        Thread.sleep(SLEEP_TIME);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentC_test.ComponentY", null);
+        assertTrue("Should get one serviceRef Y", refs != null && refs.length == 1);
+        y = (org.knopflerfish.service.componentC_test.ComponentY)bc.getService(refs[0]);
+        assertEquals(y2, y);
+
+        c2.delete();
+        
+        Thread.sleep(SLEEP_TIME);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentC_test.ComponentY", null);
+        assertTrue("Should get one serviceRef Y", refs != null && refs.length == 1);
+        assertNull("Config pid null", refs[0].getProperty(Constants.SERVICE_PID));
+        y = (org.knopflerfish.service.componentC_test.ComponentY)bc.getService(refs[0]);
+        assertNull("Config pid null", y.getProp(Constants.SERVICE_PID));
+
+      } catch (Exception e) {
+        e.printStackTrace();
+        fail("Test10: got unexpected exception " + e);
+      } finally {
+        if (b1 != null) {
+          try {
+            b1.uninstall();
+          } catch (Exception be) {
+            be.printStackTrace();
+            fail("Test10: got uninstall exception " + be);
+          }
+        }
+        if (cmt != null) {
+          cmt.close();
         }
       }
     }

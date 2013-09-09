@@ -1,6 +1,6 @@
 Bundle-ManifestVersion: 2
-Bundle-Name: componentF_test
-Bundle-SymbolicName: org.knopflerfish.bundle.componentF_test
+Bundle-Name: componentC_test
+Bundle-SymbolicName: org.knopflerfish.bundle.componentC_test
 Bundle-Version: 1.0.0
 Bundle-Description: Test bundle for SCR, circular deactivate test
 Bundle-Vendor: Knopflerfish/Makewave AB

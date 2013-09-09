@@ -489,16 +489,25 @@ public abstract class Component implements org.apache.felix.scr.Component {
   }
 
 
+  String getCMPid() {
+    String id = compDesc.getConfigurationPid();
+    if (id == null) {
+      id = compDesc.getName();
+    }
+    return id;
+  }
+
+
   /**
    * Handle CM config updates for Immediate- & Delayed-Components.
    * FactoryComponents have overridden method
    *
    */
   void cmConfigUpdated(String pid, Configuration c) {
-    Activator.logDebug("cmConfigUpdate for pid = " + pid +
-                       " is first = " + cmDicts.isEmpty());
     // First mandatory config, remove constraint
     final boolean first = cmDicts.isEmpty() && !cmConfigOptional;
+    Activator.logDebug("cmConfigUpdate for pid = " + pid + ", comp=" +
+                       toString() + " is first = " + first);
     cmDicts.put(pid, c.getProperties());
     ComponentConfiguration [] cc;
     synchronized (lock) {
@@ -537,6 +546,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
    *
    */
   void cmConfigDeleted(String pid) {
+    Activator.logDebug("ConfigurationEvent deleted, pid=" + pid + ", comp=" + toString());
     cmDicts.remove(pid);
     ComponentConfiguration [] cc;
     synchronized (lock) {
@@ -791,23 +801,6 @@ public abstract class Component implements org.apache.felix.scr.Component {
   Reference [] getRawReferences() {
     return refs;
   }
-
-
-  /**
-   * Get all service property dictionaries that could
-   * be registered by this component, based on current
-   * CM data.
-   */
-  String [] getAllServicePids() {
-    String [] pids;
-    if (cmDicts == null || cmDicts.isEmpty()) {
-      pids = new String [] { NO_PID };
-    } else {
-      pids = cmDicts.keySet().toArray(new String [cmDicts.size()]);
-    }
-    return pids;
-  }
-
 
   /**
    * Is this component enabled
