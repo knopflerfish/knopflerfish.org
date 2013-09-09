@@ -44,6 +44,7 @@ import javax.swing.SwingUtilities;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.metatype.MetaTypeInformation;
@@ -78,32 +79,96 @@ public class CMDisplayer
     return CMDisplayer.cmTracker.getService();
   }
 
+  /**
+   * Get the configuration object for the given PID.
+   *
+   * @param pid
+   *          The PID to get the configuration for.
+   * @return The specified configuration or {@code null} if no such
+   *         configuration exists.
+   */
   static Configuration getConfig(String pid)
   {
-    try {
-      final Configuration[] configs =
-        getCA().listConfigurations("(service.pid=" + pid + ")");
-      return configs[0];
-    } catch (final Exception e) {
-      // e.printStackTrace();
-      throw new IllegalArgumentException("No pid=" + pid);
+    if (pid != null) {
+      try {
+        final Configuration[] configs =
+          getCA().listConfigurations("(service.pid=" + pid + ")");
+        return configs[0];
+      } catch (final Exception e) {
+      }
     }
+    return null;
   }
 
   static boolean configExists(String pid)
   {
-    try {
-      getConfig(pid);
-      return true;
-    } catch (final Exception e) {
-      return false;
+    return getConfig(pid) != null;
+  }
+
+  /**
+   * Find the PID of the best matching targeted configuration for the given
+   * (non-targeted PID) and bundle.
+   *
+   * @param pid
+   *          The PID to find a configuration for.
+   * @param bundle
+   *          The bundle to find the best configuration for.
+   * @return The PID of the best existing targeted configuration or if no such
+   *         configuration exists, the given PID.
+   */
+  static String getBestTargetedPIDWithConfig(final String pid, final Bundle bundle)
+  {
+    if (bundle == null) {
+      return pid;
     }
+    // "(|(PID=pid)(pid=PID|BSN)(pid=PID|BSN|Version)(pid=PID|BSN|Version|Location))"
+    StringBuffer filter =
+      new StringBuffer(
+                       (pid.length() * 4 + Constants.SERVICE_PID.length() * 4 + 15) * 2);
+    filter.append("(|(").append(Constants.SERVICE_PID).append('=').append(pid)
+        .append(")(").append(Constants.SERVICE_PID).append('=').append(pid)
+        .append('|').append(bundle.getSymbolicName()).append(")(")
+        .append(Constants.SERVICE_PID).append('=').append(pid).append('|')
+        .append(bundle.getSymbolicName()).append('|')
+        .append(bundle.getVersion().toString()).append(")(")
+        .append(Constants.SERVICE_PID).append('=').append(pid).append('|')
+        .append(bundle.getSymbolicName()).append('|')
+        .append(bundle.getVersion().toString()).append('|')
+        .append(bundle.getLocation()).append("))");
+    try {
+      final Configuration[] configs =
+        getCA().listConfigurations(filter.toString());
+      if (configs==null) {
+        return pid;
+      }
+      String res = pid;
+      for (Configuration cfg : configs) {
+        if (res.length()< cfg.getPid().length()) {
+          res = cfg.getPid();
+        }
+      }
+      return res;
+    } catch (final Exception e) {
+    }
+    return pid;
+  }
+
+  static boolean isCmBundle(final Bundle bundle) {
+    final Bundle cmBundle = cmTracker.getServiceReference().getBundle();
+    return cmBundle != null ? cmBundle.equals(bundle)  : false;
+  }
+
+  static boolean isSystemBundle(final Bundle bundle) {
+    return bundle != null && bundle.getBundleId() == 0L;
   }
 
   @Override
   public JComponent newJComponent()
   {
-    return new JCMAdmin();
+    JComponent newJComponent = new JCMAdmin();
+    // Trigger update of the new JCMAdmin component with the current selection.
+    valueChanged(0);
+    return newJComponent;
   }
 
   @Override
@@ -122,6 +187,7 @@ public class CMDisplayer
     cmAdmin.stop();
   }
 
+  @Override
   public void showBundle(Bundle b)
   {
     // NYI
@@ -133,6 +199,7 @@ public class CMDisplayer
     super.valueChanged(bid);
 
     SwingUtilities.invokeLater(new Runnable() {
+      @Override
       public void run()
       {
         try {
