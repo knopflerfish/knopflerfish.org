@@ -61,7 +61,6 @@ public class CMDisplayer
   public CMDisplayer(BundleContext bc)
   {
     super(bc, "CM", "Config Admin", true);
-    bUseListeners = true;
 
     if (infoIcon == null) {
       infoIcon = new ImageIcon(getClass().getResource("/info16x16.png"));
@@ -122,7 +121,7 @@ public class CMDisplayer
       return pid;
     }
     // "(|(PID=pid)(pid=PID|BSN)(pid=PID|BSN|Version)(pid=PID|BSN|Version|Location))"
-    StringBuffer filter =
+    final StringBuffer filter =
       new StringBuffer(
                        (pid.length() * 4 + Constants.SERVICE_PID.length() * 4 + 15) * 2);
     filter.append("(|(").append(Constants.SERVICE_PID).append('=').append(pid)
@@ -142,7 +141,7 @@ public class CMDisplayer
         return pid;
       }
       String res = pid;
-      for (Configuration cfg : configs) {
+      for (final Configuration cfg : configs) {
         if (res.length()< cfg.getPid().length()) {
           res = cfg.getPid();
         }
@@ -165,7 +164,7 @@ public class CMDisplayer
   @Override
   public JComponent newJComponent()
   {
-    JComponent newJComponent = new JCMAdmin();
+    final JComponent newJComponent = new JCMAdmin();
     // Trigger update of the new JCMAdmin component with the current selection.
     valueChanged(0);
     return newJComponent;
@@ -181,23 +180,15 @@ public class CMDisplayer
   }
 
   @Override
-  void closeComponent(JComponent comp)
-  {
-    final JCMAdmin cmAdmin = (JCMAdmin) comp;
-    cmAdmin.stop();
-  }
-
-  @Override
   public void showBundle(Bundle b)
   {
-    // NYI
+    // Nothing to do here since this displayer reacts to bundle selection
+    // events.
   }
 
   @Override
-  public void valueChanged(final long bid)
+  public void valueChangedLazy(final long bid)
   {
-    super.valueChanged(bid);
-
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run()
@@ -208,8 +199,8 @@ public class CMDisplayer
             if (bundleSelModel.getSelectionCount() == 0) {
               cmAdmin.setBundle(null);
             } else {
-              // This displayer can only handle single selections, if multiple
-              // bundles are selected, present one of them.
+              // This displayer can only handle singleton selections, if
+              // multiple bundles are selected, present one of them.
               final Bundle oldSelection = cmAdmin.getBundle();
               if (oldSelection == null
                   || !bundleSelModel.isSelected(oldSelection.getBundleId())) {

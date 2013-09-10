@@ -142,6 +142,26 @@
       not have a function (previously they where made invisibe).
 
     </div>
+    <div class="note_item">
+
+      Uses the new functionality provided by Desktop 5.0 to avoid
+      updating the displayer when not visible.
+
+    </div>
+  </div>
+  
+  <div class="note_group">
+    <div class="note_name">Desktop 5.0.0</div>
+    <div class="note_item">
+
+      Added support for external bundles that registers detial
+      displayers to support lazy updates, i.e., only update the
+      displayer views when the displayer is visible in the tabbed pane
+      it lives in. A displayer that wants to use this feature must
+      implement the new interface,
+      <code>org.knopflerfish.service.desktop.SelectionAware</code>.
+      
+    </div>
   </div>
   
   <div class="note_group">

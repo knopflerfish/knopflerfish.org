@@ -42,28 +42,30 @@ import java.util.Set;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import org.knopflerfish.service.desktop.BundleSelectionListener;
 import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SelectionAware;
 import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 
 public abstract class DefaultSwingBundleDisplayer
-  implements SwingBundleDisplayer, BundleSelectionListener
+  implements SwingBundleDisplayer, SelectionAware, BundleSelectionListener
 {
-
-  String name;
+  final String name;
   String desc;
   boolean bDetail;
 
-  BundleContext bc;
   boolean bAlive = false;
   BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
+
   ServiceRegistration<SwingBundleDisplayer> reg = null;
 
-  boolean bUseListeners = true;
+  /** The bundle context of the target framework to present data for. */
+  BundleContext bc;
 
   public DefaultSwingBundleDisplayer(BundleContext bc, String name,
                                      String desc, boolean bDetail)
@@ -74,10 +76,10 @@ public abstract class DefaultSwingBundleDisplayer
     this.bDetail = bDetail;
   }
 
-  public void register()
+  public ServiceRegistration<SwingBundleDisplayer> register()
   {
     if (reg != null) {
-      return;
+      return reg;
     }
 
     open();
@@ -89,7 +91,12 @@ public abstract class DefaultSwingBundleDisplayer
       ? Boolean.TRUE
       : Boolean.FALSE);
 
-    reg = bc.registerService(SwingBundleDisplayer.class, this, props);
+
+    // Register this displayer service in the local framework.
+    reg =
+      Activator.bc.registerService(SwingBundleDisplayer.class, this, props);
+
+    return reg;
   }
 
   public void unregister()
@@ -99,6 +106,7 @@ public abstract class DefaultSwingBundleDisplayer
     }
 
     reg.unregister();
+    close();
     reg = null;
   }
 
@@ -124,9 +132,6 @@ public abstract class DefaultSwingBundleDisplayer
     bAlive = true;
 
     bundleSelModel.addBundleSelectionListener(this);
-    // Initialize bundle selection.
-    valueChanged(0);
-
   }
 
   public void close()
@@ -137,20 +142,58 @@ public abstract class DefaultSwingBundleDisplayer
       bundleSelModel.removeBundleSelectionListener(this);
     }
 
-    closeComponents();
+    for (final JComponent comp : components) {
+      disposeJComponent(comp);
+    }
+    components.clear();
   }
 
-  // BundleSectionListener callback.
+  /**
+   * A displayer should override this method to update its UI for new
+   * selections. A sub-class that overrides this method do not need to call the
+   * {link super{@link #valueChangedLazy(long)}.
+   *
+   * @param bid
+   *          One of the bundles in the new selection. Ask the selection model
+   *          to get all.
+   */
+  protected void valueChangedLazy(long bid)
+  {
+    repaintComponents();
+  }
+
+  /**
+   * The value of the {@code bid} argument in the last call to
+   * {@link #valueChanged(long)} is saved in this field. The field value is used
+   * as the argument in the call to {@link #valueChangedLazy(long)} made from
+   * subclasses. E.g., in {@link CMDisplayer#displayerSelected()}.
+   */
+  protected long lastBID = -1;
+
+  @Override
   public void valueChanged(long bid)
   {
-    // Normally overridden by subclass that does the actual work.
+    boolean bHasVisibleComponent = false;
+    for (final JComponent comp : components) {
+      if (comp.isShowing()) {
+        bHasVisibleComponent = true;
+        break;
+      }
+    }
+    lastBID = bid;
+
+    if (bHasVisibleComponent) {
+      valueChangedLazy(bid);
+    }
   }
 
-  public BundleSelectionModel getBundleSelectionModel()
+  @Override
+  public void displayerSelected()
   {
-    return bundleSelModel;
+    valueChangedLazy(lastBID);
   }
 
+  @Override
   public void setBundleSelectionModel(BundleSelectionModel model)
   {
     if (bundleSelModel != null) {
@@ -160,8 +203,14 @@ public abstract class DefaultSwingBundleDisplayer
     bundleSelModel.addBundleSelectionListener(this);
   }
 
+  public BundleSelectionModel getBundleSelectionModel()
+  {
+    return bundleSelModel;
+  }
+
   Set<JComponent> components = new HashSet<JComponent>();
 
+  @Override
   public JComponent createJComponent()
   {
     final JComponent comp = newJComponent();
@@ -170,45 +219,40 @@ public abstract class DefaultSwingBundleDisplayer
     return comp;
   }
 
+  @Override
   public void disposeJComponent(JComponent comp)
   {
     components.remove(comp);
   }
 
-  void closeComponents()
-  {
-    for (final Object element : components) {
-      final JComponent comp = (JComponent) element;
-      closeComponent(comp);
-    }
-  }
-
-  void closeComponent(JComponent comp)
-  {
-    // Should be overridden
-  }
-
   void repaintComponents()
   {
-    for (final Object element : components) {
-      final JComponent comp = (JComponent) element;
+    for (final JComponent comp : components) {
       comp.invalidate();
       comp.repaint();
     }
   }
 
+  @Override
   public Icon getLargeIcon()
   {
     return null;
   }
 
+  @Override
   public Icon getSmallIcon()
   {
     return null;
   }
 
+  @Override
   public void setTargetBundleContext(BundleContext bc)
   {
-    // NYI
+    this.bc = bc;
+  }
+
+  @Override
+  public void showBundle(Bundle b)
+  {
   }
 }
