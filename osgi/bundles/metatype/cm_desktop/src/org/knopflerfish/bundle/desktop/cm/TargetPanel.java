@@ -527,6 +527,17 @@ public class TargetPanel
   }
 
   /**
+   * Is this panel displaying a factory configuration or not.
+   *
+   * @return {@code true} if the PID this panel handles is a factory PID and
+   *         {@code false} otherwise.
+   */
+  boolean isFactoryPid()
+  {
+    return isFactoryPid;
+  }
+
+  /**
    * Check if the given PID is one of the PIDs handled by this object.
    *
    * @param pid
