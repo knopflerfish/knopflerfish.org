@@ -14,7 +14,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-Activator: org.knopflerfish.bundle.desktop.cm.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.5))"
 Import-Package: org.osgi.service.cm; version="[1.5,2)",
- org.knopflerfish.service.desktop,
+ org.knopflerfish.service.desktop; version="[2.2,3)",
  org.knopflerfish.service.log,
  org.knopflerfish.shared.cm; version="[1.1,2)",
  org.knopflerfish.util.metatype,

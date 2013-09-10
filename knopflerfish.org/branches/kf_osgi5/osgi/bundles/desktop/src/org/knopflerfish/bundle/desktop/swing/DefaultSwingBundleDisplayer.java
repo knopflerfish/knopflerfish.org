@@ -58,11 +58,12 @@ import org.osgi.framework.ServiceRegistration;
 import org.knopflerfish.service.desktop.BundleSelectionListener;
 import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SelectionAware;
 import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 
 public abstract class DefaultSwingBundleDisplayer
-  implements SwingBundleDisplayer, BundleListener, ServiceListener,
-  BundleSelectionListener
+  implements SwingBundleDisplayer, SelectionAware, BundleListener,
+  ServiceListener, BundleSelectionListener
 {
 
   final String name;
@@ -252,7 +253,8 @@ public abstract class DefaultSwingBundleDisplayer
     }
   }
 
-  public void setTabSelected()
+  @Override
+  public void displayerSelected()
   {
     valueChangedLazy(lastBID);
   }
