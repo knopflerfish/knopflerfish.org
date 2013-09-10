@@ -190,8 +190,9 @@ public class JCMInfo
     if (bundle==null) {
       sb.append("Select a bundle in the main view to view CM metatype information for it.<br>");
     } else {
-      sb.append("No CM metatype found in bundle.<br>");
-      sb.append("See <a href=\"http://www.knopflerfish.org/XMLMetatype/\">http://www.knopflerfish.org/XMLMetatype/</a> for details on how to add metatype and default values.<br>");
+      sb.append("No CM metatype found in <em>");
+      sb.append(Util.getBundleName(bundle));
+      sb.append("</em>.");
     }
     sb.append("</font>");
     sb.append("</p>");

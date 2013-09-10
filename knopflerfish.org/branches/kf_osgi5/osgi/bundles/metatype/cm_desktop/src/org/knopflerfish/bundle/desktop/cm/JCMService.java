@@ -35,7 +35,6 @@
 package org.knopflerfish.bundle.desktop.cm;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,16 +42,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.Box;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -60,27 +54,21 @@ import javax.swing.SwingUtilities;
 
 import org.osgi.framework.Bundle;
 import org.osgi.service.cm.Configuration;
-import org.osgi.service.metatype.AttributeDefinition;
 import org.osgi.service.metatype.ObjectClassDefinition;
 
 import org.knopflerfish.bundle.desktop.cm.TargetPanel.ConfigurationAlternative;
 import org.knopflerfish.shared.cm.CMDataReader;
 import org.knopflerfish.shared.cm.CMDataWriter;
-import org.knopflerfish.util.metatype.AD;
 
+/**
+ * UI to work with configurations for one OCD (Object Class Definition).
+ *
+ * @author ekolin
+ */
 public class JCMService
   extends JPanel
 {
   private static final long serialVersionUID = 1L;
-
-  /** The currently presented object class definition. */
-  ObjectClassDefinition ocd;
-  /** The currently presented PID. Either a factory PID or a normal PID. */
-  String designatedPid;
-  /** ? */
-  boolean isService = true;
-  /** Set to true when the designated PID is a factory PID. */
-  boolean isFactory = false;
 
   /**
    * Panel to place controls etc. in placed in the north slot of the main panel.
@@ -88,25 +76,15 @@ public class JCMService
   final Box northPanel = Box.createVerticalBox();
 
   /** Panel presenting the properties of the configuration. */
-  final Box propPane = Box.createVerticalBox();
+  final PropertiesPanel propPanel = new PropertiesPanel();
 
   /**
    * Scroll pane scrolling the {@code #propPane}.
    */
-  final JScrollPane propScroll = new JScrollPane(propPane);
+  final JScrollPane propScroll = new JScrollPane(propPanel);
 
   final TargetPanel targetPanel = new TargetPanel(this);
   final ControlPanel controlPanel = new ControlPanel(this);
-
-  /** Current property values to present. */
-  Map<String, JCMProp> props = new HashMap<String, JCMProp>();
-
-
-  /**
-   * The PID of the factory configuration instance that is presented, null
-   * otherwise.
-   */
-  String factoryPid;
 
 
   /**
@@ -140,6 +118,7 @@ public class JCMService
 
   /**
    * Tell this component to present a configuration with metatype information.
+   *
    * @param pid
    *          The PID of the configuration to present.
    * @param bundle
@@ -151,13 +130,7 @@ public class JCMService
    */
   void setServiceOCD(String pid, Bundle bundle, ObjectClassDefinition ocd)
   {
-    this.ocd = ocd;
-    this.designatedPid = pid;
-
-    isService = ocd != null;
-    isFactory = false;
-
-    updateOCD();
+    updateOCD(pid, ocd);
     targetPanel.updateTargeted(pid, bundle, false);
   }
 
@@ -177,34 +150,27 @@ public class JCMService
    */
   void setFactoryOCD(String pid, Bundle bundle, ObjectClassDefinition ocd)
   {
-    this.ocd = ocd;
-    this.designatedPid = pid;
-
-    // Remove old properties; rebuilt by updateOCD() below.
-    props.clear();
-
-    isService = false;
-    isFactory = ocd != null;
-
-    updateOCD();
+    updateOCD(pid, ocd);
     targetPanel.updateTargeted(pid, bundle, true);
   }
 
   /**
    * Rebuild the UI according to the current Object Class Definition and
    * designated PID.
+   *
+   * @param pid
+   *          The base (factory) PID of the configuration to present.
+   * @param ocd
+   *          The metatype Object Class Definition describing the configuration
+   *          data.
    */
-  void updateOCD()
+  void updateOCD(String pid, ObjectClassDefinition ocd)
   {
-    propPane.removeAll();
-    props.clear();
-    factoryPid = null;
-
     if (ocd != null) {
-      setBorder(JCMInfo.makeBorder(this, designatedPid));
+      setBorder(JCMInfo.makeBorder(this, pid));
 
       // Rebuild the props pane presenting default values.
-      buildPropsPane();
+      propPanel.rebuild(ocd);
 
       // The icon from current OCD if any.
       try {
@@ -224,25 +190,6 @@ public class JCMService
     repaint();
   }
 
-  private void buildPropsPane()
-  {
-    final Dictionary<String, Object> configProps =
-      new Hashtable<String, Object>();
-
-    final AttributeDefinition[] reqAttrs =
-      ocd.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
-    addAttribs(propPane, reqAttrs, configProps, "");
-    final AttributeDefinition[] optAttrs =
-      ocd.getAttributeDefinitions(ObjectClassDefinition.OPTIONAL);
-    addAttribs(propPane, optAttrs, configProps, " (optional)");
-
-    // Must use a panel as filler since the component returned by
-    // BoxcreateGlue() does not paint the background.
-    final JComponent filler = new JPanel();
-    filler.setAlignmentX(Component.LEFT_ALIGNMENT);
-    propPane.add(filler);
-  }
-
   /**
    * Callback from the {@code #targetPanel} that informs about a target
    * selection change. Update control panel buttons and the property
@@ -251,74 +198,11 @@ public class JCMService
   void targetSelectionChanged()
   {
     final Configuration cfg = targetPanel.getSelectedConfiguration();
-    controlPanel.updateState(cfg != null, isFactory);
+    controlPanel.updateState(cfg != null, targetPanel.isFactoryPid());
 
     final Dictionary<String, Object> newProps =
       cfg != null ? cfg.getProperties() : null;
-    setProps(newProps);
-  }
-
-  /**
-   * Populate the properties part of the UI with name, description, editable
-   * value for all provided attribute definitions.
-   *
-   * @param propPane
-   *          The UI component to add row to.
-   * @param ads
-   *          The attribute definitions to present.
-   * @param configProps
-   *          Current values of the attributes.
-   * @param info
-   *          Extra information to add to the tool tip for the attribute label.
-   */
-  void addAttribs(JComponent propPane,
-                  AttributeDefinition[] ads,
-                  Dictionary<String, Object> configProps,
-                  String info)
-  {
-    for (final AttributeDefinition ad : ads) {
-      JLabelled item = null;
-      try {
-        final JCMProp jcmProp = new JCMProp(ad, configProps);
-        props.put(ad.getID(), jcmProp);
-
-        String className = AD.getClass(ad.getType()).getName();
-        if (ad.getCardinality() < 0) {
-          className = "Vector of " + className;
-        } else if (ad.getCardinality() > 0) {
-          className = className + "[]";
-        }
-
-        final StringBuffer toolTip = new StringBuffer(200);
-        toolTip.append("<table width=\"400px\">");
-        toolTip.append("<tr><th align=\"left\">");
-        toolTip.append(ad.getName());
-        toolTip.append("</th></tr>");
-        if (!info.isEmpty()) {
-          toolTip.append("<tr><td align=\"right\">");
-          toolTip.append(info);
-          toolTip.append("</td></tr>");
-        }
-        if (ad.getDescription() != null && !ad.getDescription().isEmpty()) {
-          toolTip.append("<tr><td>");
-          toolTip.append(ad.getDescription());
-          toolTip.append("</td></tr>");
-        }
-        toolTip.append("<tr><td align=\"left\">(");
-        toolTip.append(className);
-        toolTip.append(")</td></tr>");
-        toolTip.append("</table>");
-
-        item =
-          new JLabelled(ad.getName(), toolTip.toString(), jcmProp, 100);
-      } catch (final Exception e) {
-        final String msg = "Failed to create ui for " + ad;
-        Activator.log.error(msg, e);
-        item =
-          new JLabelled(ad.getName(), msg, new JLabel(e.getMessage()), 100);
-      }
-      propPane.add(item);
-    }
+    propPanel.setProps(newProps);
   }
 
   /**
@@ -408,7 +292,7 @@ public class JCMService
           selectedValue.cfg != null
             ? selectedValue.cfg.getProperties()
             : new Hashtable<String, Object>();
-        setProps(newProps);
+        propPanel.setProps(newProps);
       }
     } catch (final Exception e) {
       final String msg = "Copy configuration values failed, " + e.getMessage();
@@ -420,7 +304,7 @@ public class JCMService
   void createConfig()
   {
     try {
-      targetPanel.createSelectedConfiguration(getProps());
+      targetPanel.createSelectedConfiguration(propPanel.getProps());
     } catch (final Exception e) {
       showError("Failed to create configuration, pid: '"
                     + targetPanel.getSelectedPid() + "'.", e);
@@ -445,7 +329,7 @@ public class JCMService
   {
     try {
       final Configuration conf =
-        targetPanel.getSelectedConfiguration(false, getProps());
+        targetPanel.getSelectedConfiguration(false, propPanel.getProps());
       if (conf == null) {
         showError("Can not update non-exisiting configuration", null);
       }
@@ -453,63 +337,6 @@ public class JCMService
     } catch (final Exception e) {
       Activator.log.error("Failed to apply new values to configuration; " +e.getMessage(), e);
     }
-  }
-
-  void setProps(Dictionary<String, Object> in)
-  {
-    if (in == null) {
-      in = new Hashtable<String, Object>();
-    }
-    // Avoid concurrent updates.
-    synchronized (props) {
-      for (final Entry<String, JCMProp> entry : props.entrySet()) {
-        final String name = entry.getKey();
-        final JCMProp jcmProp = entry.getValue();
-        try {
-          jcmProp.setErr(null);
-          jcmProp.setValue(in.get(name));
-          jcmProp.invalidate();
-        } catch (final Exception e) {
-          jcmProp.setErr(e.getMessage());
-        }
-      }
-
-    }
-
-    propPane.validate();
-    propPane.repaint();
-  }
-
-  Dictionary<String, Object> getProps()
-  {
-    final Hashtable<String, Object> res = new Hashtable<String, Object>();
-
-    int errCount = 0;
-    for (final Entry<String, JCMProp> entry : props.entrySet()) {
-      final String name = entry.getKey();
-      final JCMProp jcmProp = entry.getValue();
-      try {
-        final Object val = jcmProp.getValue();
-        res.put(name, val);
-        jcmProp.setErr(null);
-      } catch (final Exception e) {
-        errCount++;
-        jcmProp.setErr(e.getMessage());
-        jcmProp.invalidate();
-        Activator.log.error("Failed to convert value for '" + name + "', " + e,
-                            e);
-      }
-    }
-
-    propPane.invalidate();
-    propPane.revalidate();
-    propPane.repaint();
-
-    if (errCount > 0) {
-      throw new IllegalArgumentException("Failed to convert " + errCount
-                                         + " values");
-    }
-    return res;
   }
 
   void showError(String msg, Throwable t)
