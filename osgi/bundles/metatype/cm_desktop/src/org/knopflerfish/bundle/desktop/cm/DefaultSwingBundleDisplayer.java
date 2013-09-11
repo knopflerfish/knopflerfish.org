@@ -65,12 +65,12 @@ public abstract class DefaultSwingBundleDisplayer
   ServiceRegistration<SwingBundleDisplayer> reg = null;
 
   /** The bundle context of the target framework to present data for. */
-  BundleContext bc;
+  static BundleContext bc;
 
   public DefaultSwingBundleDisplayer(BundleContext bc, String name,
                                      String desc, boolean bDetail)
   {
-    this.bc = bc;
+    DefaultSwingBundleDisplayer.bc = bc;
     this.name = name;
     this.desc = desc;
     this.bDetail = bDetail;
@@ -248,7 +248,12 @@ public abstract class DefaultSwingBundleDisplayer
   @Override
   public void setTargetBundleContext(BundleContext bc)
   {
-    this.bc = bc;
+    DefaultSwingBundleDisplayer.bc = bc;
+  }
+
+  static protected BundleContext getTargetBundleContext()
+  {
+    return bc;
   }
 
   @Override

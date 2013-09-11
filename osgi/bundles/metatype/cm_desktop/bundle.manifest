@@ -25,4 +25,6 @@ Import-Package: org.osgi.service.cm; version="[1.5,2)",
  javax.swing.border,
  javax.swing.event,
  javax.swing.filechooser,
- javax.swing.table
+ javax.swing.table,
+ javax.swing.text,
+ javax.swing.text.html

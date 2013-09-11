@@ -53,6 +53,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.JViewport;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -114,6 +115,8 @@ public abstract class JHTMLBundle extends JPanel
 
     html = new JTextPane();
     html.setText(Strings.get("bundleinfo_startup"));
+
+    // Enable posting of form submit events to the hyper link listener
     html.setContentType("text/html");
     final HTMLEditorKit htmlEditor
       = (HTMLEditorKit)html.getEditorKitForContentType("text/html");
@@ -130,6 +133,7 @@ public abstract class JHTMLBundle extends JPanel
     html.setEditable(false);
 
     html.addHyperlinkListener(new HyperlinkListener() {
+      @Override
       public void hyperlinkUpdate(HyperlinkEvent e) {
         if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
           final URL url = e.getURL();
@@ -150,8 +154,8 @@ public abstract class JHTMLBundle extends JPanel
       }
     });
 
-    scroll = new JScrollPane(html, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    scroll = new JScrollPane(html, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
     html.setPreferredSize(new Dimension(300, 300));
 
@@ -162,6 +166,7 @@ public abstract class JHTMLBundle extends JPanel
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
+              @Override
               public void actionPerformed(ActionEvent ev) {
                 if (!historyBack.isEmpty()) {
                   final URL url
@@ -181,6 +186,7 @@ public abstract class JHTMLBundle extends JPanel
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
+              @Override
               public void actionPerformed(ActionEvent ev) {
                 if (historyFwd.size() > 0) {
                   final URL url
@@ -224,6 +230,7 @@ public abstract class JHTMLBundle extends JPanel
     super.removeNotify();
   }
 
+  @Override
   public void hierarchyChanged(HierarchyEvent e) {
     if ((e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
       // This pane has changed show-state.
@@ -364,6 +371,7 @@ public abstract class JHTMLBundle extends JPanel
    */
   class ValueUpdater implements Runnable
   {
+    @Override
     public void run()
     {
       Bundle[] bl = null;
@@ -471,6 +479,7 @@ public abstract class JHTMLBundle extends JPanel
     html.setText(s);
 
     SwingUtilities.invokeLater(new Runnable() {
+        @Override
         public void run() {
           try {
             final JViewport vp = scroll.getViewport();

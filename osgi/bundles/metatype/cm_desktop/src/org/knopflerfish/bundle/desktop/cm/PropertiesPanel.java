@@ -80,15 +80,17 @@ public class PropertiesPanel
     removeAll();
     props.clear();
 
-    final Dictionary<String, Object> configProps =
-      new Hashtable<String, Object>();
+    if (ocd != null) {
+      final Dictionary<String, Object> configProps =
+        new Hashtable<String, Object>();
 
-    final AttributeDefinition[] reqAttrs =
-      ocd.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
-    addAttribs(reqAttrs, configProps, "");
-    final AttributeDefinition[] optAttrs =
-      ocd.getAttributeDefinitions(ObjectClassDefinition.OPTIONAL);
-    addAttribs(optAttrs, configProps, " (optional)");
+      final AttributeDefinition[] reqAttrs =
+        ocd.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
+      addAttribs(reqAttrs, configProps, "");
+      final AttributeDefinition[] optAttrs =
+        ocd.getAttributeDefinitions(ObjectClassDefinition.OPTIONAL);
+      addAttribs(optAttrs, configProps, " (optional)");
+    }
 
     // Must use a panel as filler since the component returned by
     // BoxcreateGlue() does not paint the background.

@@ -44,7 +44,6 @@ import javax.swing.SwingUtilities;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.metatype.MetaTypeInformation;
@@ -99,59 +98,6 @@ public class CMDisplayer
     return null;
   }
 
-  static boolean configExists(String pid)
-  {
-    return getConfig(pid) != null;
-  }
-
-  /**
-   * Find the PID of the best matching targeted configuration for the given
-   * (non-targeted PID) and bundle.
-   *
-   * @param pid
-   *          The PID to find a configuration for.
-   * @param bundle
-   *          The bundle to find the best configuration for.
-   * @return The PID of the best existing targeted configuration or if no such
-   *         configuration exists, the given PID.
-   */
-  static String getBestTargetedPIDWithConfig(final String pid, final Bundle bundle)
-  {
-    if (bundle == null) {
-      return pid;
-    }
-    // "(|(PID=pid)(pid=PID|BSN)(pid=PID|BSN|Version)(pid=PID|BSN|Version|Location))"
-    final StringBuffer filter =
-      new StringBuffer(
-                       (pid.length() * 4 + Constants.SERVICE_PID.length() * 4 + 15) * 2);
-    filter.append("(|(").append(Constants.SERVICE_PID).append('=').append(pid)
-        .append(")(").append(Constants.SERVICE_PID).append('=').append(pid)
-        .append('|').append(bundle.getSymbolicName()).append(")(")
-        .append(Constants.SERVICE_PID).append('=').append(pid).append('|')
-        .append(bundle.getSymbolicName()).append('|')
-        .append(bundle.getVersion().toString()).append(")(")
-        .append(Constants.SERVICE_PID).append('=').append(pid).append('|')
-        .append(bundle.getSymbolicName()).append('|')
-        .append(bundle.getVersion().toString()).append('|')
-        .append(bundle.getLocation()).append("))");
-    try {
-      final Configuration[] configs =
-        getCA().listConfigurations(filter.toString());
-      if (configs==null) {
-        return pid;
-      }
-      String res = pid;
-      for (final Configuration cfg : configs) {
-        if (res.length()< cfg.getPid().length()) {
-          res = cfg.getPid();
-        }
-      }
-      return res;
-    } catch (final Exception e) {
-    }
-    return pid;
-  }
-
   static boolean isCmBundle(final Bundle bundle) {
     final Bundle cmBundle = cmTracker.getServiceReference().getBundle();
     return cmBundle != null ? cmBundle.equals(bundle)  : false;
@@ -159,6 +105,11 @@ public class CMDisplayer
 
   static boolean isSystemBundle(final Bundle bundle) {
     return bundle != null && bundle.getBundleId() == 0L;
+  }
+
+  static Bundle[] getAllBundles()
+  {
+    return getTargetBundleContext().getBundles();
   }
 
   @Override
@@ -246,7 +197,7 @@ public class CMDisplayer
 
     public void setBundle(Bundle b)
     {
-      if ((bundle !=null && bundle.equals(b)) || (bundle==null && b==null)) {
+      if ((bundle != null && bundle.equals(b)) || (bundle == null && b == null)) {
         // No change of selection!
         return;
       }
@@ -255,11 +206,17 @@ public class CMDisplayer
         jcmInfo.setProvider(null, null);
       } else {
         try {
-          final MetaTypeInformation mti = Activator.getMTP(bundle);
+          MetaTypeInformation mti = Activator.getMTI(bundle);
+          if (mti == null) {
+            // If the MetaTypeService is a Knopflerfish SystemMetatypeProvider
+            // then we may get a special MetaTypeInformation-object by calling
+            // getMTP(bundle)
+            mti = Activator.getMTP(bundle);
+          }
           jcmInfo.setProvider(mti, bundle);
         } catch (final Exception e) {
-          Activator.log.error("Failed to get MetaTypeInformation from bundle "
-                              + b.getBundleId() +": " +e.getMessage(), e);
+          Activator.log.error("Failed to get MetaTypeInformation for bundle "
+                              + b.getBundleId() + ": " + e.getMessage(), e);
         }
       }
     }
