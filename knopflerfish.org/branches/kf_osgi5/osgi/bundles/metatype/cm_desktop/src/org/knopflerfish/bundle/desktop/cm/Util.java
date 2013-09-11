@@ -40,6 +40,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
@@ -209,10 +212,19 @@ public class Util
               + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 
+  public static final String URL_CM_HOST = "desktop";
+  public static final String URL_CM_PATH_PREFIX = "/cm";
+  public static final String URL_CM = "http://" +URL_CM_HOST +URL_CM_PATH_PREFIX;
+  /** Name of mandatory parameter for URL_CM URLs. */
+  public static final String URL_CM_CMD = "cmd";
+  /** Value of mandatory URL_CMD parameter for URL_CM URLs. */
+  public static final String URL_CM_CMD_IMPORT = "Import...";
+
+
   public static final String URL_BUNDLE_PREFIX =
     "http://127.0.0.1/desktop/bid/";
   public static final String URL_SERVICE_PREFIX =
-    "http://127.0.0.1/desktop/sid/";
+      "http://127.0.0.1/desktop/sid/";
 
   public static void bundleLink(StringBuffer sb, Bundle b)
   {
@@ -241,6 +253,13 @@ public class Util
     return url.toString().startsWith(URL_SERVICE_PREFIX);
   }
 
+  public static boolean isImportLink(URL url)
+  {
+    return URL_CM_HOST.equals(url.getHost())
+        && url.getPath().startsWith(URL_CM_PATH_PREFIX)
+        && paramsFromURL(url).get(URL_CM_CMD).equals(URL_CM_CMD_IMPORT);
+  }
+
   public static long bidFromURL(URL url)
   {
     if (!isBundleLink(url)) {
@@ -249,5 +268,25 @@ public class Util
     }
     return Long.parseLong(url.toString().substring(URL_BUNDLE_PREFIX.length()));
   }
+
+
+  public static Map<String, String> paramsFromURL(final URL url)
+  {
+    final Map<String, String> res = new HashMap<String, String>();
+    final String query = url.getQuery();
+    if (null != query) {
+      final StringTokenizer st = new StringTokenizer(query, "&");
+      while (st.hasMoreTokens()) {
+        final String tok = st.nextToken();
+        final int delimPos = tok.indexOf('=');
+        final String key = tok.substring(0, delimPos).trim();
+        final String value = tok.substring(delimPos + 1).trim();
+
+        res.put(key, value);
+      }
+    }
+    return res;
+  }
+
 
 }

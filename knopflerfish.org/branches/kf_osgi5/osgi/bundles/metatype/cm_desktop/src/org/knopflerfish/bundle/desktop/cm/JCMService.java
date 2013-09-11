@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.desktop.cm;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -183,6 +184,10 @@ public class JCMService
 
       // The description from current OCD if any.
       controlPanel.updateDescription(ocd.getDescription());
+    } else {
+      controlPanel.updateIcon(null);
+      controlPanel.updateDescription(null);
+      propPanel.rebuild(null);
     }
 
     invalidate();
@@ -264,7 +269,7 @@ public class JCMService
         "Export of configuration instance failed, pid=" + pid + ", "
             + e.getMessage();
       Activator.log.error(msg, e);
-      showError(msg, e);
+      showError(this, msg, e);
     }
   }
 
@@ -297,7 +302,7 @@ public class JCMService
     } catch (final Exception e) {
       final String msg = "Copy configuration values failed, " + e.getMessage();
       Activator.log.error(msg, e);
-      showError(msg, e);
+      showError(this, msg, e);
     }
   }
 
@@ -306,8 +311,8 @@ public class JCMService
     try {
       targetPanel.createSelectedConfiguration(propPanel.getProps());
     } catch (final Exception e) {
-      showError("Failed to create configuration, pid: '"
-                    + targetPanel.getSelectedPid() + "'.", e);
+      showError(this, "Failed to create configuration, pid: '"
+                                  + targetPanel.getSelectedPid() + "'.", e);
     }
   }
 
@@ -318,7 +323,7 @@ public class JCMService
     try {
       targetPanel.deleteSelectedConfiguration();
     } catch (final Exception e) {
-      showError("Failed to delete configuration, pid: '" + pid +"'.", e);
+      showError(this, "Failed to delete configuration, pid: '" + pid +"'.", e);
     }
   }
 
@@ -331,7 +336,7 @@ public class JCMService
       final Configuration conf =
         targetPanel.getSelectedConfiguration(false, propPanel.getProps());
       if (conf == null) {
-        showError("Can not update non-exisiting configuration", null);
+        showError(this, "Can not update non-exisiting configuration", null);
       }
       // UI will be updated by the configuration listener in the target panel.
     } catch (final Exception e) {
@@ -339,10 +344,10 @@ public class JCMService
     }
   }
 
-  void showError(String msg, Throwable t)
+  static void showError(Component component, String msg, Throwable t)
   {
     Activator.log.error(msg, t);
-    JOptionPane.showMessageDialog(this, msg + "\n" + t.toString(), msg,
+    JOptionPane.showMessageDialog(component, msg + "\n" + t.toString(), msg,
                                   JOptionPane.ERROR_MESSAGE);
   }
 

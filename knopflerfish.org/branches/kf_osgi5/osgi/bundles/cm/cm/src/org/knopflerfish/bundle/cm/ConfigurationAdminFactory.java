@@ -189,7 +189,7 @@ class ConfigurationAdminFactory
     for (final ServiceReference<SynchronousConfigurationListener> listenerRef : lReferences) {
       try {
         new ListenerEvent(listenerRef, event).sendEvent(Activator.bc);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         Activator.log.error("Failed to call synchronous configuration listener: " +e, e);
       }
     }
@@ -323,9 +323,9 @@ class ConfigurationAdminFactory
   private <S> Collection<ServiceReference<S>> filterOnTargetedPid(Collection<ServiceReference<S>> srs,
                                                                   String targetedPid)
   {
-    Collection<ServiceReference<S>> res =
+    final Collection<ServiceReference<S>> res =
       new ArrayList<ServiceReference<S>>(srs.size());
-    for (ServiceReference<S> sr : srs) {
+    for (final ServiceReference<S> sr : srs) {
       if (targetedPidMatches(targetedPid, sr.getBundle())) {
         res.add(sr);
       }
@@ -647,7 +647,7 @@ class ConfigurationAdminFactory
     // MSs with this PID than those that does match on the current target
     // specification.
 
-    boolean isDeleted = null == load(targetedPid, null);
+    final boolean isDeleted = null == load(targetedPid, null);
     if (isDeleted) {
       if (!isTargetedPID) {
         // A non-targeted configuration has been deleted, no other configuration
@@ -660,7 +660,7 @@ class ConfigurationAdminFactory
     } else {
       // New or updated configuration
       final ServiceReference<ManagedService> bestSr = srs.iterator().next();
-      ConfigurationDictionary cd = load(pid, bestSr.getBundle());
+      final ConfigurationDictionary cd = load(pid, bestSr.getBundle());
       final ConfigurationDictionary bound = bindLocationIfNecessary(bestSr, cd);
       final String newBundleLocation = bound.getLocation();
 
@@ -697,7 +697,7 @@ class ConfigurationAdminFactory
   private boolean targetedPidMatches(final String targetedPid,
                                      final Bundle bundle)
   {
-    StringTokenizer st = new StringTokenizer(targetedPid, "|");
+    final StringTokenizer st = new StringTokenizer(targetedPid, "|");
 
     // Skip PID token
     if (!st.hasMoreTokens()) {
@@ -1371,8 +1371,11 @@ class ConfigurationAdminFactory
         this.properties = new ConfigurationDictionary();
       } else {
         this.properties = ConfigurationDictionary.createDeepCopy(properties);
+        // Avoid overriding of CM internal props from properties
+        this.properties.removeLocation();
       }
 
+      // Copy CM internal props from the old configuration dictionary
       copyChangeCountFrom(old);
       copyBundleLocationFrom(old); // TODO: THIS IS WRONG!!!
 
@@ -1804,7 +1807,7 @@ class ConfigurationAdminFactory
       final String bsn = bundle.getSymbolicName();
       // A bundle symbolic name is required for this feature!
       if (bsn != null) {
-        StringBuffer suffix = new StringBuffer("|").append(bsn);
+        final StringBuffer suffix = new StringBuffer("|").append(bsn);
         targetPIDsuffixes.add(suffix.toString());
         suffix.append('|').append(bundle.getVersion().toString());
         targetPIDsuffixes.add(suffix.toString());

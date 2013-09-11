@@ -669,7 +669,7 @@ public class TargetPanel
       cfg.delete();
       // UI will be updated from the ConfgurationListener callback.
     } else {
-      owner.showError("Can not delete non-existing configuration.", null);
+      JCMService.showError(this, "Can not delete non-existing configuration.", null);
     }
   }
 
