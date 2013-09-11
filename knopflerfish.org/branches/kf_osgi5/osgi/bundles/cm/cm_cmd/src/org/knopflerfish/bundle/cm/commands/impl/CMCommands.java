@@ -188,7 +188,7 @@ public class CMCommands
       } else {
         sortConfigurationArray(cs);
         setSessionProperty(session, LISTED_CONFIGS, cs);
-        Map<String,Integer> pidToIndex = new HashMap<String, Integer>();
+        final Map<String,Integer> pidToIndex = new HashMap<String, Integer>();
         for (int i = 0; i<cs.length; i++) {
           pidToIndex.put(cs[i].getPid(), new Integer(i));
         }
@@ -242,7 +242,7 @@ public class CMCommands
         throw new Exception("No matching configurations for selection.");
       }
       sortConfigurationArray(cs);
-      for (Configuration cfg : cs) {
+      for (final Configuration cfg : cs) {
         printConfiguration(out, session, cfg, printTypes);
       }
     } catch (final Exception e) {
@@ -475,7 +475,7 @@ public class CMCommands
     } else {
       try {
         printConfiguration(out, session, cfg, printTypes);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         out.print("Current failed. Details:");
         final String reason = e.getMessage();
         out.println(reason == null ? "<unknown>" : reason);
@@ -506,8 +506,8 @@ public class CMCommands
       srvCA = getCA();
 
       if (isEditing(session)) {
-        long oldVersion = getEditingVersion(session);
-        long currentVersion = cfg.getChangeCount();
+        final long oldVersion = getEditingVersion(session);
+        final long currentVersion = cfg.getChangeCount();
 
         if (forceOptionNotSpecified && currentVersion > oldVersion) {
           throw new Exception("The configuration has changed in CM since "
@@ -663,23 +663,17 @@ public class CMCommands
             final Hashtable<String, Object>[] configs =
               cmDataReader.readCMDatas(reader);
 
-            for (final Hashtable<String, Object> config2 : configs) {
-              final String pid = (String) config2.get(CMDataReader.SERVICE_PID);
+            for (final Hashtable<String, Object> props : configs) {
+              final String pid = (String) props.get(CMDataReader.SERVICE_PID);
               final String fpid =
-                (String) config2.get(CMDataReader.FACTORY_PID);
+                (String) props.get(CMDataReader.FACTORY_PID);
               Configuration config;
               if (fpid == null) {
                 config = configAdmin.getConfiguration(pid, null);
               } else {
                 config = configAdmin.createFactoryConfiguration(fpid, null);
               }
-              if (config.getBundleLocation() != null) {
-                config.setBundleLocation(null);
-              }
-              if (config2.get("service.bundleLocation") != null) {
-                config2.remove("service.bundleLocation");
-              }
-              config.update(config2);
+              config.update(props);
             }
           } finally {
             if (reader != null) {
@@ -751,7 +745,8 @@ public class CMCommands
       }
 
       final String fileName = (String) opts.get("file");
-      final File file = new File(fileName);
+      final File file =
+        new File(fileName.endsWith(".xml") ? fileName : (fileName + ".xml"));
         pw =
           AccessController
               .doPrivileged(new PrivilegedExceptionAction<PrintWriter>() {
@@ -893,7 +888,7 @@ public class CMCommands
    **************************************************************************/
   private long getEditingVersion(Session session)
   {
-    Long version = (Long) session.getProperties().get(EDITED_VERSION);
+    final Long version = (Long) session.getProperties().get(EDITED_VERSION);
     return (version == null) ? Long.MIN_VALUE : version.longValue();
   }
 
@@ -1022,7 +1017,7 @@ public class CMCommands
     final Map<String, Integer> pidToIndex =
       (Map<String, Integer>) session.getProperties()
           .get(LISTED_CONFIGS_PID_TO_INDEX);
-    Integer ix = pidToIndex.get(pid);
+    final Integer ix = pidToIndex.get(pid);
     if (ix != null) {
       res = ix.intValue();
     }
@@ -1102,7 +1097,7 @@ public class CMCommands
     out.print("] ");
     out.println(pid);
 
-    String factoryPid = cfg.getFactoryPid();
+    final String factoryPid = cfg.getFactoryPid();
     if (factoryPid != null) {
       out.print(" factory PID: ");
       out.println(factoryPid);
@@ -1138,7 +1133,7 @@ public class CMCommands
       out.print("  ");
       out.print(keyNames[i]);
 
-      Object value = d.get(keyNames[i]);
+      final Object value = d.get(keyNames[i]);
       if (printTypes) {
         out.print(":");
         printValueType(out, value);
