@@ -98,10 +98,6 @@ public class Activator
   public void stop(BundleContext bc)
   {
     try {
-      if (log != null) {
-        log = null;
-      }
-
       disp.close();
       disp = null;
 
@@ -111,6 +107,11 @@ public class Activator
       Activator.bc = null;
     } catch (final Exception e) {
       log.error("stop failed: " + e.getMessage(), e);
+    }
+
+    if (log != null) {
+      log.close();
+      log = null;
     }
   }
 

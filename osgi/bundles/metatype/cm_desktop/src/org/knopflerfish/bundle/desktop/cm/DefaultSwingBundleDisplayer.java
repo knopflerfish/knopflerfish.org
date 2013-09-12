@@ -34,10 +34,13 @@
 
 package org.knopflerfish.bundle.desktop.cm;
 
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -74,6 +77,11 @@ public abstract class DefaultSwingBundleDisplayer
     this.name = name;
     this.desc = desc;
     this.bDetail = bDetail;
+  }
+
+  protected Bundle[] getBundleArray()
+  {
+    return getAllBundlesSortedByName().toArray(new Bundle[0]);
   }
 
   public ServiceRegistration<SwingBundleDisplayer> register()
@@ -142,10 +150,14 @@ public abstract class DefaultSwingBundleDisplayer
       bundleSelModel.removeBundleSelectionListener(this);
     }
 
-    for (final JComponent comp : components) {
-      disposeJComponent(comp);
+    synchronized (components) {
+      // Must clone components to avoid concurrent modification since dispose
+      // will remove items from components.
+      for (final JComponent comp : new HashSet<JComponent>(components)) {
+        disposeJComponent(comp);
+      }
+      components.clear(); // Should be a noop since disposeJComponent shall remove it...
     }
-    components.clear();
   }
 
   /**
@@ -174,10 +186,12 @@ public abstract class DefaultSwingBundleDisplayer
   public void valueChanged(long bid)
   {
     boolean bHasVisibleComponent = false;
-    for (final JComponent comp : components) {
-      if (comp.isShowing()) {
-        bHasVisibleComponent = true;
-        break;
+    synchronized (components) {
+      for (final JComponent comp : components) {
+        if (comp.isShowing()) {
+          bHasVisibleComponent = true;
+          break;
+        }
       }
     }
     lastBID = bid;
@@ -191,6 +205,23 @@ public abstract class DefaultSwingBundleDisplayer
   public void displayerSelected()
   {
     valueChangedLazy(lastBID);
+  }
+
+  static private Bundle[] getBundles()
+  {
+    final BundleContext tbc = getTargetBundleContext();
+    final Bundle[] bl = tbc == null ? null : tbc.getBundles();
+    return bl;
+  }
+
+  public static SortedSet<Bundle> getAllBundlesSortedByName()
+  {
+    final Bundle[] bl = getBundles();
+    final SortedSet<Bundle> set = new TreeSet<Bundle>(Util.bundleNameComparator);
+    if (bl != null) {
+      set.addAll(Arrays.asList(bl));
+    }
+    return set;
   }
 
   @Override
@@ -214,7 +245,9 @@ public abstract class DefaultSwingBundleDisplayer
   public JComponent createJComponent()
   {
     final JComponent comp = newJComponent();
-    components.add(comp);
+    synchronized (components) {
+      components.add(comp);
+    }
 
     return comp;
   }
@@ -222,14 +255,18 @@ public abstract class DefaultSwingBundleDisplayer
   @Override
   public void disposeJComponent(JComponent comp)
   {
-    components.remove(comp);
+    synchronized (components) {
+      components.remove(comp);
+    }
   }
 
   void repaintComponents()
   {
-    for (final JComponent comp : components) {
-      comp.invalidate();
-      comp.repaint();
+    synchronized (components) {
+      for (final JComponent comp : components) {
+        comp.invalidate();
+        comp.repaint();
+      }
     }
   }
 
@@ -248,7 +285,9 @@ public abstract class DefaultSwingBundleDisplayer
   @Override
   public void setTargetBundleContext(BundleContext bc)
   {
-    DefaultSwingBundleDisplayer.bc = bc;
+    if (DefaultSwingBundleDisplayer.bc != bc) {
+      DefaultSwingBundleDisplayer.bc = bc;
+    }
   }
 
   static protected BundleContext getTargetBundleContext()

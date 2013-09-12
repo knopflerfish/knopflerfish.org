@@ -62,7 +62,6 @@ import java.util.TreeSet;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
-import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.ButtonGroup;
@@ -101,14 +100,14 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
   @Override
   public void bundleChanged(final BundleEvent ev) {
     super.bundleChanged(ev);
-
     SwingUtilities.invokeLater(new Runnable() {
+        @Override
         public void run() {
           for (final JComponent jComponent : components) {
             final JLargeIcons comp = (JLargeIcons) jComponent;
             switch(ev.getType()) {
             case BundleEvent.INSTALLED:
-              comp.addBundle(ev.getBundle());
+              comp.addBundle(new Bundle[]{ev.getBundle()});
               break;
             case BundleEvent.UNINSTALLED:
               comp.removeBundle(ev.getBundle());
@@ -130,6 +129,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     // the bundles component, which in turn is triggered by another
     // job posted to the EDT.
     SwingUtilities.invokeLater(new Runnable() {
+        @Override
         public void run() {
           for (final JComponent jComponent : components) {
             final JLargeIcons comp = (JLargeIcons)jComponent;
@@ -141,10 +141,14 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
 
   @Override
-  public JComponent newJComponent() {
-    return new JLargeIcons();
+  public JComponent newJComponent()
+  {
+    final JLargeIcons res = new JLargeIcons();
+    // Inject the bundles that already exists since there will be no bundle
+    // events for them.
+    res.addBundle(getBundleArray());
+    return res;
   }
-
 
   class JLargeIcons extends JPanel {
     private final String CLIENT_PROPERTY_BID = LargeIconsDisplayer.class
@@ -152,7 +156,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
     private static final long serialVersionUID = 1L;
 
-    Map<Long, JLabel>         bundleMap = new TreeMap<Long, JLabel>();
+    Map<Long, JLabel> bundleMap = new TreeMap<Long, JLabel>();
     GridLayout  grid;
     ImageIcon   bundleIcon;
     JPanel      panel;
@@ -177,6 +181,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         this.dir = dir;
       }
 
+      @Override
       public void actionPerformed(ActionEvent e)
       {
         final long bid = bundleSelModel.getSelected();
@@ -231,6 +236,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       {
       }
 
+      @Override
       public void actionPerformed(ActionEvent e)
       {
         final List<Long> selectedBundleIds = new ArrayList<Long>();
@@ -251,6 +257,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         Strings.get("item_resolvebundle"), Desktop.resolveIcon) {
       private static final long serialVersionUID = 1L;
 
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         final Bundle bundle = getBundlePopuMenuInvokedFor();
@@ -264,6 +271,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         Strings.get("item_startbundle"), Desktop.startIcon) {
       private static final long serialVersionUID = 1L;
 
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         final Bundle bundle = getBundlePopuMenuInvokedFor();
@@ -277,6 +285,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         Strings.get("item_stopbundle"), Desktop.stopIcon) {
       private static final long serialVersionUID = 1L;
 
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         final Bundle bundle = getBundlePopuMenuInvokedFor();
@@ -290,6 +299,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         Strings.get("item_updatebundle"), Desktop.updateIcon) {
       private static final long serialVersionUID = 1L;
 
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         final Bundle bundle = getBundlePopuMenuInvokedFor();
@@ -307,6 +317,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         putValue(SHORT_DESCRIPTION, Strings.get("item_refreshbundle.descr"));
       }
 
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         final Bundle bundle = getBundlePopuMenuInvokedFor();
@@ -320,6 +331,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         Strings.get("item_uninstallbundle"), Desktop.uninstallIcon) {
       private static final long serialVersionUID = 1L;
 
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         final Bundle bundle = getBundlePopuMenuInvokedFor();
@@ -379,6 +391,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       JCheckBoxMenuItem item = new JCheckBoxMenuItem("Sort by name");
       item.setState(iconComparator == nameComparator);
       item.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent ev) {
             iconComparator = nameComparator;
             storePrefs();
@@ -391,6 +404,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       item = new JCheckBoxMenuItem("Sort by start-level");
       item.setState(iconComparator == startLevelComparator);
       item.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent ev) {
             iconComparator = startLevelComparator;
             storePrefs();
@@ -403,6 +417,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       item = new JCheckBoxMenuItem("Sort by bundle ID");
       item.setState(iconComparator == null);
       item.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent ev) {
             iconComparator = null;
             storePrefs();
@@ -548,6 +563,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         showBundle0(b);
       } else {
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
               showBundle0(b);
             }
@@ -567,118 +583,125 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     }
 
 
-    public void addBundle(final Bundle b) {
+    public void addBundle(final Bundle[] bundles) {
       if(SwingUtilities.isEventDispatchThread()) {
-        addBundle0(b);
+        addBundle0(bundles);
       } else {
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
-              addBundle0(b);
+              addBundle0(bundles);
             }
           });
       }
     }
 
-    public void addBundle0(final Bundle b) {
-      final long bid = b.getBundleId();
+    public void addBundle0(final Bundle[] bundles) {
+      if (bundles != null) {
+        for (final Bundle bundle : bundles) {
+          if(null == getBundleComponent(bundle)) {
+            final JLabel c = createJLabelForBundle(bundle);
 
-      if(null == getBundleComponent(b)) {
-        final JLabel c = new JLabel(Util.getBundleName(b),
-                              bundleIcon,
-                              SwingConstants.CENTER) {
-            private static final long serialVersionUID = 1L;
-            {
-              addMouseListener(new MouseAdapter() {
-                  @Override
-                public void mousePressed(MouseEvent ev)
-                {
-                  if (!isPopupTrigger(ev)) {
-                    final int mask =
-                      Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+            c.setToolTipText(Util.bundleInfo(bundle));
+            c.setVerticalTextPosition(SwingConstants.BOTTOM);
+            c.setHorizontalTextPosition(SwingConstants.CENTER);
 
-                    if ((ev.getModifiers() & mask) != 0) {
-                      bundleSelModel.setSelected(bid, !bundleSelModel
-                          .isSelected(bid));
-                    } else {
-                      bundleSelModel.clearSelection();
-                      bundleSelModel.setSelected(bid, true);
-                    }
-                    setBackground(getBackground());
-                    panel.requestFocus();
-                  }
-                }
-              });
-              addMouseListener(contextMenuListener);
-              setBorder(null);
-              setOpaque(true);
-              setBackground(Color.yellow);
-              putClientProperty(CLIENT_PROPERTY_BID, new Long(bid));
-            }
+            c.setPreferredSize(new Dimension(96, 64));
+            c.setBorder(null);
+            c.setFont(getFont());
 
-            @Override
-            public boolean isBackgroundSet() { return true;}
-            @Override
-            public Color   getBackground() {
-              try {
-                final boolean bSel = bundleSelModel != null
-                  ? bundleSelModel.isSelected(b.getBundleId())
-                  : false;
+            bundleMap.put(new Long(bundle.getBundleId()), c);
 
-                return bSel
-                  ? SystemColor.textHighlight
-                  : JLargeIcons.this.getBackground();
-              } catch (final Exception e) {
-                return Color.black;
-              }
-            }
-
-            @Override
-            public boolean isForegroundSet() { return true; }
-            @Override
-            public Color   getForeground() {
-              try {
-                final boolean bSel = bundleSelModel != null
-                  ? bundleSelModel.isSelected(b.getBundleId())
-                  : false;
-
-                return bSel
-                  ? SystemColor.textHighlightText
-                  : JLargeIcons.this.getForeground();
-              } catch (final Exception e) {
-                return Color.black;
-              }
-            }
-
-
-            @Override
-            public String getToolTipText()
-            {
-              if (getClientProperty(TOOL_TIP_TEXT_KEY) != null) {
-                // If a tool tip text is set, return an up to date version of
-                // the text since we do not have events that can be used to
-                // trigger update of the text for some parts of the text.
-                // E.g., the start level and the persistently started property.
-                return Util.bundleInfo(b);
-              }
-              return null;
-            }
-          };
-
-
-        c.setToolTipText(Util.bundleInfo(b));
-        c.setVerticalTextPosition(AbstractButton.BOTTOM);
-        c.setHorizontalTextPosition(AbstractButton.CENTER);
-
-        c.setPreferredSize(new Dimension(96, 64));
-        c.setBorder(null);
-        c.setFont(getFont());
-
-        bundleMap.put(new Long(b.getBundleId()), c);
-
-        updateBundleComp(b);
-
-        rebuildPanel();
+            updateBundleComp(bundle);
+          }
+        }
       }
+      rebuildPanel();
+    }
+
+    private JLabel createJLabelForBundle(final Bundle bundle)
+    {
+      final long bid = bundle.getBundleId();
+      return new JLabel(Util.getBundleName(bundle),
+                            bundleIcon,
+                            SwingConstants.CENTER) {
+          private static final long serialVersionUID = 1L;
+          {
+            addMouseListener(new MouseAdapter() {
+                @Override
+              public void mousePressed(MouseEvent ev)
+              {
+                if (!isPopupTrigger(ev)) {
+                  final int mask =
+                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
+                  if ((ev.getModifiers() & mask) != 0) {
+                    bundleSelModel.setSelected(bid, !bundleSelModel
+                        .isSelected(bid));
+                  } else {
+                    bundleSelModel.clearSelection();
+                    bundleSelModel.setSelected(bid, true);
+                  }
+                  setBackground(getBackground());
+                  panel.requestFocus();
+                }
+              }
+            });
+            addMouseListener(contextMenuListener);
+            setBorder(null);
+            setOpaque(true);
+            setBackground(Color.yellow);
+            putClientProperty(CLIENT_PROPERTY_BID, new Long(bid));
+          }
+
+          @Override
+          public boolean isBackgroundSet() { return true;}
+          @Override
+          public Color   getBackground() {
+            try {
+              final boolean bSel = bundleSelModel != null
+                ? bundleSelModel.isSelected(bundle.getBundleId())
+                : false;
+
+              return bSel
+                ? SystemColor.textHighlight
+                : JLargeIcons.this.getBackground();
+            } catch (final Exception e) {
+              return Color.black;
+            }
+          }
+
+          @Override
+          public boolean isForegroundSet() { return true; }
+          @Override
+          public Color   getForeground() {
+            try {
+              final boolean bSel = bundleSelModel != null
+                ? bundleSelModel.isSelected(bundle.getBundleId())
+                : false;
+
+              return bSel
+                ? SystemColor.textHighlightText
+                : JLargeIcons.this.getForeground();
+            } catch (final Exception e) {
+              return Color.black;
+            }
+          }
+
+
+          @Override
+          public String getToolTipText()
+          {
+            if (getClientProperty(TOOL_TIP_TEXT_KEY) != null) {
+              // If a tool tip text is set, return an up to date version of
+              // the text since we do not have events that can be used to
+              // trigger update of the text for some parts of the text.
+              // E.g., the start level and the persistently started property.
+              return Util.bundleInfo(bundle);
+            }
+            return null;
+          }
+        };
     }
 
 
@@ -689,6 +712,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         rebuildPanel0();
       } else {
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
               rebuildPanel0();
             }
@@ -697,14 +721,13 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     void rebuildPanel0() {
-
       panel.removeAll();
 
       final Set<Long> set = new TreeSet<Long>(iconComparator);
       set.addAll(bundleMap.keySet());
 
       int w = 0; // Width of widest icon
-      int h = 0; // Height of higest icon
+      int h = 0; // Height of highest icon
       for (final Long bid : set) {
         final JComponent c   = bundleMap.get(bid);
         final Dimension size = c.getPreferredSize();
@@ -751,6 +774,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         removeBundle0(b);
       } else {
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
               removeBundle0(b);
             }
@@ -772,14 +796,13 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       return bundleMap.get(new Long(b.getBundleId()));
     }
 
-    // Bundle -> BundleImageIcon
     Map<Bundle, BundleImageIcon> icons = new HashMap<Bundle, BundleImageIcon>();
 
     public void updateBundleComp(Bundle b) {
-      final JLabel c = (JLabel)getBundleComponent(b);
+      final JLabel c = (JLabel) getBundleComponent(b);
 
       if(c == null) {
-        addBundle(b);
+        addBundle(new Bundle[]{b});
         return;
       }
 
@@ -857,6 +880,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
 
   static Comparator<Long> nameComparator = new Comparator<Long>() {
+      @Override
       public int compare(Long l1, Long l2) {
         final Bundle b1 =
           Activator.getTargetBC_getBundle(l1.longValue());
@@ -879,6 +903,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     };
 
   static Comparator<Long> startLevelComparator = new Comparator<Long>() {
+    @Override
     public int compare(Long l1, Long l2)
     {
       final Bundle b1 = Activator.getTargetBC_getBundle(l1.longValue());

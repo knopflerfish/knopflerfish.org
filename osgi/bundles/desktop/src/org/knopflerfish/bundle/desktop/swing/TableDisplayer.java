@@ -60,6 +60,8 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.framework.Constants;
 import org.osgi.framework.startlevel.BundleStartLevel;
 
+import org.knopflerfish.service.log.LogRef;
+
 public class TableDisplayer
   extends DefaultSwingBundleDisplayer
 {
@@ -204,6 +206,7 @@ public class TableDisplayer
       synchronized (setColumnWidthLock) {
         if (!setColumnWidthScheduled) {
           SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run()
             {
               synchronized (setColumnWidthLock) {
@@ -278,7 +281,10 @@ public class TableDisplayer
           column.setMaxWidth(max);
         }
       } catch (final Exception e) {
-        Activator.log.warn("Failed to set column #" + col + " to width=" + pw);
+        final LogRef log = Activator.log;
+        if (log != null) {
+          log.warn("Failed to set column #" + col + " to width=" + pw);
+        }
       }
     }
   }
@@ -313,6 +319,7 @@ public class TableDisplayer
     private boolean rowsRearranged = false;
 
     // TableSorter.TableRowRearrangementAware callback.
+    @Override
     public void rowsRearranged()
     {
       rowsRearranged = true;
@@ -338,11 +345,13 @@ public class TableDisplayer
       return getBundleArray()[row];
     }
 
+    @Override
     public int getRowCount()
     {
       return getBundleArray().length;
     }
 
+    @Override
     public int getColumnCount()
     {
       return COL_COUNT;
@@ -423,6 +432,7 @@ public class TableDisplayer
       return tt;
     }
 
+    @Override
     public Object getValueAt(int row, int column)
     {
       final Bundle b = getBundle(row);

@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.net.URL;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -48,6 +49,7 @@ import java.util.Vector;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
+
 
 public class Util
 {
@@ -70,6 +72,24 @@ public class Util
 
     return s;
   }
+
+  public static Comparator<Bundle> bundleNameComparator = new Comparator<Bundle>() {
+    @Override
+    public int compare(Bundle b1, Bundle b2) {
+      if(b1 == b2) {
+        return 0;
+      }
+      if(b1 == null) {
+        return -1;
+      }
+      if(b2 == null) {
+        return 1;
+      }
+
+      return
+        getBundleName(b1).compareToIgnoreCase(getBundleName(b2));
+    }
+  };
 
   static public void openExternalURL(URL url)
       throws IOException
