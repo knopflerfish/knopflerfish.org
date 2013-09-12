@@ -8,6 +8,9 @@ Bundle-Description: XML format support for CM and Metatype
 Bundle-Vendor: Knopflerfish/nanoxml
 Bundle-APIVendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-License: http://www.knopflerfish.org/license.html;
+ description=BSD;
+ link=http://www.knopflerfish.org/license.html
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
@@ -15,6 +18,16 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-Classpath: .,nanoxml-2.2.1.jar
 Bundle-Activator: org.knopflerfish.bundle.metatype.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+Provide-Capability: osgi.service;
+   objectClass:List<String>="org.osgi.service.metatype.MetaTypeService",
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.util.metatype.SystemMetatypeProvider",
+ osgi.service;
+   objectClass:List<String>="org.osgi.service.cm.ManagedService";
+   service.pid:String="org.knopflerfish.util.metatype.SystemMetatypeProvider",
+ osgi.service;
+   objectClass:List<String>="org.osgi.service.cm.ManagedService";
+   service.pid:String="java.system.properties"
 Export-Package: org.knopflerfish.util.metatype,
  net.n3.nanoxml; version=2.2.1
 Import-Package: org.osgi.framework; version="[1.6,2)",
