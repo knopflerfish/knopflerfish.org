@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -377,8 +377,10 @@ public class BundlePackagesInfo {
    * <code>packageinfo</code>-file provides data for.
    *
    * @param res Resource encapsulating a <code>packageinfo</code>-file.
+   * @return The package name or <code>null</code> if no valid version was
+   *         found.
    */
-  public void setPackageVersion(final Resource res)
+  public String setPackageVersion(final Resource res)
   {
     // The relative path to packageinfo-file starting from the root of
     // its classpath. Allways using forward slash as separator char.
@@ -401,6 +403,7 @@ public class BundlePackagesInfo {
           task.log("Package version for '" +pkgName +"' set to "
                    +newVersion +" based on data from '" +pkgInfoPath +"'.",
                    Project.MSG_VERBOSE);
+          return pkgName;
         } else if (!newVersion.equals(curVersion)) {
           // May happen when the classes of a package are in two
           // different directories on the class path.
@@ -413,6 +416,7 @@ public class BundlePackagesInfo {
         }
       }
     }
+    return null;
   }
 
 

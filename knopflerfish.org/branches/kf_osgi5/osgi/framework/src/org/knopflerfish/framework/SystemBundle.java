@@ -546,7 +546,7 @@ public class SystemBundle extends BundleImpl implements Framework {
             sp.deleteCharAt(sp.length() - 1);
           }
         }
-        addSystemPackages(sp);
+        addSysPackagesFromFile(sp, "exports");
       }
     }
     final String extraPkgs = fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
@@ -601,7 +601,6 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
   }
 
-
   //
   // Private methods
   //
@@ -615,39 +614,6 @@ public class SystemBundle extends BundleImpl implements Framework {
     fwCtx.init();
   }
 
-
-  /**
-   * Add all built-in system packages to a stringbuffer.
-   */
-  private void addSystemPackages(StringBuffer sp) {
-    addPackageInfo(sp, "org.osgi.framework");
-    addPackageInfo(sp, "org.osgi.framework.hooks.bundle");
-    addPackageInfo(sp, "org.osgi.framework.hooks.resolver");
-    addPackageInfo(sp, "org.osgi.framework.hooks.service");
-    addPackageInfo(sp, "org.osgi.framework.hooks.weaving");
-    addPackageInfo(sp, "org.osgi.framework.launch");
-    addPackageInfo(sp, "org.osgi.framework.namespace");
-    addPackageInfo(sp, "org.osgi.framework.startlevel");
-    addPackageInfo(sp, "org.osgi.framework.wiring");
-    addPackageInfo(sp, "org.osgi.resource");
-    addPackageInfo(sp, "org.osgi.service.condpermadmin");
-    addPackageInfo(sp, "org.osgi.service.packageadmin");
-    addPackageInfo(sp, "org.osgi.service.permissionadmin");
-    addPackageInfo(sp, "org.osgi.service.startlevel");
-    addPackageInfo(sp, "org.osgi.service.url");
-    addPackageInfo(sp, "org.osgi.util.tracker");
-  }
-
-  private void addPackageInfo(StringBuffer sp, String pkg) {
-    if (sp.length() > 0) {
-      sp.append(",");
-    }
-    sp.append(pkg);
-    sp.append(";");
-    sp.append(Constants.VERSION_ATTRIBUTE);
-    sp.append("=");
-    sp.append(FWProps.getPackageVersion(pkg));
-  }
 
   /**
    * Read a file with package names and add them to a stringbuffer. The file is

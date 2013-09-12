@@ -443,7 +443,7 @@ public class FWProps {
     setPropertyIfNotSet(Constants.FRAMEWORK_WINDOWSYSTEM, "");
 
     // Impl. constants
-    props.put(Constants.FRAMEWORK_VERSION, getPackageVersion("org.osgi.framework").toString());
+    props.put(Constants.FRAMEWORK_VERSION, Util.readFrameworkVersion());
     props.put(Constants.FRAMEWORK_VENDOR, "Knopflerfish");
     props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
     props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
@@ -491,26 +491,6 @@ public class FWProps {
     setPropertyDefault(REGISTERSERVICEURLHANDLER_PROP, TRUE);
     setPropertyDefault(STARTLEVEL_COMPAT_PROP, FALSE);
     setPropertyDefault(STARTLEVEL_USE_PROP, TRUE);
-  }
-
-
-  static Version getPackageVersion(String pkg) {
-    URL u = FWProps.class.getResource("/" + pkg.replace('.', '/') + "/packageinfo");
-    if (u != null) {
-      try {
-        InputStream is = u.openStream();
-        byte [] buf = new byte[100];
-        is.read(buf);
-        String s = new String(buf, "UTF-8").trim().toLowerCase();
-        final String VER_STR = "version ";
-        if (s.startsWith(VER_STR)) {
-          return new Version(s.substring(VER_STR.length()));
-        }
-      } catch (Exception ignore) {
-        ignore.printStackTrace();
-      }
-    }
-    return Version.emptyVersion;
   }
 
 }
