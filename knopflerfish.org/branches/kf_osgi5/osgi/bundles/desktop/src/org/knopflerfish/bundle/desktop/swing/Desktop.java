@@ -304,12 +304,12 @@ public class Desktop
       }
     };
 
-  Map<ServiceReference<?>, SwingBundleDisplayer> displayMap =
-    new TreeMap<ServiceReference<?>, SwingBundleDisplayer>(referenceComparator);
+  Map<ServiceReference<SwingBundleDisplayer>, SwingBundleDisplayer> displayMap =
+    new TreeMap<ServiceReference<SwingBundleDisplayer>, SwingBundleDisplayer>(referenceComparator);
   Map<ServiceReference<?>, JMenuItem> menuMap =
     new HashMap<ServiceReference<?>, JMenuItem>();
-  Map<ServiceReference<?>, SwingBundleDisplayer> detailMap =
-    new HashMap<ServiceReference<?>, SwingBundleDisplayer>();
+  Map<ServiceReference<SwingBundleDisplayer>, SwingBundleDisplayer> detailMap =
+    new HashMap<ServiceReference<SwingBundleDisplayer>, SwingBundleDisplayer>();
 
   public void start()
   {
@@ -391,7 +391,7 @@ public class Desktop
       @Override
       public void stateChanged(ChangeEvent e)
       {
-        for (final ServiceReference<?> sr : detailMap.keySet()) {
+        for (final ServiceReference<SwingBundleDisplayer> sr : detailMap.keySet()) {
           final Object obj = detailMap.get(sr);
 
           if (obj instanceof SelectionAware) {
@@ -505,6 +505,12 @@ public class Desktop
                 wrapper.setAutoClose(false);
 
                 disp.setBundleSelectionModel(bundleSelModel);
+
+                if (Activator.getTargetBC() != Activator.getBC()) {
+                  // External displayers must be given the target bundle
+                  // context when it is remote.
+                  disp.setTargetBundleContext(Activator.getTargetBC());
+                }
 
                 if (bDetail) {
                   detailMap.put(sr, disp);

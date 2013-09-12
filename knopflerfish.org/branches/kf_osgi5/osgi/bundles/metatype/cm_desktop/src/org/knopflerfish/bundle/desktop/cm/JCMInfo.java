@@ -48,6 +48,7 @@ import java.io.PushbackReader;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Hashtable;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -253,7 +254,7 @@ public class JCMInfo
 
   private void renderMetaTypeBundles(StringBuffer sb)
   {
-    final Bundle[] bundles = CMDisplayer.getAllBundles();
+    final Set<Bundle> bundles = DefaultSwingBundleDisplayer.getAllBundlesSortedByName();
     sb.append("<p>");
     Util.startFont(sb, "-2");
     sb.append("Bundles with associated metatype information: ");
@@ -311,7 +312,6 @@ public class JCMInfo
   {
     File file = null;
     try {
-      System.out.println("importCfg()");
       final JFileChooser importFC = new JFileChooser();
       final File cwd = new File(".");
       importFC.setCurrentDirectory(cwd);

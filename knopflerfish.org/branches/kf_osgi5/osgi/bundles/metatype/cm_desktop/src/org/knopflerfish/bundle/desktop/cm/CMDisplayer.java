@@ -69,7 +69,6 @@ public class CMDisplayer
                                                                  bc,
                                                                  ConfigurationAdmin.class,
                                                                  null);
-    cmTracker.open();
   }
 
   static ConfigurationAdmin getCA()
@@ -107,9 +106,42 @@ public class CMDisplayer
     return bundle != null && bundle.getBundleId() == 0L;
   }
 
-  static Bundle[] getAllBundles()
+  @Override
+  public void setTargetBundleContext(BundleContext bc)
   {
-    return getTargetBundleContext().getBundles();
+    if (getTargetBundleContext() != bc) {
+      super.setTargetBundleContext(bc);
+
+      if (bAlive) {
+        try {
+          cmTracker.close();
+        } catch (final Exception _e) {
+          // Ignore
+        }
+      }
+      cmTracker =
+        new ServiceTracker<ConfigurationAdmin, ConfigurationAdmin>(
+                                                                   bc,
+                                                                   ConfigurationAdmin.class,
+                                                                   null);
+      if (bAlive) {
+        cmTracker.open();
+      }
+    }
+  }
+
+  @Override
+  public void open()
+  {
+    super.open();
+    cmTracker.open();
+  }
+
+  @Override
+  public void close()
+  {
+    cmTracker.close();
+    super.close();
   }
 
   @Override
@@ -144,27 +176,29 @@ public class CMDisplayer
       @Override
       public void run()
       {
-        try {
-          for (final JComponent jComponent : components) {
-            final JCMAdmin cmAdmin = (JCMAdmin) jComponent;
-            if (bundleSelModel.getSelectionCount() == 0) {
-              cmAdmin.setBundle(null);
-            } else {
-              // This displayer can only handle singleton selections, if
-              // multiple bundles are selected, present one of them.
-              final Bundle oldSelection = cmAdmin.getBundle();
-              if (oldSelection == null
-                  || !bundleSelModel.isSelected(oldSelection.getBundleId())) {
-                // Currently displayed bundle is no longer selected, display
-                // another selected bundle.
-                final long newBundleId = bundleSelModel.getSelected();
-                cmAdmin.setBundle(-1 == newBundleId ? (Bundle) null : bc
-                    .getBundle(newBundleId));
+        synchronized (components) {
+          try {
+            for (final JComponent jComponent : components) {
+              final JCMAdmin cmAdmin = (JCMAdmin) jComponent;
+              if (bundleSelModel.getSelectionCount() == 0) {
+                cmAdmin.setBundle(null);
+              } else {
+                // This displayer can only handle singleton selections, if
+                // multiple bundles are selected, present one of them.
+                final Bundle oldSelection = cmAdmin.getBundle();
+                if (oldSelection == null
+                    || !bundleSelModel.isSelected(oldSelection.getBundleId())) {
+                  // Currently displayed bundle is no longer selected, display
+                  // another selected bundle.
+                  final long newBundleId = bundleSelModel.getSelected();
+                  cmAdmin.setBundle(-1 == newBundleId ? (Bundle) null : bc
+                      .getBundle(newBundleId));
+                }
               }
             }
+          } catch (final Exception e) {
+            Activator.log.error("Selection change handling failed: " + e, e);
           }
-        } catch (final Exception e) {
-          e.printStackTrace();
         }
       }
     });
@@ -208,10 +242,16 @@ public class CMDisplayer
         try {
           MetaTypeInformation mti = Activator.getMTI(bundle);
           if (mti == null) {
-            // If the MetaTypeService is a Knopflerfish SystemMetatypeProvider
-            // then we may get a special MetaTypeInformation-object by calling
-            // getMTP(bundle)
-            mti = Activator.getMTP(bundle);
+            if (0L == bundle.getBundleId()) {
+              // The system bundle, return MTI that is a union of all MTIs.
+              mti = new SystemMetaTypeInformation();
+            } else {
+              // If the MetaTypeService is a Knopflerfish SystemMetatypeProvider
+              // then we may get a special MetaTypeInformation-object by calling
+              // getMTP(bundle). Currently this is only used to get all
+              // Configurations in CM.
+              mti = Activator.getMTP(bundle);
+            }
           }
           jcmInfo.setProvider(mti, bundle);
         } catch (final Exception e) {

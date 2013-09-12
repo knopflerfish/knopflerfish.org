@@ -9,6 +9,9 @@ Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
 Bundle-Copyright: Copyright (c) 2003-2013, KNOPFLERFISH project. All rights reserved.
 Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-License: http://www.knopflerfish.org/license.html;
+ description=BSD;
+ link=http://www.knopflerfish.org/license.html
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=desktop/index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
@@ -17,6 +20,41 @@ Bundle-Classpath: .
 Bundle-Icon: app.png;size=32
 Bundle-Activator: org.knopflerfish.bundle.desktop.swing.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.5))"
+Provide-Capability: osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=Graph,
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=Closure,
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=Manifest,
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=Icons,
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=Prefs,
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=Wiring,
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=Log,
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=SCR,
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=Services,
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=Table,
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
+   org.knopflerfish.service.desktop.displayer.name=Events,
+ osgi.service;
+   objectClass:List<String>="org.osgi.service.event.EventHandler"
 Import-Package: org.osgi.framework;version="[1.6,2)",
  org.osgi.framework.startlevel;version="[1.0,2)",
  org.osgi.framework.wiring;version="[1.0,2)",

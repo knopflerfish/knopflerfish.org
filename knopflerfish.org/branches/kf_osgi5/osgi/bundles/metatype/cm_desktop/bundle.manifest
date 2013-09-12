@@ -7,12 +7,20 @@ Bundle-Category: service
 Bundle-Description: CM desktop plugin
 Bundle-Vendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-License: http://www.knopflerfish.org/license.html;
+ description=BSD;
+ link=http://www.knopflerfish.org/license.html
 Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/metatype/cm_desktop/readme.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/metatype/cm_desktop/
 Bundle-Activator: org.knopflerfish.bundle.desktop.cm.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.5))"
+Provide-Capability: osgi.service;
+   objectClass:List<String>="org.osgi.service.cm.ConfigurationListener",
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer"
+api-Provide-Capability: [bundle.emptystring]
 Import-Package: org.osgi.service.cm; version="[1.5,2)",
  org.knopflerfish.service.desktop; version="[2.2,3)",
  org.knopflerfish.service.log,
