@@ -318,7 +318,7 @@ import org.osgi.framework.Version;
  *   </td>
  *   <td valign=top>
  *     No.<br>
- *     Default value is "true"
+ *     Default value is "false"
  *   </td>
  *  </tr>
  * </table>
@@ -436,7 +436,7 @@ public class BundleInfoTask extends Task {
   private boolean failOnActivator        = true;
   private boolean failOnClassPath        = true;
   private boolean bImportsOnly           = false;
-  private boolean addPackageinfoPackages = true;
+  private boolean addPackageinfoPackages = false;
   /**
    * The set of packages referenced by the included classes but not
    * provided by them.
