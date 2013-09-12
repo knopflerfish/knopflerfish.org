@@ -299,11 +299,22 @@ import org.osgi.framework.Version;
  *  </tr>
  *
  *  <tr>
- *   <td valign=top>failOnClassParh</td>
+ *   <td valign=top>failOnClassPath</td>
  *   <td valign=top>
  *       If a non-existing entry is detected in the given bundle
  *       classpath header and this attribute is set to <tt>true</tt>
  *       then a build failure is trigger.
+ *   </td>
+ *   <td valign=top>
+ *     No.<br>
+ *     Default value is "true"
+ *   </td>
+ *  </tr>
+ *  <tr>
+ *   <td valign=top>addPackageinfoPackages</td>
+ *   <td valign=top>
+ *       If set to <tt>true</tt> then add packages that contains
+ *       a <tt>packageinfo</tt> file, even if the package is empty.
  *   </td>
  *   <td valign=top>
  *     No.<br>
@@ -417,15 +428,15 @@ public class BundleInfoTask extends Task {
 
   private boolean bPrintClasses      = false;
 
-  private boolean bImplicitImports   = true;
-  private boolean bSetActivator      = true;
-  private boolean bActivatorOptional = false;
-  private boolean failOnExports      = true;
-  private boolean failOnImports      = true;
-  private boolean failOnActivator    = true;
-  private boolean failOnClassPath    = true;
-  private boolean bImportsOnly       = false;
-
+  private boolean bImplicitImports       = true;
+  private boolean bSetActivator          = true;
+  private boolean bActivatorOptional     = false;
+  private boolean failOnExports          = true;
+  private boolean failOnImports          = true;
+  private boolean failOnActivator        = true;
+  private boolean failOnClassPath        = true;
+  private boolean bImportsOnly           = false;
+  private boolean addPackageinfoPackages = true;
   /**
    * The set of packages referenced by the included classes but not
    * provided by them.
@@ -638,6 +649,14 @@ public class BundleInfoTask extends Task {
    */
   public void setImportsOnly(boolean importsOnly) {
     this.bImportsOnly = importsOnly;
+  }
+
+  /**
+   * If set to <tt>true</tt> then add packages that contains
+   * a packageinfo file, even if the package is empty.
+   */
+  public void setAddPackageinfoPackages(boolean addPackageinfoPackages) {
+    this.addPackageinfoPackages = addPackageinfoPackages;
   }
 
   // Implements Task
@@ -1268,7 +1287,10 @@ public class BundleInfoTask extends Task {
   protected void analyzePackageinfo(Resource res) throws BuildException {
     log("Analyze packageinfo file " + res, Project.MSG_VERBOSE);
 
-    bpInfo.setPackageVersion(res);
+    String pkgName = bpInfo.setPackageVersion(res);
+    if (addPackageinfoPackages && pkgName != null) {
+      bpInfo.addProvidedPackage(pkgName);
+    }
   }
 
 

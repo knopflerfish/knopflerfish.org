@@ -18,21 +18,6 @@
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
   <property name="fw.impl.version"   value="6.99.99"/>
-  <property name="fw.export-package"
-            value="org.osgi.framework;version=1.7,
-                   org.osgi.framework.launch;version=1.1,
-                   org.osgi.framework.hooks.service;version=1.1,
-                   org.osgi.framework.hooks.bundle;version=1.1,
-                   org.osgi.framework.hooks.weaving;version=1.0,
-                   org.osgi.framework.hooks.resolver;version=1.0,
-                   org.osgi.framework.startlevel;version=1.0,
-                   org.osgi.framework.wiring;version=1.1,
-                   org.osgi.service.packageadmin;version=1.2,
-                   org.osgi.service.permissionadmin;version=1.2,
-                   org.osgi.util.tracker;version=1.5.1,
-                   org.osgi.service.startlevel;version=1.1,
-                   org.osgi.service.url;version=1.0,
-                   org.osgi.service.condpermadmin;version=1.1"/>
 
   <property name="jarfile"
             location="${topdir}/${ant.project.name}.jar"/>
@@ -150,7 +135,7 @@
     </javac>
   </target>
 
-  <target name="jar" depends="compile" description="build jar">
+  <target name="jar" depends="compile,genexports" description="build jar">
     <tstamp>
       <format property="framework.tstamp"
               pattern="'Build' EE MMMM d yyyy, HH:mm:ss"
@@ -174,9 +159,6 @@
     <jar basedir="${classout}"
          jarfile="${jarfile}">
       <fileset dir="resources"/>
-      <fileset dir="src">
-        <include name="**/packageinfo"/>
-      </fileset>
       <manifest>
         <attribute name="Main-class"           value="org.knopflerfish.framework.Main"/>
         <attribute name="Specification-Title"    value="OSGi Framework API"/>
@@ -212,7 +194,7 @@
     </jar>
   </target>
 
-  <target name="save_javadoc_data"
+  <target name="save_javadoc_data" depends="genexports"
           if="generate.javadoc.data">
     <echo message="save_javadoc: to:${sources.file} src:${src.dir} "/>
     <echo file="${sources.file}" append="true"
@@ -271,7 +253,7 @@
   </target>
 
   <target name="framework_doc"
-          depends="bundle_tasks">
+          depends="bundle_tasks,genexports">
     <property name="bmfa.Bundle-Version" value="${fw.impl.version}"/>
     <property name="bmfa.Export-Package" value="${fw.export-package}"/>
     <makehtml template="${frameworkdoc_template}"
@@ -300,6 +282,14 @@
     <echo message="${version}" file="resources/release"/>
   </target>
 
+  <target name="genexports" depends="bundle_tasks">
+    <delete file="resources/exports"/>
+    <bundleinfo  exports  = "fw.export-package"
+                 addPackageinfoPackages = "true" >
+     <exports dir="src" includes="org/osgi/**"/>
+    </bundleinfo>
+    <echo message="${fw.export-package}" file="resources/exports"/>
+  </target>
 
   <target name="clean" description="removes all generated files">
     <delete dir="${outdir}"/>
