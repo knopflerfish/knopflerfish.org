@@ -6,6 +6,9 @@ Bundle-Version: 5.0.0
 Bundle-Category: service
 Bundle-Description: Declarative Services SCR
 Bundle-Vendor: Knopflerfish
+Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
+ description="BSD 3-clause";
+ link="http://www.knopflerfish.org/licenses/Knopflerfish-1.html"
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
@@ -14,6 +17,8 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/component
 Bundle-Activator: org.knopflerfish.bundle.component.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+Provide-Capability: osgi.service;
+ objectClass:List<String>="org.apache.felix.scr.ScrService"
 api-Import-Package: org.osgi.framework ; version="[1.6,2)"
 Import-Package: org.osgi.framework ; version="[1.6,2)",
  org.osgi.service.cm ; version="[1.5,2)",

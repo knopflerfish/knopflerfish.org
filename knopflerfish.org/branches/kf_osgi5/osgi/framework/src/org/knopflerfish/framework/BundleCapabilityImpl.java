@@ -122,7 +122,20 @@ public class BundleCapabilityImpl implements BundleCapability {
       }
       a = gen.archive.getAttribute("Bundle-License");
       if (a != null) {
-        attrs.put(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE, a);
+        StringBuffer sb = new StringBuffer();
+        try {
+          List<HeaderEntry> lic = Util.parseManifestHeader("Bundle-License", a, true, true, false);
+          for (HeaderEntry he : lic) {
+            if (sb.length() > 0) {
+              sb.append(", ");
+            }
+            sb.append(he.getKey());
+          }
+        } catch (IllegalArgumentException iae) {
+          gen.bundle.fwCtx.frameworkInfo(gen.bundle, iae);
+          sb.append(a);
+        }
+        attrs.put(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE, sb.toString());
       }
     }
     attributes = Collections.unmodifiableMap(attrs);
