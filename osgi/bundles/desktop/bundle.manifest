@@ -9,9 +9,9 @@ Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
 Bundle-Copyright: Copyright (c) 2003-2013, KNOPFLERFISH project. All rights reserved.
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-License: http://www.knopflerfish.org/license.html;
- description=BSD;
- link=http://www.knopflerfish.org/license.html
+Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
+ description="BSD 3-clause";
+ link="http://www.knopflerfish.org/licenses/Knopflerfish-1.html"
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=desktop/index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk

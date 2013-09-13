@@ -5,12 +5,12 @@ Bundle-SymbolicName: org.knopflerfish.bundle.kf_metatype
 Bundle-Version: 5.0.0
 Bundle-Category: util
 Bundle-Description: XML format support for CM and Metatype
-Bundle-Vendor: Knopflerfish/nanoxml
+Bundle-Vendor: Knopflerfish,nanoxml
 Bundle-APIVendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-License: http://www.knopflerfish.org/license.html;
- description=BSD;
- link=http://www.knopflerfish.org/license.html
+Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
+ description="BSD 3-clause";
+ link="http://www.knopflerfish.org/licenses/Knopflerfish-1.html"
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk

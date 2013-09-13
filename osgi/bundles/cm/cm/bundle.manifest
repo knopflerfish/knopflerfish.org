@@ -6,6 +6,9 @@ Bundle-Version: 5.0.0
 Bundle-Category: service
 Bundle-Description: Configuration Management Service
 Bundle-Vendor: Knopflerfish
+Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
+ description="BSD 3-clause";
+ link="http://www.knopflerfish.org/licenses/Knopflerfish-1.html"
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
