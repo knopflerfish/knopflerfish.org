@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -541,6 +541,9 @@ public class BundleArchives {
           } catch (NumberFormatException nfe) {
             task.log("Invalid version in bundle file name '" + versionS + "': "
                      + nfe, Project.MSG_VERBOSE);
+          } catch (IllegalArgumentException iae) {
+            task.log("Invalid version in bundle file name '" + versionS + "': "
+                     + iae, Project.MSG_VERBOSE);
           }
           ix = fileName.lastIndexOf('-', ix-1);
         }
@@ -682,6 +685,16 @@ public class BundleArchives {
           + "' found in " + file + ": " + nfe;
         task.log(msg, Project.MSG_ERR);
         throw new BuildException(msg, nfe);
+      } catch (IllegalArgumentException iae) {
+        if ("1".equals(manifestVersion)) {
+          // Pre OSGi R4 bundle with non-standard version format; use
+          // the default version.
+          return Version.emptyVersion;
+        }
+        final String msg = "Invalid bundle version '" + versionS
+          + "' found in " + file + ": " + iae;
+        task.log(msg, Project.MSG_ERR);
+        throw new BuildException(msg, iae);
       }
     }
 
