@@ -203,7 +203,9 @@ public class BundleUserDocNavigateTask
 
   public void setOutdir(File f) {
     outDir = f;
-    if (null==docDir) docDir = f;
+    if (null==docDir) {
+      docDir = f;
+    }
   }
 
 
@@ -257,7 +259,7 @@ public class BundleUserDocNavigateTask
   }
 
   // Mapping from category name to sorted set with link data.
-  private Map/*<String,SortedSet<LinkData>>*/ categories = new HashMap();
+  private final Map/*<String,SortedSet<LinkData>>*/ categories = new HashMap();
 
   // Insert a link data item to a category in the categories map
   private void add(final String category, final LinkData ld)
@@ -274,7 +276,7 @@ public class BundleUserDocNavigateTask
   private String links(final Set lds)
   {
     final StringBuffer sb = new StringBuffer(1024);
-    for (Iterator it = lds.iterator(); it.hasNext(); ) {
+    for (final Iterator it = lds.iterator(); it.hasNext(); ) {
       final LinkData ld = (LinkData) it.next();
 
       sb.append("      <dd class=\"leftmenu");
@@ -305,9 +307,10 @@ public class BundleUserDocNavigateTask
       this.linkPath = linkPath;
     }
 
+    @Override
     public int compareTo(Object o)
     {
-      LinkData other = (LinkData) o;
+      final LinkData other = (LinkData) o;
       return sortKey.compareTo(other.sortKey);
     }
   }
@@ -323,7 +326,7 @@ public class BundleUserDocNavigateTask
     if (null!=sd && 0<sd.length()) {
       try {
         ld.depth = Integer.parseInt(sd);
-      } catch (NumberFormatException nfe) {
+      } catch (final NumberFormatException nfe) {
       }
     }
     final String category = docProps.getProperty("category", defaultCategory);
@@ -333,11 +336,13 @@ public class BundleUserDocNavigateTask
   private void analyzeDocDir()
   {
     final File[] files = docDir.listFiles();
-    for (int i=0; i<files.length; i++) {
-      final File file = files[i];
+    for (final File file2 : files) {
+      final File file = file2;
 
       // Only interested in directories.
-      if (!file.isDirectory()) continue;
+      if (!file.isDirectory()) {
+        continue;
+      }
 
       final String defaultTitle = file.getName();
       final String defaultLinkPath = file.getName() +"/index.html";
@@ -353,7 +358,7 @@ public class BundleUserDocNavigateTask
           if (null!=linkCntS && 0<linkCntS.length()) {
             try {
               linkCnt = Integer.parseInt(linkCntS);
-            } catch (NumberFormatException nfe) {
+            } catch (final NumberFormatException nfe) {
               log("Invalid linkCount value, '"+linkCntS
                   +"' found in '"+docPropsFile +"': "+nfe.getMessage(),
                   Project.MSG_WARN);
@@ -372,7 +377,7 @@ public class BundleUserDocNavigateTask
               add(category, ld);
             }
           }
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
           log("Failed to load user documentation property description from '"
               +docPropsFile +"': "+ioe.getMessage(), Project.MSG_ERR);
         }
@@ -385,14 +390,24 @@ public class BundleUserDocNavigateTask
   }
 
 
+  @Override
   public void execute() {
-    if (template == null)   throw new BuildException("template must be set");
-    if (docDir == null)     throw new BuildException("docdir must be set");
-    if (outDir == null)     throw new BuildException("outdir must be set");
-    if (toFileName == null) throw new BuildException("tofile must be set");
+    if (template == null) {
+      throw new BuildException("template must be set");
+    }
+    if (docDir == null) {
+      throw new BuildException("docdir must be set");
+    }
+    if (outDir == null) {
+      throw new BuildException("outdir must be set");
+    }
+    if (toFileName == null) {
+      throw new BuildException("tofile must be set");
+    }
 
-    if (defaultCategory == null)
+    if (defaultCategory == null) {
       throw new BuildException("defaultCategory must not be null.");
+    }
 
     analyzeDocDir();
 
@@ -402,26 +417,26 @@ public class BundleUserDocNavigateTask
   private void transform(final File fromFile, final String toFileName) {
 
     try {
-      // Ensure that the direcotry to write the output file to exists
+      // Ensure that the directory to write the output file to exists
       final File toFile = new File(outDir, toFileName);
-      File tmp = toFile.getParentFile();
+      final File tmp = toFile.getParentFile();
       if (!tmp.exists()) {
         if (tmp.exists() || !tmp.mkdirs()) {
           throw new IOException("Could not create " + tmp);
         }
       }
 
-      String content = Util.loadFile(fromFile.getAbsolutePath());
+      String content = FileUtil.loadFile(fromFile.getAbsolutePath());
       content = Util.replace(content, "$(TITLE)", pageTitle);
 
-      for (Iterator it = categories.entrySet().iterator(); it.hasNext();) {
+      for (final Iterator it = categories.entrySet().iterator(); it.hasNext();) {
         final Map.Entry entry = (Map.Entry) it.next();
         final String category = (String) entry.getKey();
         final Set lds = (Set) entry.getValue();
 
         final String ldHtml = links(lds);
         if (0<ldHtml.length()) {
-          int oldContentLength = content.length();
+          final int oldContentLength = content.length();
           content = Util.replace(content, "$("+category+")", links(lds));
           if (oldContentLength == content.length()) {
             final String msg = "Found bundle user documentation with category '"
@@ -435,12 +450,12 @@ public class BundleUserDocNavigateTask
         }
       }
 
-      Util.writeStringToFile(toFile, content);
+      FileUtil.writeStringToFile(toFile, content);
       log("Created: " + toFile.getAbsolutePath());
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
       throw new BuildException(e);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
       throw new BuildException(e);
     }

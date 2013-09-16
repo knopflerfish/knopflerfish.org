@@ -46,6 +46,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.Resource;
+
 import org.osgi.framework.Version;
 
 /**
@@ -251,9 +252,9 @@ public class BundlePackagesInfo {
    *
    * @return A copy of the set of provided Java packages.
    */
-  public SortedSet/*<String>*/ getProvidedPackages()
+  public SortedSet<String> getProvidedPackages()
   {
-    SortedSet res = new TreeSet(providedPackages);
+    final TreeSet<String> res = new TreeSet<String>(providedPackages);
     toJavaNames(res); // Ensure that '.' is used as package separator
     return res;
   }
@@ -268,7 +269,7 @@ public class BundlePackagesInfo {
   {
     final StringBuffer res = new StringBuffer(255);
 
-    for (Iterator ppIt = providedPackages.iterator(); ppIt.hasNext();) {
+    for (final Iterator ppIt = providedPackages.iterator(); ppIt.hasNext();) {
       final String pPkg = (String) ppIt.next();
       res.append(pPkg);
       final Version pPkgVersion = getProvidedPackageVersion(pPkg);
@@ -358,7 +359,7 @@ public class BundlePackagesInfo {
         }
         line = br.readLine();
       }
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       final String msg = "Failed to get version from '" +res.toString()
         +"'; " +t.getMessage();
       throw new BuildException(msg, t);
@@ -451,7 +452,7 @@ public class BundlePackagesInfo {
    */
   public SortedSet/*<String>*/ getUnprovidedReferencedPackages()
   {
-    SortedSet res = new TreeSet(referencedPackages);
+    final SortedSet res = new TreeSet(referencedPackages);
     res.removeAll(providedPackages);
 
     return res;
@@ -545,11 +546,11 @@ public class BundlePackagesInfo {
   public void postProcessUsingMap(Set removeFromReferencedSets,
                                   Set retainInReferencedSets)
   {
-    for (Iterator it = packageToReferencedPackages.entrySet().iterator();
+    for (final Iterator it = packageToReferencedPackages.entrySet().iterator();
          it.hasNext(); ) {
       final Map.Entry entry = (Map.Entry) it.next();
       final SortedSet using = (SortedSet) entry.getValue();
-      using.remove((String) entry.getKey());
+      using.remove(entry.getKey());
       using.removeAll(removeFromReferencedSets);
       using.retainAll(retainInReferencedSets);
     }
@@ -563,10 +564,10 @@ public class BundlePackagesInfo {
    *                     referenced Java packages for.
    * @return The set of referenced Java packages.
    */
-  public SortedSet/*<String>*/
+  public SortedSet<String>
     getPackagesReferencedFromPackage(final String packageName)
   {
-    return (SortedSet) packageToReferencedPackages.get(packageName);
+    return (SortedSet<String>) packageToReferencedPackages.get(packageName);
   }
 
 
@@ -595,8 +596,8 @@ public class BundlePackagesInfo {
   private void toJavaNames(SortedSet set)
   {
     final TreeSet tmpSet = new TreeSet();
-    for (Iterator it = set.iterator(); it.hasNext();) {
-      String item = (String) it.next();
+    for (final Iterator it = set.iterator(); it.hasNext();) {
+      final String item = (String) it.next();
       tmpSet.add(item.replace('/', '.'));
     }
     set.clear();
@@ -615,7 +616,7 @@ public class BundlePackagesInfo {
   {
     final HashMap tmpMap = new HashMap();
 
-    for (Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
+    for (final Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
       final Map.Entry entry = (Map.Entry) it.next();
       final String    key   = (String) entry.getKey();
       final Object    value = entry.getValue();
@@ -630,10 +631,13 @@ public class BundlePackagesInfo {
   }
 
 
+  @Override
   public boolean equals(Object other)
   {
-    if (!(other instanceof BundlePackagesInfo)) return false;
-    BundlePackagesInfo otherBpInfo = (BundlePackagesInfo) other;
+    if (!(other instanceof BundlePackagesInfo)) {
+      return false;
+    }
+    final BundlePackagesInfo otherBpInfo = (BundlePackagesInfo) other;
 
     if (!providedPackages.equals(otherBpInfo.providedPackages)) {
       System.out.println("Diff for provided packages: mine="
@@ -695,12 +699,13 @@ public class BundlePackagesInfo {
   }
 
 
+  @Override
   public String toString()
   {
-    StringBuffer res = new StringBuffer(200);
+    final StringBuffer res = new StringBuffer(200);
     res.append("BundlePackagesInfo:\n\t");
     res.append("Provided packages: [");
-    for (Iterator ppIt = providedPackages.iterator(); ppIt.hasNext();) {
+    for (final Iterator ppIt = providedPackages.iterator(); ppIt.hasNext();) {
       final String pPkg = (String) ppIt.next();
       res.append(pPkg);
       final Version pPkgVersion = getProvidedPackageVersion(pPkg);

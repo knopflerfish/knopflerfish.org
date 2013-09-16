@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -52,7 +52,11 @@ import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.Restrict;
 import org.apache.tools.ant.types.resources.selectors.ResourceSelector;
 import org.apache.tools.ant.util.StringUtils;
+
+import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+
+import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
 
 /**
  * Task that analyzes sets of class files and jar files that will be
@@ -413,8 +417,10 @@ import org.osgi.framework.Version;
  */
 public class BundleInfoTask extends Task {
 
-  private List implsResourceCollections = new ArrayList();
-  private List exportsResourceCollections = new ArrayList();
+  private final ArrayList<ResourceCollection> implsResourceCollections =
+    new ArrayList<ResourceCollection>();
+  private final List<ResourceCollection> exportsResourceCollections =
+    new ArrayList<ResourceCollection>();
 
   private String importsProperty   = "";
   private String exportsProperty   = "";
@@ -424,7 +430,7 @@ public class BundleInfoTask extends Task {
   private Version manifestVersion  = new Version("1");
   private boolean bUses            = true;
 
-  private Set     stdImports       = new TreeSet();
+  private final Set<String> stdImports = new TreeSet<String>();
 
   private boolean bPrintClasses      = false;
 
@@ -441,12 +447,12 @@ public class BundleInfoTask extends Task {
    * The set of packages referenced by the included classes but not
    * provided by them.
    */
-  private Set importSet            = new TreeSet();
+  private final TreeSet<String> importSet            = new TreeSet<String>();
   /**
    * A set of packages used by the included classes but not
    * referenced from them.
    */
-  private Set extraImportSet       = new TreeSet();
+  private final TreeSet<String> extraImportSet       = new TreeSet<String>();
 
   private final BundlePackagesInfo bpInfo = new BundlePackagesInfo(this);
   private final ClassAnalyserASM asmAnalyser
@@ -498,9 +504,10 @@ public class BundleInfoTask extends Task {
     if (null!=packageList) {
       packageList = packageList.trim();
       if (0<packageList.length()) {
-        Vector v = StringUtils.split(packageList,',');
-        for (Iterator it = v.iterator(); it.hasNext(); ) {
-          importSet.add(((String)it.next()).trim());
+        @SuppressWarnings("unchecked")
+        final Vector<String> v = StringUtils.split(packageList,',');
+        for (final String pkg : v) {
+          importSet.add(pkg.trim());
         }
       }
     }
@@ -517,9 +524,10 @@ public class BundleInfoTask extends Task {
     if (null!=packageList) {
       packageList = packageList.trim();
       if (packageList.length()>0) {
-        Vector v = StringUtils.split(packageList,',');
-        for (Iterator it = v.iterator(); it.hasNext(); ) {
-          extraImportSet.add(((String)it.next()).trim());
+        @SuppressWarnings("unchecked")
+        final Vector<String> v = StringUtils.split(packageList,',');
+        for (final String pkg : v) {
+          extraImportSet.add(pkg.trim());
         }
       }
     }
@@ -585,9 +593,10 @@ public class BundleInfoTask extends Task {
   public void setStdImports(String packageList) {
     stdImports.clear();
     stdImports.add("java.");
-    Vector v = StringUtils.split(packageList,',');
-    for (Iterator it = v.iterator(); it.hasNext(); ) {
-      stdImports.add(((String)it.next()).trim());
+    @SuppressWarnings("unchecked")
+    final Vector<String> v = StringUtils.split(packageList,',');
+    for (final String imp : v) {
+      stdImports.add(imp.trim());
     }
   }
 
@@ -609,7 +618,7 @@ public class BundleInfoTask extends Task {
    * @param bcpt The bundle classpath that the bundle will have.
    */
   public void addConfiguredExportsBundleClasspath(BundleClasspathTask bcpt) {
-    for (Iterator it = bcpt.getFileSets(failOnClassPath).iterator(); it.hasNext();) {
+    for (final Iterator it = bcpt.getFileSets(failOnClassPath).iterator(); it.hasNext();) {
       final Restrict restrict = new Restrict();
       restrict.add((ResourceCollection) it.next());
       restrict.add(analyzeRestriction);
@@ -635,7 +644,7 @@ public class BundleInfoTask extends Task {
    * @param bcpt The bundle classpath that the bundle will have.
    */
   public void addConfiguredImplsBundleClasspath(BundleClasspathTask bcpt) {
-    for (Iterator it = bcpt.getFileSets(failOnClassPath).iterator(); it.hasNext();) {
+    for (final Iterator it = bcpt.getFileSets(failOnClassPath).iterator(); it.hasNext();) {
       final Restrict restrict = new Restrict();
       restrict.add((ResourceCollection) it.next());
       restrict.add(analyzeRestriction);
@@ -666,6 +675,7 @@ public class BundleInfoTask extends Task {
    * this bundle. Update the given properties for export- and import
    * package accordingly.
    */
+  @Override
   public void execute() throws BuildException {
     if (0==exportsResourceCollections.size()
         && 0==implsResourceCollections.size()) {
@@ -674,10 +684,10 @@ public class BundleInfoTask extends Task {
     }
 
     // First analyze the exports resource collections
-    for (Iterator it = exportsResourceCollections.iterator(); it.hasNext(); ) {
-      final ResourceCollection rc = (ResourceCollection) it.next();
+    for (final Object element : exportsResourceCollections) {
+      final ResourceCollection rc = (ResourceCollection) element;
 
-      for (Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
+      for (final Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
         final Resource res = (Resource) rcIt.next();
         log("Exports resource: "+res, Project.MSG_DEBUG);
         analyze(res);
@@ -685,19 +695,19 @@ public class BundleInfoTask extends Task {
     }// Scan done
 
     // Get the sub-set of the provided packages that are the exports set
-    final Set providedExportSet = new TreeSet(bpInfo.getProvidedPackages());
-    final Set manifestExportSet = getPredefinedExportSet();
+    final Set<String> providedExportSet = new TreeSet<String>(bpInfo.getProvidedPackages());
+    final SortedSet<String> manifestExportSet = getPredefinedExportSet();
     if (null!=manifestExportSet) {
       // An Export-Package header was given it shall contain
       // precisely the provided export set of Java packages.
       if (!manifestExportSet.equals(providedExportSet)) {
-        // Found export package missmatch
+        // Found export package mismatch
         log("Provided package to export:  " +providedExportSet,
             Project.MSG_ERR);
         log("Given Export-Package header: " +manifestExportSet,
             Project.MSG_ERR);
         final StringBuffer msg = new StringBuffer();
-        final TreeSet tmp = new TreeSet(manifestExportSet);
+        final TreeSet<String> tmp = new TreeSet<String>(manifestExportSet);
         tmp.removeAll(providedExportSet);
         if (0<tmp.size()) {
           msg.append("The following non-provided packages are present in the ")
@@ -732,10 +742,10 @@ public class BundleInfoTask extends Task {
 
     // Analyze the impls resource collections to find all provided
     // Java packages.
-    for (Iterator it = implsResourceCollections.iterator(); it.hasNext(); ) {
-      final ResourceCollection rc = (ResourceCollection) it.next();
+    for (final Object element : implsResourceCollections) {
+      final ResourceCollection rc = (ResourceCollection) element;
 
-      for (Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
+      for (final Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
         final Resource res = (Resource) rcIt.next();
         log("Impl resource: "+res, Project.MSG_DEBUG);
         analyze(res);
@@ -761,7 +771,7 @@ public class BundleInfoTask extends Task {
     // Remove all packages with names like "java.*" (full set of
     // patterns are given by the stdImports set). Such packages must
     // not be present in the importSet.
-    for (Iterator urpIt = unprovidedReferencedPackages.iterator();
+    for (final Iterator urpIt = unprovidedReferencedPackages.iterator();
          urpIt.hasNext(); ) {
       final String pkgName = (String) urpIt.next();
       if (isStdImport(pkgName)) {
@@ -839,20 +849,25 @@ public class BundleInfoTask extends Task {
       } else {
         // Import-Package given; check that all derived packages are
         // present and that there are no duplicated packages.
-        final TreeSet givenImportSet = new TreeSet();
-        final Iterator impIt = Util.parseEntries("import.package",importsVal,
-                                                 true, true, false );
-        while (impIt.hasNext()) {
-          final Map impEntry = (Map) impIt.next();
-          final String pkgName = (String) impEntry.get("$key");
-          if (!givenImportSet.add( pkgName )) {
-            final String msg = "The package '" +pkgName
-              +"' is mentioned twice in the given 'Import-Package' manifest "
-              +"header: '" +importsVal +"'.";
-            log(msg, Project.MSG_ERR);
-            throw new BuildException(msg, getLocation());
+        final TreeSet<String> givenImportSet = new TreeSet<String>();
+
+        final List<HeaderEntry> entries =
+          Util.parseManifestHeader(Constants.IMPORT_PACKAGE, importsVal, false,
+                                   true, false);
+        for (final HeaderEntry entry : entries) {
+          for (final String pkgName : entry.getKeys()) {
+            if (!givenImportSet.add(pkgName)) {
+              final String msg =
+                "The package '" + pkgName
+                    + "' is mentioned twice in the given '"
+                    + Constants.IMPORT_PACKAGE + "' manifest " + "header: '"
+                    + importsVal + "'.";
+              log(msg, Project.MSG_ERR);
+              throw new BuildException(msg, getLocation());
+            }
           }
         }
+
         givenImportSet.removeAll(bpInfo.getProvidedPackages());
         final TreeSet missingImports = new TreeSet(importSet);
         missingImports.removeAll(givenImportSet);
@@ -900,7 +915,7 @@ public class BundleInfoTask extends Task {
           }
           break;
         case 1:
-          String clazz = bpInfo.getActivatorClass();
+          final String clazz = bpInfo.getActivatorClass();
           proj.setProperty(activatorProperty, clazz);
           break;
         default:
@@ -936,7 +951,7 @@ public class BundleInfoTask extends Task {
     final Set foundationMissing = new TreeSet();
     final Set minimumMissing    = new TreeSet();
 
-    for(Iterator it = bpInfo.getReferencedClasses().iterator(); it.hasNext();) {
+    for(final Iterator it = bpInfo.getReferencedClasses().iterator(); it.hasNext();) {
       final String s = (String)it.next();
       if(s.endsWith("[]")) {
       } else {
@@ -956,11 +971,12 @@ public class BundleInfoTask extends Task {
       log("implicitImport - before: "+importsSpec, Project.MSG_VERBOSE);
       importSet.clear();
       if (!BundleManifestTask.isPropertyValueEmpty(importsSpec)) {
-        final Iterator impIt = Util.parseEntries("import.package",importsSpec,
-                                                 true, true, false );
-        while (impIt.hasNext()) {
-          final Map impEntry = (Map) impIt.next();
-          importSet.add( impEntry.get("$key") );
+        final List<HeaderEntry> entries =
+            Util.parseManifestHeader(Constants.IMPORT_PACKAGE, importsSpec, false, true, false);
+        for (final HeaderEntry entry : entries) {
+          for (final String pkgName : entry.getKeys()) {
+            importSet.add(pkgName);
+          }
         }
       } else {
         // Spec is empty, must remove the emtpy value marker for now.
@@ -970,14 +986,14 @@ public class BundleInfoTask extends Task {
 
       final String exportsSpec = proj.getProperty(exportsProperty);
       if (!BundleManifestTask.isPropertyValueEmpty(exportsSpec)) {
-        final Iterator expIt = Util.parseEntries("export.package",exportsSpec,
-                                                 true, true, false );
-        while (expIt.hasNext()) {
-          final Map expEntry = (Map) expIt.next();
-          String pkg = (String) expEntry.get("$key");
+        final List<HeaderEntry> entries =
+            Util.parseManifestHeader(Constants.EXPORT_PACKAGE, exportsSpec, false, true, false);
+
+        for (final HeaderEntry entry : entries) {
+          for (String pkg : entry.getKeys()) {
           if (!importSet.contains(pkg)) {
-            final String ver = (String) expEntry.get("version");
-            final String sver = (String) expEntry.get("specification-version");
+            final String ver = (String) entry.getAttributes().get(Constants.VERSION_ATTRIBUTE);
+            final String sver = (String) entry.getAttributes().get(Constants.PACKAGE_SPECIFICATION_VERSION);
             if (null!=ver) {
               pkg += ";version=" +toDefaultVersionRange(ver);
             } else if (null!=sver) {
@@ -993,6 +1009,8 @@ public class BundleInfoTask extends Task {
             sb.append(pkg);
           }
         }
+        }
+
         importsSpec = sb.toString();
         if (0==importsSpec.length()) {
           importsSpec = BundleManifestTask.BUNDLE_EMPTY_STRING;
@@ -1016,7 +1034,7 @@ public class BundleInfoTask extends Task {
    * @return the set of Java packages to export or null if no
    * <code>Export-Package</code> header was given.
    */
-  private SortedSet getPredefinedExportSet()
+  private SortedSet<String> getPredefinedExportSet()
   {
     if(!"".equals(exportsProperty)) {
       final String exportsVal = getProject().getProperty(exportsProperty);
@@ -1025,13 +1043,12 @@ public class BundleInfoTask extends Task {
         log("Found non-empty Export-Package attribute: '" +exportsVal +"'",
             Project.MSG_DEBUG);
 
-        final SortedSet res = new TreeSet();
-        final Iterator expIt = Util.parseEntries("export.package", exportsVal,
-                                                 true, true, false );
-        while (expIt.hasNext()) {
-          final Map expEntry = (Map) expIt.next();
-          final String pkgName = (String) expEntry.get("$key");
-          res.add(pkgName);
+        final TreeSet<String> res = new TreeSet<String>();
+        final List<HeaderEntry> entries =
+            Util.parseManifestHeader(Constants.EXPORT_PACKAGE, exportsVal, false, true, false);
+
+        for (final HeaderEntry entry : entries) {
+          res.addAll(entry.getKeys());
         }
         return res;
       }
@@ -1051,7 +1068,7 @@ public class BundleInfoTask extends Task {
         if (1<usesPkgs.size()) {
           sb.append("\"");
         }
-        for (Iterator usesIt = usesPkgs.iterator(); usesIt.hasNext(); ) {
+        for (final Iterator usesIt = usesPkgs.iterator(); usesIt.hasNext(); ) {
           final String usesPkg = (String) usesIt.next();
           sb.append(usesPkg);
           if (usesIt.hasNext()) {
@@ -1076,7 +1093,7 @@ public class BundleInfoTask extends Task {
 
     final StringBuffer sb = new StringBuffer();
 
-    for(Iterator it = exportPackages.iterator(); it.hasNext(); ) {
+    for(final Iterator it = exportPackages.iterator(); it.hasNext(); ) {
       final String pkgName = (String) it.next();
       sb.append(pkgName);
 
@@ -1107,116 +1124,141 @@ public class BundleInfoTask extends Task {
   {
     final StringBuffer sb = new StringBuffer();
     final String sep = ",";
-    final Iterator expIt = Util.parseEntries("export.package", oldExportsVal,
-                                             true, true, false );
-    while (expIt.hasNext()) {
-      final Map expEntry = (Map) expIt.next();
-      final String pkgName = (String) expEntry.get("$key");
-      if (!bpInfo.providesPackage(pkgName)) {
-        final String msg = "The package '"+pkgName +"' is in the Export-Package"
-          +" manifest header, but there is no class belonging to it."
-          +" The following packages are provided: "
-          +bpInfo.getProvidedPackages();
-        log(msg, Project.MSG_ERR );
-        if (failOnExports) {
-          throw new BuildException(msg, getLocation());
-        }
-      }
-      sb.append(pkgName);
 
-      // Add / check package version
-      String versionKey = "version";
-      String versionStr = (String) expEntry.remove(versionKey);
-      if (null==versionStr) {
-        // Fallback to pre OSGi R4 name
-        versionKey = "specification-version";
-        versionStr = (String) expEntry.remove(versionKey);
-      }
-      Version version = null;
-      if (null!=versionStr) {
-        try {
-          version = new Version(versionStr);
-        } catch (Exception e) {
-          final String msg = "Found invalid version value in given "
-            +"Export-Package header for the package '"
-            +pkgName +"': '"+versionStr +"'; Error: "
-            +e.getMessage();
+    // TODO handle multiple keys per header entry (must not use destructive
+    // operations on attributes and directives).
+    final List<HeaderEntry> entries =
+        Util.parseManifestHeader(Constants.EXPORT_PACKAGE, oldExportsVal, true, true, false);
+    for (final HeaderEntry entry : entries) {
+      for (final String pkgName : entry.getKeys()) {
+        if (!bpInfo.providesPackage(pkgName)) {
+          final String msg = "The package '"+pkgName +"' is in the Export-Package"
+            +" manifest header, but there is no class belonging to it."
+            +" The following packages are provided: "
+            +bpInfo.getProvidedPackages();
           log(msg, Project.MSG_ERR );
-          throw new BuildException(msg, e);
+          if (failOnExports) {
+            throw new BuildException(msg, getLocation());
+          }
         }
-      }
-      Version curVersion = bpInfo.getProvidedPackageVersion(pkgName);
-      if (null==version && null!=curVersion) {
-        // Version is missing, add it
-        version = curVersion;
-      } else if (null!=version && null!=curVersion
-                 && !version.equals(curVersion)) {
-        final String msg = "Found conflicting versions for the package '"
-          +pkgName +"'. The Export-Package header says '" +version +"', but '"
-          +bpInfo.getProvidedPackageVersionSource(pkgName) +" claims '"
-          +curVersion +"'.";
 
-        log(msg, Project.MSG_ERR );
-        throw new BuildException(msg);
-      }
-      if (null!=version) {
-        // Finally insert version into the new Export-Package value
-        sb.append(";").append(versionKey).append("=").append(version);
-      }
+        if (sb.length()>0) {
+          sb.append(sep);
+        }
+        sb.append(pkgName);
 
-      final Set directives = (Set) expEntry.get("$directives");
-      if (doUses()) {
-        if (!directives.contains("uses")) {
-          appendUsesDirective(sb, pkgName);
-        } else {
-          // Validate the given uses directive.
-          final Set usesPkgs = bpInfo.getPackagesReferencedFromPackage(pkgName);
-          final String usesValue = (String) expEntry.get("uses");
-          final Set uPkgsMan = new TreeSet
-            (Arrays.asList(Util.splitwords(usesValue, ", \t", '"')));
-          final Set uPkgsMis = new TreeSet(usesPkgs);
-          uPkgsMis.removeAll(uPkgsMan);
-          if (0<uPkgsMis.size()) {
-            final String msg = "The package '"+pkgName
-              +"' in the Export-Package"
-              +" manifest header has a usage directive with value '"
-              +usesValue +"', but the following packages are are also used: '"
-              +uPkgsMis +"' and should be added to the 'uses'-directive.";
+        // Add / check package version
+        String versionKey = "version";
+        String versionStr = (String) entry.getAttributes().remove(versionKey);
+        if (null==versionStr) {
+          // Fallback to pre OSGi R4 name
+          versionKey = "specification-version";
+          versionStr = (String) entry.getAttributes().remove(versionKey);
+        }
+        Version version = null;
+        if (null!=versionStr) {
+          try {
+            version = new Version(versionStr);
+          } catch (final Exception e) {
+            final String msg = "Found invalid version value in given "
+              +"Export-Package header for the package '"
+              +pkgName +"': '"+versionStr +"'; Error: "
+              +e.getMessage();
             log(msg, Project.MSG_ERR );
-            if (failOnExports) {
-              throw new BuildException(msg, getLocation());
+            throw new BuildException(msg, e);
+          }
+        }
+        final Version curVersion = bpInfo.getProvidedPackageVersion(pkgName);
+        if (null==version && null!=curVersion) {
+          // Version is missing, add it
+          version = curVersion;
+        } else if (null!=version && null!=curVersion
+                   && !version.equals(curVersion)) {
+          final String msg = "Found conflicting versions for the package '"
+            +pkgName +"'. The Export-Package header says '" +version +"', but '"
+            +bpInfo.getProvidedPackageVersionSource(pkgName) +" claims '"
+            +curVersion +"'.";
+
+          log(msg, Project.MSG_ERR );
+          throw new BuildException(msg);
+        }
+        if (null!=version) {
+          // Finally insert version into the new Export-Package value
+          sb.append(";").append(versionKey).append("=").append(version);
+        }
+
+        if (doUses()) {
+          if (!entry.getDirectives().containsKey(Constants.USES_DIRECTIVE)) {
+            appendUsesDirective(sb, pkgName);
+          } else {
+            // Validate the given uses directive.
+            final Set<String> usesPkgs = bpInfo.getPackagesReferencedFromPackage(pkgName);
+            final String usesValue = entry.getDirectives().remove(Constants.USES_DIRECTIVE);
+            final TreeSet<String> uPkgsMan = new TreeSet<String>
+              (Arrays.asList(Util.splitwords(usesValue, ", \t", '"')));
+            final Set<String> uPkgsMis = new TreeSet<String>(usesPkgs);
+            uPkgsMis.removeAll(uPkgsMan);
+            if (0<uPkgsMis.size()) {
+              final String msg = "The package '"+pkgName
+                +"' in the Export-Package"
+                +" manifest header has a usage directive with value '"
+                +usesValue +"', but the following packages are are also used: '"
+                +uPkgsMis +"' and should be added to the 'uses'-directive.";
+              log(msg, Project.MSG_ERR );
+              if (failOnExports) {
+                throw new BuildException(msg, getLocation());
+              }
+            }
+            final Set<String> uPkgsExtra = new TreeSet<String>(uPkgsMan);
+            uPkgsExtra.removeAll(usesPkgs);
+            if (0<uPkgsExtra.size()) {
+              final String msg = "The package '"+pkgName
+                +"' in the Export-Package"
+                +" manifest header has a usage directive with value '" +usesValue
+                +"', that contains the following unexpected (unused) packages: '"
+                +uPkgsExtra +"' that could be removed from the 'uses'-directive.";
+              log(msg, Project.MSG_ERR );
             }
           }
-          final Set uPkgsExtra = new TreeSet(uPkgsMan);
-          uPkgsExtra.removeAll(usesPkgs);
-          if (0<uPkgsExtra.size()) {
-            final String msg = "The package '"+pkgName
-              +"' in the Export-Package"
-              +" manifest header has a usage directive with value '" +usesValue
-              +"', that contains the following unexpected (unused) packages: '"
-              +uPkgsExtra +"' that could be removed from the 'uses'-directive.";
-            log(msg, Project.MSG_ERR );
+        }
+        for (final Entry<String, Object> paramEntry : entry.getAttributes().entrySet()) {
+          final String paramName = paramEntry.getKey();
+          final String paramValue = paramEntry.getValue().toString();
+
+          sb.append(";");
+          sb.append(paramName);
+          sb.append("=");
+          final boolean quoteNeeded = -1<paramValue.indexOf(',')
+            || -1<paramValue.indexOf(';')
+            || -1<paramValue.indexOf(':')
+            || -1<paramValue.indexOf('=');
+          if (quoteNeeded) {
+            sb.append("\"");
+          }
+          sb.append(paramValue);
+          if (quoteNeeded) {
+            sb.append("\"");
           }
         }
-      }
-      for (Iterator paramIt = expEntry.keySet().iterator(); paramIt.hasNext();){
-        final String paramName= (String) paramIt.next();
-        if ('$'==paramName.charAt(0)) continue; // Metadata
-        sb.append(";");
-        sb.append(paramName);
-        if (directives.contains(paramName)) sb.append(":");
-        sb.append("=");
-        final String paramValue = (String) expEntry.get(paramName);
-        final boolean quoteNeeded = -1<paramValue.indexOf(',')
-          || -1<paramValue.indexOf(';')
-          || -1<paramValue.indexOf(':')
-          || -1<paramValue.indexOf('=');
-        if (quoteNeeded) sb.append("\"");
-        sb.append(paramValue);
-        if (quoteNeeded) sb.append("\"");
-      }
-      if(expIt.hasNext()) {
-        sb.append(sep);
+        for (final Entry<String, String> directiveEntry : entry.getDirectives().entrySet()) {
+          final String directiveName = directiveEntry.getKey();
+          final String directiveValue = directiveEntry.getValue();
+
+          sb.append(";");
+          sb.append(directiveName);
+          sb.append(":=");
+          final boolean quoteNeeded = -1<directiveValue.indexOf(',')
+            || -1<directiveValue.indexOf(';')
+            || -1<directiveValue.indexOf(':')
+            || -1<directiveValue.indexOf('=');
+          if (quoteNeeded) {
+            sb.append("\"");
+          }
+          sb.append(directiveValue);
+          if (quoteNeeded) {
+            sb.append("\"");
+          }
+        }
       }
     }
     return sb.toString();
@@ -1241,8 +1283,8 @@ public class BundleInfoTask extends Task {
   }
 
   protected boolean isImported(String className) {
-    for(Iterator it = importSet.iterator(); it.hasNext(); ) {
-      final String pkg = (String)it.next();
+    for (final Object element : importSet) {
+      final String pkg = (String)element;
       if(className.startsWith(pkg)) {
         final String rest = className.substring(pkg.length() + 1);
         if(-1 == rest.indexOf(".")) {
@@ -1261,8 +1303,8 @@ public class BundleInfoTask extends Task {
    *         <tt>stdImports</tt> set, <tt>false</tt> otherwise.
    */
   protected boolean isStdImport(String name) {
-    for(Iterator it = stdImports.iterator(); it.hasNext();) {
-      final String s = (String)it.next();
+    for (final Object element : stdImports) {
+      final String s = (String)element;
       if(name.startsWith(s)) {
         return true;
       }
@@ -1276,7 +1318,7 @@ public class BundleInfoTask extends Task {
 
     try {
       asmAnalyser.analyseClass(res.getInputStream(), res.toString());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
       throw new BuildException("Failed to analyze class-file "
                                +res + ", exception=" + e,
@@ -1287,7 +1329,7 @@ public class BundleInfoTask extends Task {
   protected void analyzePackageinfo(Resource res) throws BuildException {
     log("Analyze packageinfo file " + res, Project.MSG_VERBOSE);
 
-    String pkgName = bpInfo.setPackageVersion(res);
+    final String pkgName = bpInfo.setPackageVersion(res);
     if (addPackageinfoPackages && pkgName != null) {
       bpInfo.addProvidedPackage(pkgName);
     }
@@ -1327,12 +1369,15 @@ public class BundleInfoTask extends Task {
    */
   public static final ResourceSelector analyzeRestriction
     = new ResourceSelector() {
+        @Override
         public boolean isSelected(final Resource r)
         {
           final Iterator it= BundleInfoTask.ANALYZE_SUFFIXES.iterator();
           while (it.hasNext()) {
             final String suffix = (String) it.next();
-            if (r.getName().endsWith(suffix)) return true;
+            if (r.getName().endsWith(suffix)) {
+              return true;
+            }
           }
           return false;
         }
@@ -1346,7 +1391,7 @@ public class BundleInfoTask extends Task {
   static protected String toString(Set set, String separator) {
     final StringBuffer sb = new StringBuffer();
 
-    for(Iterator it = set.iterator(); it.hasNext(); ) {
+    for(final Iterator it = set.iterator(); it.hasNext(); ) {
       final String name = (String)it.next();
       sb.append(name);
       if(it.hasNext()) {
