@@ -14,5 +14,4 @@ Bundle-Classpath: .,asm-3.2.jar
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Import-Package: org.osgi.framework; version="[1.6,2)",
  org.osgi.framework.hooks.weaving; version="[1.0,2)",
- org.osgi.framework.wiring; version="[1.0,2)",
- org.objectweb.asm
+ org.osgi.framework.wiring; version="[1.0,2)"
