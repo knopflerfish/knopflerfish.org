@@ -16,16 +16,29 @@
 </p>
 <p>
   The Release Notes include all new features & changes for 
-  Knopflerfish $(VERSION) compared to the release of Knopflerfish $(VERSION_PREV).
+  Knopflerfish $(VERSION) compared to the release of Knopflerfish
+  $(VERSION_PREV).
 </p>
 
 <h2 class="kf">Knopflerfish Framework - OSGi Core Specification</h2>
 <div class="release_notes">
 
   <div class="note_group">
-    <div class="note_name"> Framework X.X.X</div>
+    <div class="note_name">OSGi R5 specification</div>
     <div class="note_item">
-
+      All the Core Specification Services and API:s are included and are
+      designed to be compliant with the OSGi R5 specification.
+      Please refer to the <a href="components.html">Contents</a> page for
+      a more detailed description of news in R5 and KF5 implementation status.
+    </div>
+  <div class="note_group">
+    <div class="note_name"> Framework 7.0.0</div>
+    <div class="note_item">
+      Unified API version handling. API version are now read from the
+      <tt>packageinfo</tt> file in API source directory.
+    </div>
+    <div class="note_item">
+      Updated API:s and behaviour to be compliant with OSGi R5 specification.
     </div>
   </div>
 </div>
@@ -34,6 +47,13 @@
 <h2 class="kf">OSGi Compendium Specification</h2>
 <div class="release_notes">
 
+  <div class="note_group">
+    <div class="note_name">Blueprint 5.0.0</div>
+    <div class="note_item">
+      Update (micro version) of OSGi packages. 
+    </div>
+  </div>
+  
   <div class="note_group">
     <div class="note_name">CM 5.0.0</div>
     <div class="note_item">
@@ -52,6 +72,13 @@
   </div>
   
   <div class="note_group">
+    <div class="note_name">DMT 5.0.0</div>
+    <div class="note_item">
+      Update (micro version) of OSGi packages. 
+    </div>
+  </div>
+  
+  <div class="note_group">
     <div class="note_name">KF-XML-Metatype 5.0.0</div>
     <div class="note_item">
       The default values for an attribute definition is now validated
@@ -61,26 +88,25 @@
     </div>
   </div>
   
-  <div class="note_group">
-    <div class="note_name">Blueprint 5.0.0</div>
+   </div>
+    <div class="note_group">
+    <div class="note_name">SCR(component) 5.0.0</div>
     <div class="note_item">
-      Update (micro version) of OSGi packages. 
+      Updated API micro version to 1.2.1 because of added
+      generics types to methods. 
+    </div>
+    <div class="note_item">
+      Updated CM handling to handle targeted PIDs that
+      was introduced in Configuration Admin(CM) 5.0.0.
     </div>
   </div>
-  
-  <div class="note_group">
-    <div class="note_name">DMT 5.0.0</div>
-    <div class="note_item">
-      Update (micro version) of OSGi packages. 
-    </div>
-  </div>
-  
+
   <div class="note_group">
     <div class="note_name">WireAdmin 5.0.0</div>
     <div class="note_item">
       Update (micro version) of OSGi packages. 
     </div>
-  </div>  
+
 </div>
 
 <h2 class="kf">Knopflerfish Services</h2>
@@ -90,7 +116,7 @@
     <div class="note_name">CM-Commands 5.0.0</div>
     <div class="note_item">
 
-      Updated to require and use the Configaurtion Admin version 1.5.
+      Updated to require and use the Configuration Admin version 1.5.
       I.e., 
       <ul>
 	<li>Presents the change count when showing a configuration,
@@ -122,7 +148,7 @@
     <div class="note_name">CM-Desktop 5.0.0</div>
     <div class="note_item">
 
-      Updated to require and use the Configaurtion Admin version 1.5.
+      Updated to require and use the Configuration Admin version 1.5.
       I.e., 
       <ul>
 	<li> Works with configurations using targeted PIDs.
@@ -133,13 +159,13 @@
 
       The user interface has been rewritten to support targeted PIDs
       and to increase performance by reducing the number of Swing
-      components it uses and updates when a configruation is updated.
+      components it uses and updates when a configuration is updated.
 
     </div>
     <div class="note_item">
 
       Buttons in the GUI is now made inactive (disabled) when they do
-      not have a function (previously they where made invisibe).
+      not have a function (previously they where made invisible).
 
     </div>
     <div class="note_item">
@@ -155,7 +181,7 @@
     <div class="note_item">
 
       This bundle can now use any MetaTypeService service. I.e., it no
-      longer requries the SystemMetattypeProvider service provided by
+      longer requires the SystemMetattypeProvider service provided by
       the kf_metatype-bundle.
 
     </div>
@@ -171,7 +197,7 @@
     <div class="note_name">Desktop 5.0.0</div>
     <div class="note_item">
 
-      Added support for external bundles that registers detial
+      Added support for external bundles that registers detail
       displayers to support lazy updates, i.e., only update the
       displayer views when the displayer is visible in the tabbed pane
       it lives in. A displayer that wants to use this feature must
