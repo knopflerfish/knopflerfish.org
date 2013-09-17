@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,20 +37,19 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.ResourceCollection;
 
 public class BIndexTask extends Task {
 
-  private Vector    filesets = new Vector();
+  private final List<ResourceCollection>    filesets = new ArrayList<ResourceCollection>();
 
   private File   baseDir             = new File("");
   private String baseURL             = "";
@@ -82,7 +81,7 @@ public class BIndexTask extends Task {
   }
 
   public void addFileset(FileSet set) {
-    filesets.addElement(set);
+    filesets.add(set);
   }
 
   private String styleSheet;
@@ -98,37 +97,38 @@ public class BIndexTask extends Task {
   }
 
   // Implements Task
+  @Override
   public void execute() throws BuildException {
     if (filesets.size() == 0) {
       throw new BuildException("No fileset specified");
     }
 
-    Set jarSet = new HashSet();
+    final Set<File> jarSet = new HashSet<File>();
 
     log("loading bundle info...", Project.MSG_VERBOSE);
 
     try {
       for (int i = 0; i < filesets.size(); i++) {
-        FileSet          fs      = (FileSet) filesets.elementAt(i);
-        DirectoryScanner ds      = fs.getDirectoryScanner(getProject());
-        File             projDir = fs.getDir(getProject());
+        final FileSet          fs      = (FileSet) filesets.get(i);
+        final DirectoryScanner ds      = fs.getDirectoryScanner(getProject());
+        final File             projDir = fs.getDir(getProject());
 
-        String[] srcFiles = ds.getIncludedFiles();
+        final String[] srcFiles = ds.getIncludedFiles();
 
-        for (int j = 0; j < srcFiles.length ; j++) {
-          File file = new File(projDir, srcFiles[j]);
+        for (final String srcFile : srcFiles) {
+          final File file = new File(projDir, srcFile);
           if(file.getName().endsWith(".jar")) {
             jarSet.add(file);
           }
         }
       }
 
-      Set removeSet = new HashSet();
-      for(Iterator it = jarSet.iterator(); it.hasNext();) {
-        File   file = (File)it.next();
-        String name = file.getAbsolutePath();
+      final Set<File> removeSet = new HashSet<File>();
+      for (final Object element : jarSet) {
+        final File   file = (File)element;
+        final String name = file.getAbsolutePath();
         if(-1 != name.indexOf("_all-")) {
-          File f2 = new File(Util.replace(name, "_all-", "-"));
+          final File f2 = new File(Util.replace(name, "_all-", "-"));
           removeSet.add(f2);
           log("skip " + f2, Project.MSG_VERBOSE);
         }
@@ -138,13 +138,13 @@ public class BIndexTask extends Task {
         log("skipping " + removeSet.size() + " bundles", Project.MSG_INFO);
       }
 
-      for(Iterator it = removeSet.iterator(); it.hasNext();) {
-        File f = (File)it.next();
+      for (final Object element : removeSet) {
+        final File f = (File)element;
         jarSet.remove(f);
       }
 
       log("writing bundle repository to " + outFile, Project.MSG_VERBOSE);
-      List cmdList = new ArrayList( 10 + jarSet.size() );
+      final List<String> cmdList = new ArrayList<String>( 10 + jarSet.size() );
 
       cmdList.add("-t");
       cmdList.add(baseURL +"/%p/%f ");
@@ -166,15 +166,15 @@ public class BIndexTask extends Task {
         cmdList.add("-n");
         cmdList.add(repoName);
       }
-      for (Iterator iter = jarSet.iterator(); iter.hasNext(); ) {
-        String file = ((File) iter.next()).getAbsolutePath();
+      for (final Object element : jarSet) {
+        final String file = ((File) element).getAbsolutePath();
         cmdList.add(file);
       }
 
       try {
         // Call org.osgi.impl.bundle.bindex.Index.main(args) to
         // generate the bindex.xml file.
-        Class bIndexClazz = Class.forName("org.osgi.impl.bundle.bindex.Index");
+        final Class<?> bIndexClazz = Class.forName("org.osgi.impl.bundle.bindex.Index");
 
         // Prepend the -d <rootFile> option
         cmdList.add(2, baseDir.getAbsolutePath());
@@ -184,32 +184,32 @@ public class BIndexTask extends Task {
           // to set org.osgi.impl.bundle.bindex.Index.rootFile to
           // baseDir to get correctly computed paths in the bundle
           // URLs.
-          Field rootFileField = bIndexClazz.getDeclaredField("rootFile");
+          final Field rootFileField = bIndexClazz.getDeclaredField("rootFile");
           if (null!=rootFileField) {
             rootFileField.setAccessible(true);
             rootFileField.set(null, baseDir.getAbsoluteFile());
           }
-        } catch (NoSuchFieldException _nsfe) {
+        } catch (final NoSuchFieldException _nsfe) {
         }
 
         // Call the main method
-        String[] args = (String[]) cmdList.toArray(new String[cmdList.size()]);
-        Method mainMethod = bIndexClazz
+        final String[] args = cmdList.toArray(new String[cmdList.size()]);
+        final Method mainMethod = bIndexClazz
           .getDeclaredMethod("main", new Class[]{args.getClass()});
         {
-          StringBuffer argSb = new StringBuffer();
-          for (int ix=0; ix<args.length; ix++){
-            argSb.append(" \"").append(args[ix]).append("\"");
+          final StringBuffer argSb = new StringBuffer();
+          for (final String arg : args) {
+            argSb.append(" \"").append(arg).append("\"");
           }
           log("Calling bindex with args: "+argSb, Project.MSG_VERBOSE);
         }
         mainMethod.invoke(null, new Object[]{args});
-      } catch (Exception e) {
+      } catch (final Exception e) {
         log("Failed to execute BIndex: " +e.getMessage(), Project.MSG_ERR);
         e.printStackTrace();
       }
 
-    } catch (Exception e) { e.printStackTrace(); }
+    } catch (final Exception e) { e.printStackTrace(); }
   }
 
 }

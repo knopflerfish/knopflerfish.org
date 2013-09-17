@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,15 +37,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
-import java.util.Vector;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -54,6 +55,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.ResourceCollection;
 
 /**
  * <p>
@@ -128,9 +130,12 @@ import org.apache.tools.ant.types.FileSet;
  * </p>
  *
  */
-public class OBRExtractorTask extends Task {
+public class OBRExtractorTask
+  extends Task
+{
 
-  private Vector filesets            = new Vector();
+  private final List<ResourceCollection> filesets =
+    new ArrayList<ResourceCollection>();
 
   private File   baseDir             = new File(".");
   private String baseURL             = "";
@@ -167,45 +172,45 @@ public class OBRExtractorTask extends Task {
   }
 
   public void addFileset(FileSet set) {
-    filesets.addElement(set);
+    filesets.add(set);
   }
 
-  // File -> BundleInfo
-  Map jarMap = new HashMap();
+  Map<File,BundleInfo> jarMap = new HashMap<File,BundleInfo>();
 
   // Implements Task
+  @Override
   public void execute() throws BuildException {
     if (filesets.size() == 0) {
       throw new BuildException("No fileset specified");
     }
 
-    jarMap = new HashMap();
+    jarMap = new HashMap<File,BundleInfo>();
 
     System.out.println("loading bundle info...");
 
     try {
-      for (int i = 0; i < filesets.size(); i++) {
-        FileSet          fs      = (FileSet) filesets.elementAt(i);
-        DirectoryScanner ds      = fs.getDirectoryScanner(getProject());
-        File             projDir = fs.getDir(getProject());
+      for (final ResourceCollection rc : filesets) {
+        final FileSet          fs      = (FileSet) rc;
+        final DirectoryScanner ds      = fs.getDirectoryScanner(getProject());
+        final File             projDir = fs.getDir(getProject());
 
-        String[] srcFiles = ds.getIncludedFiles();
+        final String[] srcFiles = ds.getIncludedFiles();
 
-        for (int j = 0; j < srcFiles.length ; j++) {
-          File file = new File(projDir, srcFiles[j]);
+        for (final String srcFile : srcFiles) {
+          final File file = new File(projDir, srcFile);
           if(file.getName().endsWith(".jar")) {
             jarMap.put(file, new BundleInfo(file));
           }
         }
       }
 
-      Set removeSet = new HashSet();
+      final Set<File> removeSet = new HashSet<File>();
 
-      for(Iterator it = jarMap.keySet().iterator(); it.hasNext();) {
-        File       file = (File)it.next();
-        String name = file.getAbsolutePath();
+      for (final Object element : jarMap.keySet()) {
+        final File       file = (File)element;
+        final String name = file.getAbsolutePath();
         if(-1 != name.indexOf("_all-")) {
-          File f2 = new File(Util.replace(name, "_all-", "-"));
+          final File f2 = new File(Util.replace(name, "_all-", "-"));
           removeSet.add(f2);
           System.out.println("skip " + f2);
         }
@@ -215,16 +220,15 @@ public class OBRExtractorTask extends Task {
         System.out.println("skipping " + removeSet.size() + " bundles");
       }
 
-      for(Iterator it = removeSet.iterator(); it.hasNext();) {
-        File f = (File)it.next();
+      for (final File f  : removeSet) {
         jarMap.remove(f);
       }
 
       System.out.println("analyzing " + jarMap.size() + " bundles");
 
-      for(Iterator it = jarMap.keySet().iterator(); it.hasNext();) {
-        File       file = (File)it.next();
-        BundleInfo info = (BundleInfo)jarMap.get(file);
+      for (final Object element : jarMap.keySet()) {
+        final File       file = (File)element;
+        final BundleInfo info = jarMap.get(file);
 
         info.load();
       }
@@ -234,7 +238,7 @@ public class OBRExtractorTask extends Task {
       OutputStream out = null;
       try {
         out = new FileOutputStream(outFile);
-        PrintStream ps = new PrintStream(out);
+        final PrintStream ps = new PrintStream(out);
 
         ps.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         if(repoXSLURL != null && !"".equals(repoXSLURL)) {
@@ -251,31 +255,31 @@ public class OBRExtractorTask extends Task {
         ps.println("  <name>" +repoName +"</name>");
         ps.println("  <date>" + (new Date()) + "</date>");
         if (externRepoURLs!=null && 0<externRepoURLs.length()) {
-          StringTokenizer st = new StringTokenizer(externRepoURLs,",");
+          final StringTokenizer st = new StringTokenizer(externRepoURLs,",");
           ps.println("  <extern-repositories>");
           while (st.hasMoreTokens()) {
-            String repoURL = st.nextToken().trim();
+            final String repoURL = st.nextToken().trim();
             ps.println("   <url>" +repoURL +"</url>");
           }
           ps.println("  </extern-repositories>");
         }
         ps.println(" </repository>");
 
-        for(Iterator it = jarMap.keySet().iterator(); it.hasNext();) {
-          File       file = (File)it.next();
-          BundleInfo info = (BundleInfo)jarMap.get(file);
+        for (final Object element : jarMap.keySet()) {
+          final File       file = (File)element;
+          final BundleInfo info = jarMap.get(file);
 
           info.writeBundleXML(ps);
         }
         ps.println("</bundles>");
         ps.close();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         e.printStackTrace();
       } finally {
-        try { out.close(); } catch (Exception ignored) { }
+        try { out.close(); } catch (final Exception ignored) { }
       }
 
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
       throw new BuildException("Failed to extract bundle info: " + e, e);
     }
@@ -285,9 +289,9 @@ public class OBRExtractorTask extends Task {
     File       file;
     Attributes attribs;
     String path;
-    Map pkgExportMap;
-    Map pkgImportMap;
-    Set optionalPkgs = new HashSet();
+    Map<String, VersionRange> pkgExportMap;
+    Map<String, VersionRange> pkgImportMap;
+    Set<String> optionalPkgs = new HashSet<String>();
 
     public BundleInfo(File file) throws IOException  {
       this.file = file;
@@ -295,8 +299,8 @@ public class OBRExtractorTask extends Task {
     }
 
     public void load() throws Exception {
-      JarFile    jarFile      = new JarFile(file);
-      Manifest   mf           = jarFile.getManifest();
+      final JarFile    jarFile      = new JarFile(file);
+      final Manifest   mf           = jarFile.getManifest();
       attribs                 = mf.getMainAttributes();
 
       pkgExportMap     = parseNames(attribs.getValue("Export-Package"));
@@ -305,28 +309,28 @@ public class OBRExtractorTask extends Task {
     }
 
 
-    Map parseNames(String s) {
+    Map<String,VersionRange> parseNames(String s) {
 
-      Map map = new TreeMap();
+      final Map<String, VersionRange> map = new TreeMap<String, VersionRange>();
 
       //      System.out.println(file + ": " + s);
       if(s != null) {
         s = s.trim();
-        String[] lines = Util.splitwords(s, ",", '\"');
-        for(int i = 0; i < lines.length; i++) {
-          String[] words = Util.splitwords(lines[i].trim(), ";", '\"');
+        final String[] lines = Util.splitwords(s, ",", '\"');
+        for (final String line : lines) {
+          final String[] words = Util.splitwords(line.trim(), ";", '\"');
           if(words.length < 1) {
             throw new RuntimeException("bad package spec '" + s + "'");
           }
           String spec = "0";
-          String name = words[0].trim();
+          final String name = words[0].trim();
 
           for(int j = 1; j < words.length; j++) {
-            String[] info = Util.splitwords(words[j], "=", '\"');
+            final String[] info = Util.splitwords(words[j], "=", '\"');
 
             if(info.length == 2) {
               String lhs = info[0].trim();
-              boolean isDirective = lhs.charAt(lhs.length()-1) == ':';
+              final boolean isDirective = lhs.charAt(lhs.length()-1) == ':';
               if("specification-version".equals(lhs)
                  || "version".equals(lhs)) {
                 spec = info[1].trim();
@@ -381,14 +385,14 @@ public class OBRExtractorTask extends Task {
 
     }
 
-    void dumpPackages(PrintStream out, String tag, Map map) {
-      for(Iterator it = map.keySet().iterator(); it.hasNext();) {
-        String pkg  = (String)it.next();
-        VersionRange spec = (VersionRange) map.get(pkg);
+    void dumpPackages(PrintStream out, String tag, Map<String, VersionRange> map) {
+      for (final Entry<String,VersionRange> entry : map.entrySet()) {
+        final String pkg  = entry.getKey();
+        final VersionRange spec = entry.getValue();
         boolean bSkip = false;
         String  skipReason = null;
         if("import-package".equals(tag)) {
-          VersionRange exportSpec = (VersionRange) pkgExportMap.get(pkg);
+          final VersionRange exportSpec = pkgExportMap.get(pkg);
           if(exportSpec != null && spec.contains(exportSpec.lowerBound)) {
             // Skip import of exported packages
             bSkip = true;

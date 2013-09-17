@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
@@ -259,26 +259,25 @@ public class BundleUserDocNavigateTask
   }
 
   // Mapping from category name to sorted set with link data.
-  private final Map/*<String,SortedSet<LinkData>>*/ categories = new HashMap();
+  private final Map<String, SortedSet<LinkData>> categories =
+    new HashMap<String, SortedSet<LinkData>>();
 
   // Insert a link data item to a category in the categories map
   private void add(final String category, final LinkData ld)
   {
-    SortedSet lds = (SortedSet) categories.get(category);
+    SortedSet<LinkData> lds = categories.get(category);
     if (null==lds) {
-      lds = new TreeSet();
+      lds = new TreeSet<LinkData>();
       categories.put(category, lds);
     }
     lds.add(ld);
   }
 
   // Build a html-string with links to the lds in the set.
-  private String links(final Set lds)
+  private String links(final Set<LinkData> lds)
   {
     final StringBuffer sb = new StringBuffer(1024);
-    for (final Iterator it = lds.iterator(); it.hasNext(); ) {
-      final LinkData ld = (LinkData) it.next();
-
+    for (final LinkData ld : lds) {
       sb.append("      <dd class=\"leftmenu");
       sb.append(ld.depth +1);
       sb.append("\">");
@@ -293,7 +292,7 @@ public class BundleUserDocNavigateTask
   }
 
   // The data needed to create a document link in a category.
-  static class LinkData implements Comparable
+  static class LinkData implements Comparable<LinkData>
   {
     String title;
     String linkPath;
@@ -308,9 +307,8 @@ public class BundleUserDocNavigateTask
     }
 
     @Override
-    public int compareTo(Object o)
+    public int compareTo(LinkData other)
     {
-      final LinkData other = (LinkData) o;
       return sortKey.compareTo(other.sortKey);
     }
   }
@@ -429,10 +427,9 @@ public class BundleUserDocNavigateTask
       String content = FileUtil.loadFile(fromFile.getAbsolutePath());
       content = Util.replace(content, "$(TITLE)", pageTitle);
 
-      for (final Iterator it = categories.entrySet().iterator(); it.hasNext();) {
-        final Map.Entry entry = (Map.Entry) it.next();
-        final String category = (String) entry.getKey();
-        final Set lds = (Set) entry.getValue();
+      for (final Entry<String,SortedSet<LinkData>> entry : categories.entrySet()) {
+        final String category = entry.getKey();
+        final Set<LinkData> lds = entry.getValue();
 
         final String ldHtml = links(lds);
         if (0<ldHtml.length()) {

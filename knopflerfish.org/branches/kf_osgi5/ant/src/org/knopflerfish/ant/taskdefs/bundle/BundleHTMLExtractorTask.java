@@ -283,8 +283,9 @@ public class BundleHTMLExtractorTask
 
     setAlwaysProps("Build-Date," + "Bundle-Activator," + "Bundle-Classpath,"
                    + "Bundle-ContactAddress," + "Bundle-Description,"
-                   + "Bundle-DocURL," + "Bundle-ManifestVersion,"
-                   + "Bundle-Name," + "Bundle-SymbolicName," + "Bundle-Vendor,"
+                   + "Bundle-License," + "Bundle-DocURL,"
+                   + "Bundle-ManifestVersion," + "Bundle-Name,"
+                   + "Bundle-SymbolicName," + "Bundle-Vendor,"
                    + "DynamicImport-Package," + "Export-Package,"
                    + "Import-Package," + "Provide-Capability,"
                    + "Require-Capability," + "Main-class");
