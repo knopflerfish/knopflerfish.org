@@ -618,9 +618,9 @@ public class BundleInfoTask extends Task {
    * @param bcpt The bundle classpath that the bundle will have.
    */
   public void addConfiguredExportsBundleClasspath(BundleClasspathTask bcpt) {
-    for (final Iterator it = bcpt.getFileSets(failOnClassPath).iterator(); it.hasNext();) {
+    for (final Object element : bcpt.getFileSets(failOnClassPath)) {
       final Restrict restrict = new Restrict();
-      restrict.add((ResourceCollection) it.next());
+      restrict.add((ResourceCollection) element);
       restrict.add(analyzeRestriction);
       exportsResourceCollections.add(restrict);
     }
@@ -644,9 +644,9 @@ public class BundleInfoTask extends Task {
    * @param bcpt The bundle classpath that the bundle will have.
    */
   public void addConfiguredImplsBundleClasspath(BundleClasspathTask bcpt) {
-    for (final Iterator it = bcpt.getFileSets(failOnClassPath).iterator(); it.hasNext();) {
+    for (final Object element : bcpt.getFileSets(failOnClassPath)) {
       final Restrict restrict = new Restrict();
-      restrict.add((ResourceCollection) it.next());
+      restrict.add((ResourceCollection) element);
       restrict.add(analyzeRestriction);
       implsResourceCollections.add(restrict);
     }
@@ -687,8 +687,9 @@ public class BundleInfoTask extends Task {
     for (final Object element : exportsResourceCollections) {
       final ResourceCollection rc = (ResourceCollection) element;
 
-      for (final Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
-        final Resource res = (Resource) rcIt.next();
+      for (@SuppressWarnings("unchecked")
+      final Iterator<Resource> rcIt = rc.iterator(); rcIt.hasNext();) {
+        final Resource res = rcIt.next();
         log("Exports resource: "+res, Project.MSG_DEBUG);
         analyze(res);
       }
@@ -745,8 +746,9 @@ public class BundleInfoTask extends Task {
     for (final Object element : implsResourceCollections) {
       final ResourceCollection rc = (ResourceCollection) element;
 
-      for (final Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
-        final Resource res = (Resource) rcIt.next();
+      for (@SuppressWarnings("unchecked")
+      final Iterator<Resource> rcIt = rc.iterator(); rcIt.hasNext();) {
+        final Resource res = rcIt.next();
         log("Impl resource: "+res, Project.MSG_DEBUG);
         analyze(res);
       }
@@ -759,21 +761,21 @@ public class BundleInfoTask extends Task {
         Project.MSG_VERBOSE);
 
     // created importSet from the set of unprovided referenced packages
-    final SortedSet unprovidedReferencedPackages
+    final SortedSet<String> unprovidedReferencedPackages
       = bpInfo.getUnprovidedReferencedPackages();
     log("Un-provided referenced packages: " +unprovidedReferencedPackages,
         Project.MSG_DEBUG);
 
     // The set of referenced packages that matches one of the
     // stdImport patterns.
-    final SortedSet ignoredReferencedPackages = new TreeSet();
+    final SortedSet<String> ignoredReferencedPackages = new TreeSet<String>();
 
     // Remove all packages with names like "java.*" (full set of
     // patterns are given by the stdImports set). Such packages must
     // not be present in the importSet.
-    for (final Iterator urpIt = unprovidedReferencedPackages.iterator();
+    for (final Iterator<String> urpIt = unprovidedReferencedPackages.iterator();
          urpIt.hasNext(); ) {
-      final String pkgName = (String) urpIt.next();
+      final String pkgName = urpIt.next();
       if (isStdImport(pkgName)) {
         urpIt.remove();
         ignoredReferencedPackages.add(pkgName);
@@ -783,7 +785,7 @@ public class BundleInfoTask extends Task {
         Project.MSG_DEBUG);
     importSet.addAll(unprovidedReferencedPackages);
 
-    final SortedSet unprovidedExtraImportSet = new TreeSet(extraImportSet);
+    final SortedSet<String> unprovidedExtraImportSet = new TreeSet<String>(extraImportSet);
     unprovidedExtraImportSet.removeAll(bpInfo.getProvidedPackages());
     log("Un-provided extra packages to import: " +unprovidedExtraImportSet,
         Project.MSG_DEBUG);
@@ -791,7 +793,7 @@ public class BundleInfoTask extends Task {
 
     // The set of packages that will be mentioned in the
     // Export-Package or the Import-Package header.
-    final Set allImpExpPkgs = new TreeSet(providedExportSet);
+    final Set<String> allImpExpPkgs = new TreeSet<String>(providedExportSet);
     allImpExpPkgs.addAll(importSet);
 
     bpInfo.postProcessUsingMap(ignoredReferencedPackages, allImpExpPkgs);
@@ -869,7 +871,7 @@ public class BundleInfoTask extends Task {
         }
 
         givenImportSet.removeAll(bpInfo.getProvidedPackages());
-        final TreeSet missingImports = new TreeSet(importSet);
+        final TreeSet<String> missingImports = new TreeSet<String>(importSet);
         missingImports.removeAll(givenImportSet);
         if (0<missingImports.size()) {
           log("External packages: "+importSet,      Project.MSG_ERR);
@@ -885,7 +887,7 @@ public class BundleInfoTask extends Task {
             throw new BuildException(msg, getLocation());
           }
         }
-        final TreeSet extraImports = new TreeSet(givenImportSet);
+        final TreeSet<String> extraImports = new TreeSet<String>(givenImportSet);
         extraImports.removeAll(importSet);
         if (0<extraImports.size()) {
           log("External packages: "+importSet, Project.MSG_ERR);
@@ -948,11 +950,8 @@ public class BundleInfoTask extends Task {
       }
     }
 
-    final Set foundationMissing = new TreeSet();
-    final Set minimumMissing    = new TreeSet();
-
-    for(final Iterator it = bpInfo.getReferencedClasses().iterator(); it.hasNext();) {
-      final String s = (String)it.next();
+    for (final Object element : bpInfo.getReferencedClasses()) {
+      final String s = (String)element;
       if(s.endsWith("[]")) {
       } else {
         if(!bpInfo.providesClass(s)) {
@@ -1061,15 +1060,15 @@ public class BundleInfoTask extends Task {
   {
     if (doUses()) {
       final String sep = ",";
-      final Set usesPkgs = bpInfo.getPackagesReferencedFromPackage(pkgName);
+      final Set<String> usesPkgs = bpInfo.getPackagesReferencedFromPackage(pkgName);
 
       if (null!=usesPkgs && 0<usesPkgs.size()) {
         sb.append(";uses:=");
         if (1<usesPkgs.size()) {
           sb.append("\"");
         }
-        for (final Iterator usesIt = usesPkgs.iterator(); usesIt.hasNext(); ) {
-          final String usesPkg = (String) usesIt.next();
+        for (final Iterator<String> usesIt = usesPkgs.iterator(); usesIt.hasNext(); ) {
+          final String usesPkg = usesIt.next();
           sb.append(usesPkg);
           if (usesIt.hasNext()) {
             sb.append(sep);
@@ -1087,14 +1086,17 @@ public class BundleInfoTask extends Task {
    *
    * @param exportPackages The sub-set of provided packages to be exported.
    */
-  protected String buildExportPackagesValue(final Set exportPackages) {
+  protected String buildExportPackagesValue(final Set<String> exportPackages) {
     final String sep = ",";
     final String versionPrefix = ";version=";
 
     final StringBuffer sb = new StringBuffer();
 
-    for(final Iterator it = exportPackages.iterator(); it.hasNext(); ) {
-      final String pkgName = (String) it.next();
+    for(final String pkgName : exportPackages) {
+      if (sb.length() > 0) {
+        sb.append(sep);
+      }
+
       sb.append(pkgName);
 
       final Version pkgVersion = bpInfo.getProvidedPackageVersion(pkgName);
@@ -1103,10 +1105,6 @@ public class BundleInfoTask extends Task {
       }
 
       appendUsesDirective(sb, pkgName);
-
-      if(it.hasNext()) {
-        sb.append(sep);
-      }
     }
     return sb.toString();
   }
@@ -1351,7 +1349,7 @@ public class BundleInfoTask extends Task {
   }
 
 
-  public static final Set ANALYZE_SUFFIXES = new TreeSet() {
+  public static final Set<String> ANALYZE_SUFFIXES = new TreeSet<String>() {
     private static final long serialVersionUID = 2628940819429424154L;
     {
       add(".class");
@@ -1363,40 +1361,36 @@ public class BundleInfoTask extends Task {
 
 
   /**
-   * A resource selector that selects files to be analyzed. I.e., it
-   * selects <code>.class</code>-files and
-   * <code>packageinfo</code>-files.
+   * A resource selector that selects files to be analyzed. I.e., it selects
+   * <code>.class</code>-files and <code>packageinfo</code>-files.
    */
-  public static final ResourceSelector analyzeRestriction
-    = new ResourceSelector() {
-        @Override
-        public boolean isSelected(final Resource r)
-        {
-          final Iterator it= BundleInfoTask.ANALYZE_SUFFIXES.iterator();
-          while (it.hasNext()) {
-            final String suffix = (String) it.next();
-            if (r.getName().endsWith(suffix)) {
-              return true;
-            }
+  public static final ResourceSelector analyzeRestriction =
+    new ResourceSelector() {
+      @Override
+      public boolean isSelected(final Resource r)
+      {
+        for (final String suffix : BundleInfoTask.ANALYZE_SUFFIXES) {
+          if (r.getName().endsWith(suffix)) {
+            return true;
           }
-          return false;
         }
-      };
+        return false;
+      }
+    };
 
   /**
    * Convert Set elements to a string.
    *
    * @param separator String to use as separator between elements.
    */
-  static protected String toString(Set set, String separator) {
+  static protected String toString(Set<String> set, String separator) {
     final StringBuffer sb = new StringBuffer();
 
-    for(final Iterator it = set.iterator(); it.hasNext(); ) {
-      final String name = (String)it.next();
-      sb.append(name);
-      if(it.hasNext()) {
+    for(final String name : set) {
+      if(sb.length() > 0) {
         sb.append(separator);
       }
+      sb.append(name);
     }
     return sb.toString();
   }
