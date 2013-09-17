@@ -55,6 +55,7 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.ResourceCollection;
 
 import org.osgi.framework.Version;
+import org.osgi.framework.VersionRange;
 
 import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
 
