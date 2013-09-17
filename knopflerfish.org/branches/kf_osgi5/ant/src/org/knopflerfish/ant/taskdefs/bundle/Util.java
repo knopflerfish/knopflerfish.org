@@ -491,8 +491,6 @@ public class Util {
    *         source string <tt>s</tt> will be returned unmodified. If
    *         <tt>v1.length == 0</tt>, <tt>v1.equals(v2)</tt> or no occurrences
    *         of <tt>v1</tt> is found, also return <tt>s</tt> unmodified.
-   *
-   * @author Erik Wistrand
    */
   public static String replace(final String s,
                                final String v1,
@@ -751,7 +749,7 @@ public class Util {
   /**
    * A class that holds the parse result for one entry of a manifest header
    * following the general OSGi manifest header syntax. See
-   * {@link Util#parseManifestHeader()} for
+   * {@link #parseManifestHeader(String, String, boolean, boolean, boolean)} for
    * details on the syntax.
    */
   public static class HeaderEntry
