@@ -8,6 +8,8 @@
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.JavaSE_1.5"/>
 
+  <property name="bundle.build.doc"      value="true"/>
+
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/desktop/cm/**"/>
 
