@@ -126,8 +126,9 @@
       <!-- org.osgi.framework.Version is used by BundleLocator. -->
       <src path="${framework.dir}/src"/>
       <include name="org/knopflerfish/ant/**"/>
-      <include name="org/osgi/framework/Version.java"/>
       <include name="org/osgi/framework/Constants.java"/>
+      <include name="org/osgi/framework/Version.java"/>
+      <include name="org/osgi/framework/VersionRange.java"/>
     </javac>
 
     <jar destfile="${bundle_tasks.jar}"

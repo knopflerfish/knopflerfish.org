@@ -57,6 +57,8 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.ResourceCollection;
 
+import org.osgi.framework.VersionRange;
+
 /**
  * <p>
  * Task that analyzes a set of bundle jar files and builds OBR XML
@@ -393,7 +395,7 @@ public class OBRExtractorTask
         String  skipReason = null;
         if("import-package".equals(tag)) {
           final VersionRange exportSpec = pkgExportMap.get(pkg);
-          if(exportSpec != null && spec.contains(exportSpec.lowerBound)) {
+          if(exportSpec != null && spec.includes(exportSpec.getLeft())) {
             // Skip import of exported packages
             bSkip = true;
             skipReason = "own import since exported with same version ";

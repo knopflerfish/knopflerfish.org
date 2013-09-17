@@ -69,6 +69,7 @@ import org.apache.tools.ant.types.resources.FileResource;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.VersionRange;
 
 import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
 
@@ -276,7 +277,7 @@ public class BundleArchives {
           for (final Entry<Version,SortedSet<BundleArchive>> vE : versions.entrySet()) {
             final Version pkgVersion = vE.getKey();
 
-            if (range.contains(pkgVersion)) {
+            if (range.includes(pkgVersion)) {
               final SortedSet<BundleArchive> providers = vE.getValue();
 
               for (final BundleArchive provider : providers) {
