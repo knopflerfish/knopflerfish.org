@@ -20,6 +20,87 @@
   $(VERSION_PREV).
 </p>
 
+<h2 class="kf">OSGi Release 5 - What is New?</h2>
+<div class="release_notes">
+  <p>
+    Below is a short summary of the most important new features in OSGi R5
+    Core and Compendium.
+  </p>
+  <div class="note_group">
+    <div class="note_name"> Resource API </div>
+    <div class="note_item">
+    An API for the generic Requirement-Capability model. This API is not
+    used directly by the Framework, the purpose of specifying this base API
+    is to allow it to be used as building block for other specifications.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> VersionRange class </div>
+    <div class="note_item">
+    OSGi standard class for handling OSGi version ranges.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> OSGi Namespaces </div>
+    <div class="note_item">
+    A key aspect of the OSGi dependency model based on requirements and
+    capabilities is the concept of a namespace. A Namespace defines the
+    semantics of a Requirement-Capability pair. New namespace defined in
+    R5 are osgi.content, osgi.contract, osgi.extender, osgi.identity,
+    osgi.service and osgi.serviceloader.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Repository Service Specification </div>
+    <div class="note_item">
+    New specification that specifies the Repository Service that provides
+    the capability to manage the external access to components and other
+    resources.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Service Loader Mediator Specification </div>
+    <div class="note_item">
+    New specification that defines a mediator that ensures that services
+    that uses the Java Service Loader model is useful in an OSGi Framework.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Subsystem Service Specification </div>
+    <div class="note_item">
+    The framework provides hooks for influencing resolution, and access to
+    bundles and services. These framework hooks may be used to implement
+    scoping for a collection of bundles. The Subsystems specification
+    provides a higher-level declarative model for defining scoping for
+    collections of resources, including bundles.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Resolver Service Specification </div>
+    <div class="note_item">
+    A new service that can be the base for provisioning, deployment,
+    build, and diagnostic tooling. The service can take a requirement
+    and resolve it to a wiring of resources.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Updated Configuration Admin Service Specification </div>
+    <div class="note_item">
+    A new method <code>Configuration.getChangeCount()</code>.
+    </div>
+    <div class="note_item">
+    New listener interface
+	<code>SynchronousConfigurationListener</code>.
+    </div>
+    <div class="note_item">
+    New concept Targeted PIDs. The target PID scopes the applicability
+    of the PID to a limited set of target bundle based on
+    Bundle-Symbolic-Name, Version and Location. 
+    </div>
+  </div>
+</div>
+
+
 <h2 class="kf">Knopflerfish Framework - OSGi Core Specification</h2>
 <div class="release_notes">
 
@@ -58,16 +139,6 @@
     <div class="note_name">CM 5.0.0</div>
     <div class="note_item">
       Updated according to the OSGi Componedium R5 specification.
-      I.e., added support for
-      <ul>
-	<li>A new method <code>Configuration.getChangeCount()</code>,
-
-        <li>a new listener interface
-	    <code>SynchronousConfigurationListener</code>,
-
-        <li>the new concept: Targeted PIDs.
-
-      </ul>
     </div>
   </div>
   
