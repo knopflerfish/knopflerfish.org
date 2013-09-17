@@ -49,7 +49,7 @@ Available configuration commands:
 
 <h2>Examples</h2>
 
-<p>The following lists the PIDs of all configuraitons in CM, then shows
+<p>The following lists the PIDs of all configurations in CM, then shows
 the configuration properties of the second configuration in the output
 of list (using the list index on the beginning of the line).</p>
 
@@ -77,10 +77,10 @@ Available configurations:
 </pre>
 
 <p>Now create a new targeted configuration that will use [1] above as
-template to initialze its properties. Then we change the port property
+template to initialize its properties. Then we change the port property
 and saves the edited configuration.</p>
 
-<pre>
+<pre class="code">
 <b>configuration&gt; </b>create 'org.knopflerfish.bundle.consoletelnet.TelnetServer|org.knopflerfish.bundle.consoletelnet-IMPL|file:jars/consoletelnet/consoletelnet-4.0.1.jar' 1
 <b>configuration&gt; </b>current -t
 [-] org.knopflerfish.bundle.consoletelnet.TelnetServer|org.knopflerfish.bundle.consoletelnet-IMPL|file:jars/consoletelnet/consoletelnet-4.0.1.jar
