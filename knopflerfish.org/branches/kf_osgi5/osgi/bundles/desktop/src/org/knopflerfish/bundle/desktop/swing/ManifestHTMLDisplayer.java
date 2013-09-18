@@ -44,9 +44,9 @@ import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,9 +54,13 @@ import javax.swing.JComponent;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleRevisions;
+import org.osgi.service.component.ComponentConstants;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 public class ManifestHTMLDisplayer
   extends DefaultSwingBundleDisplayer
@@ -234,6 +238,7 @@ public class ManifestHTMLDisplayer
   class JHTML
     extends JHTMLBundle
   {
+    private static final String BUNDLE_LICENSE = "Bundle-License";
     private static final long serialVersionUID = 1L;
 
     JHTML(DefaultSwingBundleDisplayer displayer)
@@ -303,27 +308,43 @@ public class ManifestHTMLDisplayer
         if (value != null && !"".equals(value)) {
           value = Strings.replace(value, "<", "&lt;");
           value = Strings.replace(value, ">", "&gt;");
-          if ("Import-Package".equals(key) || "Export-Service".equals(key)
-              || "Bundle-Classpath".equals(key) || "Classpath".equals(key)
-              || "Import-Service".equals(key) || "Export-Package".equals(key)) {
+          if (Constants.IMPORT_PACKAGE.equals(key) || Constants.EXPORT_SERVICE.equals(key)
+              || Constants.BUNDLE_CLASSPATH.equals(key) || "Classpath".equals(key)
+              || Constants.IMPORT_SERVICE.equals(key) || Constants.EXPORT_PACKAGE.equals(key)) {
             value = Strings.replaceWordSep(value, ",", "<br>", '"');
-          } else if ("Service-Component".equals(key)) {
-            final StringBuffer sb2 = new StringBuffer(30);
-            final List<String> patterns = Strings.splitWordSep(value, ",", '"');
-            for (final Iterator<String> pit = patterns.iterator(); pit
-                .hasNext();) {
-              final String pattern = pit.next().trim();
-              new ResourceUrl(b, pattern, true).resourceLink(sb2);
-              if (pit.hasNext()) {
+          } else if (ComponentConstants.SERVICE_COMPONENT.equals(key)) {
+            final StringBuffer sb2 = new StringBuffer(60);
+            // Re-uses the manifest entry parser from the KF-framework
+            for (final HeaderEntry he : org.knopflerfish.framework.Util
+                .parseManifestHeader(BUNDLE_LICENSE, value, true, true, false)) {
+              if (sb2.length() > 0) {
                 sb2.append(", ");
+              }
+              final String pattern = he.getKey();
+              new ResourceUrl(b, pattern, true).resourceLink(sb2);
+            }
+            value = sb2.toString();
+          } else if (BUNDLE_LICENSE.equals(key)) {
+            // Re-uses the manifest entry parser from the KF-framework
+            final StringBuffer sb2 = new StringBuffer(200);
+            for (final HeaderEntry he : org.knopflerfish.framework.Util
+                .parseManifestHeader(BUNDLE_LICENSE, value, true, true, false)) {
+              if (sb2.length() > 0) {
+                sb2.append(", ");
+              }
+              final String licenseName = he.getKey();
+              sb2.append(makeLink(licenseName));
+              for (final Entry<String, Object> attributeEntry : he
+                  .getAttributes().entrySet()) {
+                sb2.append("; ");
+                sb2.append(attributeEntry.getKey());
+                sb2.append("=");
+                sb2.append(makeLink(attributeEntry.getValue().toString()));
               }
             }
             value = sb2.toString();
           } else {
-            if (value.startsWith("http:") || value.startsWith("https:")
-                || value.startsWith("ftp:") || value.startsWith("file:")) {
-              value = "<a href=\"" + value + "\">" + value + "</a>";
-            }
+            value = makeLink(value);
           }
           appendRow(sb, key, value);
         }
@@ -331,13 +352,32 @@ public class ManifestHTMLDisplayer
       sb.append("</table>");
       return sb;
     }
+
+    /**
+     * Create a HTML-link for the given string if it starts with something that
+     * looks like a URL protocol.
+     *
+     * @param value
+     *          the text to make a link of
+     * @return the text or the text wrapped in a HTML link.
+     */
+    private String makeLink(String value)
+    {
+      if (value.startsWith("http:") || value.startsWith("https:")
+          || value.startsWith("ftp:") || value.startsWith("file:")) {
+        value = "<a href=\"" + value + "\">" + value + "</a>";
+      }
+      return value;
+    }
   }
 
+  @Override
   public boolean canRenderUrl(final URL url)
   {
     return ResourceUrl.isResourceLink(url);
   }
 
+  @Override
   public boolean renderUrl(final URL url, final StringBuffer sb)
   {
     final ResourceUrl resUrl = new ResourceUrl(url);
