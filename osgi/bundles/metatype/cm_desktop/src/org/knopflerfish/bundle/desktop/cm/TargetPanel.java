@@ -546,9 +546,11 @@ public class TargetPanel
    */
   boolean isTargetedPid(String pid)
   {
-    for (final String targetedPid : targetedPids) {
-      if (pid.equals(targetedPid)) {
-        return true;
+    if (pid != null) {
+      for (final String targetedPid : targetedPids) {
+        if (pid.equals(targetedPid)) {
+          return true;
+        }
       }
     }
     return false;
