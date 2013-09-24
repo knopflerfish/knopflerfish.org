@@ -56,6 +56,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -247,7 +248,13 @@ public class TableSorter
   public void checkModel()
   {
     if (indexes.length != model.getRowCount()) {
-      System.err.println("Sorter not informed of a change in model.");
+      try {
+        throw new Exception("Sorter not informed of a change in model.");
+      } catch (final Exception e) {
+        final String msg = "indexes.length = " + indexes.length +", model.getRowCount() = " + model.getRowCount()
+            + ", indexes: " +Arrays.asList(indexes) +", model. " +model.toString();
+        Activator.log.error(e.getMessage() + "; " +msg, e);
+      }
     }
   }
 

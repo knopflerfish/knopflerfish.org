@@ -69,11 +69,13 @@ public class TableDisplayer
   final BundleTableModel2 model;
   TableSorter modelSorted;
   final ListSelectionModel rowSM;
+  Bundle[] bundleList;
 
   public TableDisplayer(BundleContext bc)
   {
     super(bc, "Table", "Table view of bundles", false);
 
+    bundleList = getBundleArray();
     model = new BundleTableModel2();
     modelSorted = new TableSorter(model);
     rowSM = new BundleTableRowSelectionModel();
@@ -90,14 +92,13 @@ public class TableDisplayer
   {
     final Bundle cBundle = null != ev ? ev.getBundle() : null;
     final long cBid = null != cBundle ? cBundle.getBundleId() : -1;
-    final Bundle[] oldBl = getBundleArray();
-    super.bundleChanged(ev); // This will compute a new bundle list.
+    super.bundleChanged(ev);
     final Bundle[] newBl = getBundleArray();
 
     // Fire table change events for the changes
     for (int row = 0; row < newBl.length; row++) {
-      if (row < oldBl.length) {
-        if (oldBl[row].getBundleId() != newBl[row].getBundleId()) {
+      if (row < bundleList.length) {
+        if (bundleList[row].getBundleId() != newBl[row].getBundleId()) {
           // Fire row change for rows that now presents another bundle.
           model.fireTableRowsUpdated(row, row);
         }
@@ -111,10 +112,12 @@ public class TableDisplayer
         break;
       }
     }
-    if (newBl.length < oldBl.length) {
+    if (newBl.length < bundleList.length) {
       // Some rows was removed
-      model.fireTableRowsDeleted(newBl.length, oldBl.length - 1);
+      model.fireTableRowsDeleted(newBl.length, bundleList.length - 1);
     }
+
+    bundleList = newBl;
 
     // Update column widths to handle columns with dynamic max-width.
     for (final JComponent jComp : components) {
@@ -331,9 +334,8 @@ public class TableDisplayer
         return -1;
       }
 
-      final Bundle[] bl = getBundleArray();
-      for (int i = 0; i < bl.length; i++) {
-        if (bl[i].getBundleId() == bid) {
+      for (int i = 0; i < bundleList.length; i++) {
+        if (bundleList[i].getBundleId() == bid) {
           return i;
         }
       }
@@ -342,13 +344,13 @@ public class TableDisplayer
 
     public Bundle getBundle(int row)
     {
-      return getBundleArray()[row];
+      return bundleList[row];
     }
 
     @Override
     public int getRowCount()
     {
-      return getBundleArray().length;
+      return bundleList.length;
     }
 
     @Override
