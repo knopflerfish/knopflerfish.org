@@ -104,6 +104,7 @@ public class TableSorter
 
   public TableSorter(TableModel model)
   {
+    this();
     setModel(model);
   }
 
