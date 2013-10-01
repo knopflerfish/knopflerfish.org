@@ -668,7 +668,7 @@ public class Desktop
             }
           }
 
-          // Look for the release version, i.e., "Knopflerfish <VERSION> ".
+          // Look for the release version, i.e., "Knopflerfish .* <VERSION> ".
           final String keyWord = "Knopflerfish ";
           Version version = null;
           int start = 0;
@@ -677,15 +677,18 @@ public class Desktop
             end = end == -1 ? notes.length() : end;
             final String orgLine = notes.substring(start, end);
             String line = orgLine;
-            int ix = line.lastIndexOf(keyWord);
+            final int ix = line.lastIndexOf(keyWord);
             if (ix != -1) {
               line = line.substring(ix + keyWord.length()).trim();
-              ix = line.indexOf(" ");
-              if (ix != -1) {
-                line = line.substring(0, ix);
+              final String[] words = line.split("\\s");
+              for (final String word : words) {
+                try {
+                  version = new Version(word);
+                  break;
+                } catch (final Exception e) {
+                }
               }
-              try {
-                version = new Version(line);
+              if (version != null) {
                 Activator.log.debug("Update check: Found valid version: "
                                     + version + ", in line '" + orgLine + "'.");
 
@@ -693,11 +696,11 @@ public class Desktop
                   showUpdate(releaseVersion, version, notes);
                 }
                 break;
-              } catch (final Exception e) {
+              } else {
                 final String msg =
-                  "Update check: Invalid version '" + line + "' in line '"
-                      + orgLine + "' " + e;
-                Activator.log.debug(msg, e);
+                  "Update check: No valid version found on '" + line
+                      + "' in line '" + orgLine + "'.";
+                Activator.log.debug(msg);
               }
             }
             start = end + 1;
