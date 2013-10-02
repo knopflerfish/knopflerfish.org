@@ -52,10 +52,12 @@ import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -181,7 +183,7 @@ public class CMCommands
       if (selection == null) {
         cs = srvCA.listConfigurations(null);
       } else {
-        cs = getConfigurations(session, srvCA, selection);
+        cs = getConfigurations(out, session, srvCA, selection);
       }
       if (cs == null || cs.length == 0) {
         out.println("No configurations available");
@@ -219,7 +221,7 @@ public class CMCommands
     new String[] { "Show the saved versions of configurations.",
                   "-t           Include type for each property in the output.",
                   "<selection>  A pid that can contain wildcards '*',",
-                  "             or an ldap filter, or an index in output",
+                  "             or an ldap filter, or an index in the output",
                   "             from the latest use of the 'list' command.",
                   "             If no selection is given all configurations",
                   "             will be shown.",
@@ -237,7 +239,7 @@ public class CMCommands
     try {
       srvCA = getCA();
       final String[] selection = (String[]) opts.get("selection");
-      final Configuration[] cs = getConfigurations(session, srvCA, selection);
+      final Configuration[] cs = getConfigurations(out, session, srvCA, selection);
       if (cs == null || cs.length == 0) {
         throw new Exception("No matching configurations for selection.");
       }
@@ -290,7 +292,7 @@ public class CMCommands
 
       final String template = (String) opts.get("template");
       if (template != null) {
-        final Configuration[] templates = getConfigurations(session, srvCA, template);
+        final Configuration[] templates = getConfigurations(out, session, srvCA, template);
         if (templates == null || templates.length == 0) {
           throw new Exception("Template didn't match any configurations. "
                               + "Remove the template parameter or change "
@@ -366,7 +368,7 @@ public class CMCommands
 
       srvCA = getCA();
 
-      final Configuration[] cs = getConfigurations(session, srvCA, selection);
+      final Configuration[] cs = getConfigurations(out, session, srvCA, selection);
       if (cs == null || cs.length == 0) {
         throw new Exception("Selection didn't match any configurations. "
                             + "Change your selection to match exactly "
@@ -425,7 +427,7 @@ public class CMCommands
 
       srvCA = getCA();
 
-      final Configuration[] cs = getConfigurations(session, srvCA, selection);
+      final Configuration[] cs = getConfigurations(out, session, srvCA, selection);
       if (cs == null || cs.length == 0) {
         throw new Exception(
                             "Selection didn't match any configurations. "
@@ -737,7 +739,7 @@ public class CMCommands
       if (selection == null || selection.length == 0) {
         cs = srvCA.listConfigurations(null);
       } else {
-        cs = getConfigurations(session, srvCA, selection);
+        cs = getConfigurations(out, session, srvCA, selection);
       }
 
       if (cs == null || cs.length == 0) {
@@ -892,24 +894,25 @@ public class CMCommands
     return (version == null) ? Long.MIN_VALUE : version.longValue();
   }
 
-  private Configuration[] getConfigurations(Session session,
+  private Configuration[] getConfigurations(PrintWriter out, Session session,
                                             ConfigurationAdmin cm,
                                             String[] selection)
       throws Exception
   {
-    final Filter[] filters = convertToFilters(session, selection);
+    final Filter[] filters = convertToFilters(out, session, selection);
     return getConfigurationsMatchingFilters(cm, filters);
   }
 
-  private Configuration[] getConfigurations(Session session,
+  private Configuration[] getConfigurations(PrintWriter out,
+                                            Session session,
                                             ConfigurationAdmin cm,
                                             String selection)
       throws Exception
   {
-    return getConfigurations(session, cm, new String[] { selection });
+    return getConfigurations(out, session, cm, new String[] { selection });
   }
 
-  private Filter[] convertToFilters(Session session, String[] selection)
+  private Filter[] convertToFilters(PrintWriter out, Session session, String[] selection)
       throws Exception
   {
     if (selection == null) {
@@ -920,7 +923,11 @@ public class CMCommands
       final String current = selection[i];
       Filter filter = null;
       if (isInteger(current)) {
-        filter = tryToCreateFilterFromIndex(session, current);
+        try {
+          filter = tryToCreateFilterFromIndex(session, current);
+        } catch (final Exception e) {
+          out.println("Warning: " +e.getMessage());
+        }
       } else if (startsWithParenthesis(current)) {
         filter = tryToCreateFilterFromLdapExpression(current);
       } else {
@@ -1017,9 +1024,11 @@ public class CMCommands
     final Map<String, Integer> pidToIndex =
       (Map<String, Integer>) session.getProperties()
           .get(LISTED_CONFIGS_PID_TO_INDEX);
-    final Integer ix = pidToIndex.get(pid);
-    if (ix != null) {
-      res = ix.intValue();
+    if (pidToIndex != null) {
+      final Integer ix = pidToIndex.get(pid);
+      if (ix != null) {
+        res = ix.intValue();
+      }
     }
     return res;
   }
@@ -1036,19 +1045,17 @@ public class CMCommands
       return cs;
     }
 
-    final Vector<Configuration> matching = new Vector<Configuration>();
-    for (final Configuration element : cs) {
+    final List<Configuration> matching = new ArrayList<Configuration>();
+    for (final Configuration cfg : cs) {
       for (final Filter filter : filters) {
-        if (filter.match(element.getProperties())) {
-          matching.addElement(element);
+        if (filter.match(cfg.getProperties())) {
+          matching.add(cfg);
           break;
         }
       }
     }
 
-    final Configuration[] result = new Configuration[matching.size()];
-    matching.copyInto(result);
-    return result;
+    return matching.toArray(new Configuration[matching.size()]);
   }
 
   /***************************************************************************
