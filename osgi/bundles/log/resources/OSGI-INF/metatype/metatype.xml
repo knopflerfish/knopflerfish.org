@@ -18,7 +18,7 @@
 	name="bundle.log.level"
 	type="String"
         cardinality="-100"
-	description="Each item is a bundle and a log level separated by a ';'. The bundle part is either a bundle location string, the bundle symbolic name or the bundle name."/>
+	description="Each item is a bundle and a log level separated by a ';'. The bundle part is either a bundle location string, the bundle symbolic name or the bundle id."/>
     <AD name="file"
 	type="Boolean"
 	id="file"
