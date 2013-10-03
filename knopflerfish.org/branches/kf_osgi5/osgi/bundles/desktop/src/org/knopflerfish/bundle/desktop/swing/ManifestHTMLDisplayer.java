@@ -306,17 +306,18 @@ public class ManifestHTMLDisplayer
       for (final String key : headerKeys) {
         String value = headers.get(key);
         if (value != null && !"".equals(value)) {
-          value = Strings.replace(value, "<", "&lt;");
-          value = Strings.replace(value, ">", "&gt;");
           if (Constants.IMPORT_PACKAGE.equals(key) || Constants.EXPORT_SERVICE.equals(key)
               || Constants.BUNDLE_CLASSPATH.equals(key) || "Classpath".equals(key)
               || Constants.IMPORT_SERVICE.equals(key) || Constants.EXPORT_PACKAGE.equals(key)) {
+            value = Strings.replace(value, "<", "&lt;");
+            value = Strings.replace(value, ">", "&gt;");
             value = Strings.replaceWordSep(value, ",", "<br>", '"');
           } else if (ComponentConstants.SERVICE_COMPONENT.equals(key)) {
             final StringBuffer sb2 = new StringBuffer(60);
             // Re-uses the manifest entry parser from the KF-framework
             for (final HeaderEntry he : org.knopflerfish.framework.Util
-                .parseManifestHeader(BUNDLE_LICENSE, value, true, true, false)) {
+                .parseManifestHeader(ComponentConstants.SERVICE_COMPONENT,
+                                     value, true, true, false)) {
               if (sb2.length() > 0) {
                 sb2.append(", ");
               }
@@ -332,18 +333,26 @@ public class ManifestHTMLDisplayer
               if (sb2.length() > 0) {
                 sb2.append(", ");
               }
-              final String licenseName = he.getKey();
-              sb2.append(makeLink(licenseName));
-              for (final Entry<String, Object> attributeEntry : he
-                  .getAttributes().entrySet()) {
-                sb2.append("; ");
-                sb2.append(attributeEntry.getKey());
-                sb2.append("=");
-                sb2.append(makeLink(attributeEntry.getValue().toString()));
+              String licenseName = he.getKey();
+              if ("<<EXTERNAL>>".equals(licenseName)) {
+                licenseName = Strings.replace(licenseName, "<", "&lt;");
+                licenseName = Strings.replace(licenseName, ">", "&gt;");
+                sb2.append(licenseName);
+              } else {
+                sb2.append(makeLink(licenseName));
+                for (final Entry<String, Object> attributeEntry : he
+                    .getAttributes().entrySet()) {
+                  sb2.append("; ");
+                  sb2.append(attributeEntry.getKey());
+                  sb2.append("=");
+                  sb2.append(makeLink(attributeEntry.getValue().toString()));
+                }
               }
             }
             value = sb2.toString();
           } else {
+            value = Strings.replace(value, "<", "&lt;");
+            value = Strings.replace(value, ">", "&gt;");
             value = makeLink(value);
           }
           appendRow(sb, key, value);
