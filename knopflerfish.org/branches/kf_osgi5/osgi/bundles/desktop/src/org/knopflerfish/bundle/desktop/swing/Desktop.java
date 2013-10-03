@@ -3193,13 +3193,6 @@ public class Desktop
       @Override
       public void run()
       {
-        if (null != ev) {
-          if (BundleEvent.UPDATED == ev.getType()) {
-            // An updated bundle may have changed icon...
-            Util.clearBundleIcon(ev.getBundle());
-          }
-        }
-
         if (pm != null) {
           pm.refresh();
         }

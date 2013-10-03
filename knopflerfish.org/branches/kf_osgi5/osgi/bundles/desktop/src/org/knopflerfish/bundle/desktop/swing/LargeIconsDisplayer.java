@@ -66,7 +66,6 @@ import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -158,7 +157,6 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
     Map<Long, JLabel> bundleMap = new TreeMap<Long, JLabel>();
     GridLayout  grid;
-    ImageIcon   bundleIcon;
     JPanel      panel;
     JScrollPane scroll;
 
@@ -622,86 +620,91 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     private JLabel createJLabelForBundle(final Bundle bundle)
     {
       final long bid = bundle.getBundleId();
-      return new JLabel(Util.getBundleName(bundle),
-                            bundleIcon,
-                            SwingConstants.CENTER) {
-          private static final long serialVersionUID = 1L;
-          {
-            addMouseListener(new MouseAdapter() {
-                @Override
-              public void mousePressed(MouseEvent ev)
-              {
-                if (!isPopupTrigger(ev)) {
-                  final int mask =
-                    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+      return new JLabel(Util.getBundleName(bundle), null, SwingConstants.CENTER) {
+        private static final long serialVersionUID = 1L;
+        {
+          addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent ev)
+            {
+              if (!isPopupTrigger(ev)) {
+                final int mask =
+                  Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
-                  if ((ev.getModifiers() & mask) != 0) {
-                    bundleSelModel.setSelected(bid, !bundleSelModel
-                        .isSelected(bid));
-                  } else {
-                    bundleSelModel.clearSelection();
-                    bundleSelModel.setSelected(bid, true);
-                  }
-                  setBackground(getBackground());
-                  panel.requestFocus();
+                if ((ev.getModifiers() & mask) != 0) {
+                  bundleSelModel.setSelected(bid,
+                                             !bundleSelModel.isSelected(bid));
+                } else {
+                  bundleSelModel.clearSelection();
+                  bundleSelModel.setSelected(bid, true);
                 }
+                setBackground(getBackground());
+                panel.requestFocus();
               }
-            });
-            addMouseListener(contextMenuListener);
-            setBorder(null);
-            setOpaque(true);
-            setBackground(Color.yellow);
-            putClientProperty(CLIENT_PROPERTY_BID, new Long(bid));
-          }
-
-          @Override
-          public boolean isBackgroundSet() { return true;}
-          @Override
-          public Color   getBackground() {
-            try {
-              final boolean bSel = bundleSelModel != null
-                ? bundleSelModel.isSelected(bundle.getBundleId())
-                : false;
-
-              return bSel
-                ? SystemColor.textHighlight
-                : JLargeIcons.this.getBackground();
-            } catch (final Exception e) {
-              return Color.black;
             }
+          });
+          addMouseListener(contextMenuListener);
+          setBorder(null);
+          setOpaque(true);
+          setBackground(Color.yellow);
+          putClientProperty(CLIENT_PROPERTY_BID, new Long(bid));
+        }
+
+        @Override
+        public boolean isBackgroundSet()
+        {
+          return true;
+        }
+
+        @Override
+        public Color getBackground()
+        {
+          try {
+            final boolean bSel =
+              bundleSelModel != null ? bundleSelModel.isSelected(bundle
+                  .getBundleId()) : false;
+
+            return bSel ? SystemColor.textHighlight : JLargeIcons.this
+                .getBackground();
+          } catch (final Exception e) {
+            return Color.black;
           }
+        }
 
-          @Override
-          public boolean isForegroundSet() { return true; }
-          @Override
-          public Color   getForeground() {
-            try {
-              final boolean bSel = bundleSelModel != null
-                ? bundleSelModel.isSelected(bundle.getBundleId())
-                : false;
+        @Override
+        public boolean isForegroundSet()
+        {
+          return true;
+        }
 
-              return bSel
-                ? SystemColor.textHighlightText
-                : JLargeIcons.this.getForeground();
-            } catch (final Exception e) {
-              return Color.black;
-            }
+        @Override
+        public Color getForeground()
+        {
+          try {
+            final boolean bSel =
+              bundleSelModel != null ? bundleSelModel.isSelected(bundle
+                  .getBundleId()) : false;
+
+            return bSel ? SystemColor.textHighlightText : JLargeIcons.this
+                .getForeground();
+          } catch (final Exception e) {
+            return Color.black;
           }
+        }
 
-
-          @Override
-          public String getToolTipText()
-          {
-            if (getClientProperty(TOOL_TIP_TEXT_KEY) != null) {
-              // If a tool tip text is set, return an up to date version of
-              // the text since we do not have events that can be used to
-              // trigger update of the text for some parts of the text.
-              // E.g., the start level and the persistently started property.
-              return Util.bundleInfo(bundle);
-            }
-            return null;
+        @Override
+        public String getToolTipText()
+        {
+          if (getClientProperty(TOOL_TIP_TEXT_KEY) != null) {
+            // If a tool tip text is set, return an up to date version of
+            // the text since we do not have events that can be used to
+            // trigger update of the text for some parts of the text.
+            // E.g., the start level and the persistently started property.
+            return Util.bundleInfo(bundle);
           }
-        };
+          return null;
+        }
+      };
     }
 
 
