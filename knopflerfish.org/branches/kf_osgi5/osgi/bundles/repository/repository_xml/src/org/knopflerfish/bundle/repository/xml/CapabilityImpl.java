@@ -6,7 +6,7 @@ import org.osgi.resource.Resource;
 
 
 public class CapabilityImpl implements Capability {
-  private final Data d;
+  final Data d;
   CapabilityImpl(Data d) {
     this.d = d;
   }
@@ -29,5 +29,9 @@ public class CapabilityImpl implements Capability {
   @Override
   public Resource getResource() {
     return d.resource;
+  }
+  
+  public String toString() {
+    return "Capability[\n" + d.toString() +"]\n";
   }
 }
