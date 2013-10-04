@@ -44,8 +44,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.knopflerfish.framework.Util.HeaderEntry;
-import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
-import org.knopflerfish.framework.permissions.KFSecurityManager;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
@@ -60,6 +58,12 @@ import org.osgi.framework.FrameworkListener;
  *         Mats-Ola Persson, Gunnar Ekolin
  */
 public class FrameworkContext  {
+
+  private static final String CONDITIONAL_PERMISSION_SECURITY_MANAGER = "org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager";
+
+  private static final String KF_SECURITY_MANAGER = "org.knopflerfish.framework.permissions.KFSecurityManager";
+
+  private static final String SECURE_PERMISSON_OPS = "org.knopflerfish.framework.SecurePermissonOps";
 
   /**
    * Debug handle.
@@ -234,7 +238,7 @@ public class FrameworkContext  {
     }
     threadGroup = new ThreadGroup("FW#" + id);
     props = new FWProps(initProps, this);
-    perm = new SecurePermissionOps(this);
+    perm = new PermissionOps();
     systemBundle = new SystemBundle(this);
     log("created");
   }
@@ -281,9 +285,8 @@ public class FrameworkContext  {
     selectBootDelegationParentClassLoader();
 
     if (setSecurityManager()) {
+      perm = (PermissionOps) doNew(SECURE_PERMISSON_OPS);
       systemBundle.secure = perm;
-    } else {
-      perm = new PermissionOps();
     }
     perm.init();
 
@@ -296,25 +299,7 @@ public class FrameworkContext  {
           end = v.length();
         }
         final String vs = "org.knopflerfish.framework.validator." + v.substring(start, end).trim();
-        try {
-          @SuppressWarnings("unchecked")
-          final
-          Class<? extends Validator> vi = (Class<? extends Validator>) Class.forName(vs);
-          final Constructor<? extends Validator> vc =
-              vi.getConstructor(new Class[] { FrameworkContext.class });
-          validator.add(vc.newInstance(new Object[] { this }));
-        } catch (final InvocationTargetException ite) {
-          // NYI, log error from validator
-          System.err.println("Construct of " + vs + " failed: " + ite.getTargetException());
-        } catch (final NoSuchMethodException e) {
-          // If no validator, probably stripped framework
-          throw new RuntimeException(vs + ", found no such Validator", e);
-        } catch (final NoClassDefFoundError ncdfe) {
-          // Validator uses class not supported by JVM ignore
-          throw new RuntimeException(vs + ", Validator not supported by JVM", ncdfe);
-        } catch (final Exception e) {
-          throw new RuntimeException(vs + ", failed to construct Validator", e);
-        }
+        validator.add((Validator) doNew(vs));
         start = end + 1;
       }
     }
@@ -434,6 +419,28 @@ public class FrameworkContext  {
   }
 
 
+  private Object doNew(final String clazz) {
+    try {
+      @SuppressWarnings("unchecked")
+      final
+      Class<? extends Validator> vi = (Class<? extends Validator>) Class.forName(clazz);
+      final Constructor<? extends Validator> vc =
+          vi.getConstructor(new Class[] { FrameworkContext.class });
+      return vc.newInstance(new Object[] { this });
+    } catch (final InvocationTargetException ite) {
+      throw new RuntimeException(clazz + ", constructor failed with, " + ite.getTargetException(), ite);
+    } catch (final NoSuchMethodException e) {
+      // If no validator, probably stripped framework
+      throw new RuntimeException(clazz + ", found no such class", e);
+    } catch (final NoClassDefFoundError ncdfe) {
+      // Validator uses class not supported by JVM ignore
+      throw new RuntimeException(clazz + ", class not supported by JVM", ncdfe);
+    } catch (final Exception e) {
+      throw new RuntimeException(clazz + ", constructor failed", e);
+    }
+  }
+
+
   /**
    * Undo as much as possible of what init() does.
    *
@@ -480,7 +487,7 @@ public class FrameworkContext  {
     storage.close();
     storage = null;
 
-    perm = new SecurePermissionOps(this);
+    perm = new PermissionOps();
 
     synchronized (globalFwLock) {
       if (--smUse == 0) {
@@ -517,17 +524,25 @@ public class FrameworkContext  {
           System.setProperty(POLICY_PROPERTY, policy);
           // Make sure policy is updated, required for some JVMs.
           java.security.Policy.getPolicy().refresh();
-          current = new KFSecurityManager(debug);
+          current = (SecurityManager) doNew(KF_SECURITY_MANAGER);
           System.setSecurityManager(current);
           smUse = 1;
-        } else if (current instanceof ConditionalPermissionSecurityManager) {
-          if (smUse == 0) {
-            smUse = 2;
-          } else {
-            smUse++;
+        } else {
+          Class<?> cpsmc;
+          try {
+            cpsmc = Class.forName(CONDITIONAL_PERMISSION_SECURITY_MANAGER);
+          } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Missing class", e); 
           }
-        } else if (!(current instanceof ConditionalPermissionSecurityManager)) {
-          throw new SecurityException("Incompatible security manager installed");
+          if (cpsmc.isInstance(current)) {
+            if (smUse == 0) {
+              smUse = 2;
+            } else {
+              smUse++;
+            }
+          } else {
+            throw new SecurityException("Incompatible security manager installed");
+          }
         }
       }
       return current != null;

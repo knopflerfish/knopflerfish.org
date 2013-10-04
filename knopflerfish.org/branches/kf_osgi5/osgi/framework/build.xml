@@ -113,24 +113,11 @@
            includeantruntime = "false"
            includejavaruntime= "false"
            includes          = "**/*.java"
-           excludes          = "${nonFoundationSrcs},org/knopflerfish/framework/bundlestorage/memory/*.java,**/package-info.java"
+           excludes          = "${nonFoundationSrcs},org/knopflerfish/framework/bundlestorage/memory/SelfSignedValidator.java,org/knopflerfish/framework/bundlestorage/memory/*.java,**/package-info.java,org/knopflerfish/framework/SecurePermissionOps.java,org/knopflerfish/framework/permissions/*.java"
            target            = "${javac.target}"
            source            = "${javac.source}"
            classpathref      = "compile.path"
            bootclasspathref  = "ee.minimum.path"
-           >
-    </javac>
-    <!-- Non foundation compliant part (uses java.security.cert) -->
-    <javac destdir           = "${classout}"
-           srcdir            = "${src.dir}"
-           debug             = "on"
-           includeantruntime = "false"
-           includejavaruntime= "false"
-           includes          = "${nonFoundationSrcs}"
-           excludes          = "**/package-info.java"
-           target            = "${javac.target}"
-           source            = "${javac.source}"
-           classpathref      = "compile.path"
            >
     </javac>
   </target>
@@ -156,13 +143,22 @@
 
     <delete file="${classout}/classes.dex"/>
 
+    <loadfile srcfile="${src.dir}/org/osgi/framework/packageinfo"
+    	      property="fw.spec.version">
+      <filterchain>
+        <striplinebreaks/>
+        <replacestring from="version " to=""/>
+      </filterchain>
+    </loadfile>
+
     <jar basedir="${classout}"
+    	 filesonly="true"
          jarfile="${jarfile}">
       <fileset dir="resources"/>
       <manifest>
         <attribute name="Main-class"           value="org.knopflerfish.framework.Main"/>
         <attribute name="Specification-Title"    value="OSGi Framework API"/>
-        <attribute name="Specification-Version"  value="1.7"/>
+        <attribute name="Specification-Version"  value="${fw.spec.version}"/>
         <attribute name="Specification-Vendor"   value="Open Service Gateway initiative"/>
         <attribute name="Implementation-Title"   value="Knopflerfish OSGi Framework"/>
         <attribute name="Implementation-Version" value="${fw.impl.version}" />
