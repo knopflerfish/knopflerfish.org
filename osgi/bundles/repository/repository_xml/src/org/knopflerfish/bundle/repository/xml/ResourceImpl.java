@@ -3,6 +3,7 @@ package org.knopflerfish.bundle.repository.xml;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.osgi.resource.Capability;
@@ -12,19 +13,35 @@ import org.osgi.service.repository.ContentNamespace;
 import org.osgi.service.repository.RepositoryContent;
 
 public class ResourceImpl implements Resource, RepositoryContent {
-  ArrayList<Capability> cs = new ArrayList<Capability>();
-  ArrayList<Capability> content = new ArrayList<Capability>();
-  ArrayList<Requirement> rs = new ArrayList<Requirement>();
+  List<Capability> cs = new ArrayList<Capability>();
+  List<Requirement> rs = new ArrayList<Requirement>();
 
   @Override
   public List<Capability> getCapabilities(String namespace) {
-    return cs;
+    List<Capability> result = cs;
+    if(namespace != null) {
+      result = new ArrayList<Capability>();
+      for(Capability c : cs) {
+        if(namespace.equalsIgnoreCase(c.getNamespace())) {
+          result.add(c);
+        }
+      }
+    }
+    return Collections.unmodifiableList(result);
   }
 
   @Override
   public List<Requirement> getRequirements(String namespace) {
-    // TODO Auto-generated method stub
-    return rs;
+    List<Requirement> result = rs;
+    if(namespace != null) {
+      result = new ArrayList<Requirement>();
+      for(Requirement r : rs) {
+        if(namespace.equalsIgnoreCase(r.getNamespace())) {
+          result.add(r);
+        }
+      }
+    }
+    return Collections.unmodifiableList(result);
   }
 
   void addReq(RequirementImpl req) {
@@ -34,24 +51,34 @@ public class ResourceImpl implements Resource, RepositoryContent {
 
   void addCap(CapabilityImpl cap) {
     cs.add(cap);
-    if(cap.getNamespace().equalsIgnoreCase(ContentNamespace.CONTENT_NAMESPACE)) {
-      content.add(cap);
-    }
   }
 
   boolean hasContent() {
-    return !content.isEmpty();
+    return !getCapabilities(ContentNamespace.CONTENT_NAMESPACE).isEmpty();
   }
   
   @Override
   public InputStream getContent() {
     try {
-      Capability c = content.get(0);
+      Capability c = getCapabilities(ContentNamespace.CONTENT_NAMESPACE).get(0);
       c.getAttributes().get("url");
       return new URL((String)c.getAttributes().get("url")).openStream();
     } catch (Exception e) {
       e.printStackTrace();
       return null;
     }
+  }
+  
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.append("Resource[\n");
+    for(Capability c : cs) {
+      sb.append(c.toString());
+    }
+    for(Requirement r : rs) {
+      sb.append(r.toString());
+    }
+    sb.append("]\n");
+    return sb.toString();
   }
 }

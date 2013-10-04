@@ -6,7 +6,7 @@ import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
 
 public class RequirementImpl implements Requirement {
-  private final Data d;
+  final Data d;
   RequirementImpl(Data d) {
     this.d = d;
   }
@@ -30,5 +30,8 @@ public class RequirementImpl implements Requirement {
   public Resource getResource() {
     return d.resource;
   }
-
+  
+  public String toString() {
+    return "Requirement[\n" + d.toString() +"]\n";
+  }
 }
