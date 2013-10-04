@@ -362,7 +362,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   @Override
   public URL getEntry(String name) {
     if (secure.okResourceAdminPerm(this)) {
-      return getClass().getResource(name);
+      return getClassLoader().getResource(name);
     }
     return null;
   }
