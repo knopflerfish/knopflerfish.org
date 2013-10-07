@@ -6,7 +6,9 @@
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
    <property name="impl.pattern"
-	    value="org/knopflerfish/bundle/**"/> 
+	    value="org/knopflerfish/bundle/**"/>
+   <property name="api.pattern"
+	    value="org/knopflerfish/service/**"/>
 
   <property name = "bundle.build.lib"   value = "false"/>
   <property name = "bundle.build.api"   value = "false"/>
