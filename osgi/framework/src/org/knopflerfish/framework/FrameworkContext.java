@@ -63,7 +63,7 @@ public class FrameworkContext  {
 
   private static final String KF_SECURITY_MANAGER = "org.knopflerfish.framework.permissions.KFSecurityManager";
 
-  private static final String SECURE_PERMISSON_OPS = "org.knopflerfish.framework.SecurePermissonOps";
+  private static final String SECURE_PERMISSON_OPS = "org.knopflerfish.framework.SecurePermissionOps";
 
   /**
    * Debug handle.
@@ -421,12 +421,9 @@ public class FrameworkContext  {
 
   private Object doNew(final String clazz) {
     try {
-      @SuppressWarnings("unchecked")
-      final
-      Class<? extends Validator> vi = (Class<? extends Validator>) Class.forName(clazz);
-      final Constructor<? extends Validator> vc =
-          vi.getConstructor(new Class[] { FrameworkContext.class });
-      return vc.newInstance(new Object[] { this });
+      final Class<?> n = (Class<?>) Class.forName(clazz);
+      final Constructor<?> nc = n.getConstructor(new Class[] { FrameworkContext.class });
+      return nc.newInstance(new Object[] { this });
     } catch (final InvocationTargetException ite) {
       throw new RuntimeException(clazz + ", constructor failed with, " + ite.getTargetException(), ite);
     } catch (final NoSuchMethodException e) {
