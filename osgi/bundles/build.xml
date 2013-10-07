@@ -60,9 +60,6 @@
     <ant target="${the.target}" dir="applicationadmin"/>
     <ant target="${the.target}" dir="blueprint"/>
     <ant target="${the.target}" dir="deploymentadmin"/>
-  	<!--
-    <ant target="${the.target}" dir="dmtree"/>
-    -->
     <ant target="${the.target}" dir="dmt"/>
     <ant target="${the.target}" dir="foreignapplication"/>
     <ant target="${the.target}" dir="monitor"/>
