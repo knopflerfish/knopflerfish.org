@@ -1,0 +1,16 @@
+To build Knopflerfish from scratch you need:
+
+ Java SE 6 (or 5).
+    Java SE 7 or later can not be used since they do not support the
+    javac target option "jsr14" which is needed to build code
+    containing generics in a way that makes it is runnable on JDK 1.4
+    and later (including Java SE 7).
+
+ Ant 1.8.1 (or later)
+
+
+Type "ant all" in this directory to build all bundles and test bundles.
+
+
+See htdocs/html_src/building.html for more details, or visit 
+http://www.knopflerfish.org/releases/current/docs/building.html
