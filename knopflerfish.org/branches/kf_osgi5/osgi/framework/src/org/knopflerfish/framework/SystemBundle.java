@@ -63,6 +63,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.Version;
+import org.osgi.framework.VersionRange;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
@@ -519,7 +520,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES));
     if (sp.length() == 0) {
       // Try the system packages file
-      addSysPackagesFromFile(sp, fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_FILE_PROP));
+      addSysPackagesFromFile(sp, fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_FILE_PROP), null);
       if (sp.length() == 0) {
         // Try the system packages base property.
         sp.append(fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_BASE_PROP));
@@ -528,25 +529,28 @@ public class SystemBundle extends BundleImpl implements Framework {
           // use default set of packages.
           String jver = fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_VERSION_PROP);
 
+          Version jv;
           if (jver == null) {
-            jver = Integer.toString(FWProps.javaVersionMajor) + "." + FWProps.javaVersionMinor;
-          }
-          try {
-            addSysPackagesFromFile(sp, "packages" + jver + ".txt");
-          } catch (final IllegalArgumentException iae) {
-            if (fwCtx.debug.framework) {
-              fwCtx.debug.println("No built in list of Java packages to be exported "
-                  + "by the system bundle for JRE with version '" + jver
-                  + "', using the list for 1.7.");
+            jv = new Version(FWProps.javaVersionMajor, FWProps.javaVersionMinor, 0);
+          } else {
+            try {
+              jv = new Version(jver);
+            } catch (IllegalArgumentException _ignore){
+              if (fwCtx.debug.framework) {
+                fwCtx.debug.println("No built in list of Java packages to be exported "
+                    + "by the system bundle for JRE with version '" + jver
+                    + "', using the list for 1.7.");
+              }
+              jv = new Version(1,7,0);
             }
-            addSysPackagesFromFile(sp, "packages1.7.txt");
           }
+          addSysPackagesFromFile(sp, "packages.txt", jv);
         } else {
           if (sp.charAt(sp.length() - 1) == ',') {
             sp.deleteCharAt(sp.length() - 1);
           }
         }
-        addSysPackagesFromFile(sp, "exports");
+        addSysPackagesFromFile(sp, "exports", null);
       }
     }
     final String extraPkgs = fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
@@ -618,12 +622,14 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Read a file with package names and add them to a stringbuffer. The file is
    * searched for in the current working directory, then on the class path.
+   * Each line can have a java version guard at the end with format <tt>!VersionRange</tt>.
    *
    * @param sp Buffer to append the exports to. Same format as the
    *          Export-Package manifest header.
    * @param sysPkgFile Name of the file to load packages to be exported from.
+   * @param guard Version to test version guarded lines against.
    */
-  private void addSysPackagesFromFile(StringBuffer sp, String sysPkgFile) {
+  private void addSysPackagesFromFile(StringBuffer sp, String sysPkgFile, Version guard) {
     if (null == sysPkgFile || 0 == sysPkgFile.length()) {
       return;
     }
@@ -668,6 +674,17 @@ public class SystemBundle extends BundleImpl implements Framework {
       for (line = in.readLine(); line != null; line = in.readLine()) {
         line = line.trim();
         if (line.length() > 0 && !line.startsWith("#")) {
+          int idx = line.lastIndexOf('!');
+          if (idx != -1) {
+            try {
+              if (new VersionRange(line.substring(idx +1)).includes(guard)) {
+                line = line.substring(0, idx);
+              } else {
+                // Not in version range skip.
+                continue;
+              }
+            } catch (IllegalArgumentException _ignore) { }
+          }
           if (sp.length() > 0) {
             sp.append(",");
           }
@@ -679,7 +696,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     } finally {
       try {
         in.close();
-      } catch (final Exception ignored) {
+      } catch (final Exception _ignore) {
       }
     }
   }
