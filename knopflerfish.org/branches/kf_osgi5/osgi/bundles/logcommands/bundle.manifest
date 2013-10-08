@@ -17,6 +17,7 @@ Bundle-Activator: org.knopflerfish.bundle.logcommands.LogCommands
 Bundle-Category: service
 Bundle-Icon: icon.png;size=32
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+api-Provide-Capability: [bundle.emptystring]
 Provide-Capability: osgi.service;
    objectClass:List<String>="org.knopflerfish.service.console.CommandGroup";
    groupName=log,

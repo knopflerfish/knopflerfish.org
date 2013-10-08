@@ -57,9 +57,25 @@
   <!-- Properties configuring javac settings.                       -->
   <!-- ************************************************************ -->
 
-  <property name="javac.target"       value="jsr14"/>
-  <property name="javac.source"       value="1.5"/>
-  <property name="javac.encoding"     value="${file.encoding}"/>
+  <!-- The default encoding is UTF8, other values that may be       -->
+  <!-- usefull: ISO8859_1, UTF-16, ${file.encoding}                 -->
+  <property name="javac.encoding"     value="UTF8"/>
+
+  <available property="jdk1.7+" classname="java.lang.ClassValue"/> 
+  <condition property="javac.source" value="1.5" else="1.5">
+    <isset property="jdk1.7+"/>
+  </condition>
+  <condition property="javac.target" value="1.5" else="jsr14">
+    <isset property="jdk1.7+"/>
+  </condition>
+  <!-- Since we currently can not do a strict compilation using    -->
+  <!-- OSGi/Minimum EE when on jdk 1.7, we replace any requirement -->
+  <!-- on OSGu/Minum EE with one on the JavaSE 5.                  -->
+  <condition property="ee.min.replacement"
+             value="(&amp;(osgi.ee=JavaSE)(version>=1.5))"
+             else="">
+    <isset property="jdk1.7+"/>
+  </condition>
 
   <!-- The bundle Execution Environment to use when compiling.       -->
   <!-- The value is the id of a path that will be used as boot class -->
@@ -88,22 +104,37 @@
   <!-- is not a valid reference to a path then tell javac to use the -->
   <!-- EE from the runtime it is executing on by setting             -->
   <!-- includeJavaRuntime to true.                                   -->
-  <condition property="javac.includeJavaRuntime"
-             value="false" else="true">
-    <isreference refid="${bundle.compile.EE}" type="path"/>
+  <!-- For Java 7, the predefined EEs (minimum/foundation) are       -->
+  <!-- missing some interfaces (e.g., Iterable) that Java 6 with     -->
+  <!-- target jsr14 does not need, thus we let the runtime leak      -->
+  <!-- through for Java 7 and set the required EE to JavaSE 5.       -->
+  <condition property="javac.includeJavaRuntime" value="true" else="false">
+    <or>
+      <isset property="jdk1.7+"/>
+      <not>
+        <isreference refid="${bundle.compile.EE}" type="path"/>
+      </not>
+    </or>
   </condition>
 
-  <!-- Empty path to get a valid path refid.                         -->
+  <!-- Empty path to get a valid path refid when having no class     -->
+  <!-- path the selected EE.                                         -->
   <path id="ee.empty">
   </path>
 
   <!-- If the EE selected by bundle.compile.EE does not exist, i.e., -->
   <!-- is not a valid reference to a path then use a dummy (empty)   -->
   <!-- path as the value for bundle.bootclasspath.ref                -->
+  <!-- For Java 7, allways use the dummy EE.                         -->
   <condition property="bundle.bootclasspath.ref"
-             value="${bundle.compile.EE}"
-             else="ee.empty">
-    <isreference refid="${bundle.compile.EE}" type="path"/>
+             value="ee.empty"
+             else="${bundle.compile.EE}">
+    <or>
+      <isset property="jdk1.7+"/>
+      <not>
+        <isreference refid="${bundle.compile.EE}" type="path"/>
+      </not>
+    </or>
   </condition>
 
 
@@ -635,6 +666,12 @@
     <attribute name="kind-bundlemanifest"
                default="@{kind}"
                description="Packing kind given to the bundlemanifest task."/>
+    <attribute name="allKinds"
+               default="lib, api, impl, all"
+               description="All kinds for the bundlemanifest task."/>
+    <attribute name="replaceEEmin"
+               default="${ee.min.replacement}"
+               description="If set replace osgi.ee capability requirement for OSGi/Minimum with the given requirement filter."/>
     <attribute name="imports"
                description="Name of property holding Import-Package"/>
     <attribute name="imports-default"
@@ -699,6 +736,8 @@
       <mkdir dir="${jardir}"/>
 
       <bundlemanifest kind="@{kind-bundlemanifest}"
+                      allKinds="@{allKinds}"
+                      replaceEEmin="@{replaceEEmin}"
                       mode="${bundlemanifest.mode}"
                       mainAttributesToSkip="${attrs.to.skip.@{kind}}"
                       attributePropertyPrefix="${bundle.mf.attr.prefix}"

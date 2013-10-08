@@ -17,6 +17,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/component
 Bundle-Activator: org.knopflerfish.bundle.component.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+api-Provide-Capability: [bundle.emptystring]
 Provide-Capability: osgi.service;
  objectClass:List<String>="org.apache.felix.scr.ScrService"
 api-Import-Package: org.osgi.framework ; version="[1.6,2)"

@@ -40,7 +40,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -50,6 +54,10 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Manifest;
 import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.EnumeratedAttribute;
+
+import org.osgi.framework.Constants;
+
+import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
 
 
 /**
@@ -103,7 +111,7 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  *  </tr>
  *  <tr>
  *    <td valign="top">templateFile</td>
- *    <td valign="top">the template mainfest file to load.</td>
+ *    <td valign="top">the template manifest file to load.</td>
  *    <td valign="top" align="center">No.</td>
  *  </tr>
  *  <tr>
@@ -150,10 +158,35 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  *    <td valign="top" align="center">No.</td>
  *  </tr>
  *  <tr>
+ *    <td valign="top">allKinds</td>
+ *    <td valign="top">A comma separated list specifying all kinds.
+ *                     <p>
+ *                     If given all main section attributes starting with
+ *                     any of the kinds in <code>allKinds</code> will
+ *                     be removed after the specified kind has been used to
+ *                     override attributes. E.g., if <code>kind="all"</code>
+ *                     and <code>allKinds="api,all"</code> and there is
+ *                     an attribute named <code>"api-Export-Package"</code>
+ *                     then that attribute will be removed from the
+ *                     resulting manifest.
+ *    </td>
+ *    <td valign="top" align="center">No.</td>
+ *  </tr>
+ *  <tr>
  *    <td valign="top">mainAttributesToSkip</td>
  *    <td valign="top">Comma separated list with names of main section
  *                     attributes to weed out when writing the
  *                     manifest file.
+ *    </td>
+ *    <td valign="top" align="center">No.</td>
+ *  </tr>
+ *  <tr>
+ *    <td valign="top">replaceEEmin</td>
+ *    <td valign="top">Replace the filter part of any osgi.ee requirement
+ *                     for the OSGi/Minimum EE with the given value.
+ *                     E.g., <code>replaceEEmin="(&(osgi.ee=JavaSE)(version>=1.7))"</code>
+ *                     will replace any filter matching 'OSGi/Minimum'
+ *                     in the osgi.ee name space with the given filter expression.
  *    </td>
  *    <td valign="top" align="center">No.</td>
  *  </tr>
@@ -291,6 +324,12 @@ public class BundleManifestTask extends Task {
   private String bundleKind;
 
   /**
+   * All known kinds of bundles. Used to remove unused kind specific main
+   * section manifest attributes.
+   */
+  private final Set<String> allBundleKinds = new HashSet<String>();
+
+  /**
    * Prefix of project properties to add main section attributes for.
    *
    * For each property in the project with a name that starts with this
@@ -377,6 +416,53 @@ public class BundleManifestTask extends Task {
     bundleKind = s.trim();
   }
 
+
+  /**
+   * Comma separated list of known bundle kinds. Any main section attribute
+   * starting with one of the known kind values will be removed from the
+   * resulting manifest after processing of kind specific overrides.
+   *
+   * @param s
+   *          Comma separated list of bundle kinds.
+   */
+  public void setAllKinds(String s)
+  {
+    if (s != null && (s = s.trim()).length() > 0) {
+      final StringTokenizer st = new StringTokenizer(s, ",");
+      while (st.hasMoreTokens()) {
+        final String kind = st.nextToken();
+        allBundleKinds.add(kind.trim());
+      }
+    } else {
+      allBundleKinds.clear();
+    }
+    log("All bundle kinds " + allBundleKinds + ".", Project.MSG_DEBUG);
+  }
+
+  /**
+   * The name of the OSGi/Minimum Execution Environment.
+   */
+  private final String OSGI_MINIMUM_EE_NAME = "OSGi/Minimum";
+
+  /**
+   * Replacement filter for the filter in required capabilities in the
+   * <code>osgi.ee</code> name-space that requires the OSGi/Minimum EE.
+   */
+  private String replaceEEmin;
+
+  /**
+   * Sets the replacement filter expression for required capabilities in the
+   * osgi.ee name-space that requires the OSGi/Minimum EE.
+   *
+   * @param s
+   */
+  public void setReplaceEEmin(String s)
+  {
+    if (s != null && (s = s.trim()).length() > 0) {
+      replaceEEmin = s;
+      log("replaceEEmin: '" + replaceEEmin + "'.", Project.MSG_DEBUG);
+    }
+  }
 
   /**
    * If set to true the bundle activator, export package and import
@@ -610,6 +696,114 @@ public class BundleManifestTask extends Task {
                                      +"' failed: "+me,
                                      me, getLocation());
           }
+        }
+      }
+    }
+  }
+
+  /**
+   * Remove all kind specific main section attributes.
+   *
+   * @param mf     The manifest to remove main section attributes from.
+   */
+  private void removeAttributesForOtherKinds(Manifest mf)
+  {
+    if (allBundleKinds.size() > 0) {
+      final Manifest.Section mainS = mf.getMainSection();
+
+      // Find all attributes to remove.
+      final Vector<String> attrNames = new Vector<String>();
+      for (@SuppressWarnings("unchecked")
+      final Enumeration<String> ae = mainS.getAttributeKeys(); ae
+          .hasMoreElements();) {
+        final String key = ae.nextElement();
+        final Manifest.Attribute attr = mainS.getAttribute(key);
+        final String attrName = attr.getName();
+        final int prefixEnd = attrName.indexOf('-');
+        if (prefixEnd > 0) {
+          final String prefix = attrName.substring(0, prefixEnd);
+          if (allBundleKinds.contains(prefix)) {
+            attrNames.add(attrName);
+          }
+        }
+      }
+      // Remove the attributes; must be done outside the loop above since
+      // removal modifies the collection that the loop iterates over.
+      for (final String attrName : attrNames) {
+        mainS.removeAttribute(attrName);
+        log("Removing kind specific attribute '" + attrName + "'.",
+            Project.MSG_VERBOSE);
+      }
+    }
+  }
+
+  /**
+   * If the manifest contains a capability requirement on osgi.ee for the
+   * OSGi/Minimum EE then replace the filter part of that requirement with the
+   * given replacement value.
+   *
+   * @param mf
+   *          The manifest to replace in.
+   */
+  private void replaceEEminmum(Manifest mf)
+  {
+    if (replaceEEmin != null) {
+      final Manifest.Section mainS = mf.getMainSection();
+      final Manifest.Attribute attr =
+        mainS.getAttribute(Constants.REQUIRE_CAPABILITY);
+      if (attr != null) {
+        final String reqCapValue = attr.getValue();
+        if (reqCapValue.contains(OSGI_MINIMUM_EE_NAME)) {
+          log("Found '" + Constants.REQUIRE_CAPABILITY
+              + "' attribute with requirement on '" + OSGI_MINIMUM_EE_NAME
+              + "'.", Project.MSG_DEBUG);
+
+          // Must replace...
+          final List<HeaderEntry> hes =
+            Util.parseManifestHeader(Constants.REQUIRE_CAPABILITY, reqCapValue,
+                                     true, true, false);
+          final StringBuffer sb =
+            new StringBuffer(reqCapValue.length() + replaceEEmin.length());
+          for (final HeaderEntry he : hes) {
+            log("Processing header entry '" + he.getKey()
+                    + "' with attributes " + he.getAttributes()
+                    + " and directives " + he.getDirectives() + ".",
+                Project.MSG_DEBUG);
+            if (sb.length() > 0) {
+              sb.append(", ");
+            }
+            sb.append(he.getKey());
+
+            for (final Entry<String, Object> attribEntry : he.getAttributes()
+                .entrySet()) {
+              sb.append("; ");
+              sb.append(attribEntry.getKey());
+              // TODO: Only quote the value when required.
+              sb.append("=\"");
+              sb.append(attribEntry.getValue());
+              sb.append('"');
+            }
+
+            for (final Entry<String, String> directiveEntry : he
+                .getDirectives().entrySet()) {
+              sb.append("; ");
+              sb.append(directiveEntry.getKey());
+              // TODO: Only quote the value when required.
+              sb.append(":=\"");
+              if ("osgi.ee".equals(he.getKey())
+                  && "filter".equals(directiveEntry.getKey())
+                  && directiveEntry.getValue().contains(OSGI_MINIMUM_EE_NAME)) {
+                log("Replacing filter '" + directiveEntry.getValue()
+                        + "' with '" + replaceEEmin + "' in '" + reqCapValue
+                        + "'.", Project.MSG_VERBOSE);
+                sb.append(replaceEEmin);
+              } else {
+                sb.append(directiveEntry.getValue());
+              }
+              sb.append('"');
+            }
+          }
+          attr.setValue(sb.toString());
         }
       }
     }
@@ -919,6 +1113,8 @@ public class BundleManifestTask extends Task {
       overrideAttributes(manifestToWrite, bundleKind+"-");
     }
 
+    removeAttributesForOtherKinds(manifestToWrite);
+    replaceEEminmum(manifestToWrite);
     replaceTrunkWithVersion(manifestToWrite);
 
     if (null==manifestFile) {
