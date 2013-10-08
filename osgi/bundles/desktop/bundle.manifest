@@ -20,6 +20,7 @@ Bundle-Classpath: .
 Bundle-Icon: app.png;size=32
 Bundle-Activator: org.knopflerfish.bundle.desktop.swing.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.5))"
+api-Provide-Capability: [bundle.emptystring]
 Provide-Capability: osgi.service;
    objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
    org.knopflerfish.service.desktop.displayer.name=Graph,

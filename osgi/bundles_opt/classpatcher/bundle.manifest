@@ -14,6 +14,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles_opt/classpatcher/
 Bundle-Activator: org.knopflerfish.bundle.classpatcher.Activator
 Bundle-Classpath: .,asm-3.2.jar
+api-Provide-Capability: [bundle.emptystring]
 Provide-Capability: osgi.service;
  objectClass:List<String>="org.osgi.framework.hooks.weaving.WeavingHook"
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"

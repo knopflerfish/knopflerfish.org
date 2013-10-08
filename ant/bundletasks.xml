@@ -97,6 +97,7 @@
     </condition>
   </target>
 
+
   <!-- This check is needed to be able to avoid rebuilding -->
   <!-- when properties used in the manifest has changed.   -->
   <target name="chkBundleTasksBuild" unless="bundleTasksBuild.notRequired">
@@ -112,6 +113,16 @@
     </condition>
   </target>
 
+
+  <available property="jdk1.7+" classname="java.lang.ClassValue"/> 
+
+  <condition property="javac.source" value="1.6" else="1.6">
+    <isset property="jdk1.7+"/>
+  </condition>
+  <condition property="javac.target" value="1.5" else="jsr14">
+    <isset property="jdk1.7+"/>
+  </condition>
+    
   <target name="build_bundle_tasks"
 	  depends="chkBundleTaskSrc,chkBundleTasksBuild"
 	  unless="bundleTasksBuild.notRequired">
@@ -119,8 +130,8 @@
     <javac destdir="${antclasses}"
            classpathref="bundle_tasks.path"
            includeAntRuntime="true"
-           source="1.6"
-           target="jsr14"
+           source="${javac.source}"
+           target="${javac.target}"
            debug="on">
       <src path="${ant.dir}/src"/>
       <!-- org.osgi.framework.Version is used by BundleLocator. -->

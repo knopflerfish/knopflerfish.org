@@ -381,6 +381,41 @@
 <div class="release_notes">
 
   <div class="note_group">
+    <div class="note_name">Build system</div>
+    <div class="note_item">
+
+      The build system now supports compiling with Java 7.  When
+      compiling with <code>javac</code> from Java 7 it is not possible
+      to generate code that is backwards compatible with JDK 1.4 thus
+      code will be generated for Java 5. Also note that the current
+      OSGi/Minimum execution environment jar can not be used as boot
+      class path when compiling code that uses the enhanced for loop
+      with Java 7 since it does not contain the java.lang.Iterable
+      class. Thus until we have a better jar to use as boot class
+      path any requirement in the OSGi/Minimum execution environment
+      will be replaced with a requirement on Java SE 5 and the Java 7
+      runtime will be used as the boot class path.
+
+    </div>
+
+    <div class="note_item">
+
+      Bundle kind specific manifest headers for other kinds of bundles
+      than the one that is currently built is no longer propagated to
+      the resulting manifest file.
+
+    </div>
+
+    <div class="note_item">
+
+      The default file encoding for source files has changed from the
+      local file encoding (as specified by the system property
+      file.encoding) to UTF8. To override this set the ant property
+      javac.encoding in your build file before importing
+      bundlebuild.xml.
+
+    </div>
+
   </div>
 
 </div>

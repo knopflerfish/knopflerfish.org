@@ -31,9 +31,21 @@
 
   <import file="${ant.dir}/android.xml"/>
 
-  <property name="javac.target"       value="jsr14"/>
-  <property name="javac.source"       value="1.5"/>
+  <available property="jdk1.7+" classname="java.lang.ClassValue"/> 
+  <condition property="javac.source" value="1.5" else="1.5">
+    <isset property="jdk1.7+"/>
+  </condition>
+  <condition property="javac.target" value="1.5" else="jsr14">
+    <isset property="jdk1.7+"/>
+  </condition>
 
+  <!-- When comipling with Java 7 we must use the Java 7 runtime -->
+  <!-- since ee.minimum does not contain java.lang.Iterable. -->
+  <condition property="javac.includeJavaRuntime" value="true" else="false">
+    <isset property="jdk1.7+"/>
+  </condition>
+
+    
   <property name="src.dir" location="src"/>
 
   <property name="printClasses" location="true"/>
@@ -62,6 +74,18 @@
     <pathelement location="libs/asm-3.2.jar"/>
   </path>
 
+  <path id="empty.path">
+  </path>
+
+  <!-- Use the Java 7 runtime when compiling with Java 7 since -->
+  <!-- ee.minimum does not provide the required Iterable interface. --> 
+  <condition property="boot.class.path.name"
+             value="empty.path"
+             else="ee.minimum.path">
+    <isset property="jdk1.7+"/>
+  </condition>
+
+
   <!-- targets -->
   <target name="all"
           depends="jar, source.jar, save_javadoc_data, javadoc.jar">
@@ -81,12 +105,12 @@
            srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-           includejavaruntime= "false"
+           includejavaruntime= "${javac.includeJavaRuntime}"
            includes          = "**/*.java"
            excludes          = "${nonFoundationSrcs},**/package-info.java"
            target            = "${javac.target}"
            source            = "${javac.source}"
-           bootclasspathref  = "ee.minimum.path"
+           bootclasspathref  = "${boot.class.path.name}"
            classpathref      = "compile.path"
            >
     </javac>
@@ -95,7 +119,7 @@
            srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-           includejavaruntime= "false"
+           includejavaruntime= "${javac.includeJavaRuntime}"
            includes          = "${nonFoundationSrcs}"
            excludes          = "**/package-info.java"
            target            = "${javac.target}"
@@ -114,13 +138,13 @@
            srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-           includejavaruntime= "false"
+           includejavaruntime= "${javac.includeJavaRuntime}"
            includes          = "**/*.java"
            excludes          = "${nonFoundationSrcs},org/knopflerfish/framework/bundlestorage/memory/SelfSignedValidator.java,org/knopflerfish/framework/bundlestorage/memory/*.java,**/package-info.java,org/knopflerfish/framework/SecurePermissionOps.java,org/knopflerfish/framework/permissions/*.java"
            target            = "${javac.target}"
            source            = "${javac.source}"
+           bootclasspathref  = "${boot.class.path.name}"
            classpathref      = "compile.path"
-           bootclasspathref  = "ee.minimum.path"
            >
     </javac>
   </target>
@@ -147,7 +171,7 @@
     <delete file="${classout}/classes.dex"/>
 
     <loadfile srcfile="${src.dir}/org/osgi/framework/packageinfo"
-    	      property="fw.spec.version">
+              property="fw.spec.version">
       <filterchain>
         <striplinebreaks/>
         <replacestring from="version " to=""/>
@@ -163,7 +187,7 @@
   <target name   = "jar_file_full"
           unless = "compact">
     <jar basedir="${classout}"
-    	 filesonly="true"
+         filesonly="true"
          jarfile="${jarfile}">
       <fileset dir="resources"/>
       <manifest>
@@ -193,10 +217,10 @@
   <target name = "jar_file_compact"
           if   = "compact">
     <jar basedir="${classout_compact}"
-    	 filesonly="true"
+         filesonly="true"
          jarfile="${jarfile_compact}">
       <fileset dir="resources">
-      	<exclude name="kfsplash.gif"/>
+        <exclude name="kfsplash.gif"/>
       </fileset>
       <manifest>
         <attribute name="Main-class"             value="org.knopflerfish.framework.Main"/>

@@ -18,6 +18,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-Classpath: .,nanoxml-2.2.1.jar
 Bundle-Activator: org.knopflerfish.bundle.metatype.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+api-Provide-Capability: [bundle.emptystring]
 Provide-Capability: osgi.service;
    objectClass:List<String>="org.osgi.service.metatype.MetaTypeService",
  osgi.service;
