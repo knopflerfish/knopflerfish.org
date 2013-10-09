@@ -762,48 +762,25 @@ public class BundleManifestTask extends Task {
           final List<HeaderEntry> hes =
             Util.parseManifestHeader(Constants.REQUIRE_CAPABILITY, reqCapValue,
                                      true, true, false);
-          final StringBuffer sb =
-            new StringBuffer(reqCapValue.length() + replaceEEmin.length());
           for (final HeaderEntry he : hes) {
             log("Processing header entry '" + he.getKey()
                     + "' with attributes " + he.getAttributes()
                     + " and directives " + he.getDirectives() + ".",
                 Project.MSG_DEBUG);
-            if (sb.length() > 0) {
-              sb.append(", ");
-            }
-            sb.append(he.getKey());
-
-            for (final Entry<String, Object> attribEntry : he.getAttributes()
-                .entrySet()) {
-              sb.append("; ");
-              sb.append(attribEntry.getKey());
-              // TODO: Only quote the value when required.
-              sb.append("=\"");
-              sb.append(attribEntry.getValue());
-              sb.append('"');
-            }
-
             for (final Entry<String, String> directiveEntry : he
                 .getDirectives().entrySet()) {
-              sb.append("; ");
-              sb.append(directiveEntry.getKey());
-              // TODO: Only quote the value when required.
-              sb.append(":=\"");
               if ("osgi.ee".equals(he.getKey())
                   && "filter".equals(directiveEntry.getKey())
                   && directiveEntry.getValue().contains(OSGI_MINIMUM_EE_NAME)) {
                 log("Replacing filter '" + directiveEntry.getValue()
                         + "' with '" + replaceEEmin + "' in '" + reqCapValue
                         + "'.", Project.MSG_VERBOSE);
-                sb.append(replaceEEmin);
-              } else {
-                sb.append(directiveEntry.getValue());
+                directiveEntry.setValue(replaceEEmin);
+                break;
               }
-              sb.append('"');
             }
           }
-          attr.setValue(sb.toString());
+          attr.setValue(Util.toString(hes));
         }
       }
     }

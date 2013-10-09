@@ -116,7 +116,7 @@
 
   <available property="jdk1.7+" classname="java.lang.ClassValue"/> 
 
-  <condition property="javac.source" value="1.6" else="1.6">
+  <condition property="javac.source" value="1.5" else="1.5">
     <isset property="jdk1.7+"/>
   </condition>
   <condition property="javac.target" value="1.5" else="jsr14">

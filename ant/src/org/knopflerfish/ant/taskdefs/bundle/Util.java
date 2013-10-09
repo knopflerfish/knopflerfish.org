@@ -39,8 +39,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.osgi.framework.Version;
 
@@ -746,6 +749,7 @@ public class Util {
     }
   }
 
+
   /**
    * A class that holds the parse result for one entry of a manifest header
    * following the general OSGi manifest header syntax. See
@@ -790,6 +794,76 @@ public class Util {
     public Map<String, String> getDirectives()
     {
       return directives;
+    }
+  }
+
+  /**
+   * Convert a list of {@link HeaderEntry}-objects into a valid manifest header
+   * value.
+   *
+   * @param hes
+   *          The list of header entries to make a string of.
+   * @return Manifest value that follows the generic OSGi manifest syntax.
+   */
+  public static String toString(List<HeaderEntry> hes)
+  {
+    final StringBuffer sb = new StringBuffer();
+    for (final HeaderEntry he : hes) {
+      if (sb.length() > 0) {
+        sb.append(", ");
+      }
+      sb.append(he.getKey());
+      parametersToString(sb, "=", he.getAttributes());
+      parametersToString(sb, ":=", he.getDirectives());
+    }
+    return sb.toString();
+  }
+
+  /**
+   * A pattern matching chars that needs to be quoted when quoting a parameter
+   * value.
+   */
+  static final Pattern QUOTE_PATTERN = Pattern.compile("\"");
+
+  /**
+   * A pattern matching OSGis syntax terminal called <em>extended</em>. An
+   * <em>extended</em> terminal does not need to be quoted when used as the
+   * value of a parameter. The set of allowed characters in <em>extended</em>
+   * terminals are a..z, A..Z, 0..9, '_', '-' and '.'.
+   */
+  static final Pattern EXTENDED_PATTERN = Pattern.compile("[a-zA-Z0-9_\\-.]+");
+
+  /**
+   * Convert a map with manifest entry parameters into a well formed manifest
+   * parameter string.
+   *
+   * @param sb
+   *          String buffer to append result to.
+   * @param sep
+   *          Separator between the key and the value of a parameter.
+   * @param parameters
+   *          The map with parameters to process.
+   */
+  private static void parametersToString(final StringBuffer sb,
+                                         final String sep,
+                                         final Map<String, ?> parameters)
+  {
+    for (final Entry<String, ?> attribEntry : parameters.entrySet()) {
+      sb.append("; ");
+      sb.append(attribEntry.getKey());
+      sb.append(sep);
+
+      String value = attribEntry.getValue().toString();
+      final boolean needsQuoting = !EXTENDED_PATTERN.matcher(value).matches();
+      if (needsQuoting) {
+        sb.append('"');
+        final Matcher matcher = QUOTE_PATTERN.matcher(value);
+        value = matcher.replaceAll("\\\\\"");
+      }
+      sb.append(value);
+      if (needsQuoting) {
+        sb.append('"');
+      }
     }
   }
 
