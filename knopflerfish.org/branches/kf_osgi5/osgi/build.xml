@@ -432,7 +432,7 @@
 
  <target name="clean"
          description="Removes all generated files and directories."
-         depends="init,clean_bundles_test">
+         depends="init,clean_ant,clean_bundles_test">
   <delete file="framework.jar"/>
   <delete dir="${root.out.dir}"/>
   <delete dir="jars"/>
@@ -457,6 +457,10 @@
          inheritAll="false" inheritRefs="false"/>
     <ant target="clean_bundles_opt"/>
     <ant target="clean_bundles_test"/>
+ </target>
+ <target name="clean_ant">
+   <ant dir="${ant.dir}"   target="clean"
+        inheritAll="false" inheritRefs="false"/>
  </target>
  <target name="clean_bundles_opt" if="dir.bundles_opt.present">
    <ant dir="bundles_opt"   target="clean"
