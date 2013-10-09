@@ -1,8 +1,6 @@
 package org.knopflerfish.bundle.repository;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,7 +8,6 @@ import java.util.Hashtable;
 
 import org.knopflerfish.bundle.repository.xml.RepositoryXmlParser;
 import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
-
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
@@ -35,7 +32,7 @@ public class FactoryImpl implements XmlBackedRepositoryFactory {
         RepositoryImpl repo = new RepositoryImpl(bc, rs);
         Hashtable<String, String> h = new Hashtable<String, String>();
         h.put(Constants.SERVICE_PID, "org.knopflerfish.repository.xml");
-        //h.put("service.description", "org.knopflerfish.repository.xml");
+        h.put(Constants.SERVICE_DESCRIPTION, "XML repository from URL: " + url);
         //h.put("repository.url", url);
         ServiceRegistration<Repository> sr = bc.registerService(Repository.class, repo, h);
         
