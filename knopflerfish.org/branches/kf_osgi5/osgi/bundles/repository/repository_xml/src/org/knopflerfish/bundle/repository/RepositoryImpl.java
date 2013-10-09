@@ -29,6 +29,7 @@ public class RepositoryImpl implements Repository {
         new HashMap<Requirement, Collection<Capability>>();
     for(Resource r : rs) {
       for(Requirement req : requirements) {
+        ps.put(req, new ArrayList<Capability>());
         for(Capability c : r.getCapabilities(req.getNamespace())) {
           String filter = req.getDirectives().get("filter");
           if(filter != null) {
@@ -41,9 +42,6 @@ public class RepositoryImpl implements Repository {
             if(!f.matches(c.getAttributes())) {
               continue;
             }
-          }
-          if(!ps.containsKey(req)) {
-            ps.put(req, new ArrayList<Capability>());
           }
           ps.get(req).add(c);
         }
