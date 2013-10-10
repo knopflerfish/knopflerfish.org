@@ -51,3 +51,4 @@ telnet
 deployer
 multi
 verbosity
+plugin

@@ -8,6 +8,7 @@
     <ant target="${the.target}" dir="repository_xml"/>
     <ant target="${the.target}" dir="repositorymanager"/>
     <ant target="${the.target}" dir="repositorycommands"/>
+    <ant target="${the.target}" dir="repository_desktop"/>
   </target>
 
   <target name="all" 
