@@ -18,6 +18,7 @@
 -install @component_all-N.N.N.jar@
 -install @event_all-N.N.N.jar@
 -install @prefs_all-N.N.N.jar@
+-install @repository_api-N.N.N.jar@
 $(AWT)-istart @trayicon_fw-N.N.N.jar@
 
 ## Some library bundles
@@ -29,9 +30,9 @@ $(AWT)-istart @trayicon_fw-N.N.N.jar@
 
 # The Bundle repo commands and desktop plugin
 $(AWT)-install @bundlerepository_all-N.N.N.jar@
--install @repository_api-N.N.N.jar@
 -install @repository_xml_all-N.N.N.jar@
 -install @repositorymanager_all-N.N.N.jar@
+$(AWT)-install @repository_desktop_all-N.N.N.jar@
 
 ## More basic KF bundles
 -initlevel 3
@@ -78,9 +79,10 @@ $(OS_ARGS)
 -start @prefs_all-N.N.N.jar@
 -start @device_all-N.N.N.jar@
 -start @useradmin_all-N.N.N.jar@
-$(AWT)-start @bundlerepository_all-N.N.N.jar@
 -start @repository_xml_all-N.N.N.jar@
+$(AWT)-start @bundlerepository_all-N.N.N.jar@
 -start @repositorymanager_all-N.N.N.jar@
+$(AWT)-start @repository_desktop_all-N.N.N.jar@
 -start @consoletty-N.N.N.jar@
 -start @consoletelnet-N.N.N.jar@
 -start @frameworkcommands-N.N.N.jar@
