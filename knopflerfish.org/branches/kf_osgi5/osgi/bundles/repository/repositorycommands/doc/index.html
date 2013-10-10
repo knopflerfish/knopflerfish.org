@@ -1,0 +1,25 @@
+<h1>Repository Commands</h1>
+<div class="abstract">
+  The Knopflerfish repository manager console bundle
+</div>
+
+<h2>Description</h2>
+
+The Repository commands bundle includes a set of commands through which the Knopflerfish Repository Manager can be controlled. This includes bundle search and install, repository management (add, remove, ordering, enable and disable).
+
+<h2>Repository Command Group</h2>
+The console command group is <b>repository</b>
+<p>
+The available commands are:
+<pre class="code">
+Available repository commands:
+  add [-help] [-r #rank#] &lt;url&gt; - Add a XML based repository.
+  bundle [-help] [-l] [&lt;symbolicname&gt; [&lt;versionRange&gt;]] - Find bundle resources all ot all that matches &lt;symbolicname&gt;
+  disable [-help] &lt;repository&gt; ... - Disable repository, so that it won't be used when searching for resources
+  enable [-help] &lt;repository&gt; ... - Enable repository, so they will be used when searching for resources
+  install [-help] [-s] &lt;symbolicname&gt; [&lt;versionRange&gt;] - Install bundle resource that matches &lt;symbolicname&gt;
+  list [-help] [-l] [&lt;repository&gt;] - List repositories
+</pre>
+
+<h2>See Also</h2>
+<a href="../console/index.html">Console</a>

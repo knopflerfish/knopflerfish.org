@@ -6,6 +6,8 @@
   <target name="doAntBuild">
     <ant target="${the.target}" dir="repository_api"/>
     <ant target="${the.target}" dir="repository_xml"/>
+    <ant target="${the.target}" dir="repositorymanager"/>
+    <ant target="${the.target}" dir="repositorycommands"/>
   </target>
 
   <target name="all" 

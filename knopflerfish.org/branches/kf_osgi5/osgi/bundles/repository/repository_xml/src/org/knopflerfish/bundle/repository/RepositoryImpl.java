@@ -30,18 +30,20 @@ public class RepositoryImpl implements Repository {
     for(Resource r : rs) {
       for(Requirement req : requirements) {
         ps.put(req, new ArrayList<Capability>());
+        String f = req.getDirectives().get("filter");
+        Filter filter = null;
+        if(f != null) {
+          try {
+            filter = bc.createFilter(f);
+          } catch (InvalidSyntaxException e) {
+            // TODO log filter failure, skip
+            System.err.println("Failed, " + f + ". " + e);
+            continue;
+          }
+        }
         for(Capability c : r.getCapabilities(req.getNamespace())) {
-          String filter = req.getDirectives().get("filter");
-          if(filter != null) {
-            Filter f = null;
-            try {
-              f = bc.createFilter(filter);
-            } catch (InvalidSyntaxException e) {
-              return null;
-            }
-            if(!f.matches(c.getAttributes())) {
-              continue;
-            }
+          if(filter != null && !filter.matches(c.getAttributes())) {
+            continue;
           }
           ps.get(req).add(c);
         }
