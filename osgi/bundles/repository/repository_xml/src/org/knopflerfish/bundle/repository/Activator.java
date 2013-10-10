@@ -1,6 +1,7 @@
 package org.knopflerfish.bundle.repository;
 
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
@@ -27,7 +28,7 @@ public class Activator implements BundleActivator {
     
     String url = bc.getProperty(REPOSITORY_XML_URL);
     if(url != null && !"".equals(url)) {
-      factory.create(url, null);
+      factory.create(url, null, null);
     }
     
     sr = bc.registerService(XmlBackedRepositoryFactory.class, factory, null);
@@ -63,7 +64,7 @@ public class Activator implements BundleActivator {
         throws ConfigurationException {
 
         try {
-          factory.create((String)p.get("url"), pid);
+          factory.create((String)p.get("url"), p, pid);
         } catch (Exception e) {
           e.printStackTrace();
         }  

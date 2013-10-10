@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Repository-Manager
+Bundle-SymbolicName: org.knopflerfish.bundle.repositorymanager
+Bundle-Version: 1.0.0
+Bundle-Activator: org.knopflerfish.bundle.repositorymanager.Activator
+Bundle-Description: Repository Manager
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+ /index.html?docpage=repositorycommands/index.html
+Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
+ description="BSD 3-clause";
+ link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/repositorymanager/
+Bundle-Category: service
+Import-Package: org.osgi.framework;version="[1.7,2.0)",
+ org.osgi.resource;version="[1.0,2.0)",
+ org.osgi.service.repository;version="[1.0,2.0)",
+ org.osgi.util.tracker;version="[1.5,2.0)",
+ org.knopflerfish.service.repository;version="[1.0,2.0)"
+ 

@@ -11,7 +11,7 @@
 	    value="org/knopflerfish/service/**"/>
 
   <property name = "bundle.build.lib"   value = "false"/>
-  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.api"   value = "true"/>
   <property name = "bundle.build.impl"  value = "false"/>
   <property name = "bundle.build.all"   value = "true"/>
 
