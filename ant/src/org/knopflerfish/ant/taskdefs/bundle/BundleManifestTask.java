@@ -1007,7 +1007,8 @@ public class BundleManifestTask extends Task {
         manifestTemplate = new Manifest(ir);
       } catch (final ManifestException me) {
         throw new BuildException("Template manifest " + manifestTemplateFile
-                                 + " is invalid", me, getLocation());
+                                 + " is invalid. " + me.getMessage(),
+                                 me, getLocation());
       } catch (final IOException ioe) {
         throw new BuildException("Failed to read " + manifestTemplateFile,
                                  ioe, getLocation());
