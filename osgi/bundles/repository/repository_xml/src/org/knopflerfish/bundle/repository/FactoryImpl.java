@@ -1,7 +1,5 @@
 package org.knopflerfish.bundle.repository;
 
-import java.io.InputStream;
-import java.net.URL;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -28,8 +26,7 @@ public class FactoryImpl implements XmlBackedRepositoryFactory {
   @Override
   public ServiceReference<Repository> create(String url, Dictionary<String, ?> properties, Object handle) throws Exception {
     if(url != null && !"".equals(url) && !repositoryRegistrations.containsKey(url)) {
-      InputStream is = new URL(url).openStream();
-      Collection<Resource> rs = RepositoryXmlParser.parse(is);
+      Collection<Resource> rs = RepositoryXmlParser.parse(url);
       RepositoryXmlParser.debug(rs);
       if(!rs.isEmpty()) {
         RepositoryImpl repo = new RepositoryImpl(bc, rs);

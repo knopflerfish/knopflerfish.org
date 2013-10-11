@@ -61,8 +61,7 @@ public class ResourceImpl implements Resource, RepositoryContent {
   public InputStream getContent() {
     try {
       Capability c = getCapabilities(ContentNamespace.CONTENT_NAMESPACE).get(0);
-      c.getAttributes().get("url");
-      return new URL((String)c.getAttributes().get("url")).openStream();
+      return new URL((String)c.getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE)).openStream();
     } catch (Exception e) {
       e.printStackTrace();
       return null;
