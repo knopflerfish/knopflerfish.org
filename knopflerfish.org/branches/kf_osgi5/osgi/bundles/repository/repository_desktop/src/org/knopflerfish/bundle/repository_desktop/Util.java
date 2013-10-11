@@ -56,7 +56,8 @@ import org.osgi.service.repository.ContentNamespace;
 /**
  * Misc static utility methods
  */
-public class Util {
+public class Util
+{
 
   /**
    * Check if a bundle object corresponds to a resource.
@@ -64,15 +65,18 @@ public class Util {
    * <p>
    * Equality is tested on
    * <ol>
-   *   <li> location,
-   *   <li> bundle symbolic name and version.
+   * <li>location,
+   * <li>bundle symbolic name and version.
    * </ol>
    * </p>
    *
-   * @param bundle The bundle to test.
-   * @param resource The resource to compare the bundle to.
+   * @param bundle
+   *          The bundle to test.
+   * @param resource
+   *          The resource to compare the bundle to.
    */
-  static boolean bundleEqual(Bundle bundle, Resource resource) {
+  static boolean bundleEqual(Bundle bundle, Resource resource)
+  {
     if (bundle.getLocation().equals(Util.getLocation(resource))) {
       return true;
     }
@@ -86,32 +90,62 @@ public class Util {
   }
 
   /**
-   * Get the name of repository resource from the identity name space."
+   * Get the name of a repository resource from the identity name space."
    */
   public static String getResourceName(Resource resource)
   {
-    final List<Capability> idCaps = resource.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE);
+    final List<Capability> idCaps =
+      resource.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE);
     if (idCaps.size() != 1) {
-      Activator.log.error("Found " + idCaps.size() +" identity capabilites expected one: " +idCaps);
+      Activator.log.error("Found " + idCaps.size()
+                          + " identity capabilites expected one: " + idCaps);
       return resource.toString();
     }
     final Capability idCap = idCaps.get(0);
-    return idCap.getAttributes().get(IdentityNamespace.IDENTITY_NAMESPACE).toString();
+    return idCap.getAttributes().get(IdentityNamespace.IDENTITY_NAMESPACE)
+        .toString();
   }
 
-
   /**
-   * Get version of repository resource form the identity name space.
+   * Get version of a repository resource form the identity name space.
    */
   public static Version getResourceVersion(Resource resource)
   {
-    final List<Capability> idCaps = resource.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE);
+    final List<Capability> idCaps =
+      resource.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE);
     if (idCaps.size() != 1) {
-      Activator.log.error("Found " + idCaps.size() +" identity capabilites expected one: " +idCaps);
+      Activator.log.error("Found " + idCaps.size()
+                          + " identity capabilites expected one: " + idCaps);
       return Version.emptyVersion;
     }
     final Capability idCap = idCaps.get(0);
-    return (Version) idCap.getAttributes().get(IdentityNamespace.CAPABILITY_VERSION_ATTRIBUTE);
+    return (Version) idCap.getAttributes()
+        .get(IdentityNamespace.CAPABILITY_VERSION_ATTRIBUTE);
+  }
+
+  /**
+   * Get the type of a repository resource from the identity name space."
+   *
+   * @param resource
+   *          The resource to get the type for.
+   *
+   * @return Type as a string, one of {@link IdentityNamespace#TYPE_BUNDLE},
+   *         {@link IdentityNamespace#TYPE_FRAGMENT}, and
+   *         {@link IdentityNamespace#TYPE_UNKNOWN}.
+   */
+  public static String getResourceType(Resource resource)
+  {
+    final List<Capability> idCaps =
+      resource.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE);
+    for (final Capability idCap : idCaps) {
+      final String type =
+        (String) idCap.getAttributes()
+            .get(IdentityNamespace.CAPABILITY_TYPE_ATTRIBUTE);
+      if (type != null) {
+        return type;
+      }
+    }
+    return "&mdash;";
   }
 
   /**
@@ -125,9 +159,11 @@ public class Util {
   public static String getResourceMime(Resource resource)
   {
     String res = null;
-    for (final Capability cap : resource.getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
+    for (final Capability cap : resource
+        .getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
       final Map<String, Object> attrs = cap.getAttributes();
-      final String mime = (String) attrs.get(ContentNamespace.CAPABILITY_MIME_ATTRIBUTE);
+      final String mime =
+        (String) attrs.get(ContentNamespace.CAPABILITY_MIME_ATTRIBUTE);
       if (mime != null) {
         res = mime;
         break;
@@ -147,9 +183,11 @@ public class Util {
   public static URL getResourceUrl(Resource resource)
   {
     URL res = null;
-    for (final Capability cap : resource.getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
+    for (final Capability cap : resource
+        .getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
       final Map<String, Object> attrs = cap.getAttributes();
-      final String url = (String) attrs.get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
+      final String url =
+        (String) attrs.get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
       if (url != null) {
         try {
           res = new URL(url);
@@ -177,7 +215,8 @@ public class Util {
     for (final Capability cap : resource
         .getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
       final Map<String, Object> attrs = cap.getAttributes();
-      final Long size = (Long) attrs.get(ContentNamespace.CAPABILITY_SIZE_ATTRIBUTE);
+      final Long size =
+        (Long) attrs.get(ContentNamespace.CAPABILITY_SIZE_ATTRIBUTE);
       if (size != null) {
         res = size.longValue();
       }
@@ -222,13 +261,35 @@ public class Util {
   }
 
   /**
+   * Convert a resource type constant to a short string.
+   *
+   * @param resourceType
+   *          The type to convert.
+   * @return A string object with one of the texts "bundle", "fragment" or
+   *         "unknown".
+   *
+   */
+  public static String resourceTypeToString(String resourceType)
+  {
+    if (IdentityNamespace.TYPE_BUNDLE.equals(resourceType)) {
+      return "bundle";
+    } else if (IdentityNamespace.TYPE_FRAGMENT.equals(resourceType)) {
+      return "fragment";
+    } else if (IdentityNamespace.TYPE_UNKNOWN.equals(resourceType)) {
+      return "unknown";
+    }
+    return "unknown";
+  }
+
+  /**
    * Generic Object to HTML string conversion method.
    */
-  public static String toHTML(Object obj) {
-    if(obj == null) {
+  public static String toHTML(Object obj)
+  {
+    if (obj == null) {
       return "null";
     }
-    if(obj instanceof String) {
+    if (obj instanceof String) {
       final String s = (String) obj;
       try {
         new URL(s);
@@ -236,13 +297,13 @@ public class Util {
       } catch (final Exception e) {
       }
       return s;
-    } else if(obj.getClass().isArray()) {
+    } else if (obj.getClass().isArray()) {
       final StringBuffer sb = new StringBuffer();
       final int len = Array.getLength(obj);
 
-      for(int i = 0; i < len; i++) {
+      for (int i = 0; i < len; i++) {
         sb.append(toHTML(Array.get(obj, i)));
-        if(i < len - 1) {
+        if (i < len - 1) {
           sb.append("<br>\n");
         }
       }
@@ -252,62 +313,74 @@ public class Util {
     }
   }
 
-  public static void startFont(StringBuffer sb) {
+  public static void startFont(StringBuffer sb)
+  {
     startFont(sb, "-2");
   }
 
-  public static void startFont(StringBuffer sb, String size) {
-    sb.append("<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
+  public static void startFont(StringBuffer sb, String size)
+  {
+    sb.append("<font size=\"" + size
+              + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 
-  public static void stopFont(StringBuffer sb) {
+  public static void startFont(StringBuffer sb, String size, String color)
+  {
+    sb.append("<font size=\"" + size
+              + "\" face=\"Verdana, Arial, Helvetica, sans-serif\""
+              + "color=\"" + color + "\">");
+  }
+
+  public static void stopFont(StringBuffer sb)
+  {
     sb.append("</font>");
   }
 
-  public static void openExternalURL(URL url) throws IOException {
-    if(Util.isWindows()) {
+  public static void openExternalURL(URL url)
+      throws IOException
+  {
+    if (Util.isWindows()) {
       // Yes, this only works on windows
       final String systemBrowser = "explorer.exe";
       final Runtime rt = Runtime.getRuntime();
-      final Process proc = rt.exec(new String[] {
-        systemBrowser,
-        "\"" + url.toString() + "\"",
-      });
+      final Process proc =
+        rt.exec(new String[] { systemBrowser, "\"" + url.toString() + "\"", });
       new StreamGobbler(proc.getErrorStream());
       new StreamGobbler(proc.getInputStream());
     } else if (Util.isMacOSX()) {
       // Yes, this only works on Mac OS X
       final Runtime rt = Runtime.getRuntime();
-      final Process proc = rt.exec(new String[] {
-        "/usr/bin/open",
-        url.toString(),
-      });
+      final Process proc =
+        rt.exec(new String[] { "/usr/bin/open", url.toString(), });
       new StreamGobbler(proc.getErrorStream());
       new StreamGobbler(proc.getInputStream());
     } else {
-      throw new IOException
-        ("Only windows and Mac OS X browsers are yet supported");
+      throw new IOException(
+                            "Only windows and Mac OS X browsers are yet supported");
     }
   }
 
-  public static boolean isWindows() {
+  public static boolean isWindows()
+  {
     final String os = System.getProperty("os.name");
-    if(os != null) {
+    if (os != null) {
       return -1 != os.toLowerCase().indexOf("win");
     }
     return false;
   }
 
-
-  public static boolean isMacOSX() {
+  public static boolean isMacOSX()
+  {
     final String os = System.getProperty("os.name");
     return "Mac OS X".equals(os);
   }
 
-  /** A thread that empties an input stream without complaining.*/
-  static class StreamGobbler extends Thread
+  /** A thread that empties an input stream without complaining. */
+  static class StreamGobbler
+    extends Thread
   {
     InputStream is;
+
     StreamGobbler(InputStream is)
     {
       this.is = is;
@@ -320,9 +393,9 @@ public class Util {
       final BufferedReader br = new BufferedReader(new InputStreamReader(is));
       String line = "";
       try {
-        while (null!=line) {
+        while (null != line) {
           line = br.readLine();
-          //System.out.println(line);
+          // System.out.println(line);
         }
       } catch (final IOException _ioe) {
       }
@@ -369,24 +442,23 @@ public class Util {
     return s;
   }
 
+  public static Comparator<Bundle> bundleNameComparator =
+    new Comparator<Bundle>() {
+      @Override
+      public int compare(Bundle b1, Bundle b2)
+      {
+        if (b1 == b2) {
+          return 0;
+        }
+        if (b1 == null) {
+          return -1;
+        }
+        if (b2 == null) {
+          return 1;
+        }
 
-  public static Comparator<Bundle> bundleNameComparator = new Comparator<Bundle>() {
-    @Override
-    public int compare(Bundle b1, Bundle b2) {
-      if(b1 == b2) {
-        return 0;
+        return getBundleName(b1).compareToIgnoreCase(getBundleName(b2));
       }
-      if(b1 == null) {
-        return -1;
-      }
-      if(b2 == null) {
-        return 1;
-      }
-
-      return
-        getBundleName(b1).compareToIgnoreCase(getBundleName(b2));
-    }
-  };
-
+    };
 
 }
