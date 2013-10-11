@@ -40,8 +40,25 @@ import org.osgi.framework.VersionRange;
 import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
+import org.osgi.service.repository.ContentNamespace;
 
 public class BasicRequirement implements Requirement {
+
+  /**
+   * MIME type to be stored in the extra field of a {@code ZipEntry} object
+   * for an installable bundle file.
+   * 
+   * @see org.osgi.service.provisioning.ProvisingService#MIME_BUNDLE
+   */
+  public final static String  MIME_BUNDLE         = "application/vnd.osgi.bundle";
+
+  /**
+   * Alternative MIME type to be stored in the extra field of a
+   * {@code ZipEntry} object for an installable bundle file.
+   * 
+   * @see org.osgi.service.provisioning.ProvisingService#MIME_BUNDLE_ALT
+   */
+  public final static String  MIME_BUNDLE_ALT       = "application/x-osgi-bundle";
 
   final private String namespace;
   final private Map<String, Object> attributes = new HashMap<String, Object>();
@@ -84,35 +101,65 @@ public class BasicRequirement implements Requirement {
     return null;
   }
 
-  public void addBundleTypeFilter() {
-    String bf = "(" + IdentityNamespace.CAPABILITY_TYPE_ATTRIBUTE + "=" + IdentityNamespace.TYPE_BUNDLE + ")";
-    String ff = "(" + IdentityNamespace.CAPABILITY_TYPE_ATTRIBUTE + "=" + IdentityNamespace.TYPE_FRAGMENT + ")";
-    opFilter('&', bf, ff);
+  public void addBundleIdentityFilter() {
+    String bf = eq(IdentityNamespace.CAPABILITY_TYPE_ATTRIBUTE, IdentityNamespace.TYPE_BUNDLE);
+    String ff = eq(IdentityNamespace.CAPABILITY_TYPE_ATTRIBUTE, IdentityNamespace.TYPE_FRAGMENT);
+    multiOpFilter('&', multiOp('|', bf, ff));
+  }
+
+  public void addBundleContentFilter() {
+    String bf = eq(ContentNamespace.CAPABILITY_MIME_ATTRIBUTE, MIME_BUNDLE);
+    String ff = eq(ContentNamespace.CAPABILITY_MIME_ATTRIBUTE, MIME_BUNDLE_ALT);
+    multiOpFilter('&', multiOp('|', bf, ff));
   }
 
   public void addVersionRangeFilter(VersionRange versionRange) {
-    opFilter('&', versionRange.toFilterString("version"));
+    multiOpFilter('&', versionRange.toFilterString("version"));
   }
 
-  public void opFilter(char op, String ... andFilter) {
+  public void multiOpFilter(char op, String ... andFilter) {
+    if (andFilter.length == 0) {
+      throw new IllegalArgumentException("Expected at least one argument");
+    }
+    String [] f;
     String filter = directives.get("filter");
-    if (andFilter.length > 0) {
-      if (filter  != null || andFilter.length > 1) {
-        StringBuffer f = new StringBuffer("(");
-        f.append(op);
-        if (filter != null) {
-          f.append(filter);
-        }
-        for (String af : andFilter) {
-          f.append(af);
-        }
-        addDirective("filter", f.append(')').toString());
-      } else {
-        addDirective("filter", andFilter[0]);
+    if (filter != null) {
+      f = new String[andFilter.length + 1];
+      f[0] = filter;
+      System.arraycopy(andFilter, 0, f, 1, andFilter.length);
+    } else {
+      f = andFilter;
+    }
+    addDirective("filter", multiOp(op, f));
+  }
+
+  public String multiOp(char op, String ... args) {
+    if (args.length == 1) {
+      return args[0];
+    } else if (args.length > 1) {
+      StringBuffer f = new StringBuffer("(");
+      f.append(op);
+      for (String a : args) {
+        f.append(a);
       }
+      return f.append(')').toString();
     } else {
       throw new IllegalArgumentException("Expected at least one argument");
     }
+  }
+
+  public String op(char op, String l, String r) {
+    return "(" + l + op + r + ")";
+  }
+
+  public String eq(String l, String r) {
+    return op('=', l, r);
+  }
+
+  @Override
+  public String toString() {
+    return "BasicRequirement [namespace=" + namespace + ", attributes=" + attributes
+           + ", directives=" + directives + "]";
   }
 
 }

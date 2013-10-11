@@ -22,4 +22,4 @@ Import-Package: org.osgi.framework;version="[1.7,2.0)",
  org.osgi.resource;version="[1.0,2.0)",
  org.knopflerfish.service.console;version="[2.0,3.0)",
  org.knopflerfish.service.repositorymanager;version="[1.0,2.0)"
- 
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"

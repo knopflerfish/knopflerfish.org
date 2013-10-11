@@ -43,7 +43,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
 import org.knopflerfish.service.console.Session;
@@ -152,7 +151,7 @@ public class RepositoryCommandGroup
     if (ver != null) {
       requirement.addVersionRangeFilter(new VersionRange(ver)); 
     }
-    requirement.addBundleTypeFilter();
+    requirement.addBundleIdentityFilter();
     List<Resource> resources = new ArrayList<Resource>();
     for (Capability c : getRepositoryManager().findProviders(requirement)) {
       resources.add(c.getResource());
@@ -189,9 +188,10 @@ public class RepositoryCommandGroup
     } else {
       final RepositoryManager rm = getRepositoryManager();
       for (RepositoryInfo ri : repos) {
-        rm.setRepositoryEnabled(ri, false);
+        if (rm.setRepositoryEnabled(ri, false)) {
+          out.println("Disabled repository#" + ri.getId());
+        }
       }
-      printRepos(out, repos, "Disabled repositories", false);
       return 0;
     }
   }
@@ -219,9 +219,10 @@ public class RepositoryCommandGroup
     } else {
       final RepositoryManager rm = getRepositoryManager();
       for (RepositoryInfo ri : repos) {
-        rm.setRepositoryEnabled(ri, true);
+        if (rm.setRepositoryEnabled(ri, true)) {
+          out.println("Enabled repository#" + ri.getId());
+        }
       }
-      printRepos(out, repos, "Enabled repositories:", false);
       return 0;
     }
   }
@@ -253,6 +254,7 @@ public class RepositoryCommandGroup
     if (ver != null) {
       requirement.addVersionRangeFilter(new VersionRange(ver)); 
     }
+    requirement.addBundleIdentityFilter();
     List<Capability> cs = getRepositoryManager().findProviders(requirement);
     if (cs.isEmpty()) {
       out.println("No matching bundle found!");
@@ -260,9 +262,17 @@ public class RepositoryCommandGroup
     }
     Bundle b = null;
     try {
-      Capability c = cs.get(0);
-      String loc = bsn;
-      b = bc.installBundle(loc, ((RepositoryContent)c.getResource()).getContent());
+      Resource r = cs.get(0).getResource();
+      String loc = null;
+      try {
+        loc = (String) r.getCapabilities(ContentNamespace.CONTENT_NAMESPACE).get(0).getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
+        b = bc.installBundle(loc);
+      } catch (Exception be) {
+        if (loc == null) {
+          loc = bsn;
+        }
+        b = bc.installBundle(loc, ((RepositoryContent)r).getContent());
+      }
       out.println("Installed: " + showBundle(b));
       if (opts.get("-s") != null) {
         b.start(Bundle.START_ACTIVATION_POLICY);
@@ -315,6 +325,46 @@ public class RepositoryCommandGroup
       return 1;
     } else {
       printRepos(out, repos, null, verbose);
+      return 0;
+    }
+  }
+
+  //
+  // Rank command
+  //
+
+  public final static String USAGE_RANK
+    = "<rank> <repository> ...";
+
+  public final static String[] HELP_RANK = new String[] {
+    "Change repository ranking, so that we can change the order in which repositories are searched.",
+    "<rank> New rank of repository, must be an integer",
+    "<repository> Wildcard name or id of repository"
+  };
+
+  public int cmdRank(Dictionary<String,?> opts, Reader in, PrintWriter out,
+                     Session session) {
+    final String rankStr = (String) opts.get("rank");
+    final String [] selection = (String[]) opts.get("repository");
+    final SortedSet<RepositoryInfo> repos = getRepoSelection(selection);
+
+    int rank;
+    try {
+      rank = Integer.parseInt(rankStr);
+    } catch (NumberFormatException nfe) {
+      out.println("Rank is not an integer.");
+      return 1;      
+    }
+    if (repos.isEmpty()) {
+      out.println("No matching repository.");
+      return 1;
+    } else {
+      final RepositoryManager rm = getRepositoryManager();
+      for (RepositoryInfo ri : repos) {
+        if (rm.setRepositoryRank(ri, rank)) {
+          out.println("Changed rank to " + rank + " for repository#" + ri.getId());
+        }
+      }
       return 0;
     }
   }

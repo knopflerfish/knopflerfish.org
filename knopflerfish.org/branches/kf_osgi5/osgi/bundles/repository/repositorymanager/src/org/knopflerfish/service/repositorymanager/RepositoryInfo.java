@@ -61,12 +61,6 @@ public class RepositoryInfo implements Comparable<RepositoryInfo> {
     this.sr = old.sr;
   }
 
-  public RepositoryInfo(long id) {
-    this.id = id;
-    this.rank = 0;
-    this.sr = null;
-  }
-
   public long getId() {
     return id;
   }
@@ -105,15 +99,22 @@ public class RepositoryInfo implements Comparable<RepositoryInfo> {
   public int compareTo(RepositoryInfo o) {
     if (equals(o)) {
       return 0;
-    } else if (rank != o.rank) {
-      return o.rank - rank;
+    }
+    RepositoryInfo rio = (RepositoryInfo) o;
+    if (rank != rio.rank) {
+      return rio.rank - rank;
     } else {
-      return id < o.id ? -1 : 1;
+      return id < rio.id ? -1 : 1;
     }
   }
 
   public ServiceReference<Repository> getServiceReference() {
     return sr;
+  }
+
+  @Override
+  public String toString() {
+    return "RepositoryInfo [id=" + id + ", rank=" + rank + "]";
   }
 
 }
