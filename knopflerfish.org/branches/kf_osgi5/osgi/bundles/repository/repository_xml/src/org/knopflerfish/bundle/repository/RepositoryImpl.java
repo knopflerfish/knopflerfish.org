@@ -27,9 +27,11 @@ public class RepositoryImpl implements Repository {
       Collection<? extends Requirement> requirements) {
     HashMap<Requirement, Collection<Capability>> ps = 
         new HashMap<Requirement, Collection<Capability>>();
+    for(Requirement req : requirements) {
+      ps.put(req, new ArrayList<Capability>());
+    }
     for(Resource r : rs) {
       for(Requirement req : requirements) {
-        ps.put(req, new ArrayList<Capability>());
         String f = req.getDirectives().get("filter");
         Filter filter = null;
         if(f != null) {

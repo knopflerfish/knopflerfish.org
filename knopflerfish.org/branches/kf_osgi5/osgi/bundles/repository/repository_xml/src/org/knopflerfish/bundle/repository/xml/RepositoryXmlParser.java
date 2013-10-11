@@ -212,6 +212,7 @@ public class RepositoryXmlParser {
      System.out.println(r.toString()); 
     }
     System.out.println("======== END PARSED REPOSITORY XML ========");
+    System.out.println("======== RESOURCES FOUND: " + rs.size());
     System.out.flush();
   }
   
