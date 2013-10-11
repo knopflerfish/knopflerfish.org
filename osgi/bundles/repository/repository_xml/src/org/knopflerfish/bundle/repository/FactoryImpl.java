@@ -59,15 +59,17 @@ public class FactoryImpl implements XmlBackedRepositoryFactory {
   @Override
   public void destroy(Object handle) {
     ServiceRegistration<Repository> sr = repositoryRegistrations.remove(handle);
-    repositoryRegistrations.values().remove(sr); // Remove url->sr mapping in case user provided custom handle
     if(sr != null) {
       sr.unregister();
+      while(repositoryRegistrations.values().remove(sr)) {}; // Remove all mappings in case user provided custom handle
     }
   }
   
   void destroyAll() {
-    for(Object h : repositoryRegistrations.keySet()) {
-      destroy(h);
+    while(!repositoryRegistrations.isEmpty()) {
+      ServiceRegistration<Repository> sr = repositoryRegistrations.values().iterator().next();
+      sr.unregister();
+      while(repositoryRegistrations.values().remove(sr)) {}; // Remove all mappings in case user provided custom handle
     }
   }
 
