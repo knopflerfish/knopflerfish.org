@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -108,6 +109,7 @@ import org.osgi.service.repository.RepositoryContent;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
+import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
 
 /**
@@ -244,18 +246,21 @@ public class RepositoryDisplayer
   {
     final Repository repo = bc.getService(sr);
     repos.put(getKey(sr), repo);
+    refreshRepositoryDisplayers();
     return repo;
   }
 
   @Override
   public void modifiedService(ServiceReference<Repository> sr, Repository repo)
   {
+    refreshRepositoryDisplayers();
   }
 
   @Override
   public void removedService(ServiceReference<Repository> sr, Repository repo)
   {
     repos.remove(getKey(sr));
+    refreshRepositoryDisplayers();
   }
 
   /**
@@ -279,13 +284,26 @@ public class RepositoryDisplayer
   }
 
   /**
+   * Inform all {@link JRepositoryAdmin}s that the set of repository services
+   * has changed so that they can refresh their contents.
+   */
+  private void refreshRepositoryDisplayers()
+  {
+    for (final JComponent component : components) {
+      final JRepositoryAdmin repositoryAdmin = (JRepositoryAdmin) component;
+      repositoryAdmin.refreshList();
+      ;
+    }
+  }
+
+  /**
    * If possible, get the bundle for a resource.
    *
    * @param resource
    *          the resource to search for
    * @return an installed bundle, if the resource seem to be installed
    */
-  Bundle getBundle(Resource resource)
+  static Bundle getBundle(Resource resource)
   {
     final Bundle[] bl = bc.getBundles();
 
@@ -295,14 +313,6 @@ public class RepositoryDisplayer
       }
     }
     return null;
-  }
-
-  /**
-   * Check if a resource is installed on the current framework.
-   */
-  boolean isInstalled(Resource resource)
-  {
-    return getBundle(resource) != null;
   }
 
   /**
@@ -325,7 +335,7 @@ public class RepositoryDisplayer
       // MainfestHeader: Constants.BUNDLE_VENDOR
       category = "[no vendor]";
     } else if (sortCategory == SORT_STATUS) {
-      if (isInstalled(resource)) {
+      if (getBundle(resource) != null) {
         category = "Installed";
       } else {
         category = "Not installed";
@@ -437,11 +447,11 @@ public class RepositoryDisplayer
                 repoNode.bBusy ? "busy..." : (url == null ? "?" : url
                     .toString());
 
-              final boolean bInstalled = isInstalled(repoNode.getResource());
-              repoNode.setInstalled(bInstalled);
+              final Bundle bundle = getBundle(repoNode.getResource());
+              repoNode.setInstalled(bundle);
               if (repoNode.bBusy) {
                 setIcon(reloadIcon);
-              } else if (bInstalled) {
+              } else if (bundle != null) {
                 setIcon(bundleIcon);
                 setForeground(Color.gray);
               } else {
@@ -841,7 +851,7 @@ public class RepositoryDisplayer
 
         if (bIsRepoBundle) {
           if (n == 0) { // update
-            node.appendLog("update.\n");
+            node.appendLog("Update.\n");
           } else if (n == 1) { // Cancel
             return;
           }
@@ -880,7 +890,7 @@ public class RepositoryDisplayer
         final String location = Util.getLocation(resource);
         in = ((RepositoryContent) node.getResource()).getContent();
         final Bundle bundle = bc.installBundle(location, in);
-        node.setInstalled(true);
+        node.setInstalled(b);
         message += "Installed #" + bundle.getBundleId() + " from " + location;
 
         if (bStart) {
@@ -917,6 +927,13 @@ public class RepositoryDisplayer
         @Override
         public void run()
         {
+          try {
+            // Make sure that the service tracker customizer are done before
+            // doing the update.
+            Thread.sleep(2L);
+          } catch (final InterruptedException ie) {
+            return;
+          }
           locationMap.clear();
           final Resource oldSelection =
             selectedRepositoryNode != null ? selectedRepositoryNode
@@ -978,6 +995,15 @@ public class RepositoryDisplayer
               if (oldSelection != null
                   && loc.equals(Util.getLocation(oldSelection))) {
                 selNode = resourceNode;
+              } else {
+                // If this resource has a selected bundle, then make it
+                // selected. Needed to set up the selection when this displayer
+                // is (re)started.
+                final Bundle b = resourceNode.getBundle();
+                final BundleSelectionModel bsm = getBundleSelectionModel();
+                if (b != null && bsm.isSelected(b.getBundleId())) {
+                  selNode = resourceNode;
+                }
               }
             }
             rootNode.add(categoryNode);
@@ -1138,7 +1164,7 @@ public class RepositoryDisplayer
     {
       if (node != null && (node instanceof RepositoryNode)) {
         selectedRepositoryNode = (RepositoryNode) node;
-        final Bundle b = getBundle(selectedRepositoryNode.getResource());
+        final Bundle b = selectedRepositoryNode.getBundle();
         if (b != null) {
           gotoBid(b.getBundleId());
         } else {
@@ -1158,8 +1184,8 @@ public class RepositoryDisplayer
       sb.append("<table border=\"0\" width=\"100%\">\n");
       sb.append("<tr>");
 
-      if (node != null && (node instanceof HTMLable)) {
-        final HTMLable htmlNode = (HTMLable) node;
+      if (node != null && (node instanceof HTMLAble)) {
+        final HTMLAble htmlNode = (HTMLAble) node;
         sb.append("<td valign=\"top\" bgcolor=\"#eeeeee\">");
 
         Util.startFont(sb, "-1");
@@ -1183,8 +1209,8 @@ public class RepositoryDisplayer
       sb.append("</tr>\n");
       sb.append("</table>\n");
 
-      if (node != null && (node instanceof HTMLable)) {
-        final HTMLable htmlNode = (HTMLable) node;
+      if (node != null && (node instanceof HTMLAble)) {
+        final HTMLAble htmlNode = (HTMLAble) node;
         sb.append(htmlNode.toHTML());
       }
 
@@ -1219,6 +1245,7 @@ public class RepositoryDisplayer
               vp.setViewPosition(new Point(0, 0));
               htmlScroll.setViewport(vp);
             }
+            html.repaint();
           } catch (final Exception e) {
             e.printStackTrace();
           }
@@ -1256,7 +1283,7 @@ public class RepositoryDisplayer
   /**
    * Simple interface for things that can produce HTML
    */
-  interface HTMLable
+  interface HTMLAble
   {
     public String getTitle();
 
@@ -1300,7 +1327,7 @@ public class RepositoryDisplayer
    */
   class TopNode
     extends DefaultMutableTreeNode
-    implements HTMLable
+    implements HTMLAble
   {
     private static final long serialVersionUID = 4L;
     JRepositoryAdmin repositoryAdmin;
@@ -1409,7 +1436,7 @@ public class RepositoryDisplayer
    */
   class CategoryNode
     extends DefaultMutableTreeNode
-    implements HTMLable
+    implements HTMLAble
   {
     private static final long serialVersionUID = 5L;
     String category;
@@ -1461,15 +1488,26 @@ public class RepositoryDisplayer
    */
   class RepositoryNode
     extends DefaultMutableTreeNode
-    implements HTMLable
+    implements HTMLAble
   {
     private static final long serialVersionUID = 3L;
+    private static final String KF_EXTRAS_NAMESPACE = "org.knopflerfish.extra";
 
     String name;
     StringBuffer log = new StringBuffer();
-    Resource resource;
-    boolean bInstalled = false;
+    // The bundle that corresponds to the resource that this node represents.
+    Bundle bundle = null;
     boolean bBusy;
+    Resource resource;
+    // Sorted cache of capabilities provided by the given resource
+    SortedMap<String, Set<Capability>> ns2caps =
+      new TreeMap<String, Set<Capability>>();
+    final Set<Capability> idCaps;
+    final Set<Capability> kfExtraCaps;
+
+    // Sorted cache of requirements required by the given resource
+    SortedMap<String, Set<Requirement>> ns2reqs =
+      new TreeMap<String, Set<Requirement>>();
 
     public RepositoryNode(Resource resource)
     {
@@ -1478,8 +1516,41 @@ public class RepositoryDisplayer
 
       name =
         Util.getResourceName(resource) + " "
-            + Util.getResourceVersion(resource);
+            + Util.getResourceVersion(resource) + " "
+            + Util.getResourceType(resource);
+
+      for (final Capability capability : resource.getCapabilities(null)) {
+        final String ns = capability.getNamespace();
+        Set<Capability> caps = ns2caps.get(ns);
+        if (caps == null) {
+          caps = new HashSet<Capability>();
+          ns2caps.put(ns, caps);
+        }
+        caps.add(capability);
+      }
+      idCaps = ns2caps.remove(IdentityNamespace.IDENTITY_NAMESPACE);
+      kfExtraCaps = ns2caps.remove(KF_EXTRAS_NAMESPACE);
+
+      for (final Requirement requirement : resource.getRequirements(null)) {
+        final String ns = requirement.getNamespace();
+        Set<Requirement> reqs = ns2reqs.get(ns);
+        if (reqs == null) {
+          reqs = new HashSet<Requirement>();
+          ns2reqs.put(ns, reqs);
+        }
+        reqs.add(requirement);
+      }
+
       // setIcon(bundleIcon);
+    }
+
+    public Bundle getBundle()
+    {
+      if (bundle==null) {
+        // Check to see if there is a bundle now.
+        bundle = RepositoryDisplayer.getBundle(resource);
+      }
+      return bundle;
     }
 
     public Resource getResource()
@@ -1497,9 +1568,9 @@ public class RepositoryDisplayer
       return log.toString();
     }
 
-    void setInstalled(boolean bInstalled)
+    void setInstalled(Bundle bundle)
     {
-      this.bInstalled = bInstalled;
+      this.bundle = bundle;
     }
 
     @Override
@@ -1541,33 +1612,173 @@ public class RepositoryDisplayer
     {
       final StringBuffer sb = new StringBuffer();
 
-      final List<Capability> idCaps =
-        resource.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE);
-      if (idCaps.size()==0) {
-        sb.append("<p><b>No osgi.identity capabilities in this node!</b></p>");
+      sb.append("<table border='0' width='100%'>");
+
+      if (idCaps.size() == 0) {
+        toHTMLtrError(sb, "No osgi.identity capabilities in this node!");
       } else {
-        final Capability idCap = idCaps.get(0);
-        final Map<String, Object> idAttributes = idCap.getAttributes();
-        if (idAttributes == null || idAttributes.size() == 0) {
-          sb.append("<p><b>No attributes in osgi.identity capability!</b></p>");
-        } else {
-          final String desc =
-            (String) idAttributes
-                .get(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE);
-          if (desc != null) {
-            Util.startFont(sb);
-            sb.append("<p>");
-            sb.append(desc);
-            sb.append("</p>");
-            sb.append("</font>");
+        toHTMLtrHeading(sb, getIdAttribute(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE));
+        for (final Capability idCap : idCaps) {
+          // Make a copy of the map so that we can remove processed entries.
+          final SortedMap<String, Object> attrs =
+            new TreeMap<String, Object>(idCap.getAttributes());
+
+          // These attributes are presented in the title.
+          attrs.remove(IdentityNamespace.IDENTITY_NAMESPACE);
+          attrs.remove(IdentityNamespace.CAPABILITY_VERSION_ATTRIBUTE);
+          attrs.remove(IdentityNamespace.CAPABILITY_TYPE_ATTRIBUTE);
+          // This attributes is presented above.
+          attrs.remove(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE);
+
+          toHTMLtr(sb,
+                   "Copyright",
+                   getIdAttribute(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE));
+          attrs.remove(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE);
+
+          toHTMLtr(sb,
+                   "Documentation",
+                   getIdAttribute(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE));
+          attrs.remove(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE);
+
+          toHTMLtr(sb,
+                   "License",
+                   getIdAttribute(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE));
+          attrs.remove(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE);
+
+          // Any other attribute
+          for (final Entry<String,Object> entry : attrs.entrySet()) {
+            toHTMLtr(sb, entry.getKey(), entry.getValue());
           }
         }
       }
 
-      sb.append("<table border=0>");
+      toHTMLtrLog(sb, getLog().trim());
 
-      final String log = getLog().trim();
-      if (log != null && !"".equals(log)) {
+      // Capabilities
+      toHTMLtrHeading(sb, "Capabilites");
+      for (final Entry<String, Set<Capability>> entry : ns2caps.entrySet()) {
+        final String ns = entry.getKey();
+        final Set<Capability> caps = entry.getValue();
+        final StringBuffer sb2 = new StringBuffer();
+        sb2.append("<ul>");
+        for (final Capability cap : caps) {
+          sb2.append("<li>");
+          if (cap.getAttributes().size() > 0) {
+            Util.startFont(sb2);
+            sb2.append("attributes: ");
+            sb2.append(Util.toHTML(cap.getAttributes().toString()));
+            Util.stopFont(sb2);
+          }
+          if (cap.getAttributes().size() > 0
+              && cap.getDirectives().size() > 0) {
+            sb2.append("<br>");
+          }
+          if (cap.getDirectives().size() > 0) {
+            Util.startFont(sb2);
+            sb2.append("directives: ");
+            sb2.append(Util.toHTML(cap.getDirectives().toString()));
+            Util.stopFont(sb2);
+          }
+        }
+        sb2.append("</ul>");
+        toHTMLtr(sb, ns, sb2.toString());
+      }
+
+      // Requirements
+      toHTMLtrHeading(sb, "Requirements");
+      for (final Entry<String, Set<Requirement>> entry : ns2reqs.entrySet()) {
+        final String ns = entry.getKey();
+        final Set<Requirement> reqs = entry.getValue();
+        final StringBuffer sb2 = new StringBuffer();
+        sb2.append("<ul>");
+        for (final Requirement req : reqs) {
+          sb2.append("<li>");
+          if (req.getAttributes().size() > 0) {
+            Util.startFont(sb2);
+            sb2.append("attributes: ");
+            sb2.append(Util.toHTML(req.getAttributes().toString()));
+            Util.stopFont(sb2);
+          }
+          if (req.getAttributes().size() > 0
+              && req.getDirectives().size() > 0) {
+            sb2.append("<br>");
+          }
+          if (req.getDirectives().size() > 0) {
+            Util.startFont(sb2);
+            sb2.append("directives: ");
+            sb2.append(Util.toHTML(req.getDirectives().toString()));
+            Util.stopFont(sb2);
+          }
+        }
+        sb2.append("</ul>");
+        toHTMLtr(sb, ns, sb2.toString());
+      }
+
+      sb.append("</table>\n");
+
+      return sb.toString();
+    }
+
+    /**
+     * BND generated XML repository files never contains a value for the
+     * optional attributes in the identity name space, also look for it in the
+     * KF-name space.
+     *
+     * @param key
+     *          Attribute key to look up.
+     *
+     * @return the attribute value of the resource that this node represents.
+     */
+    private String getIdAttribute(final String key)
+    {
+      for (final Capability idCap : idCaps) {
+        final Map<String, Object> attrs = idCap.getAttributes();
+
+        final String description = (String) attrs.remove(key);
+        if (description != null && description.length() > 0) {
+          return description;
+        }
+      }
+      return (String) kfExtraCaps.iterator().next().getAttributes().get(key);
+    }
+
+    /**
+     * Append one row spanning two columns to the description table.
+     *
+     * Text color will be red to indicate that this is an error message.
+     * Text is only appended if {@code s1} contains some text to append.
+     *
+     * @param sb
+     *          String buffer to append to.
+     * @param s1
+     *          The text to present.
+     */
+    private void toHTMLtrError(final StringBuffer sb, final String s1)
+    {
+      if (s1 != null && s1.length() > 0) {
+        sb.append("<tr><td colspan=\"2\">");
+        Util.startFont(sb, "-1", "#ff2222");
+        sb.append(s1);
+        Util.stopFont(sb);
+        sb.append("</td></tr>");
+      }
+    }
+
+    /**
+     * Append one row spanning two columns to the description table.
+     *
+     * Use a back ground color that highlights the text.
+     *
+     * Text is only appended if {@code s1} contains some text to append.
+     *
+     * @param sb
+     *          String buffer to append to.
+     * @param s1
+     *          The text to present.
+     */
+    private void toHTMLtrLog(final StringBuffer sb, final String s1)
+    {
+      if (s1 != null && s1.length() > 0) {
         sb.append("<tr>");
         sb.append("<td bgcolor=\"#eeeeee\" colspan=\"2\" valign=\"top\">");
         sb.append("<pre>");
@@ -1578,96 +1789,65 @@ public class RepositoryDisplayer
         sb.append("</td>");
         sb.append("</tr>");
       }
+    }
 
-      // Capabilities
-      sb.append("<tr><td colspan=\"2\">");
-      Util.startFont(sb, "+0");
-      sb.append("<b>Capabilites</b>");
-      sb.append("</font>");
-      sb.append("</td></tr>");
-      for (final Capability capability : resource.getCapabilities(null)) {
-        // Skip the identity name space since its data is presented in the
-        // description part.
-//        if (IdentityNamespace.IDENTITY_NAMESPACE.equals(capability
-//            .getNamespace())) {
-//          continue;
-//        }
-        sb.append("<tr>");
-        sb.append("<td valign=\"top\"><b>");
-        Util.startFont(sb);
-        sb.append(Util.toHTML(capability.getNamespace()));
+    /**
+     * Append one row with one column to the description table.
+     *
+     * Text is only appended if {@code s1} contains some text to append.
+     *
+     * @param sb
+     *          String buffer to append to.
+     * @param s1
+     *          The text to present.
+     */
+    private void toHTMLtrHeading(final StringBuffer sb, final String s1)
+    {
+      if (s1 != null && s1.length() > 0) {
+        sb.append("<tr><td colspan='2'><b>");
+        Util.startFont(sb, "-1");
+        sb.append(s1);
         Util.stopFont(sb);
         sb.append("</b></td>");
-
-        sb.append("<td valign=\"top\">");
-        if (capability.getAttributes().size() > 0) {
-          Util.startFont(sb);
-          sb.append("attributes: ");
-          sb.append(Util.toHTML(capability.getAttributes().toString()));
-          Util.stopFont(sb);
-        }
-        if (capability.getAttributes().size() > 0
-            && capability.getDirectives().size() > 0) {
-          sb.append("<br>");
-        }
-        if (capability.getDirectives().size() > 0) {
-          Util.startFont(sb);
-          sb.append("directives: ");
-          sb.append(Util.toHTML(capability.getDirectives().toString()));
-          Util.stopFont(sb);
-        }
-        sb.append("</td>");
-
-        sb.append("</tr>");
       }
+    }
 
-      // Requirements
-      sb.append("<tr><td colspan=\"2\">");
-      Util.startFont(sb, "+0");
-      sb.append("<b>Requirements</b>");
-      Util.stopFont(sb);
-      sb.append("</td></tr>");
-      for (final Requirement requirement : resource.getRequirements(null)) {
-        sb.append("<tr>");
-        sb.append("<td valign=\"top\"><b>");
+    /**
+     * Append one row with two columns to the description table.
+     *
+     * Text is only appended if {@code s2} contains some text to append.
+     *
+     * @param sb
+     *          String buffer to append to.
+     * @param s1
+     *          The text for column one.
+     * @param s2
+     *          The text for column two.
+     */
+    private void toHTMLtr(final StringBuffer sb,
+                          final String s1,
+                          final Object s2)
+    {
+      if (s2 != null && s2.toString().length() > 0) {
+        sb.append("<tr><td valign='top'><em>");
         Util.startFont(sb);
-        sb.append(Util.toHTML(requirement.getNamespace()));
+        sb.append(s1);
         Util.stopFont(sb);
-        sb.append("</b></td>");
-
-        sb.append("<td valign=\"top\">");
-        if (requirement.getAttributes().size() > 0) {
-          Util.startFont(sb);
-          sb.append("attributes: ");
-          sb.append(Util.toHTML(requirement.getAttributes().toString()));
-          Util.stopFont(sb);
-        }
-        if (requirement.getAttributes().size() > 0
-            && requirement.getDirectives().size() > 0) {
-          sb.append("<br>");
-        }
-        if (requirement.getDirectives().size() > 0) {
-          Util.startFont(sb);
-          sb.append("directives: ");
-          sb.append(Util.toHTML(requirement.getDirectives().toString()));
-          Util.stopFont(sb);
-        }
-        sb.append("</td>");
-
-        sb.append("</tr>");
+        sb.append("</em></td><td valign='top'>");
+        Util.startFont(sb);
+        // The value might be an URL
+        sb.append(Util.toHTML(s2.toString()));
+        Util.stopFont(sb);
+        sb.append("</td></tr>");
       }
-
-      sb.append("</table>\n");
-
-      return sb.toString();
     }
 
     @Override
     public String getTitle()
     {
       // This is displayed in the HTML to the right.
-      if (bInstalled) {
-        return name + " (installed)";
+      if (bundle != null) {
+        return "#" + bundle.getBundleId() +" " + name;
       }
       return name;
     }
