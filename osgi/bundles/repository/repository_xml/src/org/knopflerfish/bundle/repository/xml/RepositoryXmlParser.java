@@ -229,11 +229,13 @@ public class RepositoryXmlParser {
   }
   
   public static void debug(Collection<Resource> rs) {
+    /*
     System.out.println("======= BEGIN PARSED REPOSITORY XML =======");
     for(Resource r : rs) {
      System.out.println(r.toString()); 
     }
     System.out.println("======== END PARSED REPOSITORY XML ========");
+    */
     System.out.println("======== RESOURCES FOUND: " + rs.size());
     System.out.flush();
   }
