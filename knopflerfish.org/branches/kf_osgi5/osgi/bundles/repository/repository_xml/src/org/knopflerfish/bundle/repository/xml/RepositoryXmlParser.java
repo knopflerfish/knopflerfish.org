@@ -1,26 +1,33 @@
 package org.knopflerfish.bundle.repository.xml;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.StringTokenizer;
 
 import org.kxml2.io.KXmlParser;
 import org.osgi.framework.Version;
+import org.osgi.resource.Capability;
 import org.osgi.resource.Resource;
+import org.osgi.service.repository.ContentNamespace;
 import org.xmlpull.v1.XmlPullParser;
 
 public class RepositoryXmlParser {
+  
   public static class ParseResult {
     String name;
     Long increment;
     Collection<Resource> resources;
   }
 
-  public static Collection<Resource> parse(InputStream is) throws Exception {
+  public static Collection<Resource> parse(String url) throws Exception {
+    final URL repositoryUrl = new URL(url);
+    
+    InputStream is = repositoryUrl.openStream(); 
+
     XmlPullParser p = new KXmlParser();
     p.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
     p.setInput(new InputStreamReader(is));
@@ -37,7 +44,22 @@ public class RepositoryXmlParser {
         rs.add(r);
       }
     }
+    
+    ensureOsgiContentUrlsAreAbsolute(repositoryUrl, rs);
+
     return rs;
+  }
+
+  private static void ensureOsgiContentUrlsAreAbsolute(URL repositoryUrl, ArrayList<Resource> rs) throws Exception {
+    for(Resource r : rs) {
+      for(Capability c : r.getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
+        String url = (String)c.getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
+        System.out.println("BEFORE: " + url);
+        url = new URL(repositoryUrl, url).toExternalForm();
+        System.out.println("AFTER: " + url);
+        c.getAttributes().put(ContentNamespace.CAPABILITY_URL_ATTRIBUTE, url);
+      }
+    }
   }
 
   private static Resource parseResource(XmlPullParser p) throws Exception {
@@ -218,8 +240,7 @@ public class RepositoryXmlParser {
   
   public static void main(String[] a) {
     try {
-      Collection<Resource> rs = RepositoryXmlParser.parse(new FileInputStream(
-          a[0]));
+      Collection<Resource> rs = RepositoryXmlParser.parse(a[0]);
       debug(rs);
     } catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -227,4 +248,5 @@ public class RepositoryXmlParser {
       e.printStackTrace();
     }
   }
+
 }

@@ -1,11 +1,9 @@
 package org.knopflerfish.bundle.repository;
 
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
-
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
