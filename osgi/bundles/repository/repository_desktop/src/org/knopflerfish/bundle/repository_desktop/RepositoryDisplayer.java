@@ -361,17 +361,16 @@ public class RepositoryDisplayer
   }
 
   /**
-   * The actual component returned by newJComponent
+   * The actual repository displayer component returned by newJComponent.
    */
   class JRepositoryAdmin
     extends JPanel
   {
-
     private static final long serialVersionUID = 1L;
 
     DefaultTreeModel treeModel;
-    JTree recordTree;
-    JPanel recordPanel;
+    JTree resourceTree;
+    JPanel resourcePanel;
     JButton installButton;
     JButton refreshButton;
     JButton startButton;
@@ -402,11 +401,11 @@ public class RepositoryDisplayer
     {
       setLayout(new BorderLayout());
 
-      recordTree = new JTree(new TopNode("[not loaded]", this));
-      recordTree.setRootVisible(true);
+      resourceTree = new JTree(new TopNode("[not loaded]", this));
+      resourceTree.setRootVisible(true);
 
       // Must be registered for renderer tool tips to work
-      ToolTipManager.sharedInstance().registerComponent(recordTree);
+      ToolTipManager.sharedInstance().registerComponent(resourceTree);
 
       // Load leaf icon for the tree cell renderer.
       final TreeCellRenderer renderer = new DefaultTreeCellRenderer() {
@@ -463,14 +462,14 @@ public class RepositoryDisplayer
         }
       };
 
-      recordTree.setCellRenderer(renderer);
+      resourceTree.setCellRenderer(renderer);
 
       // call setSelected() when user selects nodes/leafs in the tree
-      recordTree.addTreeSelectionListener(new TreeSelectionListener() {
+      resourceTree.addTreeSelectionListener(new TreeSelectionListener() {
         @Override
         public void valueChanged(TreeSelectionEvent e)
         {
-          final TreePath[] sel = recordTree.getSelectionPaths();
+          final TreePath[] sel = resourceTree.getSelectionPaths();
           if (sel != null && sel.length == 1) {
             setSelected((TreeNode) sel[0].getLastPathComponent());
           } else {
@@ -481,7 +480,7 @@ public class RepositoryDisplayer
 
       // Create the HTML text pane for detail view.
       // The node's getTitle()/toHTML() methods
-      // will be called whenever a node is HTMLAble
+      // will be called whenever a node is HTML-able
       html = new JTextPane();
       html.setText("");
       html.setContentType("text/html");
@@ -494,11 +493,11 @@ public class RepositoryDisplayer
         {
           if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
             final URL url = ev.getURL();
-            System.out.println("Link : " + url + " activated");
+            Activator.log.info("Link : " + url + " activated");
             try {
               Util.openExternalURL(url);
             } catch (final Exception e) {
-              System.out.println("Failed to open external url=" + url
+              Activator.log.warn("Failed to open external url=" + url
                                  + " reason: " + e);
             }
           }
@@ -512,7 +511,7 @@ public class RepositoryDisplayer
       htmlScroll.setPreferredSize(new Dimension(300, 300));
 
       final JScrollPane treeScroll =
-        new JScrollPane(recordTree,
+        new JScrollPane(resourceTree,
                         ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                         ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
@@ -562,8 +561,8 @@ public class RepositoryDisplayer
         }
       });
 
-      recordPanel = new JPanel(new BorderLayout());
-      recordPanel.add(htmlScroll, BorderLayout.CENTER);
+      resourcePanel = new JPanel(new BorderLayout());
+      resourcePanel.add(htmlScroll, BorderLayout.CENTER);
 
       final JPanel left = new JPanel(new BorderLayout());
 
@@ -601,7 +600,7 @@ public class RepositoryDisplayer
 
       // add listener for tree context menu, which selects the
       // item below the mouse and pops up the context menu.
-      recordTree.addMouseListener(new MouseAdapter() {
+      resourceTree.addMouseListener(new MouseAdapter() {
         @Override
         public void mousePressed(MouseEvent e)
         {
@@ -619,12 +618,12 @@ public class RepositoryDisplayer
           if (contextPopupMenu != null
               && (e.isPopupTrigger() || ((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0))) {
             final TreePath tp =
-              recordTree.getPathForLocation(e.getX(), e.getY());
+              resourceTree.getPathForLocation(e.getX(), e.getY());
             if (tp != null) {
               final TreeNode node = (TreeNode) tp.getLastPathComponent();
               if (node instanceof RepositoryNode) {
                 contextItem.setText(((RepositoryNode) node).name);
-                recordTree.setSelectionPath(tp);
+                resourceTree.setSelectionPath(tp);
                 setSelected(node);
                 final Component comp = e.getComponent();
                 contextPopupMenu.show(comp, e.getX(), e.getY());
@@ -635,7 +634,7 @@ public class RepositoryDisplayer
       });
 
       final JSplitPane panel =
-        new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, recordPanel);
+        new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, resourcePanel);
 
       panel.setDividerLocation(200);
 
@@ -736,24 +735,26 @@ public class RepositoryDisplayer
         sortPopupMenu.add(item);
         group.add(item);
       }
-      // TODO fix:
-      // sortButton.addMouseListener(new MouseAdapter() {
-      // public void mousePressed(MouseEvent e)
-      // {
-      // showPopup(e);
-      // }
-      //
-      // public void mouseReleased(MouseEvent e)
-      // {
-      // showPopup(e);
-      // }
-      //
-      // private void showPopup(MouseEvent e)
-      // {
-      // final Component comp = e.getComponent();
-      // sortPopupMenu.show(comp, 0, comp.getSize().height);
-      // }
-      // });
+
+      sortButton.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+          showPopup(e);
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+          showPopup(e);
+        }
+
+        private void showPopup(MouseEvent e)
+        {
+          final Component comp = e.getComponent();
+          sortPopupMenu.show(comp, 0, comp.getSize().height);
+        }
+      });
 
       return sortButton;
     }
@@ -832,7 +833,7 @@ public class RepositoryDisplayer
               + "a new instance can be installed from the\n" + "repository";
 
         final int n =
-          JOptionPane.showOptionDialog(recordTree, msg,
+          JOptionPane.showOptionDialog(resourceTree, msg,
                                        "Bundle is installed", // title
                                        JOptionPane.YES_NO_CANCEL_OPTION,
                                        JOptionPane.QUESTION_MESSAGE, null, // icon
@@ -1009,12 +1010,12 @@ public class RepositoryDisplayer
         public void run()
         {
           if (model != null) {
-            recordTree.setModel(model);
+            resourceTree.setModel(model);
           }
 
-          recordTree.expandPath(selPath);
-          recordTree.setSelectionPath(selPath);
-          recordTree.scrollPathToVisible(selPath);
+          resourceTree.expandPath(selPath);
+          resourceTree.setSelectionPath(selPath);
+          resourceTree.scrollPathToVisible(selPath);
         }
       });
     }
@@ -1067,7 +1068,7 @@ public class RepositoryDisplayer
           @Override
           public void run()
           {
-            recordTree.setModel(new DefaultTreeModel(new TopNode(s, JRepositoryAdmin.this)));
+            resourceTree.setModel(new DefaultTreeModel(new TopNode(s, JRepositoryAdmin.this)));
           }
         });
       } catch (final Exception e) {
@@ -1189,8 +1190,8 @@ public class RepositoryDisplayer
 
       sb.append("</html>");
       setHTML(sb.toString());
-      recordTree.invalidate();
-      recordTree.repaint();
+      resourceTree.invalidate();
+      resourceTree.repaint();
     }
 
     public void setBundle(Bundle b)
@@ -1199,8 +1200,8 @@ public class RepositoryDisplayer
 
     public void stop()
     {
-      if (recordTree != null) {
-        ToolTipManager.sharedInstance().registerComponent(recordTree);
+      if (resourceTree != null) {
+        ToolTipManager.sharedInstance().registerComponent(resourceTree);
       }
     }
 
