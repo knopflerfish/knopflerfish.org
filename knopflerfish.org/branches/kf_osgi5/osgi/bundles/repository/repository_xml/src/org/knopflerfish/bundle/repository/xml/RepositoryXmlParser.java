@@ -54,9 +54,9 @@ public class RepositoryXmlParser {
     for(Resource r : rs) {
       for(Capability c : r.getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
         String url = (String)c.getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
-        System.out.println("BEFORE: " + url);
+        //System.out.println("BEFORE: " + url);
         url = new URL(repositoryUrl, url).toExternalForm();
-        System.out.println("AFTER: " + url);
+        //System.out.println("AFTER: " + url);
         c.getAttributes().put(ContentNamespace.CAPABILITY_URL_ATTRIBUTE, url);
       }
     }
