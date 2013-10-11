@@ -23,7 +23,6 @@ Provide-Capability: osgi.service;
    org.knopflerfish.service.desktop.displayer.name=Repository
 Bundle-Activator: org.knopflerfish.bundle.repository_desktop.Activator
 Import-Package: org.osgi.framework; version="[1.7,2)",
- org.osgi.framework.wiring;version="[1.0,2)",
  org.osgi.resource;version="[1.0,2)",
  org.osgi.service.repository;version="[1.0,2)",
  org.osgi.util.tracker;version="[1.5,2)",

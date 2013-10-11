@@ -37,6 +37,7 @@ package org.knopflerfish.bundle.repositorymanager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -78,16 +79,18 @@ public class RepositoryManagerImpl
 
   @Override
   public SortedSet<RepositoryInfo> getAllRepositories() {
-    return new TreeSet<RepositoryInfo>(repos.getAll());
+    TreeSet<RepositoryInfo> res = repos.getAll();
+    if (myRepos != null) {
+      // Add myRepos to get correct ranking.
+      res.removeAll(myRepos);
+      res.addAll(myRepos);
+    }
+    return res;
   }
 
   @Override
   public SortedSet<RepositoryInfo> getRepositories() {
-    TreeSet<RepositoryInfo> res = new TreeSet<RepositoryInfo>(repos.getAll());
-    if (myRepos != null) {
-      
-    }
-    return res;
+    return new TreeSet<RepositoryInfo>(myRepos != null ? myRepos : repos.getAll());
   }
 
   @Override
@@ -100,36 +103,39 @@ public class RepositoryManagerImpl
   }
 
   @Override
-  public void setRepositoryEnabled(RepositoryInfo ri, boolean enabled) {
+  public boolean setRepositoryEnabled(RepositoryInfo ri, boolean enabled) {
     synchronized (repos) {
+      // Get the registered RepositoryInfo entry
+      ri = repos.get(ri.getId());
+      if (ri == null) {
+        return false;
+      }
       if (enabled) {
-        // Get the registered RepositoryInfo entry
-        ri = repos.get(ri.getId());
         if (myRepos != null && !myRepos.contains(ri)) {
           myRepos.add(ri);
         }
       } else {
-        if (myRepos != null) {
+        if (myRepos == null) {
           myRepos = repos.getAll();
         }
         myRepos.remove(ri);
       }
     }
+    return true;
   }
 
   @Override
-  public void setRepositoryRank(RepositoryInfo ri, int rank) {
+  public boolean setRepositoryRank(RepositoryInfo ri, int rank) {
     synchronized (repos) {
-      if (myRepos != null) {
+      if (myRepos == null) {
         myRepos = repos.getAll();
       }
-      for (RepositoryInfo old : myRepos) {
-        if (old.equals(ri)) {
-          myRepos.add(new RepositoryInfo(old, rank));
-          break;
-        }
+      if (myRepos.remove(ri)) {
+        myRepos.add(new RepositoryInfo(ri, rank));
+        return true;
       }
     }
+    return false;
   }
 
   @Override

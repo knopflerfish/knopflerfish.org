@@ -61,8 +61,8 @@ public interface RepositoryManager
   
   boolean isEnabled(RepositoryInfo ri);
 
-  void setRepositoryEnabled(RepositoryInfo ri, boolean enabled);
+  boolean setRepositoryEnabled(RepositoryInfo ri, boolean enabled);
 
-  void setRepositoryRank(RepositoryInfo ri, int rank);
+  boolean setRepositoryRank(RepositoryInfo ri, int rank);
 
 }
