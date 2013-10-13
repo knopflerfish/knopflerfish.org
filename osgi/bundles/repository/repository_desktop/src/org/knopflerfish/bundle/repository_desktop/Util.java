@@ -47,11 +47,15 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.resource.Capability;
+import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
 import org.osgi.service.repository.ContentNamespace;
+
+import org.knopflerfish.util.framework.VersionRange;
 
 /**
  * Misc static utility methods
@@ -282,6 +286,93 @@ public class Util
   }
 
   /**
+   * Get the match value for an attribute from a simple filter.
+   *
+   * @param filter
+   *          the filter to analyze
+   * @param attribute
+   *          the key of the attribute to fetch the desired value of.
+   * @return the desired value of the given attribute, "" if the attribute is
+   *         not present in the filter or {@code null} if the filter is too
+   *         complex.
+   */
+  static String getFilterValue(final String filter, final String attribute)
+  {
+    int start = filter.indexOf(attribute);
+    if (start == -1) {
+      return "";
+    }
+    start += attribute.length();
+    while (start < filter.length()
+           && Character.isWhitespace(filter.charAt(start))) {
+      ++start;
+    }
+    if (filter.charAt(start++) != '=') {
+      return null;
+    }
+
+    final int end = filter.indexOf(')', start);
+    if (end == -1) {
+      return null;
+    }
+
+    final String value = filter.substring(start, end).trim();
+
+    start = filter.indexOf(attribute, end);
+
+    return start == -1 ? value : (String) null;
+  }
+
+  /**
+   * Get the version range from a requirement filter string and and convert it
+   * to a nice HTML interval.
+   *
+   * @param sb
+   *          The buffer to append the resulting interval to.
+   * @param filter
+   *          The LDAP filter string to get the version range from.
+   *          @param versionKey The key of the version attribute to parse.
+   */
+  public static void appendVersion(final StringBuffer sb,
+                                   final String filter,
+                                   final String versionKey)
+  {
+    try {
+      final VersionRange vr =
+        new VersionRange(filter, versionKey, true);
+      sb.append("&nbsp;");
+      sb.append(vr.toHtmlString());
+    } catch (final IllegalArgumentException iae) {
+      System.err.println(iae.getMessage());
+    }
+  }
+
+  /**
+   * Get the resolution directive from a requirement and convert it to a HTML
+   * string.
+   *
+   * @param sb
+   *          The buffer to append the resulting interval to.
+   * @param requirement
+   *          The rquirement to extract and present the resolution directiv
+   *          from.
+   */
+  public static void appendResolution(final StringBuffer sb,
+                                      final Requirement requirement)
+  {
+    final String resolution =
+      requirement.getDirectives().get(Constants.RESOLUTION_DIRECTIVE);
+    if (resolution != null && resolution.length() > 0) {
+      if (resolution.equals(Constants.RESOLUTION_MANDATORY)) {
+        // Default, don't print
+      } else {
+        sb.append("&nbsp;");
+        sb.append(resolution);
+      }
+    }
+  }
+
+  /**
    * Generic Object to HTML string conversion method.
    */
   public static String toHTML(Object obj)
@@ -334,6 +425,205 @@ public class Util
   public static void stopFont(StringBuffer sb)
   {
     sb.append("</font>");
+  }
+
+  /**
+   * Append one row spanning two columns to a table.
+   *
+   * Text color will be red to indicate that this is an error message. Text is
+   * only appended if {@code s1} contains some text to append.
+   *
+   * @param sb
+   *          String buffer to append to.
+   * @param s1
+   *          The text to present.
+   */
+  static void toHTMLtrError_2(final StringBuffer sb, final String s1)
+  {
+    if (s1 != null && s1.length() > 0) {
+      sb.append("<tr><td colspan=\"2\">");
+      Util.startFont(sb, "-1", "#ff2222");
+      sb.append(s1);
+      Util.stopFont(sb);
+      sb.append("</td></tr>");
+    }
+  }
+
+  /**
+   * Append one row spanning two columns to a table.
+   *
+   * Use a back ground color that highlights the text.
+   *
+   * Text is only appended if {@code s1} contains some text to append.
+   *
+   * @param sb
+   *          String buffer to append to.
+   * @param s1
+   *          The text to present.
+   */
+  static void toHTMLtrLog_2(final StringBuffer sb, final String s1)
+  {
+    if (s1 != null && s1.length() > 0) {
+      sb.append("<tr>");
+      sb.append("<td bgcolor=\"#eeeeee\" colspan=\"2\" valign=\"top\">");
+      sb.append("<pre>");
+      Util.startFont(sb, "-2");
+      sb.append(s1);
+      sb.append("</font>");
+      sb.append("<pre>");
+      sb.append("</td>");
+      sb.append("</tr>");
+    }
+  }
+
+  /**
+   * Append one row with one column that spans two table columns to a table.
+   *
+   * Text is only appended if {@code s1} contains some text to append.
+   *
+   * @param sb
+   *          String buffer to append to.
+   * @param s1
+   *          The text to present.
+   */
+  static void toHTMLtrHeading_2(final StringBuffer sb, final String s1)
+  {
+    if (s1 != null && s1.length() > 0) {
+      sb.append("<tr><td colspan='2'><b>");
+      Util.startFont(sb, "-1");
+      sb.append(s1);
+      Util.stopFont(sb);
+      sb.append("</b></td>");
+    }
+  }
+
+  /**
+   * Append one row with two columns to a table.
+   *
+   * Text is only appended if {@code s2} contains some text to append.
+   *
+   * @param sb
+   *          String buffer to append to.
+   * @param s1
+   *          The text for column one.
+   * @param s2
+   *          The text for column two.
+   */
+  static void toHTMLtr_2(final StringBuffer sb, final String s1, final Object s2)
+  {
+    if (s2 != null && s2.toString().length() > 0) {
+      sb.append("<tr><td valign='top'><em>");
+      Util.startFont(sb);
+      sb.append(s1);
+      Util.stopFont(sb);
+      sb.append("</em></td><td valign='top'>");
+      Util.startFont(sb);
+      // The value might be an URL
+      sb.append(Util.toHTML(s2.toString()));
+      Util.stopFont(sb);
+      sb.append("</td></tr>");
+    }
+  }
+
+  /**
+   * Append one row with a level one heading that spans three table columns.
+   *
+   * Text is only appended if {@code s1} contains some text to append.
+   *
+   * @param sb
+   *          String buffer to append to.
+   * @param s1
+   *          The text to present.
+   */
+  static void toHTMLtrHeading1_1234_4(final StringBuffer sb, final String s1)
+  {
+    if (s1 != null && s1.length() > 0) {
+      sb.append("<tr><td colspan='4'><b>");
+      Util.startFont(sb, "-1");
+      sb.append(s1);
+      Util.stopFont(sb);
+      sb.append("</b></td>");
+    }
+  }
+
+  /**
+   * Append one row a level 2 heading that spans three table columns.
+   *
+   * Text is only appended if {@code s1} contains some text to append.
+   *
+   * @param sb
+   *          String buffer to append to.
+   * @param s1
+   *          The text to present.
+   */
+  static void toHTMLtrHeading2_1234_4(final StringBuffer sb, final String s1)
+  {
+    if (s1 != null && s1.length() > 0) {
+      sb.append("<tr><td colspan='4'>&nbsp;&nbsp;<b>");
+      Util.startFont(sb);
+      sb.append(s1);
+      Util.stopFont(sb);
+      sb.append("</b></td>");
+    }
+  }
+
+  /**
+   * Append one row with one columns spanning column two three and four of a
+   * table.
+   *
+   * Text is only appended if {@code s2} contains some text to append.
+   *
+   * @param sb
+   *          String buffer to append to.
+   * @param s1
+   *          The text for the column.
+   */
+  static void toHTMLtr234_4(final StringBuffer sb, final String s1)
+  {
+    if (s1 != null && s1.length() > 0) {
+      sb.append("<tr><td>&nbsp;&nbsp;</td><td colspan='3' valign='top'>");
+      Util.startFont(sb, "-2", "#444444");
+      sb.append(Util.toHTML(s1));
+      Util.stopFont(sb);
+      sb.append("</td></tr>");
+    }
+  }
+
+  /**
+   * Append one row with values in column one and three to a table.
+   *
+   * Text is only appended if {@code s2} contains some text to append.
+   *
+   * @param sb
+   *          String buffer to append to.
+   * @param sep
+   *          separator to place between in column two.
+   * @param s1
+   *          The text for the column.
+   * @param s2
+   *          The text for column two.
+   */
+  static void toHTMLtr13_3(final StringBuffer sb,
+                           final String sep,
+                           final String s1,
+                           final Object s2)
+  {
+    if (s2 != null && s2.toString().length() > 0) {
+      sb.append("<tr><td colspan='2' valign='top'>");
+      Util.startFont(sb, "-2", "#444444");
+      sb.append(Util.toHTML(s1));
+      Util.stopFont(sb);
+      sb.append("</td><td valign='top'>");
+      Util.startFont(sb, "-2", "#444444");
+      sb.append(sep);
+      Util.stopFont(sb);
+      sb.append("</td><td valign='top'>");
+      Util.startFont(sb, "-2", "#444444");
+      // The value might be an URL
+      sb.append(Util.toHTML(s2.toString()));
+      Util.stopFont(sb);
+      sb.append("</td></tr>");
+    }
   }
 
   public static void openExternalURL(URL url)
@@ -395,7 +685,6 @@ public class Util
       try {
         while (null != line) {
           line = br.readLine();
-          // System.out.println(line);
         }
       } catch (final IOException _ioe) {
       }

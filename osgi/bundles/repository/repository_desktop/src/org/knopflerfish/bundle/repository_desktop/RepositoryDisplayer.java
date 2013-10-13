@@ -136,6 +136,27 @@ public class RepositoryDisplayer
   Map<String, ServiceReference<Repository>> userRepos =
     new HashMap<String, ServiceReference<Repository>>();
 
+  static Map<String, NsToHtml> ns2html = new HashMap<String, NsToHtml>();
+  static {
+    NsToHtml nth = new NsToHtmlBundle();
+    ns2html.put(nth.getNs(), nth);
+    nth = new NsToHtmlHost();
+    ns2html.put(nth.getNs(), nth);
+    nth = new NsToHtmlEE();
+    ns2html.put(nth.getNs(), nth);
+    nth = new NsToHtmlPackage();
+    ns2html.put(nth.getNs(), nth);
+    nth = new NsToHtmlContent();
+    ns2html.put(nth.getNs(), nth);
+  }
+  static NsToHtml ns2htmlGeneric = new NsToHtmlGeneric();
+  public NsToHtml getNsToHtml(String ns)
+  {
+    final NsToHtml res = ns2html.get(ns);
+    return res != null ? res : ns2htmlGeneric;
+  }
+
+
   // Icons shared by all instances of JRepositoryAdmin
   static ImageIcon startIcon =
     new ImageIcon(
@@ -1612,12 +1633,13 @@ public class RepositoryDisplayer
     {
       final StringBuffer sb = new StringBuffer();
 
-      sb.append("<table border='0' width='100%'>");
+      sb.append("<table border='0' width='100%'>\n");
 
+      // osgi.identity name space is handled specially
       if (idCaps.size() == 0) {
-        toHTMLtrError(sb, "No osgi.identity capabilities in this node!");
+        Util.toHTMLtrError_2(sb, "No osgi.identity capabilities in this node!");
       } else {
-        toHTMLtrHeading(sb, getIdAttribute(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE));
+        Util.toHTMLtrHeading_2(sb, getIdAttribute(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE));
         for (final Capability idCap : idCaps) {
           // Make a copy of the map so that we can remove processed entries.
           final SortedMap<String, Object> attrs =
@@ -1630,88 +1652,57 @@ public class RepositoryDisplayer
           // This attributes is presented above.
           attrs.remove(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE);
 
-          toHTMLtr(sb,
+          Util.toHTMLtr_2(sb,
                    "Copyright",
                    getIdAttribute(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE));
           attrs.remove(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE);
 
-          toHTMLtr(sb,
+          Util.toHTMLtr_2(sb,
                    "Documentation",
                    getIdAttribute(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE));
           attrs.remove(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE);
 
-          toHTMLtr(sb,
+          Util.toHTMLtr_2(sb,
                    "License",
                    getIdAttribute(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE));
           attrs.remove(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE);
 
           // Any other attribute
           for (final Entry<String,Object> entry : attrs.entrySet()) {
-            toHTMLtr(sb, entry.getKey(), entry.getValue());
+            Util.toHTMLtr_2(sb, entry.getKey(), entry.getValue());
           }
         }
       }
 
-      toHTMLtrLog(sb, getLog().trim());
+      Util.toHTMLtrLog_2(sb, getLog().trim());
+
+      sb.append("</table>\n");
+      sb.append("<table border='0' width='100%'>\n");
 
       // Capabilities
-      toHTMLtrHeading(sb, "Capabilites");
+      Util.toHTMLtrHeading1_1234_4(sb, "Capabilites");
       for (final Entry<String, Set<Capability>> entry : ns2caps.entrySet()) {
         final String ns = entry.getKey();
+        final NsToHtml nsToHtml = getNsToHtml(ns);
+        Util.toHTMLtrHeading2_1234_4(sb, ns);
+
         final Set<Capability> caps = entry.getValue();
-        final StringBuffer sb2 = new StringBuffer();
-        sb2.append("<ul>");
         for (final Capability cap : caps) {
-          sb2.append("<li>");
-          if (cap.getAttributes().size() > 0) {
-            Util.startFont(sb2);
-            sb2.append("attributes: ");
-            sb2.append(Util.toHTML(cap.getAttributes().toString()));
-            Util.stopFont(sb2);
-          }
-          if (cap.getAttributes().size() > 0
-              && cap.getDirectives().size() > 0) {
-            sb2.append("<br>");
-          }
-          if (cap.getDirectives().size() > 0) {
-            Util.startFont(sb2);
-            sb2.append("directives: ");
-            sb2.append(Util.toHTML(cap.getDirectives().toString()));
-            Util.stopFont(sb2);
-          }
+          Util.toHTMLtr234_4(sb, nsToHtml.toHTML(cap));
         }
-        sb2.append("</ul>");
-        toHTMLtr(sb, ns, sb2.toString());
       }
 
       // Requirements
-      toHTMLtrHeading(sb, "Requirements");
+      Util.toHTMLtrHeading1_1234_4(sb, "Requirements");
       for (final Entry<String, Set<Requirement>> entry : ns2reqs.entrySet()) {
         final String ns = entry.getKey();
+        final NsToHtml nsToHtml = getNsToHtml(ns);
+        Util.toHTMLtrHeading2_1234_4(sb, ns);
+
         final Set<Requirement> reqs = entry.getValue();
-        final StringBuffer sb2 = new StringBuffer();
-        sb2.append("<ul>");
         for (final Requirement req : reqs) {
-          sb2.append("<li>");
-          if (req.getAttributes().size() > 0) {
-            Util.startFont(sb2);
-            sb2.append("attributes: ");
-            sb2.append(Util.toHTML(req.getAttributes().toString()));
-            Util.stopFont(sb2);
-          }
-          if (req.getAttributes().size() > 0
-              && req.getDirectives().size() > 0) {
-            sb2.append("<br>");
-          }
-          if (req.getDirectives().size() > 0) {
-            Util.startFont(sb2);
-            sb2.append("directives: ");
-            sb2.append(Util.toHTML(req.getDirectives().toString()));
-            Util.stopFont(sb2);
-          }
+          Util.toHTMLtr234_4(sb, nsToHtml.toHTML(req));
         }
-        sb2.append("</ul>");
-        toHTMLtr(sb, ns, sb2.toString());
       }
 
       sb.append("</table>\n");
@@ -1739,107 +1730,10 @@ public class RepositoryDisplayer
           return description;
         }
       }
-      return (String) kfExtraCaps.iterator().next().getAttributes().get(key);
-    }
-
-    /**
-     * Append one row spanning two columns to the description table.
-     *
-     * Text color will be red to indicate that this is an error message.
-     * Text is only appended if {@code s1} contains some text to append.
-     *
-     * @param sb
-     *          String buffer to append to.
-     * @param s1
-     *          The text to present.
-     */
-    private void toHTMLtrError(final StringBuffer sb, final String s1)
-    {
-      if (s1 != null && s1.length() > 0) {
-        sb.append("<tr><td colspan=\"2\">");
-        Util.startFont(sb, "-1", "#ff2222");
-        sb.append(s1);
-        Util.stopFont(sb);
-        sb.append("</td></tr>");
+      if (kfExtraCaps != null && kfExtraCaps.size() > 0) {
+        return (String) kfExtraCaps.iterator().next().getAttributes().get(key);
       }
-    }
-
-    /**
-     * Append one row spanning two columns to the description table.
-     *
-     * Use a back ground color that highlights the text.
-     *
-     * Text is only appended if {@code s1} contains some text to append.
-     *
-     * @param sb
-     *          String buffer to append to.
-     * @param s1
-     *          The text to present.
-     */
-    private void toHTMLtrLog(final StringBuffer sb, final String s1)
-    {
-      if (s1 != null && s1.length() > 0) {
-        sb.append("<tr>");
-        sb.append("<td bgcolor=\"#eeeeee\" colspan=\"2\" valign=\"top\">");
-        sb.append("<pre>");
-        Util.startFont(sb, "-2");
-        sb.append(log);
-        sb.append("</font>");
-        sb.append("<pre>");
-        sb.append("</td>");
-        sb.append("</tr>");
-      }
-    }
-
-    /**
-     * Append one row with one column to the description table.
-     *
-     * Text is only appended if {@code s1} contains some text to append.
-     *
-     * @param sb
-     *          String buffer to append to.
-     * @param s1
-     *          The text to present.
-     */
-    private void toHTMLtrHeading(final StringBuffer sb, final String s1)
-    {
-      if (s1 != null && s1.length() > 0) {
-        sb.append("<tr><td colspan='2'><b>");
-        Util.startFont(sb, "-1");
-        sb.append(s1);
-        Util.stopFont(sb);
-        sb.append("</b></td>");
-      }
-    }
-
-    /**
-     * Append one row with two columns to the description table.
-     *
-     * Text is only appended if {@code s2} contains some text to append.
-     *
-     * @param sb
-     *          String buffer to append to.
-     * @param s1
-     *          The text for column one.
-     * @param s2
-     *          The text for column two.
-     */
-    private void toHTMLtr(final StringBuffer sb,
-                          final String s1,
-                          final Object s2)
-    {
-      if (s2 != null && s2.toString().length() > 0) {
-        sb.append("<tr><td valign='top'><em>");
-        Util.startFont(sb);
-        sb.append(s1);
-        Util.stopFont(sb);
-        sb.append("</em></td><td valign='top'>");
-        Util.startFont(sb);
-        // The value might be an URL
-        sb.append(Util.toHTML(s2.toString()));
-        Util.stopFont(sb);
-        sb.append("</td></tr>");
-      }
+      return null;
     }
 
     @Override
@@ -1853,4 +1747,5 @@ public class RepositoryDisplayer
     }
 
   }
+
 }

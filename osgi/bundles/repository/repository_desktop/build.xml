@@ -18,6 +18,7 @@
 
   <path id="bundle.compile.path">
     <pathelement location="log_api-N.N.N.jar"/>
+    <pathelement location="util-N.N.N.jar"/>
     <pathelement location="repository_api-N.N.N.jar"/>
     <pathelement location="repository_xml_api-N.N.N.jar"/>
     <pathelement location="desktop_api-N.N.N.jar"/>
