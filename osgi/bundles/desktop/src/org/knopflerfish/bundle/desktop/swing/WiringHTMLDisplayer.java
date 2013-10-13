@@ -53,6 +53,8 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.Version;
+import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
+import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -428,8 +430,6 @@ public class WiringHTMLDisplayer
 
   class JHTML extends JHTMLBundle {
     private static final long serialVersionUID = 1L;
-    protected static final String OSGI_EE = "osgi.ee";
-    protected static final String OSGI_IDENTITY = "osgi.identity";
 
     JHTML(DefaultSwingBundleDisplayer displayer)
     {
@@ -553,13 +553,13 @@ public class WiringHTMLDisplayer
 
       if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterPackage(nameSpace, wiring);
-      } else if (JHTML.OSGI_EE.equals(nameSpace)) {
+      } else if (ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterEE(nameSpace, wiring);
       } else if (BundleRevision.HOST_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterHost(nameSpace, wiring);
       } else if (BundleRevision.BUNDLE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterBundle(nameSpace, wiring);
-      } else if (JHTML.OSGI_IDENTITY.equals(nameSpace)) {
+      } else if (IdentityNamespace.IDENTITY_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterID(nameSpace, wiring);
       } else {
         wf = new WireFormatter(nameSpace, wiring);
@@ -587,13 +587,13 @@ public class WiringHTMLDisplayer
 
       if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterPackage(nameSpace, wiring);
-      } else if (JHTML.OSGI_EE.equals(nameSpace)) {
+      } else if (ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterEE(nameSpace, wiring);
       } else if (BundleRevision.HOST_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterHost(nameSpace, wiring);
       } else if (BundleRevision.BUNDLE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterBundle(nameSpace, wiring);
-      } else if (JHTML.OSGI_IDENTITY.equals(nameSpace)) {
+      } else if (IdentityNamespace.IDENTITY_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterID(nameSpace, wiring);
       } else {
         wf = new WireFormatter(nameSpace, wiring);
@@ -976,7 +976,7 @@ public class WiringHTMLDisplayer
         = new HashMap<String, Object>(capability.getAttributes());
 
       final StringBuffer sb = new StringBuffer(50);
-      sb.append(attrs.remove(JHTML.OSGI_EE));
+      sb.append(attrs.remove(ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE));
 
       @SuppressWarnings("unchecked")
       final List<Version> versions = (List<Version>) attrs
@@ -1002,7 +1002,7 @@ public class WiringHTMLDisplayer
     {
       final StringBuffer sb = new StringBuffer(50);
       final String filter = requirement.getDirectives().get("filter");
-      final String eeName = getFilterValue(filter, JHTML.OSGI_EE);
+      final String eeName = getFilterValue(filter, ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE);
 
       if (eeName != null) {
         sb.append(eeName);
@@ -1144,7 +1144,7 @@ public class WiringHTMLDisplayer
         = new TreeMap<String, Object>(capability.getAttributes());
 
       final StringBuffer sb = new StringBuffer(50);
-      sb.append(attrs.remove(JHTML.OSGI_IDENTITY));
+      sb.append(attrs.remove(IdentityNamespace.IDENTITY_NAMESPACE));
 
       final Version version =
           (Version) attrs.remove(Constants.VERSION_ATTRIBUTE);
@@ -1190,7 +1190,7 @@ public class WiringHTMLDisplayer
     {
       final StringBuffer sb = new StringBuffer(50);
       final String filter = requirement.getDirectives().get("filter");
-      final String idName = getFilterValue(filter, JHTML.OSGI_IDENTITY);
+      final String idName = getFilterValue(filter, IdentityNamespace.IDENTITY_NAMESPACE);
       if (idName != null) {
         sb.append(idName);
         appendVersionAndType(sb, requirement);
