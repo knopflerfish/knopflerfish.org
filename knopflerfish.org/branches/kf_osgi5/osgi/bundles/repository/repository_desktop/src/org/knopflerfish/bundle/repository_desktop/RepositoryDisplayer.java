@@ -47,9 +47,6 @@ import java.awt.event.MouseEvent;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,7 +55,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -68,14 +64,13 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
+import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
@@ -87,6 +82,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -110,7 +106,8 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import org.knopflerfish.service.desktop.BundleSelectionModel;
-import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
+import org.knopflerfish.service.repositorymanager.RepositoryInfo;
+import org.knopflerfish.service.repositorymanager.RepositoryManager;
 
 /**
  * Desktop plugin for the visualizing Repository services and their offerings.
@@ -118,23 +115,10 @@ import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
  */
 public class RepositoryDisplayer
   extends DefaultSwingBundleDisplayer
-  implements ServiceTrackerCustomizer<Repository, Repository>
+  implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
 {
-  // Repository services tracker
-  private final ServiceTracker<Repository, Repository> repoTracker;
-  /**
-   * Map of tracked repositories.
-   */
-  Map<String, Repository> repos = new HashMap<String, Repository>();
-
-  private final ServiceTracker<XmlBackedRepositoryFactory, XmlBackedRepositoryFactory> xmlRepoFactoryTracker;
-
-  /**
-   * Mapping from repository URL to Repository service holding repository URLs
-   * configured using this displayer.
-   */
-  Map<String, ServiceReference<Repository>> userRepos =
-    new HashMap<String, ServiceReference<Repository>>();
+  // Repository manager services tracker
+  private final ServiceTracker<RepositoryManager, RepositoryManager> repoManagerTracker;
 
   static Map<String, NsToHtml> ns2html = new HashMap<String, NsToHtml>();
   static {
@@ -150,12 +134,12 @@ public class RepositoryDisplayer
     ns2html.put(nth.getNs(), nth);
   }
   static NsToHtml ns2htmlGeneric = new NsToHtmlGeneric();
+
   public NsToHtml getNsToHtml(String ns)
   {
     final NsToHtml res = ns2html.get(ns);
     return res != null ? res : ns2htmlGeneric;
   }
-
 
   // Icons shared by all instances of JRepositoryAdmin
   static ImageIcon startIcon =
@@ -203,16 +187,12 @@ public class RepositoryDisplayer
     super(bc, "Repository", "View and install bundles from OSGi Repositories",
           true);
 
-    repoTracker =
-      new ServiceTracker<Repository, Repository>(bc, Repository.class, this);
-    repoTracker.open();
-
-    xmlRepoFactoryTracker =
-      new ServiceTracker<XmlBackedRepositoryFactory, XmlBackedRepositoryFactory>(
-                                                                                 bc,
-                                                                                 XmlBackedRepositoryFactory.class,
-                                                                                 null);
-    xmlRepoFactoryTracker.open();
+    repoManagerTracker =
+      new ServiceTracker<RepositoryManager, RepositoryManager>(
+                                                               bc,
+                                                               RepositoryManager.class,
+                                                               this);
+    repoManagerTracker.open();
   }
 
   @Override
@@ -233,7 +213,7 @@ public class RepositoryDisplayer
   @Override
   public void close()
   {
-    repoTracker.close();
+    repoManagerTracker.close();
     super.close();
   }
 
@@ -247,7 +227,8 @@ public class RepositoryDisplayer
         ? bundleSelModel.getSelected()
         : bid;
     for (final Object element : components) {
-      final JRepositoryAdmin repositoryAdmin = (JRepositoryAdmin) (JComponent) element;
+      final JRepositoryAdmin repositoryAdmin =
+        (JRepositoryAdmin) (JComponent) element;
       repositoryAdmin.valueChanged(selectedBid);
     }
   }
@@ -259,49 +240,29 @@ public class RepositoryDisplayer
   }
 
   /*------------------------------------------------------------------------*
-   *			  ServiceTrackerCustomizer implementation
+   *       ServiceTrackerCustomizer implementation
    *------------------------------------------------------------------------*/
 
   @Override
-  public Repository addingService(ServiceReference<Repository> sr)
+  public RepositoryManager addingService(ServiceReference<RepositoryManager> sr)
   {
-    final Repository repo = bc.getService(sr);
-    repos.put(getKey(sr), repo);
+    final RepositoryManager repo = bc.getService(sr);
     refreshRepositoryDisplayers();
     return repo;
   }
 
   @Override
-  public void modifiedService(ServiceReference<Repository> sr, Repository repo)
+  public void modifiedService(ServiceReference<RepositoryManager> sr,
+                              RepositoryManager repoManager)
   {
     refreshRepositoryDisplayers();
   }
 
   @Override
-  public void removedService(ServiceReference<Repository> sr, Repository repo)
+  public void removedService(ServiceReference<RepositoryManager> sr,
+                             RepositoryManager repoManager)
   {
-    repos.remove(getKey(sr));
     refreshRepositoryDisplayers();
-  }
-
-  /**
-   * We use the persistent service identity as the repository key.
-   *
-   * @param sr
-   *          The repository service reference to get a key for.
-   * @return string used as key in the {@link RepositoryDisplayer#repos}-map.
-   */
-  private static String getKey(ServiceReference<Repository> sr)
-  {
-    Object o = sr.getProperty(Constants.SERVICE_PID);
-    if (o != null) {
-      return o.toString();
-    }
-    o = sr.getProperty(Repository.URL);
-    if (o != null) {
-      return o.toString();
-    }
-    return sr.getProperty(Constants.SERVICE_ID).toString();
   }
 
   /**
@@ -395,6 +356,407 @@ public class RepositoryDisplayer
   class JRepositoryAdmin
     extends JPanel
   {
+    /**
+     * TreeNode to top of repository tree.
+     */
+    class TopNode
+      extends DefaultMutableTreeNode
+      implements HTMLAble
+    {
+      private static final long serialVersionUID = 4L;
+      JRepositoryAdmin repositoryAdmin;
+      String name;
+
+      public TopNode(String name, JRepositoryAdmin repositoryAdmin)
+      {
+        this.name = name;
+        this.repositoryAdmin = repositoryAdmin;
+      }
+
+      @Override
+      public String getIconURL()
+      {
+        return null;
+      }
+
+      @Override
+      public String toString()
+      {
+        return name;
+      }
+
+      @Override
+      public String getTitle()
+      {
+        return toString();
+      }
+
+      @Override
+      public String toHTML()
+      {
+        final StringBuffer sb = new StringBuffer();
+
+        if (repositoryAdmin.repositoryErr != null
+            && repositoryAdmin.repositoryErr.length() > 0) {
+          Util.startFont(sb);
+          sb.append("<pre>");
+          sb.append(repositoryAdmin.repositoryErr);
+          sb.append("</pre>");
+          sb.append("</font>");
+        } else {
+          Util.startFont(sb);
+
+          sb.append("<p><b>Repositories</b></p><ul>");
+          final RepositoryManager repoMgr = repoManagerTracker.getService();
+          if (repoMgr != null) {
+            final Set<RepositoryInfo> ris = repoMgr.getAllRepositories();
+            for (final RepositoryInfo ri : ris) {
+              final ServiceReference<Repository> sr = ri.getServiceReference();
+              sb.append("<li><p>");
+              toHTML(sb, sr, Constants.SERVICE_DESCRIPTION, "");
+              toHTML(sb, sr, Constants.SERVICE_PID, "PID: ");
+              toHTML(sb, sr, Repository.URL, "URLs: ");
+              sb.append("</p>");
+            }
+            sb.append("</ul>");
+
+            sb.append("<p>");
+            sb.append("Total number of bundles: "
+                      + JRepositoryAdmin.this.locationMap.size());
+            sb.append("</p>");
+
+            appendHelp(sb);
+          } else {
+            sb.append("<p><em>No</em> repositories available.</p>");
+            sb.append("<p>Press the settings button (rightmost button under "
+                      + "the repository tree) to add repositories.</p>");
+          }
+
+          sb.append("</font>");
+        }
+        Activator.log.info("TopNode.toHTML: " + sb);
+        return sb.toString();
+      }
+
+      private void toHTML(final StringBuffer sb,
+                          final ServiceReference<Repository> sr,
+                          final String key,
+                          final String label)
+      {
+        final String val = (String) sr.getProperty(key);
+        if (val != null && val.length() > 0) {
+          sb.append(label);
+          sb.append(val);
+          sb.append("<br>");
+        }
+      }
+
+    }
+
+    /**
+     * Tree node for grouping BundleRecords into categories in bundle resource
+     * tree
+     */
+    class CategoryNode
+      extends DefaultMutableTreeNode
+      implements HTMLAble
+    {
+      private static final long serialVersionUID = 5L;
+      String category;
+
+      public CategoryNode(String category)
+      {
+        this.category = category;
+      }
+
+      @Override
+      public String getIconURL()
+      {
+        return null;
+      }
+
+      @Override
+      public String toString()
+      {
+        return category + " (" + getChildCount() + ")";
+      }
+
+      @Override
+      public String getTitle()
+      {
+        return toString();
+      }
+
+      @Override
+      public String toHTML()
+      {
+        final StringBuffer sb = new StringBuffer();
+
+        Util.startFont(sb);
+
+        sb.append("<p>");
+        sb.append("Bundles in this category: " + getChildCount());
+        sb.append("</p>");
+
+        appendHelp(sb);
+
+        sb.append("</font>");
+
+        return sb.toString();
+      }
+    }
+
+    /**
+     * Tree Node for wrapping a repository resource in the repository tree.
+     */
+    class RepositoryNode
+      extends DefaultMutableTreeNode
+      implements HTMLAble
+    {
+      private static final long serialVersionUID = 3L;
+
+      String name;
+      StringBuffer log = new StringBuffer();
+      // The bundle that corresponds to the resource that this node represents.
+      Bundle bundle = null;
+      boolean bBusy;
+      Resource resource;
+      // Sorted cache of capabilities provided by the given resource
+      SortedMap<String, Set<Capability>> ns2caps =
+        new TreeMap<String, Set<Capability>>();
+      final Set<Capability> idCaps;
+      final Set<Capability> kfExtraCaps;
+
+      // Sorted cache of requirements required by the given resource
+      SortedMap<String, Set<Requirement>> ns2reqs =
+        new TreeMap<String, Set<Requirement>>();
+
+      public RepositoryNode(Resource resource)
+      {
+        super(null);
+        this.resource = resource;
+
+        name =
+          Util.getResourceName(resource) + " "
+              + Util.getResourceVersion(resource) + " "
+              + Util.getResourceType(resource);
+
+        for (final Capability capability : resource.getCapabilities(null)) {
+          final String ns = capability.getNamespace();
+          Set<Capability> caps = ns2caps.get(ns);
+          if (caps == null) {
+            caps = new HashSet<Capability>();
+            ns2caps.put(ns, caps);
+          }
+          caps.add(capability);
+        }
+        idCaps = ns2caps.remove(IdentityNamespace.IDENTITY_NAMESPACE);
+        kfExtraCaps = ns2caps.remove(Util.KF_EXTRAS_NAMESPACE);
+
+        for (final Requirement requirement : resource.getRequirements(null)) {
+          final String ns = requirement.getNamespace();
+          Set<Requirement> reqs = ns2reqs.get(ns);
+          if (reqs == null) {
+            reqs = new HashSet<Requirement>();
+            ns2reqs.put(ns, reqs);
+          }
+          reqs.add(requirement);
+        }
+
+        // setIcon(bundleIcon);
+      }
+
+      public Bundle getBundle()
+      {
+        if (bundle == null) {
+          // Check to see if there is a bundle now.
+          bundle = RepositoryDisplayer.getBundle(resource);
+        }
+        return bundle;
+      }
+
+      public Resource getResource()
+      {
+        return resource;
+      }
+
+      public void appendLog(String s)
+      {
+        log.append(s);
+      }
+
+      public String getLog()
+      {
+        return log.toString();
+      }
+
+      void setInstalled(Bundle bundle)
+      {
+        this.bundle = bundle;
+      }
+
+      @Override
+      public String toString()
+      {
+        // This is displayed in the tree to the left.
+        return name;
+      }
+
+      @Override
+      public String getIconURL()
+      {
+        String iconURL = Util.getResourceIcon(resource);
+        if (iconURL != null) {
+          // Simply take the first icon defined, ignoring size and other
+          // attributes.
+          // TODO: Re-use the desktop's BundleImageIcon class.
+
+          // Keep the first entry only.
+          final int commaPos = iconURL.indexOf(',');
+          if (commaPos > -1) {
+            iconURL = iconURL.substring(0, commaPos);
+          }
+          // Remove all parameters.
+          final int semiPos = iconURL.indexOf(';');
+          if (semiPos > -1) {
+            iconURL = iconURL.substring(0, semiPos);
+          }
+
+          if (iconURL.startsWith("!")) {
+            if (!iconURL.startsWith("!/")) {
+              iconURL = "!/" + iconURL.substring(1);
+            }
+            iconURL = "jar:" + Util.getLocation(resource) + iconURL;
+          } else if (-1 == iconURL.indexOf(":")) {
+            iconURL = "jar:" + Util.getLocation(resource) + "!/" + iconURL;
+          }
+        }
+        return iconURL;
+      }
+
+      @Override
+      public String toHTML()
+      {
+        final StringBuffer sb = new StringBuffer();
+
+        sb.append("<table border='0' width='100%'>\n");
+
+        // osgi.identity name space is handled specially
+        if (idCaps.size() == 0) {
+          Util.toHTMLtrError_2(sb,
+                               "No osgi.identity capabilities in this node!");
+        } else {
+          Util.toHTMLtrHeading_2(sb,
+                                 getIdAttribute(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE));
+          for (final Capability idCap : idCaps) {
+            // Make a copy of the map so that we can remove processed entries.
+            final SortedMap<String, Object> attrs =
+              new TreeMap<String, Object>(idCap.getAttributes());
+
+            // These attributes are presented in the title.
+            attrs.remove(IdentityNamespace.IDENTITY_NAMESPACE);
+            attrs.remove(IdentityNamespace.CAPABILITY_VERSION_ATTRIBUTE);
+            attrs.remove(IdentityNamespace.CAPABILITY_TYPE_ATTRIBUTE);
+            // This attributes is presented above.
+            attrs.remove(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE);
+
+            Util.toHTMLtr_2(sb,
+                            "Copyright",
+                            getIdAttribute(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE));
+            attrs.remove(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE);
+
+            Util.toHTMLtr_2(sb,
+                            "Documentation",
+                            getIdAttribute(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE));
+            attrs.remove(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE);
+
+            Util.toHTMLtr_2(sb,
+                            "License",
+                            getIdAttribute(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE));
+            attrs.remove(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE);
+
+            // Any other attribute
+            for (final Entry<String, Object> entry : attrs.entrySet()) {
+              Util.toHTMLtr_2(sb, entry.getKey(), entry.getValue());
+            }
+          }
+        }
+
+        Util.toHTMLtrLog_2(sb, getLog().trim());
+
+        sb.append("</table>\n");
+        sb.append("<table border='0' width='100%'>\n");
+
+        // Capabilities
+        Util.toHTMLtrHeading1_1234_4(sb, "Capabilites");
+        for (final Entry<String, Set<Capability>> entry : ns2caps.entrySet()) {
+          final String ns = entry.getKey();
+          final NsToHtml nsToHtml = getNsToHtml(ns);
+          Util.toHTMLtrHeading2_1234_4(sb, ns);
+
+          final Set<Capability> caps = entry.getValue();
+          for (final Capability cap : caps) {
+            Util.toHTMLtr234_4(sb, nsToHtml.toHTML(cap));
+          }
+        }
+
+        // Requirements
+        Util.toHTMLtrHeading1_1234_4(sb, "Requirements");
+        for (final Entry<String, Set<Requirement>> entry : ns2reqs.entrySet()) {
+          final String ns = entry.getKey();
+          final NsToHtml nsToHtml = getNsToHtml(ns);
+          Util.toHTMLtrHeading2_1234_4(sb, ns);
+
+          final Set<Requirement> reqs = entry.getValue();
+          for (final Requirement req : reqs) {
+            Util.toHTMLtr234_4(sb, nsToHtml.toHTML(req));
+          }
+        }
+
+        sb.append("</table>\n");
+
+        return sb.toString();
+      }
+
+      /**
+       * BND generated XML repository files never contains a value for the
+       * optional attributes in the identity name space, also look for it in the
+       * KF-name space.
+       *
+       * @param key
+       *          Attribute key to look up.
+       *
+       * @return the attribute value of the resource that this node represents.
+       */
+      private String getIdAttribute(final String key)
+      {
+        for (final Capability idCap : idCaps) {
+          final Map<String, Object> attrs = idCap.getAttributes();
+
+          final String description = (String) attrs.remove(key);
+          if (description != null && description.length() > 0) {
+            return description;
+          }
+        }
+        if (kfExtraCaps != null && kfExtraCaps.size() > 0) {
+          return (String) kfExtraCaps.iterator().next().getAttributes()
+              .get(key);
+        }
+        return null;
+      }
+
+      @Override
+      public String getTitle()
+      {
+        // This is displayed in the HTML to the right.
+        if (bundle != null) {
+          return "#" + bundle.getBundleId() + " " + name;
+        }
+        return name;
+      }
+
+    }
+
     private static final long serialVersionUID = 1L;
 
     DefaultTreeModel treeModel;
@@ -489,24 +851,24 @@ public class RepositoryDisplayer
         }
 
         // TODO: Use resource specific icons when available.
-//        Map<String,Icon> bundleIconCache = new HashMap<String, Icon>();
+        // Map<String,Icon> bundleIconCache = new HashMap<String, Icon>();
         private Icon getBundleIcon(String iconURL)
         {
-//          if (iconURL == null) {
-            return bundleIcon;
-//          }
-//          Icon res = bundleIconCache.get(iconURL);
-//          if (res == null) {
-//            try {
-//            res = new ImageIcon(iconURL);
-//            } catch (final Exception e) {
-//              // Fallback to the standard icon.
-//              res = bundleIcon;
-//              Activator.log.info("Failed to load icon with URL: " +iconURL, e);
-//            }
-//            bundleIconCache.put(iconURL, res);
-//          }
-//          return res;
+          // if (iconURL == null) {
+          return bundleIcon;
+          // }
+          // Icon res = bundleIconCache.get(iconURL);
+          // if (res == null) {
+          // try {
+          // res = new ImageIcon(iconURL);
+          // } catch (final Exception e) {
+          // // Fallback to the standard icon.
+          // res = bundleIcon;
+          // Activator.log.info("Failed to load icon with URL: " +iconURL, e);
+          // }
+          // bundleIconCache.put(iconURL, res);
+          // }
+          // return res;
         }
       };
 
@@ -571,7 +933,7 @@ public class RepositoryDisplayer
         @Override
         public void actionPerformed(ActionEvent ev)
         {
-          askRepoURls();
+          showSettingsDialog();
         }
       });
 
@@ -881,7 +1243,8 @@ public class RepositoryDisplayer
               + "a new instance can be installed from the\n" + "repository";
 
         final int n =
-          JOptionPane.showOptionDialog(resourceTree, msg,
+          JOptionPane.showOptionDialog(resourceTree,
+                                       msg,
                                        "Bundle is installed", // title
                                        JOptionPane.YES_NO_CANCEL_OPTION,
                                        JOptionPane.QUESTION_MESSAGE, null, // icon
@@ -994,21 +1357,20 @@ public class RepositoryDisplayer
 
           // move all resource into a sorted
           // category map of sets
-          // First find all bundle resources in all repos.
-          final Requirement bundleReq = new DownloadableBundleRequirement();
-          final Set<Resource> bundleResources = new HashSet<Resource>();
-          for (final Repository repo : repos.values()) {
-            final Map<Requirement, Collection<Capability>> answer =
-              repo.findProviders(Collections.singleton(bundleReq));
-            for (final Entry<Requirement, Collection<Capability>> entry : answer
-                .entrySet()) {
-              for (final Capability capability : entry.getValue()) {
-                bundleResources.add(capability.getResource());
-              }
+          // First find all downloadable resources in all repos.
+          final Set<Resource> resources = new HashSet<Resource>();
+          final Requirement downloadableReq =
+            new DownloadableBundleRequirement();
+          final RepositoryManager repoMgr = repoManagerTracker.getService();
+          if (repoMgr != null) {
+            final List<Capability> capabilities =
+              repoManagerTracker.getService().findProviders(downloadableReq);
+            for (final Capability capability : capabilities) {
+              resources.add(capability.getResource());
             }
           }
           // Categorize each resource
-          for (final Resource resource : bundleResources) {
+          for (final Resource resource : resources) {
             final String category = deriveCatagory(resource, sortCategory);
 
             Set<Resource> set = categories.get(category);
@@ -1132,7 +1494,11 @@ public class RepositoryDisplayer
           @Override
           public void run()
           {
-            resourceTree.setModel(new DefaultTreeModel(new TopNode(s, JRepositoryAdmin.this)));
+            resourceTree
+                .setModel(new DefaultTreeModel(
+                                               new TopNode(
+                                                           s,
+                                                           JRepositoryAdmin.this)));
           }
         });
       } catch (final Exception e) {
@@ -1140,55 +1506,63 @@ public class RepositoryDisplayer
     }
 
     /**
-     * Query the user for a list of repo URLs
+     * Configure repositories.
      */
-    void askRepoURls()
+    void showSettingsDialog()
     {
-      final StringBuffer sb = new StringBuffer();
-
       try {
-        for (final String url : userRepos.keySet()) {
-          sb.append(url);
-          sb.append("\n");
-        }
+        final RepositoryManager repoMgr = repoManagerTracker.getService();
+        final RepositoriesTableModel tm = new RepositoriesTableModel(repoMgr);
 
         final JPanel panel = new JPanel(new BorderLayout());
 
-        final JTextArea text = new JTextArea(Math.min(3, userRepos.size()), 40);
-        text.setText(sb.toString());
-        // text.setPreferredSize(new Dimension(300, 100));
+        final JTable table = new JTable(tm);
+        //table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+        final TableColumnModel tcm = table.getColumnModel();
+        // The longest item in column 1 and 2 is the title...
+        tcm.getColumn(1).setMinWidth(2 * 12);
+        tcm.getColumn(1).setMaxWidth(RepositoriesTableModel.COLUMN_NAMES[1]
+            .length() * 12);
+        tcm.getColumn(2).setMinWidth(2 * 12);
+        tcm.getColumn(2).setMaxWidth(RepositoriesTableModel.COLUMN_NAMES[2]
+            .length() * 12);
         final JScrollPane scroll =
-          new JScrollPane(text,
+          new JScrollPane(table,
                           ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                           ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-        scroll.setPreferredSize(new Dimension(300, 100));
+        scroll.setPreferredSize(new Dimension(700, 200));
 
         panel.add(scroll, BorderLayout.CENTER);
-        panel.add(new JLabel("Repository URLs."), BorderLayout.NORTH);
+        final String[] options = new String[]{"Cancel", "Add...", "Apply"};
         final int option =
-          JOptionPane.showConfirmDialog(this, panel, "Repository URLs",
-                                        JOptionPane.OK_CANCEL_OPTION);
+          JOptionPane.showOptionDialog(this, panel, "Configure Repositories",
+                                       JOptionPane.YES_NO_CANCEL_OPTION,
+                                       JOptionPane.QUESTION_MESSAGE,
+                                       null, options,
+                                       options[2]);
 
-        final String r2 = text.getText();
-        if (option == JOptionPane.OK_OPTION && !r2.equals(sb.toString())) {
-          final StringTokenizer st = new StringTokenizer(r2, "\n");
-          final List<String> urls = new ArrayList<String>();
-          while (st.hasMoreTokens()) {
-            urls.add(st.nextToken().trim());
-          }
-          try {
-            for (final String url : urls) {
-              final XmlBackedRepositoryFactory repoFactory =
-                xmlRepoFactoryTracker.getService();
-              final ServiceReference<Repository> sr =
-                repoFactory.create(url, null, url);
-              userRepos.put(url, sr);
+        if (option == 1) {
+          // Add new XML repository; ask for the URL.
+          final Object urlString =
+            JOptionPane.showInputDialog(this,
+                                        "URL to the XML-file",
+                                        "Add XML-based Repository",
+                                        JOptionPane.PLAIN_MESSAGE, null, null,
+                                        null);
+          if (urlString != null) {
+            try {
+              repoMgr.addXmlRepository((String) urlString, null);
+              refreshList();
+            } catch (final Exception e) {
+              JOptionPane.showMessageDialog(this,
+                                            "Failed to create XML repository for URL: '"
+                                                + urlString + "': " + e);
             }
-            refreshList();
-          } catch (final Exception e) {
-            repositoryErr = "" + e;
           }
+        } else if (option== 2) {
+          tm.applyChanges();
+          refreshList();
         }
       } catch (final Exception e) {
         e.printStackTrace();
@@ -1234,13 +1608,13 @@ public class RepositoryDisplayer
         sb.append("</td>\n");
 
         // jar:-URLs are not handled by the HTML-document...
-//        final String iconURL = htmlNode.getIconURL();
-//        if (iconURL != null && !"".equals(iconURL.trim())) {
-//          System.out.println("iconURL: " +iconURL);
-//          sb.append("<td valign=\"top\" bgcolor=\"#eeeeee\">");
-//          sb.append("<img align=\"left\" src=\"" + iconURL + "\">");
-//          sb.append("</td>");
-//        }
+        // final String iconURL = htmlNode.getIconURL();
+        // if (iconURL != null && !"".equals(iconURL.trim())) {
+        // System.out.println("iconURL: " +iconURL);
+        // sb.append("<td valign=\"top\" bgcolor=\"#eeeeee\">");
+        // sb.append("<img align=\"left\" src=\"" + iconURL + "\">");
+        // sb.append("</td>");
+        // }
 
       } else {
         sb.append("");
@@ -1360,414 +1734,6 @@ public class RepositoryDisplayer
       }
       return n;
     }
-  }
-
-  /**
-   * TreeNode to top of repository tree.
-   */
-  class TopNode
-    extends DefaultMutableTreeNode
-    implements HTMLAble
-  {
-    private static final long serialVersionUID = 4L;
-    JRepositoryAdmin repositoryAdmin;
-    String name;
-
-    public TopNode(String name, JRepositoryAdmin repositoryAdmin)
-    {
-      this.name = name;
-      this.repositoryAdmin = repositoryAdmin;
-    }
-
-    @Override
-    public String getIconURL()
-    {
-      return null;
-    }
-
-    @Override
-    public String toString()
-    {
-      return name;
-    }
-
-    @Override
-    public String getTitle()
-    {
-      return toString();
-    }
-
-    @Override
-    public String toHTML()
-    {
-      final StringBuffer sb = new StringBuffer();
-
-      if (repositoryAdmin.repositoryErr != null
-          && repositoryAdmin.repositoryErr.length() > 0) {
-        Util.startFont(sb);
-        sb.append("<pre>");
-        sb.append(repositoryAdmin.repositoryErr);
-        sb.append("</pre>");
-        sb.append("</font>");
-      } else {
-        Util.startFont(sb);
-
-        final ServiceReference<Repository>[] repoSrs =
-          repoTracker.getServiceReferences();
-        if (repoSrs != null && repoSrs.length > 0) {
-          sb.append("<p><b>Repositories</b></p><ul>");
-
-          for (final ServiceReference<Repository> sr : repoSrs) {
-            sb.append("<li><p>");
-            toHTML(sb, sr, Constants.SERVICE_DESCRIPTION, "");
-            toHTML(sb, sr, Constants.SERVICE_PID, "PID: ");
-            toHTML(sb, sr, Repository.URL, "URLs: ");
-            sb.append("</p>");
-          }
-          sb.append("</ul>");
-
-          sb.append("<p>");
-          final Set<Resource> bundleResources = new HashSet<Resource>();
-          final Requirement bundleReq = new DownloadableBundleRequirement();
-          for (final Repository repo : repos.values()) {
-            final Map<Requirement, Collection<Capability>> answer =
-              repo.findProviders(Collections.singleton(bundleReq));
-            for (final Entry<Requirement, Collection<Capability>> entry : answer
-                .entrySet()) {
-              for (final Capability capability : entry.getValue()) {
-                bundleResources.add(capability.getResource());
-              }
-            }
-          }
-          sb.append("Total number of bundles: " + bundleResources.size());
-          sb.append("</p>");
-
-          appendHelp(sb);
-        } else {
-          sb.append("<p><em>No</em> repositories available.</p>");
-          sb.append("<p>Press the settings button (rightmost button under "
-                    + "the repository tree) to add repositories.</p>");
-        }
-
-        sb.append("</font>");
-      }
-      Activator.log.info("TopNode.toHTML: " +sb);
-      return sb.toString();
-    }
-
-    private void toHTML(final StringBuffer sb,
-                        final ServiceReference<Repository> sr,
-                        final String key,
-                        final String label)
-    {
-      final String val = (String) sr.getProperty(key);
-      if (val != null && val.length() > 0) {
-        sb.append(label);
-        sb.append(val);
-        sb.append("<br>");
-      }
-    }
-
-  }
-
-  /**
-   * Tree node for grouping BundleRecords into categories in bundle resource
-   * tree
-   */
-  class CategoryNode
-    extends DefaultMutableTreeNode
-    implements HTMLAble
-  {
-    private static final long serialVersionUID = 5L;
-    String category;
-
-    public CategoryNode(String category)
-    {
-      this.category = category;
-    }
-
-    @Override
-    public String getIconURL()
-    {
-      return null;
-    }
-
-    @Override
-    public String toString()
-    {
-      return category + " (" + getChildCount() + ")";
-    }
-
-    @Override
-    public String getTitle()
-    {
-      return toString();
-    }
-
-    @Override
-    public String toHTML()
-    {
-      final StringBuffer sb = new StringBuffer();
-
-      Util.startFont(sb);
-
-      sb.append("<p>");
-      sb.append("Bundles in this category: " + getChildCount());
-      sb.append("</p>");
-
-      appendHelp(sb);
-
-      sb.append("</font>");
-
-      return sb.toString();
-    }
-  }
-
-  /**
-   * Tree Node for wrapping a repository resource in the repository tree.
-   */
-  class RepositoryNode
-    extends DefaultMutableTreeNode
-    implements HTMLAble
-  {
-    private static final long serialVersionUID = 3L;
-
-    String name;
-    StringBuffer log = new StringBuffer();
-    // The bundle that corresponds to the resource that this node represents.
-    Bundle bundle = null;
-    boolean bBusy;
-    Resource resource;
-    // Sorted cache of capabilities provided by the given resource
-    SortedMap<String, Set<Capability>> ns2caps =
-      new TreeMap<String, Set<Capability>>();
-    final Set<Capability> idCaps;
-    final Set<Capability> kfExtraCaps;
-
-    // Sorted cache of requirements required by the given resource
-    SortedMap<String, Set<Requirement>> ns2reqs =
-      new TreeMap<String, Set<Requirement>>();
-
-    public RepositoryNode(Resource resource)
-    {
-      super(null);
-      this.resource = resource;
-
-      name =
-        Util.getResourceName(resource) + " "
-            + Util.getResourceVersion(resource) + " "
-            + Util.getResourceType(resource);
-
-      for (final Capability capability : resource.getCapabilities(null)) {
-        final String ns = capability.getNamespace();
-        Set<Capability> caps = ns2caps.get(ns);
-        if (caps == null) {
-          caps = new HashSet<Capability>();
-          ns2caps.put(ns, caps);
-        }
-        caps.add(capability);
-      }
-      idCaps = ns2caps.remove(IdentityNamespace.IDENTITY_NAMESPACE);
-      kfExtraCaps = ns2caps.remove(Util.KF_EXTRAS_NAMESPACE);
-
-      for (final Requirement requirement : resource.getRequirements(null)) {
-        final String ns = requirement.getNamespace();
-        Set<Requirement> reqs = ns2reqs.get(ns);
-        if (reqs == null) {
-          reqs = new HashSet<Requirement>();
-          ns2reqs.put(ns, reqs);
-        }
-        reqs.add(requirement);
-      }
-
-      // setIcon(bundleIcon);
-    }
-
-    public Bundle getBundle()
-    {
-      if (bundle==null) {
-        // Check to see if there is a bundle now.
-        bundle = RepositoryDisplayer.getBundle(resource);
-      }
-      return bundle;
-    }
-
-    public Resource getResource()
-    {
-      return resource;
-    }
-
-    public void appendLog(String s)
-    {
-      log.append(s);
-    }
-
-    public String getLog()
-    {
-      return log.toString();
-    }
-
-    void setInstalled(Bundle bundle)
-    {
-      this.bundle = bundle;
-    }
-
-    @Override
-    public String toString()
-    {
-      // This is displayed in the tree to the left.
-      return name;
-    }
-
-    @Override
-    public String getIconURL()
-    {
-      String iconURL = Util.getResourceIcon(resource);
-      if (iconURL != null) {
-        // Simply take the first icon defined, ignoring size and other attributes.
-        // TODO: Re-use the desktop's BundleImageIcon class.
-
-        // Keep the first entry only.
-        final int commaPos = iconURL.indexOf(',');
-        if (commaPos > -1) {
-          iconURL = iconURL.substring(0, commaPos);
-        }
-        // Remove all parameters.
-        final int semiPos = iconURL.indexOf(';');
-        if (semiPos > -1) {
-          iconURL = iconURL.substring(0, semiPos);
-        }
-
-        if (iconURL.startsWith("!")) {
-          if (!iconURL.startsWith("!/")) {
-            iconURL = "!/" + iconURL.substring(1);
-          }
-          iconURL = "jar:" + Util.getLocation(resource) + iconURL;
-        } else if (-1 == iconURL.indexOf(":")) {
-          iconURL = "jar:" + Util.getLocation(resource) + "!/" + iconURL;
-        }
-      }
-      return iconURL;
-    }
-
-    @Override
-    public String toHTML()
-    {
-      final StringBuffer sb = new StringBuffer();
-
-      sb.append("<table border='0' width='100%'>\n");
-
-      // osgi.identity name space is handled specially
-      if (idCaps.size() == 0) {
-        Util.toHTMLtrError_2(sb, "No osgi.identity capabilities in this node!");
-      } else {
-        Util.toHTMLtrHeading_2(sb, getIdAttribute(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE));
-        for (final Capability idCap : idCaps) {
-          // Make a copy of the map so that we can remove processed entries.
-          final SortedMap<String, Object> attrs =
-            new TreeMap<String, Object>(idCap.getAttributes());
-
-          // These attributes are presented in the title.
-          attrs.remove(IdentityNamespace.IDENTITY_NAMESPACE);
-          attrs.remove(IdentityNamespace.CAPABILITY_VERSION_ATTRIBUTE);
-          attrs.remove(IdentityNamespace.CAPABILITY_TYPE_ATTRIBUTE);
-          // This attributes is presented above.
-          attrs.remove(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE);
-
-          Util.toHTMLtr_2(sb,
-                   "Copyright",
-                   getIdAttribute(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE));
-          attrs.remove(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE);
-
-          Util.toHTMLtr_2(sb,
-                   "Documentation",
-                   getIdAttribute(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE));
-          attrs.remove(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE);
-
-          Util.toHTMLtr_2(sb,
-                   "License",
-                   getIdAttribute(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE));
-          attrs.remove(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE);
-
-          // Any other attribute
-          for (final Entry<String,Object> entry : attrs.entrySet()) {
-            Util.toHTMLtr_2(sb, entry.getKey(), entry.getValue());
-          }
-        }
-      }
-
-      Util.toHTMLtrLog_2(sb, getLog().trim());
-
-      sb.append("</table>\n");
-      sb.append("<table border='0' width='100%'>\n");
-
-      // Capabilities
-      Util.toHTMLtrHeading1_1234_4(sb, "Capabilites");
-      for (final Entry<String, Set<Capability>> entry : ns2caps.entrySet()) {
-        final String ns = entry.getKey();
-        final NsToHtml nsToHtml = getNsToHtml(ns);
-        Util.toHTMLtrHeading2_1234_4(sb, ns);
-
-        final Set<Capability> caps = entry.getValue();
-        for (final Capability cap : caps) {
-          Util.toHTMLtr234_4(sb, nsToHtml.toHTML(cap));
-        }
-      }
-
-      // Requirements
-      Util.toHTMLtrHeading1_1234_4(sb, "Requirements");
-      for (final Entry<String, Set<Requirement>> entry : ns2reqs.entrySet()) {
-        final String ns = entry.getKey();
-        final NsToHtml nsToHtml = getNsToHtml(ns);
-        Util.toHTMLtrHeading2_1234_4(sb, ns);
-
-        final Set<Requirement> reqs = entry.getValue();
-        for (final Requirement req : reqs) {
-          Util.toHTMLtr234_4(sb, nsToHtml.toHTML(req));
-        }
-      }
-
-      sb.append("</table>\n");
-
-      return sb.toString();
-    }
-
-    /**
-     * BND generated XML repository files never contains a value for the
-     * optional attributes in the identity name space, also look for it in the
-     * KF-name space.
-     *
-     * @param key
-     *          Attribute key to look up.
-     *
-     * @return the attribute value of the resource that this node represents.
-     */
-    private String getIdAttribute(final String key)
-    {
-      for (final Capability idCap : idCaps) {
-        final Map<String, Object> attrs = idCap.getAttributes();
-
-        final String description = (String) attrs.remove(key);
-        if (description != null && description.length() > 0) {
-          return description;
-        }
-      }
-      if (kfExtraCaps != null && kfExtraCaps.size() > 0) {
-        return (String) kfExtraCaps.iterator().next().getAttributes().get(key);
-      }
-      return null;
-    }
-
-    @Override
-    public String getTitle()
-    {
-      // This is displayed in the HTML to the right.
-      if (bundle != null) {
-        return "#" + bundle.getBundleId() +" " + name;
-      }
-      return name;
-    }
-
   }
 
 }
