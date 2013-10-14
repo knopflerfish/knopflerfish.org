@@ -434,7 +434,6 @@ public class RepositoryDisplayer
 
           sb.append("</font>");
         }
-        Activator.log.info("TopNode.toHTML: " + sb);
         return sb.toString();
       }
 
