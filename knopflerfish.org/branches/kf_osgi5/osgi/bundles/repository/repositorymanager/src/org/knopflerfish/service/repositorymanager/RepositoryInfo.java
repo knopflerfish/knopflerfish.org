@@ -82,15 +82,15 @@ public class RepositoryInfo implements Comparable<RepositoryInfo> {
   }
 
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
+  public boolean equals(Object o) {
+    if (this == o)
       return true;
-    if (obj == null)
+    if (o == null)
       return false;
-    if (getClass() != obj.getClass())
+    if (getClass() != o.getClass())
       return false;
-    RepositoryInfo other = (RepositoryInfo) obj;
-    if (id != other.id)
+    RepositoryInfo rio = (RepositoryInfo) o;
+    if (id != rio.id || rank != rio.rank)
       return false;
     return true;
   }
@@ -100,11 +100,10 @@ public class RepositoryInfo implements Comparable<RepositoryInfo> {
     if (equals(o)) {
       return 0;
     }
-    RepositoryInfo rio = (RepositoryInfo) o;
-    if (rank != rio.rank) {
-      return rio.rank - rank;
+    if (rank != o.rank) {
+      return o.rank - rank;
     } else {
-      return id < rio.id ? -1 : 1;
+      return id < o.id ? -1 : 1;
     }
   }
 
