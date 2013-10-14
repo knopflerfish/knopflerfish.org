@@ -465,12 +465,11 @@ public class RepositoryDisplayer
                 repoNode.bBusy ? "busy..." : (url == null ? "?" : url
                     .toString());
 
-              final Bundle bundle = getBundle(repoNode.getResource());
-              repoNode.setInstalled(bundle);
+              final Bundle bundle = repoNode.getBundle();
               if (repoNode.bBusy) {
                 setIcon(reloadIcon);
               } else if (bundle != null) {
-                setIcon(bundleIcon);
+                setIcon(getBundleIcon(repoNode.getIconURL()));
                 setForeground(Color.gray);
               } else {
                 setIcon(bundleJarIcon);
@@ -487,6 +486,27 @@ public class RepositoryDisplayer
           } catch (final Exception ignored) {
           }
           return this;
+        }
+
+        // TODO: Use resource specific icons when available.
+//        Map<String,Icon> bundleIconCache = new HashMap<String, Icon>();
+        private Icon getBundleIcon(String iconURL)
+        {
+//          if (iconURL == null) {
+            return bundleIcon;
+//          }
+//          Icon res = bundleIconCache.get(iconURL);
+//          if (res == null) {
+//            try {
+//            res = new ImageIcon(iconURL);
+//            } catch (final Exception e) {
+//              // Fallback to the standard icon.
+//              res = bundleIcon;
+//              Activator.log.info("Failed to load icon with URL: " +iconURL, e);
+//            }
+//            bundleIconCache.put(iconURL, res);
+//          }
+//          return res;
         }
       };
 
@@ -1213,12 +1233,14 @@ public class RepositoryDisplayer
         sb.append("</font>\n");
         sb.append("</td>\n");
 
-        final String iconURL = htmlNode.getIconURL();
-        if (iconURL != null && !"".equals(iconURL.trim())) {
-          sb.append("<td valign=\"top\" bgcolor=\"#eeeeee\">");
-          sb.append("<img align=\"left\" src=\"" + iconURL + "\">");
-          sb.append("</td>");
-        }
+        // jar:-URLs are not handled by the HTML-document...
+//        final String iconURL = htmlNode.getIconURL();
+//        if (iconURL != null && !"".equals(iconURL.trim())) {
+//          System.out.println("iconURL: " +iconURL);
+//          sb.append("<td valign=\"top\" bgcolor=\"#eeeeee\">");
+//          sb.append("<img align=\"left\" src=\"" + iconURL + "\">");
+//          sb.append("</td>");
+//        }
 
       } else {
         sb.append("");
@@ -1600,30 +1622,32 @@ public class RepositoryDisplayer
     @Override
     public String getIconURL()
     {
-      // TODO: Use the bundles own icon for installed bundles?
-      // TODO: support?
+      String iconURL = Util.getResourceIcon(resource);
+      if (iconURL != null) {
+        // Simply take the first icon defined, ignoring size and other attributes.
+        // TODO: Re-use the desktop's BundleImageIcon class.
 
-      // String iconURL = (String) br.getAttribute("Application-Icon");
-      //
-      // if (iconURL != null && !"".equals(iconURL)) {
-      // final StringBuffer sb = new StringBuffer();
-      //
-      // if (iconURL.startsWith("!")) {
-      // if (!iconURL.startsWith("!/")) {
-      // iconURL = "!/" + iconURL.substring(1);
-      // }
-      // iconURL =
-      // "jar:" + br.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION)
-      // + iconURL;
-      // } else if (-1 == iconURL.indexOf(":")) {
-      // iconURL =
-      // "jar:" + br.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION) + "!/"
-      // + iconURL;
-      // }
-      // return iconURL;
-      // }
+        // Keep the first entry only.
+        final int commaPos = iconURL.indexOf(',');
+        if (commaPos > -1) {
+          iconURL = iconURL.substring(0, commaPos);
+        }
+        // Remove all parameters.
+        final int semiPos = iconURL.indexOf(';');
+        if (semiPos > -1) {
+          iconURL = iconURL.substring(0, semiPos);
+        }
 
-      return null;
+        if (iconURL.startsWith("!")) {
+          if (!iconURL.startsWith("!/")) {
+            iconURL = "!/" + iconURL.substring(1);
+          }
+          iconURL = "jar:" + Util.getLocation(resource) + iconURL;
+        } else if (-1 == iconURL.indexOf(":")) {
+          iconURL = "jar:" + Util.getLocation(resource) + "!/" + iconURL;
+        }
+      }
+      return iconURL;
     }
 
     @Override

@@ -283,6 +283,31 @@ public class Util
     return "[no vendor]";
   }
 
+  /**
+   * Get the icon for a repository resource.
+   *
+   * The icon is specified as the value of the bundle manifest entry named
+   * {@code Bundle-Icon}.
+   *
+   * @param resource
+   *          The resource to get the icon for.
+   *
+   * @return Resource icon string or {@code null} if icon information is
+   *         not available.
+   */
+  public static String getResourceIcon(Resource resource)
+  {
+    for (final Capability cap : resource
+        .getCapabilities(KF_EXTRAS_NAMESPACE)) {
+      final Map<String, Object> attrs = cap.getAttributes();
+      final Object val = attrs.get("icon");
+      if (val != null) {
+        return (String) val;
+      }
+    }
+    return null;
+  }
+
   static final Set<String> supportedMimeTypes = new TreeSet<String>();
   static {
     supportedMimeTypes.add(DownloadableBundleRequirement.MIME_BUNDLE);
