@@ -34,18 +34,13 @@
 
 package org.knopflerfish.bundle.repositorymanager;
 
-import java.util.Hashtable;
-
 import org.knopflerfish.service.repositorymanager.RepositoryInfo;
 import org.knopflerfish.service.repositorymanager.RepositoryManager;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceFactory;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.repository.Repository;
-import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * Bundle activator implementation.
@@ -70,8 +65,9 @@ public class Activator
   {
     repos = new Repositories(bc);
     repos.addListener(this);
-    rms = bc.registerService(RepositoryManager.class.getName(), this, repos.getServiceProperties());
-    repos.open();
+    synchronized (repos) {
+      rms = bc.registerService(RepositoryManager.class.getName(), this, repos.getServiceProperties());
+    }
   }
 
   /**
@@ -85,7 +81,6 @@ public class Activator
     rms.unregister();
     repos.removeListener(this);
     rms = null;
-    repos.close();
     repos = null;
   }
 
@@ -101,8 +96,7 @@ public class Activator
   }
 
   @Override
-  public void addingRepo(RepositoryInfo ri) {
-    System.out.println("PROP: " + repos.getServiceProperties());
+  public void addedRepo(RepositoryInfo ri) {
     if (rms != null) {
       rms.setProperties(repos.getServiceProperties());
     }

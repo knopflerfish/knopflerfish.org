@@ -65,7 +65,7 @@ public class RepositoryManagerImpl
   public RepositoryManagerImpl(Repositories repos) {
     this.repos = repos;
     autoEnable = true;
-    myRepos = null;
+    repos.addListener(this);
   }
 
   public List<Capability> findProviders(Requirement requirement) {
@@ -149,7 +149,7 @@ public class RepositoryManagerImpl
   }
 
   @Override
-  public void addingRepo(RepositoryInfo ri) {
+  public void addedRepo(RepositoryInfo ri) {
     if (myRepos != null && autoEnable && myRepos.containsValue(ri)) {
       myRepos.put(ri, ri);
     }

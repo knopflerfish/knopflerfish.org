@@ -53,20 +53,66 @@ import org.osgi.resource.Requirement;
 public interface RepositoryManager
 {
   
+  String CHANGE_COUNT = "change_count";
   String NUM_REPOSITORIES = "num_repositories";
 
+  /**
+   * Find providers for a requirement.
+   * 
+   * @see org.osgi.service.resolve.ResolverContext.findProviders
+   * @param requirement
+   * @return
+   */
   List<Capability> findProviders(Requirement requirement);
 
+  /**
+   * Add a repository based on a repository XML file.
+   * 
+   * @param url
+   * @param props
+   * @return
+   * @throws Exception
+   */
   RepositoryInfo addXmlRepository(String url, Dictionary<String, Object> props) throws Exception;
 
+  /**
+   * Get all repositories available.
+   * 
+   * @return
+   */
   SortedSet<RepositoryInfo> getAllRepositories();
 
+  /**
+   * Get all enabled repositories.
+   * 
+   * @return
+   */
   SortedSet<RepositoryInfo> getRepositories();
-  
+
+  /**
+   * Check if repository is enabled.
+   * 
+   * @param ri
+   * @return
+   */
   boolean isEnabled(RepositoryInfo ri);
 
+  /**
+   * Enable or disable repository.
+   * 
+   * @param ri
+   * @param enabled
+   * @return
+   */
   boolean setRepositoryEnabled(RepositoryInfo ri, boolean enabled);
 
+  /**
+   * Change ranking of a repository.
+   * 
+   * @param ri
+   * @param rank
+   * @return
+   */
   boolean setRepositoryRank(RepositoryInfo ri, int rank);
 
 }
