@@ -45,11 +45,15 @@ import org.osgi.resource.Requirement;
 
 /**
  * KF manager for interaction with OSGI repositories.
- *
+ * Registered as service factory. The service factory has one property
+ * <tt>num_repositories</tt> of type <tt>Integer</tt> that tells how
+ * many repositories are available. The services is updated whenever
+ * any repository changes state.
  */
-
 public interface RepositoryManager
 {
+  
+  String NUM_REPOSITORIES = "num_repositories";
 
   List<Capability> findProviders(Requirement requirement);
 

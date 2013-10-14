@@ -53,10 +53,11 @@ import org.osgi.util.tracker.ServiceTracker;
  * @author Jan Stein
  */
 public class Activator
-  implements BundleActivator,  ServiceFactory<RepositoryManager>
+  implements BundleActivator,  ServiceFactory<RepositoryManager>, RepositoryListener
 {
 
   private Repositories repos = null;
+  private ServiceRegistration<?> rms = null;
 
 
   /**
@@ -68,7 +69,9 @@ public class Activator
   public void start(BundleContext bc)
   {
     repos = new Repositories(bc);
-    bc.registerService(RepositoryManager.class.getName(), this, null);
+    repos.addListener(this);
+    rms = bc.registerService(RepositoryManager.class.getName(), this, repos.getServiceProperties());
+    repos.open();
   }
 
   /**
@@ -79,6 +82,10 @@ public class Activator
   @Override
   public void stop(BundleContext bc)
   {
+    rms.unregister();
+    repos.removeListener(this);
+    rms = null;
+    repos.close();
     repos = null;
   }
 
@@ -91,6 +98,28 @@ public class Activator
   @Override
   public void ungetService(Bundle bundle, ServiceRegistration<RepositoryManager> registration,
                            RepositoryManager service) {
+  }
+
+  @Override
+  public void addingRepo(RepositoryInfo ri) {
+    System.out.println("PROP: " + repos.getServiceProperties());
+    if (rms != null) {
+      rms.setProperties(repos.getServiceProperties());
+    }
+  }
+
+  @Override
+  public void modifiedRepo(RepositoryInfo ri) {
+    if (rms != null) {
+      rms.setProperties(repos.getServiceProperties());
+    }
+  }
+
+  @Override
+  public void removedRepo(RepositoryInfo ri) {
+    if (rms != null) {
+      rms.setProperties(repos.getServiceProperties());
+    }
   }
 
 }

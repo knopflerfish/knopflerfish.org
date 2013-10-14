@@ -130,7 +130,8 @@ public class RepositoryCommandGroup
     = "[-l] [<symbolicname> [<versionRange>]]";
 
   public final static String[] HELP_BUNDLE = new String[] {
-    "Find bundle resources all ot all that matches <symbolicname>",
+    "List bundle resources.",
+    "List all bundles that matches <symbolicname>",
     "and <versionRange>.",
     "-l             Verbose output",
     "<symbolicname> Bundle symbolic name to match",
@@ -173,7 +174,9 @@ public class RepositoryCommandGroup
     = "<repository> ...";
 
   public final static String[] HELP_DISABLE = new String[] {
-    "Disable repository, so that it won't be used when searching for resources",
+    "Disable selected repository.",
+    "Disables a repository so that it won't be used when searching",
+    "for resources.",
     "<repository> Wildcard name or id of repository"
   };
 
@@ -204,7 +207,9 @@ public class RepositoryCommandGroup
     = "<repository> ...";
 
   public final static String[] HELP_ENABLE = new String[] {
-    "Enable repository, so they will be used when searching for resources",
+    "Enable selected repository.",
+    "Enables a repository so that it will be used when searching",
+    "for resources.",
     "<repository> Wildcard name or id of repository"
   };
 
@@ -227,9 +232,6 @@ public class RepositoryCommandGroup
     }
   }
 
-  
-
-
   //
   // Install bundle command
   //
@@ -238,9 +240,10 @@ public class RepositoryCommandGroup
     = "[-s] <symbolicname> [<versionRange>]";
 
   public final static String[] HELP_INSTALL = new String[] {
-    "Install bundle resource that matches <symbolicname>",
-    "and <versionRange>.",
-    "-s             Persistently start bundle(s) according to activation policy",
+    "Install bundle resource.",
+    "Installs first bundle resource that matches <symbolicname>",
+    "and optional <versionRange>.",
+    "-s             Persistently start bundle according to activation policy",
     "<symbolicname> Bundle symbolic name to match",
     "<versionRange> Optional bundle version range"
   };
@@ -305,7 +308,7 @@ public class RepositoryCommandGroup
     = "[-l] [<repository>]";
 
   public final static String[] HELP_LIST = new String[] {
-    "List repositories",
+    "List repositories.",
     "-l           Verbose output",
     "<repository> Name or id of repository"
   };
@@ -337,8 +340,10 @@ public class RepositoryCommandGroup
     = "<rank> <repository> ...";
 
   public final static String[] HELP_RANK = new String[] {
-    "Change repository ranking, so that we can change the order in which repositories are searched.",
-    "<rank> New rank of repository, must be an integer",
+    "Change repository ranking.",
+    "The rank is used to can change the order in which repositories",
+    "are searched.",
+    "<rank>       New rank of repository, must be an integer",
     "<repository> Wildcard name or id of repository"
   };
 
@@ -370,12 +375,50 @@ public class RepositoryCommandGroup
   }
 
   //
+  // Show command
+  //
+
+  public final static String USAGE_SHOW
+    = "[-t] <namespace> [<filter>]";
+
+  public final static String[] HELP_SHOW = new String[] {
+    "Show all capabilities and requirements for selected resources.",
+    "-t          Terse output, only show namespace attribute.",
+    "<namespace> Which namespace to search.",
+    "<filter>    OSGi filter expression for selecting resources."
+  };
+
+  public int cmdShow(Dictionary<String,?> opts, Reader in, PrintWriter out,
+                     Session session) {
+    final String namespace = (String) opts.get("namespace");
+    final String filterStr = (String) opts.get("filter");
+
+    BasicRequirement requirement;
+    requirement = new BasicRequirement(namespace);
+    if (filterStr != null) {
+      requirement.addDirective("filter", filterStr); 
+    }
+    List<Capability> cs = getRepositoryManager().findProviders(requirement);
+    if (cs.isEmpty()) {
+      out.println("No matching resources found!");
+      return 0;
+    }
+    List<Resource> resources = new ArrayList<Resource>();
+    for (Capability c : cs) {
+      resources.add(c.getResource());
+    }
+    printResources(out, resources, namespace, opts.get("-t") == null);
+    return 0;
+  }
+
+
+  //
   // Private methods
   //
 
   private void printRepos(PrintWriter out, SortedSet<RepositoryInfo> rs, String heading, boolean verbose) {
     out.println(heading != null ? heading : "E  Id Rank  Description");
-    out.println("----------------------");
+    out.println("------------------------");
     final RepositoryManager rm = getRepositoryManager();
     for (RepositoryInfo ri : rs) {
       final String desc = (String) ri.getProperty(Constants.SERVICE_DESCRIPTION);
@@ -406,6 +449,20 @@ public class RepositoryCommandGroup
         out.println("    Type: " + identity.get(IdentityNamespace.CAPABILITY_TYPE_ATTRIBUTE));
         out.println("    URL:  " + content.get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE));
         out.println("    Size: " + content.get(ContentNamespace.CAPABILITY_SIZE_ATTRIBUTE));
+      }
+    }
+  }
+
+  private void printResources(PrintWriter out, List<Resource> resources, String namespace, boolean verbose) {
+    out.println("Resource");
+    out.println("======================");
+    for (Resource r : resources) {
+      final List<Capability> capabilities = r.getCapabilities(namespace);
+      Map<String, Object> nsAttrs = capabilities.iterator().next().getAttributes();
+      out.println(nsAttrs.get(namespace));
+      if (verbose) {
+        out.println("----------");
+        out.println(r);
       }
     }
   }

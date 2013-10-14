@@ -39,7 +39,9 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.knopflerfish.service.repositorymanager.RepositoryInfo;
@@ -57,7 +59,7 @@ public class RepositoryManagerImpl
 {
 
   final private Repositories repos;
-  private TreeSet<RepositoryInfo> myRepos;
+  private TreeMap<RepositoryInfo,RepositoryInfo> myRepos;
   private boolean autoEnable;
 
   public RepositoryManagerImpl(Repositories repos) {
@@ -68,7 +70,7 @@ public class RepositoryManagerImpl
 
   public List<Capability> findProviders(Requirement requirement) {
     ArrayList<Capability> res = new ArrayList<Capability>();
-    for (RepositoryInfo ri : myRepos != null ? myRepos : repos.getAll()) {
+    for (RepositoryInfo ri : myRepos != null ? myRepos.keySet() : repos.getAll()) {
       Repository r = repos.getRepository(ri);
       if (r != null) {
         res.addAll(r.findProviders(Collections.singleton(requirement)).get(requirement));
@@ -82,22 +84,22 @@ public class RepositoryManagerImpl
     TreeSet<RepositoryInfo> res = repos.getAll();
     if (myRepos != null) {
       // Add myRepos to get correct ranking.
-      res.removeAll(myRepos);
-      res.addAll(myRepos);
+      res.removeAll(myRepos.values());
+      res.addAll(myRepos.keySet());
     }
     return res;
   }
 
   @Override
   public SortedSet<RepositoryInfo> getRepositories() {
-    return new TreeSet<RepositoryInfo>(myRepos != null ? myRepos : repos.getAll());
+    return new TreeSet<RepositoryInfo>(myRepos != null ? myRepos.keySet() : repos.getAll());
   }
 
   @Override
   public RepositoryInfo addXmlRepository(String url, Dictionary<String, Object> props) throws Exception {
     final RepositoryInfo repo = repos.addXmlRepository(url, props);
     if (repo != null && myRepos != null) {
-      myRepos.add(repo);
+      myRepos.put(repo, repo);
     }
     return repo;
   }
@@ -111,14 +113,14 @@ public class RepositoryManagerImpl
         return false;
       }
       if (enabled) {
-        if (myRepos != null && !myRepos.contains(ri)) {
-          myRepos.add(ri);
+        if (myRepos != null && !myRepos.containsValue(ri)) {
+          myRepos.put(ri, ri);
         }
       } else {
         if (myRepos == null) {
-          myRepos = repos.getAll();
+          myRepos = repos.getAllMap();
         }
-        myRepos.remove(ri);
+        myRepos.values().remove(ri);
       }
     }
     return true;
@@ -127,12 +129,15 @@ public class RepositoryManagerImpl
   @Override
   public boolean setRepositoryRank(RepositoryInfo ri, int rank) {
     synchronized (repos) {
-      if (myRepos == null) {
-        myRepos = repos.getAll();
-      }
-      if (myRepos.remove(ri)) {
-        myRepos.add(new RepositoryInfo(ri, rank));
-        return true;
+      ri = repos.get(ri.getId());
+      if (ri != null) {
+        if (myRepos == null) {
+          myRepos = repos.getAllMap();
+        }
+        if (myRepos.values().remove(ri)) {
+          myRepos.put(new RepositoryInfo(ri, rank), ri);
+          return true;
+        }
       }
     }
     return false;
@@ -140,27 +145,40 @@ public class RepositoryManagerImpl
 
   @Override
   public boolean isEnabled(RepositoryInfo ri) {
-    return myRepos == null || myRepos.contains(ri);
+    return myRepos == null || myRepos.containsKey(ri) || myRepos.containsValue(ri);
   }
 
   @Override
   public void addingRepo(RepositoryInfo ri) {
-    if (myRepos != null && autoEnable) {
-      myRepos.add(ri);
+    if (myRepos != null && autoEnable && myRepos.containsValue(ri)) {
+      myRepos.put(ri, ri);
     }
   }
 
   @Override
   public void modifiedRepo(RepositoryInfo ri) {
-    if (myRepos != null && autoEnable) {
-      myRepos.add(ri);
+    // We replace it we haven't changed ranking
+    if (myRepos != null) {
+      final long id = ri.getId();
+      for (Iterator<Entry<RepositoryInfo, RepositoryInfo>> i = myRepos.entrySet().iterator(); i.hasNext();) {
+        Entry<RepositoryInfo,RepositoryInfo> ers = i.next();
+        final RepositoryInfo my = ers.getKey();
+        if (my.getId() == id) {
+          // Only modify if we haven't changed rank
+          if (my == ers.getValue()) {
+            i.remove();
+            myRepos.put(ri, ri);
+            return;
+          }
+        }
+      }
     }
   }
 
   @Override
   public void removedRepo(RepositoryInfo ri) {
     if (myRepos != null) {
-      myRepos.remove(ri);
+      myRepos.values().remove(ri);
     }
   }
 
