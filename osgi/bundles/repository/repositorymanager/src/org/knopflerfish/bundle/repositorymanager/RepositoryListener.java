@@ -37,7 +37,7 @@ import org.knopflerfish.service.repositorymanager.RepositoryInfo;
 
 interface RepositoryListener {
 
-  void addingRepo(RepositoryInfo ri);
+  void addedRepo(RepositoryInfo ri);
 
   void modifiedRepo(RepositoryInfo ri);
 

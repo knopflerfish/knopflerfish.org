@@ -36,6 +36,7 @@ package org.knopflerfish.bundle.repositorymanager;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -43,32 +44,37 @@ import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
 import org.knopflerfish.service.repositorymanager.RepositoryInfo;
 import org.knopflerfish.service.repositorymanager.RepositoryManager;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.repository.Repository;
 import org.osgi.util.tracker.ServiceTracker;
-import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-class Repositories implements ServiceTrackerCustomizer<Repository, Repository>
+class Repositories implements ServiceListener
 {
 
-  private ServiceTracker<Repository, Repository> repoTracker = null;
-  private ServiceTracker<XmlBackedRepositoryFactory, XmlBackedRepositoryFactory> xmlRepoFactoryTracker = null;
+  final private TreeMap<RepositoryInfo, RepositoryInfo> repos = new TreeMap<RepositoryInfo, RepositoryInfo>();
   final private ArrayList<RepositoryListener> listeners = new ArrayList<RepositoryListener>(2);
-  private int size_offset  = 0;
+  final private BundleContext bc;
 
+  private ServiceTracker<XmlBackedRepositoryFactory, XmlBackedRepositoryFactory> xmlRepoFactoryTracker = null;
+  private int changeCount = 0;
 
   Repositories(BundleContext bc) {
-    repoTracker = new ServiceTracker<Repository, Repository>(bc, Repository.class.getName(), this);
-    repoTracker.open();
+    this.bc = bc;
+    synchronized (this) {
+      final String clazz = Repository.class.getName();
+      try {
+        bc.addServiceListener(this, "(objectClass=" + clazz + ")");
+        for (ServiceReference<Repository> sr : bc.getServiceReferences(Repository.class, null)) {
+          RepositoryInfo ri = new RepositoryInfo(sr);
+          repos.put(ri, ri);
+        }
+      } catch (InvalidSyntaxException _ignore) { }
+    }
     xmlRepoFactoryTracker = new ServiceTracker<XmlBackedRepositoryFactory, XmlBackedRepositoryFactory>(bc, XmlBackedRepositoryFactory.class.getName(), null);
-  }
-
-  void open() {
     xmlRepoFactoryTracker.open();
-  }
-
-  void close() {
-    xmlRepoFactoryTracker.close();
   }
 
   RepositoryInfo addXmlRepository(String url, Dictionary<String,?> properties) throws Exception {
@@ -76,50 +82,36 @@ class Repositories implements ServiceTrackerCustomizer<Repository, Repository>
     if (xf != null) {
       ServiceReference<Repository> sr = xf.create(url, properties, null);
       if (sr != null) {
-        return new RepositoryInfo(sr);
-      }
-    }
-    return null;
-  }
-
-  RepositoryInfo get(long id) {
-    final ServiceReference<Repository>[] srs = repoTracker.getServiceReferences();
-    if (srs != null) {
-      for (ServiceReference<Repository> sr : srs) {
         RepositoryInfo ri = new RepositoryInfo(sr);
-        if (ri.getId() == id) {
-          return ri;
+        synchronized (this) {
+          repos.put(ri, ri);
         }
+        return ri;
       }
     }
     return null;
   }
 
-  TreeSet<RepositoryInfo> getAll() {
-    TreeSet<RepositoryInfo> res = new TreeSet<RepositoryInfo>();
-    final ServiceReference<Repository>[] srs = repoTracker.getServiceReferences();
-    if (srs != null) {
-      for (ServiceReference<Repository> sr : srs) {
-        res.add(new RepositoryInfo(sr));
+  synchronized RepositoryInfo get(long id) {
+    for (RepositoryInfo ri : repos.keySet()) {
+      if (ri.getId() == id) {
+        return ri;
       }
     }
-    return res;
+    return null;
   }
 
+  synchronized TreeSet<RepositoryInfo> getAll() {
+    return new TreeSet<RepositoryInfo>(repos.keySet());
+  }
+
+  @SuppressWarnings("unchecked")
   TreeMap<RepositoryInfo,RepositoryInfo> getAllMap() {
-    TreeMap<RepositoryInfo,RepositoryInfo> res = new TreeMap<RepositoryInfo,RepositoryInfo>();
-    final ServiceReference<Repository>[] srs = repoTracker.getServiceReferences();
-    if (srs != null) {
-      for (ServiceReference<Repository> sr : srs) {
-        final RepositoryInfo ri = new RepositoryInfo(sr);
-        res.put(ri, ri);
-      }
-    }
-    return res;
+    return (TreeMap<RepositoryInfo, RepositoryInfo>) repos.clone();
   }
 
   Repository getRepository(RepositoryInfo ri) {
-    return repoTracker.getService(ri.getServiceReference());
+    return bc.getService(ri.getServiceReference());
   }
 
   void addListener(RepositoryListener rl) {
@@ -133,36 +125,55 @@ class Repositories implements ServiceTrackerCustomizer<Repository, Repository>
 
   Dictionary<String, ?> getServiceProperties() {
     Hashtable<String, Object> p = new Hashtable<String, Object>(); 
-    p.put(RepositoryManager.NUM_REPOSITORIES, new Integer(repoTracker.size() + size_offset));
+    p.put(RepositoryManager.CHANGE_COUNT, new Integer(changeCount));
+    p.put(RepositoryManager.NUM_REPOSITORIES, new Integer(repos.size()));
     return p;
   }
 
-  @Override
-  public synchronized Repository addingService(ServiceReference<Repository> sr) {
-    RepositoryInfo ri = new RepositoryInfo(sr);
-    size_offset = 1;
-    for (RepositoryListener rl : listeners) {
-      rl.addingRepo(ri);
-    }
-    size_offset = 0;
-    return repoTracker.addingService(sr);
+  int getChangeCount() {
+    return changeCount;
   }
 
   @Override
-  public synchronized void modifiedService(ServiceReference<Repository> sr, Repository service) {
-    RepositoryInfo ri = new RepositoryInfo(sr);
-    for (RepositoryListener rl : listeners) {
-      rl.modifiedRepo(ri);
+  public void serviceChanged(ServiceEvent event) {
+    @SuppressWarnings("unchecked")
+    RepositoryInfo ri = new RepositoryInfo((ServiceReference<Repository>) event.getServiceReference());
+    synchronized (this) {
+      switch (event.getType()) {
+      case ServiceEvent.REGISTERED:
+        repos.put(ri, ri);
+        break;
+      case ServiceEvent.MODIFIED:
+        for (Iterator<RepositoryInfo> i = repos.keySet().iterator(); i.hasNext();) {
+          RepositoryInfo old = i.next();
+          if (old.getId() == ri.getId()) {
+            i.remove();
+            repos.put(ri, ri);
+          }
+        }
+        break;
+      case ServiceEvent.MODIFIED_ENDMATCH:
+      case ServiceEvent.UNREGISTERING:
+        repos.remove(ri);
+        break;      
+      }
+      changeCount++;
     }
-  }
-
-  @Override
-  public synchronized void removedService(ServiceReference<Repository> sr, Repository service) {
-    RepositoryInfo ri = new RepositoryInfo(sr);
     for (RepositoryListener rl : listeners) {
-      rl.removedRepo(ri);
+      switch (event.getType()) {
+      case ServiceEvent.REGISTERED:
+        rl.addedRepo(ri);
+        repos.put(ri, ri);
+        break;
+      case ServiceEvent.MODIFIED:
+        rl.modifiedRepo(ri);
+        break;
+      case ServiceEvent.MODIFIED_ENDMATCH:
+      case ServiceEvent.UNREGISTERING:
+        rl.removedRepo(ri);
+        break;      
+      }
     }
-    repoTracker.removedService(sr, service);
   }
 
 }
