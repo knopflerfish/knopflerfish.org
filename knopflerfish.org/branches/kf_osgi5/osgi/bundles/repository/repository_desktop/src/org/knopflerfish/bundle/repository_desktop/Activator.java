@@ -61,7 +61,6 @@ public class Activator
   public void stop(BundleContext bc)
   {
     displayer.unregister();
-    log.close();
   }
 
 }
