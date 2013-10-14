@@ -348,13 +348,11 @@ public class RepositoryDisplayer
   private String deriveCatagory(final Resource resource, final int sortCategory)
   {
     String category = "other";
-    // TODO Get category from resource...
+
     if (sortCategory == SORT_CATEGORY) {
-      // MainfestHeader: Constants.BUNDLE_CATEGORY
-      category = "[no category]";
+      category = Util.getResourceCategory(resource);
     } else if (sortCategory == SORT_VENDOR) {
-      // MainfestHeader: Constants.BUNDLE_VENDOR
-      category = "[no vendor]";
+      category = Util.getResourceVendor(resource);
     } else if (sortCategory == SORT_STATUS) {
       if (getBundle(resource) != null) {
         category = "Installed";
@@ -463,7 +461,6 @@ public class RepositoryDisplayer
               final RepositoryNode repoNode = (RepositoryNode) node;
 
               final URL url = Util.getResourceUrl(repoNode.resource);
-              // TODO What shall we use when there is no download URL?
               tt =
                 repoNode.bBusy ? "busy..." : (url == null ? "?" : url
                     .toString());
@@ -978,7 +975,7 @@ public class RepositoryDisplayer
           // move all resource into a sorted
           // category map of sets
           // First find all bundle resources in all repos.
-          final Requirement bundleReq = new BundleRequirement();
+          final Requirement bundleReq = new DownloadableBundleRequirement();
           final Set<Resource> bundleResources = new HashSet<Resource>();
           for (final Repository repo : repos.values()) {
             final Map<Requirement, Collection<Capability>> answer =
@@ -1400,16 +1397,16 @@ public class RepositoryDisplayer
 
           for (final ServiceReference<Repository> sr : repoSrs) {
             sb.append("<li><p>");
-            toHTML(sb, sr, Constants.SERVICE_PID, "Persisten identity: ");
-            toHTML(sb, sr, Constants.SERVICE_DESCRIPTION, "Description: ");
-            toHTML(sb, sr, Repository.URL, "URL: ");
+            toHTML(sb, sr, Constants.SERVICE_DESCRIPTION, "");
+            toHTML(sb, sr, Constants.SERVICE_PID, "PID: ");
+            toHTML(sb, sr, Repository.URL, "URLs: ");
             sb.append("</p>");
           }
           sb.append("</ul>");
 
           sb.append("<p>");
           final Set<Resource> bundleResources = new HashSet<Resource>();
-          final Requirement bundleReq = new BundleRequirement();
+          final Requirement bundleReq = new DownloadableBundleRequirement();
           for (final Repository repo : repos.values()) {
             final Map<Requirement, Collection<Capability>> answer =
               repo.findProviders(Collections.singleton(bundleReq));
@@ -1512,7 +1509,6 @@ public class RepositoryDisplayer
     implements HTMLAble
   {
     private static final long serialVersionUID = 3L;
-    private static final String KF_EXTRAS_NAMESPACE = "org.knopflerfish.extra";
 
     String name;
     StringBuffer log = new StringBuffer();
@@ -1550,7 +1546,7 @@ public class RepositoryDisplayer
         caps.add(capability);
       }
       idCaps = ns2caps.remove(IdentityNamespace.IDENTITY_NAMESPACE);
-      kfExtraCaps = ns2caps.remove(KF_EXTRAS_NAMESPACE);
+      kfExtraCaps = ns2caps.remove(Util.KF_EXTRAS_NAMESPACE);
 
       for (final Requirement requirement : resource.getRequirements(null)) {
         final String ns = requirement.getNamespace();
@@ -1604,7 +1600,9 @@ public class RepositoryDisplayer
     @Override
     public String getIconURL()
     {
+      // TODO: Use the bundles own icon for installed bundles?
       // TODO: support?
+
       // String iconURL = (String) br.getAttribute("Application-Icon");
       //
       // if (iconURL != null && !"".equals(iconURL)) {

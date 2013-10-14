@@ -14,7 +14,7 @@ import org.osgi.service.repository.ContentNamespace;
  * @author ekolin
  *
  */
-public class BundleRequirement
+public class DownloadableBundleRequirement
   implements Requirement
 {
   /**
@@ -26,7 +26,7 @@ public class BundleRequirement
   Map<String,String> directives = new HashMap<String, String>();
   Map<String,Object> attributes = new HashMap<String, Object>();
 
-  public BundleRequirement()
+  public DownloadableBundleRequirement()
   {
     final String filter =
       "(|(" + ContentNamespace.CAPABILITY_MIME_ATTRIBUTE + "=" + MIME_BUNDLE

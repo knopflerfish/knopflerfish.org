@@ -64,6 +64,12 @@ public class Util
 {
 
   /**
+   * The name space that Knopflerfish puts data in that is not part of the
+   * default repository XML generation.
+   */
+  public static final String KF_EXTRAS_NAMESPACE = "org.knopflerfish.extra";
+
+  /**
    * Check if a bundle object corresponds to a resource.
    *
    * <p>
@@ -209,7 +215,7 @@ public class Util
    * Get the size in bytes of a repository resource.
    *
    * @param resource
-   *          The resource to get the URL for.
+   *          The resource to get the size of.
    *
    * @return Resource size in byte or {@code -1} if no size available.
    */
@@ -228,10 +234,59 @@ public class Util
     return res;
   }
 
+  /**
+   * Get the category of a repository resource.
+   *
+   * The category is specified as the value of the bundle manifest entry named
+   * {@link Constants#BUNDLE_CATEGORY}.
+   *
+   * @param resource
+   *          The resource to get the category for.
+   *
+   * @return Resource category or {@code "[no category]"} if no category is available.
+   */
+  public static String getResourceCategory(Resource resource)
+  {
+    for (final Capability cap : resource
+        .getCapabilities(KF_EXTRAS_NAMESPACE)) {
+      final Map<String, Object> attrs = cap.getAttributes();
+      final Object val = attrs.get("category");
+      if (val != null) {
+        return (String) val;
+      }
+    }
+    return "[no category]";
+  }
+
+  /**
+   * Get the vendor of a repository resource.
+   *
+   * The vendor is specified as the value of the bundle manifest entry named
+   * {@link Constants#BUNDLE_VENDOR}.
+   *
+   * @param resource
+   *          The resource to get the vendor for.
+   *
+   * @return Resource vendor or {@code "[no vendor]"} if vendor information is
+   *         not available.
+   */
+  public static String getResourceVendor(Resource resource)
+  {
+    for (final Capability cap : resource
+        .getCapabilities(KF_EXTRAS_NAMESPACE)) {
+      final Map<String, Object> attrs = cap.getAttributes();
+      final Object val = attrs.get("vendor");
+      if (val != null) {
+        return (String) val;
+      }
+    }
+    return "[no vendor]";
+  }
+
   static final Set<String> supportedMimeTypes = new TreeSet<String>();
   static {
-    supportedMimeTypes.add(BundleRequirement.MIME_BUNDLE);
-    supportedMimeTypes.add(BundleRequirement.MIME_BUNDLE_ALT);
+    supportedMimeTypes.add(DownloadableBundleRequirement.MIME_BUNDLE);
+    supportedMimeTypes.add(DownloadableBundleRequirement.MIME_BUNDLE_ALT);
   }
 
   /**
