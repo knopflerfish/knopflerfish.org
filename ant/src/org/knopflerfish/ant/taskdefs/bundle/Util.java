@@ -228,7 +228,7 @@ public class Util {
    * @param p Name of parameter to assign the value to, for error messages.
    * @param type the type to convert to.
    * @param value the value to convert.
-   * @return
+   * @return attribute value converted to the desired type.
    */
   private static Object toValue(String a,
                                 String param,
