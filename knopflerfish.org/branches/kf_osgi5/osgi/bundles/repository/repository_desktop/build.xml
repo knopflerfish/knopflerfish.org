@@ -5,6 +5,8 @@
   <dirname  property="proj.dir" file="${ant.file.repository_desktop}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
+  <property name="bundle.build.doc"      value = "true"/>
+
   <property name="bundle.build.api"      value="false"/>
   <property name="bundle.build.impl"     value="false"/>
   <property name="bundle.build.lib"      value="false"/>

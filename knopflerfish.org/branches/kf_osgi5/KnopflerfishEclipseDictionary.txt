@@ -52,3 +52,4 @@ deployer
 multi
 verbosity
 plugin
+downloadable

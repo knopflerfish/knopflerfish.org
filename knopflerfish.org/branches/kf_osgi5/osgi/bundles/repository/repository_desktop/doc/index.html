@@ -1,0 +1,115 @@
+<h1>The Knopflerfish Desktop Repository plug-in</h1>
+<div class="abstract">
+  The Knopflerfish OSGi Desktop Repository plug-in provides a bundle detail
+  view for interacting with the OSGi repository and resolver services.
+</div>
+
+<!--
+<h2>Description</h2>
+<div style="float:right">
+  <a href="images/cm_desktop.png">
+    <img src="images/cm_desktop_300.png" width="300" height="244">
+  </a>
+</div>
+
+  <p>The Knopflerfish OSGi Desktop CM plug-in provides a bundle detail
+  view for managing OSGi configurations. It support common operations
+  as create, update and delete for CM configurations. It can also
+  import and export configurations using the <a
+  href="../cm/cm_data.dtd">cm_data.dtd</a> XML document format.</p>
+
+<h3>The CM-desktop view</h3>
+
+  <p>The view presents configurations with associated metatype
+  information for the selected bundle. In the top part of the view
+  there will be two selectors, selecting which PID (configuration) to
+  show. The upper selector selects amongst PIDs with accompanying
+  metatype data (OCD, Object Class Definition) defining the set of
+  properties (AD Attribute Definitions) that may be configured for the
+  PID. The second selector selects Factory PIDs (configurations). For
+  more information on metatype see chapter 105 in the OSGi Compendium
+  Specification.</p>
+
+  <p>The main part of the view shows one configuration with inputs for
+  all the properties defined for it in its metatype description. On
+  top there are controls for the CRUD-operations and if it is a
+  factory PID that was selected there will be a drop down for
+  selecting the instance of the factory PID to view and work with.</p>
+
+  <p>A configuration instance can be targeted to a specific bundle by
+  appending the actual PID with a target specification. It is possible
+  to target configuration instances on
+  <ul>
+    <li>Bundle symbolic name.
+    <li>Bundles symbolic name and version.
+    <li>Bundles symbolic name, version and location.
+  </ul> Controls for selecting the target level are available in the
+  upper par of the main view.</p>
+
+
+
+<div style="clear:both"></div>
+<h3>Special presentations</h3>
+
+<div style="float:right">
+  <a href="images/cm_desktop_systembundle.png">
+    <img src="images/cm_desktop_systembundle_300.png" width="300" height="244">
+  </a>
+</div>
+
+  <p>If the system bundle is the selected bundle then this displayer
+  will show the union of all PIDs defined by metatype information in
+  all installed bundles.</p>
+
+  <p>If the CM bundle is selected and the kf-metatype bundle is the
+  provider of the MetaTypeService then this view will show all
+  configurations present in CM. In this case metatype information is
+  generated from the actual configuration data so it will not be as
+  precise as the one obtained from metatype information in a bundle.
+
+  <p>If no bundle is selected (or a bundle without any meta type
+  information) then the view will display a page that informs about
+  these special presentations, a list of all bundles with meta type
+  information and an <em>Import...</em> button that will present a
+  dialog for importing <a href="../cm/cm_data.dtd">cm_data.dtd</a> XML
+  documents.</p>
+
+
+
+<div style="clear:both"></div>
+<h3>The CM-desktop dependencies</h3>
+
+  <p>The CM-Desktop needs the metatype API and an implementation of the
+  MetaTypeService to work. These are provided by the
+  <em>metatype</em>-bundle and the <em>kf_metatype</em> bundle.
+
+  -->
+
+<div style="clear:both"></div>
+<h2>Configuration properties</h2>
+
+The Repository-Desktop bundle does not support any properties for configuration.
+
+<!--
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+
+  <tr>
+    <td>org.knopflerfish.bundle.log.window.impl.LogTableModel.capacity</td>
+    <td>
+
+	The maximum number of log entries to keep in memory in one log
+	view. Use a negative value (i.e., a value smaller than 1) to
+	indicate that old entries shall never be removed.
+
+    </td>
+    <td>int</td>
+    <td>342</td>
+  </tr>
+</table>
+-->
