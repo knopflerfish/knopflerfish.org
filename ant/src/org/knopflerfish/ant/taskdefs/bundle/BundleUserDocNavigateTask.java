@@ -149,6 +149,10 @@ import org.apache.tools.ant.Task;
  *         path pointing to the file <tt>index.html</tt> inside the
  *         sub-directory holding the properties file.</dd>
  *
+ *     <dt><tt>linkRef</tt></dt>
+ *     <dd>A reference part to append to the generated link. I.e., this will
+ *         make a link that points a named anchor on the linked page.
+ *
  *     <dt><tt>sortKey</tt></dt>
  *     <dd>String to use when sorting links. Default is the value of
  *         the title key.</dd>
@@ -283,6 +287,9 @@ public class BundleUserDocNavigateTask
       sb.append("\">");
       sb.append("<a target=\"bundledoc_main\" href=\"");
       sb.append(ld.linkPath);
+      if (ld.linkRef != null && ld.linkRef.length() > 0) {
+        sb.append("#").append(ld.linkRef);
+      }
       sb.append("\">");
       sb.append(ld.title);
       sb.append("</a></dd>\n");
@@ -296,6 +303,7 @@ public class BundleUserDocNavigateTask
   {
     String title;
     String linkPath;
+    String linkRef;
     String sortKey;
     int depth = 1;
 
@@ -320,6 +328,7 @@ public class BundleUserDocNavigateTask
     ld.title = docProps.getProperty(prefix +"title", ld.title);
     ld.sortKey = docProps.getProperty(prefix +"sortKey", ld.title);
     ld.linkPath = docProps.getProperty(prefix +"linkPath", ld.linkPath);
+    ld.linkRef = docProps.getProperty(prefix +"linkRef", ld.linkRef);
     final String sd = docProps.getProperty(prefix +"depth");
     if (null!=sd && 0<sd.length()) {
       try {
