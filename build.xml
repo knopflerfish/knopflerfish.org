@@ -571,6 +571,7 @@
         <include name="osgi/bundles/position/**"/>
         <include name="osgi/bundles/measurement/**"/>
         <include name="osgi/bundles/metatype/**"/>
+        <include name="osgi/bundles/repository/**"/>
 
         <include name="osgi/bundles/component/**"/>
         <include name="osgi/bundles/scrcommands/**"/>
@@ -595,7 +596,6 @@
         <include name="osgi/bundles/trayicon/trayicon/**"/>
         <include name="osgi/bundles/trayicon/trayicon_fw/**"/>
         <include name="osgi/bundles/remotefw/**"/>
-        <include name="osgi/bundles/bundlerepository/**"/>
 
         <include name="osgi/bundles_opt/build.xml"/>
         <include name="osgi/bundles_opt/commons-logging/**"/>
@@ -719,196 +719,7 @@
     <antcall target="distrib_tiny"/>
     <antcall target="distrib_index"/>
     <antcall target="distrib_mvn_repo"/>
-    <antcall target="obr"/>
-    <antcall target="bindex"/>
     <echo message="Build result placed in ${distrib.dir} and repo"/>
-  </target>
-
-  <target name="bindex" depends="bundle_tasks,install_bindex">
-    <!-- The top level REPO file -->
-    <antcall target="bindex_bare">
-      <param name="bindex.dest.dir" location="repo"/>
-      <param name="bindex.base.url" value="http://www.knopflerfish.org/repo"/>
-      <param name="bindex.xslt" location="${ant.dir}/lib/obr2html.xsl"/>
-    </antcall>
-
-    <!-- The release directory REPO file -->
-    <antcall target="bindex_bare">
-      <param name="bindex.dest.dir" location="${distrib.dir}"/>
-      <param name="bindex.base.url" value="${base.url}/${version}/osgi"/>
-      <param name="bindex.xslt" location="${ant.dir}/lib/obr2html.xsl"/>
-    </antcall>
-  </target>
-
-  <!-- Parameters: bindex.dest.dir, bindex.base.url -->
-  <target name="bindex_bare">
-    <property name="bindex.base.dir"  location="${distrib.osgi.dir}"/>
-    <property name="bindex.jars.dir"  location="${bindex.base.dir}/jars"/>
-    <property name="bindex.repo.name"
-              value="Knopflerfish bundle repository - ${version}"/>
-
-    <mkdir dir="${bindex.dest.dir}"/>
-    <bindex outFile="${bindex.dest.dir}/bindex.xml"
-            baseDir="${bindex.base.dir}"
-            baseURL="${bindex.base.url}"
-            repoName="${bindex.repo.name}"
-            stylesheet="obr2html.xsl"
-            >
-
-      <fileset dir="${bindex.jars.dir}">
-        <include name="upnp/upnp_api-*.jar"/>
-        <include name="remotefw/remotefw_api-*.jar"/>
-      </fileset>
-
-      <fileset dir="${bindex.jars.dir}">
-        <include name="*/*.jar"/>
-        <exclude name="*/*_api-*.jar"/>
-      </fileset>
-    </bindex>
-    <copy file="${bindex.xslt}"
-          toFile="${bindex.dest.dir}/obr2html.xsl"
-          overwrite="true">
-    </copy>
-  </target>
-
-
-  <!-- Regenerates obr meta-data for the 2.0.x releases              -->
-  <!-- To use this target call ant as described be the next line     -->
-  <!-- where xxx is the actual path for the URL given by ${base.url} -->
-  <!-- "ant -Dverions=2.0.0 -Dbase.url.dir=xxx/releases obr-releases-2.0.x" -->
-  <target name="obr-releases-2.0.x" depends="bundle_tasks">
-    <!-- The release directory REPO file -->
-    <antcall target="obr_bare">
-      <param name="obr.name"
-             value="Knopflerfish bundle repository - ${version}"/>
-      <param name="obr.base.dir"  location="${base.url.dir}/${version}/jars"/>
-      <param name="obr.base.url"  value="${base.url}/${version}/jars/"/>
-      <param name="obr.dest.dir"  location="${base.url.dir}/${version}"/>
-      <param name="obr.dest.url"  value="${base.url}/${version}"/>
-      <param name="obr.html.file" value="repository.html"/>
-      <param name="obr.doc.root"  value=""/>
-      <param name="obr.css.url"   value="docs/css/knopflerfish.css"/>
-    </antcall>
-    <antcall target="bindex_bare">
-      <param name="bindex.repo.name"
-             value="Knopflerfish bundle repository - ${version}"/>
-      <param name="bindex.dest.dir" location="${base.url.dir}/${version}"/>
-      <param name="bindex.base.url" value="${base.url}/${version}/jars"/>
-      <param name="bindex.base.dir" location="${base.url.dir}/${version}/jars"/>
-      <param name="bindex.jars.dir" location="${base.url.dir}/${version}/jars"/>
-    </antcall>
-  </target>
-  <!-- Regenerates obr meta-data for the 2.1 release (and higher) -->
-  <!-- To use this target call ant as described be the next line     -->
-  <!-- where xxx is the actual path for the URL given by ${base.url} -->
-  <!-- "ant -Dverions=2.0.0 -Dbase.url.dir=xxx/releases obr-releases-2.x" -->
-  <target name="obr-releases-2.x" depends="bundle_tasks">
-    <!-- The release directory REPO file -->
-    <antcall target="obr_bare">
-      <param name="obr.name"
-             value="Knopflerfish bundle repository - ${version}"/>
-      <param name="obr.base.dir"  location="${base.url.dir}/${version}/osgi/jars"/>
-      <param name="obr.base.url"  value="${base.url}/${version}/osgi/jars/"/>
-      <param name="obr.dest.dir"  location="${base.url.dir}/${version}"/>
-      <param name="obr.dest.url"  value="${base.url}/${version}"/>
-      <param name="obr.html.file" value="repository.html"/>
-      <param name="obr.doc.root"  value="docs"/>
-      <param name="obr.css.url"   value="docs/css/knopflerfish.css"/>
-    </antcall>
-    <antcall target="bindex_bare">
-      <param name="bindex.repo.name"
-             value="Knopflerfish bundle repository - ${version}"/>
-      <param name="bindex.dest.dir" location="${base.url.dir}/${version}"/>
-      <param name="bindex.base.url" value="${base.url}/${version}/osgi/jars"/>
-      <param name="bindex.base.dir" location="${base.url.dir}/${version}/osgi/jars"/>
-      <param name="bindex.jars.dir" location="${base.url.dir}/${version}/osgi/jars"/>
-    </antcall>
-  </target>
-
-
-  <target name="obr" depends="bundle_tasks">
-    <!-- The release directory REPO file -->
-    <antcall target="obr_bare">
-      <param name="obr.dest.dir"  location="${distrib.dir}"/>
-      <param name="obr.dest.url"  value="${base.url}/${version}"/>
-      <param name="obr.base.url"  value="${base.url}/${version}/osgi/jars/"/>
-      <param name="obr.html.file" value="repository.html"/>
-      <param name="obr.doc.root"  value="docs"/>
-      <param name="obr.css.url"   value="docs/css/knopflerfish.css"/>
-    </antcall>
-    <!-- The top level REPO file -->
-    <antcall target="obr_bare">
-      <param name="obr.dest.dir"  location="repo"/>
-      <param name="obr.dest.url"  value="http://www.knopflerfish.org/repo"/>
-      <param name="obr.base.url"  value="http://www.knopflerfish.org/repo/jars/"/>
-      <param name="obr.html.file" value="index.html"/>
-      <param name="obr.doc.root"  value="http://www.knopflerfish.org"/>
-      <param name="obr.css.url"   value="http://www.knopflerfish.org/css/knopflerfish2.css"/>
-    </antcall>
-  </target>
-
-  <!-- Parameters:  -->
-  <!--  obr.dest.dir  Location to place the repository.xml file in. -->
-  <!--  obr.dest.url  The external URL form of obr.dest.dir.        -->
-  <!--  obr.base.url  The initial part of the repository bundle URL -->
-  <!--                that replaces obr.base.dir in the location.   -->
-  <!--  obr.html.file Name of the XSLT output file.                 -->
-  <target name="obr_bare">
-    <property name="obr.name"
-              value="Knopflerfish bundle repository - ${version}"/>
-    <property name="obr.base.dir" location="${distrib.osgi.dir}/jars"/>
-    <property name="obr.xml.file" value="repository.xml"/>
-    <property name="obr.xsl.file" location="htdocs/css/repository.xsl"/>
-    <!-- Comma separated list of external OSCAR-style repositories. -->
-    <!-- E.g., http://www.knopflerfish.org/releases/current/repository.xml -->
-    <!-- NOTE: Bundles from external URLS are takes precedence  -->
-    <property name="obr.extern.repo.urls" value=""/>
-
-    <mkdir dir="${obr.dest.dir}"/>
-    <bundleobr baseDir="${obr.base.dir}"
-               repoXSLURL="repository.xsl"
-               outFile="${obr.dest.dir}/${obr.xml.file}"
-               repoName="${obr.name}"
-               baseURL="${obr.base.url}"
-               externRepoURLs="${obr.extern.repo.urls}">
-      <fileset dir="${obr.base.dir}">
-        <include name="**/upnp/upnp_api-*.jar"/>
-      </fileset>
-
-      <fileset dir="${obr.base.dir}">
-        <include name="**/*.jar"/>
-        <exclude name="**/*_api-*.jar"/>
-        <exclude name="**/*-source.jar"/>
-        <exclude name="**/*-javadoc.jar"/>
-      </fileset>
-    </bundleobr>
-    <!-- Generate HTML-page from repository.xml -->
-    <copy file="${obr.xsl.file}"
-          toFile="${obr.dest.dir}/repository.xsl"
-          overwrite="true">
-      <filterset begintoken="@@" endtoken="@@">
-        <filter token="obr.base.url" value="${obr.base.url}"/>
-        <filter token="obr.dest.url" value="${obr.dest.url}"/>
-        <filter token="obr.doc.root" value="${obr.doc.root}"/>
-        <filter token="obr.css.url"  value="${obr.css.url}"/>
-      </filterset>
-    </copy>
-    <!-- Use fork here since the value of "-OUT" must be relative to CWD -->
-    <java classname="org.apache.xalan.xslt.Process"
-          fork="yes"
-          dir="${obr.dest.dir}">
-      <classpath>
-        <pathelement location="${osgi.dir}/bundles/xml/xalan/resources/xalan.jar"/>
-        <pathelement location="${osgi.dir}/bundles/xml/xalan/resources/xml-apis.jar"/>
-        <pathelement location="${osgi.dir}/bundles/xml/xerces/resources/serializer.jar"/>
-      </classpath>
-      <arg value="-IN"/>
-      <arg value="repository.xml"/>
-      <arg value="-XSL"/>
-      <arg value="repository.xsl"/>
-      <arg value="-OUT"/>
-      <arg value="${obr.html.file}"/>
-    </java>
   </target>
 
   <!--|
