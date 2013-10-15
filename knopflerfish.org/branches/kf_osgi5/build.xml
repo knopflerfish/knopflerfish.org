@@ -288,10 +288,6 @@
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
     </ant>
     <copy file="${osgi.dir}/props.xargs" todir="${distrib.osgi.dir}"/>
-    <echo file="${distrib.osgi.dir}/props.xargs" append="true">
-      # Use bundle repository for this KF-version.
-      -Foscar.repository.url=${base.url}/${version}/repository.xml
-    </echo>
   </target>
 
   <target name="distrib_javadoc" depends="bundle_tasks">
@@ -572,6 +568,7 @@
         <include name="osgi/bundles/measurement/**"/>
         <include name="osgi/bundles/metatype/**"/>
         <include name="osgi/bundles/repository/**"/>
+        <include name="osgi/bundles/resolver/**"/>
 
         <include name="osgi/bundles/component/**"/>
         <include name="osgi/bundles/scrcommands/**"/>
