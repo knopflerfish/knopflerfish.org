@@ -51,29 +51,6 @@
     <pathelement location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
   </path>
 
-  <!-- Download and install BIndex the RFC-0112 Bundle Repository creator.  -->
-  <path id="bindex.path">
-    <pathelement location="${ant.lib}/bindex.jar"/>
-  </path>
-
-  <condition property="bindex.present">
-    <and>
-      <available classname="org.osgi.impl.bundle.bindex.Index"
-                 classpathref="bindex.path"/>
-      <available type="file" file="${ant.lib}/obr2html.xsl"/>
-    </and>
-  </condition>
-
-  <target name="install_bindex" unless="bindex.present">
-
-    <get src="http://www.osgi.org/download/bindex.jar"
-         dest="${ant.lib}/bindex.jar"/>
-    <!-- The default OBR style sheet (must be local) -->
-    <get src="http://www2.osgi.org/www/obr2html.xsl"
-         dest="${ant.lib}/obr2html.xsl"/>
-  </target>
-
-
   <!-- Compile and pack the Knopflerfish bundle tasks.  -->
   <property name="bundle_tasks.jar" location="${ant.lib}/bundle_tasks.jar"/>
 
@@ -81,7 +58,6 @@
     <pathelement location="${antclasses}"/>
     <pathelement location="${bundle_tasks.jar}"/>
     <path refid="asm.path"/>
-    <path refid="bindex.path"/>
   </path>
 
 
@@ -164,15 +140,13 @@
     <taskdef resource="org/knopflerfish/ant/taskdefs/bundle/antlib.xml">
       <classpath>
         <pathelement location="${bundle_tasks.jar}"/>
-        <path refid="bindex.path"/>
       </classpath>
     </taskdef>
   </target>
 
   <target name="bundle_tasks"
           description="Builds and defines the Knopflerfish bundle tasks"
-          depends="install_bindex,
-                   build_bundle_tasks,
+          depends="build_bundle_tasks,
                    define_bundle_tasks">
   </target>
 

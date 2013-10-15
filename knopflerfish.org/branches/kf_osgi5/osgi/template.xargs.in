@@ -29,7 +29,6 @@ $(AWT)-istart @trayicon_fw-N.N.N.jar@
 -install @kxml-N.N.N.jar@
 
 # The Bundle repo commands and desktop plugin
-$(AWT)-install @bundlerepository_all-N.N.N.jar@
 -install @repository_xml_all-N.N.N.jar@
 -install @repositorymanager_all-N.N.N.jar@
 $(AWT)-install @repository_desktop_all-N.N.N.jar@
@@ -80,7 +79,6 @@ $(OS_ARGS)
 -start @device_all-N.N.N.jar@
 -start @useradmin_all-N.N.N.jar@
 -start @repository_xml_all-N.N.N.jar@
-$(AWT)-start @bundlerepository_all-N.N.N.jar@
 -start @repositorymanager_all-N.N.N.jar@
 $(AWT)-start @repository_desktop_all-N.N.N.jar@
 -start @consoletty-N.N.N.jar@

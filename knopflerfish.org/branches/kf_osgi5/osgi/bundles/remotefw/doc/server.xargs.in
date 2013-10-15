@@ -20,7 +20,7 @@
 #
 # Uninstall bundle that are not needed on the client
 # 
--uninstall @bundlerepository_all-N.N.N.jar@
+-uninstall @repository_desktop_all-N.N.N.jar@
 -uninstall @desktop_all-N.N.N.jar@
 
 -initlevel 6

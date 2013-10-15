@@ -25,6 +25,9 @@
     <delete dir="javadoc"/>
     <delete dir="classes"/>
     <delete dir="lib" includes="bundle_tasks.jar"/>
+
+    <!-- Obsolete, not used in KF-5 and later. -->
+    <delete dir="lib" includes="bindex.jar"/>
   </target>
 
 </project>
