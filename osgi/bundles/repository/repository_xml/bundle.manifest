@@ -14,5 +14,5 @@ Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles/repository/
+ /osgi/bundles/repository/repository_xml
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"

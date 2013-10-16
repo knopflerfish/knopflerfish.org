@@ -13,7 +13,7 @@ Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/repositorymanager/
-Bundle-Category: service
+Bundle-Category: utility
 Import-Package: org.osgi.framework;version="[1.7,2.0)",
  org.osgi.resource;version="[1.0,2.0)",
  org.osgi.service.repository;version="[1.0,2.0)",

@@ -14,7 +14,7 @@ Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
 Bundle-DocURL: http://www.knopflerfish.org/
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles/repository/reposiotry_desktop
+ /osgi/bundles/repository/repository_desktop
 Bundle-Classpath: .
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.5))"
 api-Provide-Capability: [bundle.emptystring]
