@@ -31,6 +31,9 @@
 
   <import file="${ant.dir}/android.xml"/>
 
+  <!-- Use proguard if installed in ant.lib dir -->
+  <available property="proguard.available" file="${ant.lib}/proguard.jar"/>
+
   <available property="jdk1.7+" classname="java.lang.ClassValue"/> 
   <condition property="javac.source" value="1.5" else="1.5">
     <isset property="jdk1.7+"/>
@@ -243,6 +246,72 @@
         <attribute name="Build-Date"             value="${framework.tstamp}"/>
       </manifest>
     </jar>
+  	<antcall target="proguard_compact"/>
+  </target>
+
+  <target name = "proguard_compact"
+          if   = "proguard.available">
+    <taskdef resource="proguard/ant/task.properties"
+             classpath="${ant.lib}/proguard.jar" />
+  	<move file="${jarfile_compact}" tofile="${jarfile_compact}.tmp.jar"/>
+    <proguard note="false">
+      <!-- Specify the input jars, output jars, and library jars. -->
+      <injar  file="${jarfile_compact}.tmp.jar" />
+      <outjar file="${jarfile_compact}" />
+      <libraryjar file="${osgi.dir}/ee/ee.minimum.jar" />
+
+      <!-- Preserve Main. -->
+      <keepclasseswithmembers access="public">
+        <method access    ="public static"
+                type      ="void"
+                name      ="main"
+                parameters="java.lang.String[]" />
+      </keepclasseswithmembers>
+
+      <!-- Keep KF dynamic  -->
+      <keep name="org.knopflerfish.framework.FrameworkFactoryImpl"/>
+      <keep name="org.knopflerfish.framework.bundlestorage.file.BundleStorageImpl">
+      	<constructor/>
+      </keep>
+
+      <!-- Keep OSGi interface -->
+      <keep name="org.osgi.**" access="public">
+      	<field access="public,protected"/>
+      	<method access="public,protected"/>
+      	<constructor access="public,protected"/>
+      </keep>
+
+      <!-- Explicitly preserve all serialization members. The Serializable
+           interface is only a marker interface, so it wouldn't save them.
+           You can comment this out if your library doesn't use serialization.
+           If your code contains serializable classes that have to be backward
+           compatible, please refer to the manual. -->
+
+      <keepclassmembers implements="java.io.Serializable">
+        <field  access    ="static final"
+                type      ="long"
+                name      ="serialVersionUID" />
+        <field  access    ="static final"
+                type      ="java.io.ObjectStreamField[]"
+                name      ="serialPersistentFields" />
+        <method access    ="private"
+                type      ="void"
+                name      ="writeObject"
+                parameters="java.io.ObjectOutputStream" />
+        <method access    ="private"
+                type      ="void"
+                name      ="readObject"
+                parameters="java.io.ObjectInputStream" />
+        <method type      ="java.lang.Object"
+                name      ="writeReplace"
+                parameters="" />
+      	<method type      ="java.lang.Object"
+                name      ="readResolve"
+                parameters="" />
+      </keepclassmembers>
+
+    </proguard>
+  	<delete file="${jarfile_compact}.tmp.jar"/>
   </target>
 
   <target name="source.jar" if="bundle.build.source.jar">

@@ -54,6 +54,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
 import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.resource.Capability;
@@ -342,7 +343,7 @@ public class RepositoryCommandGroup
   public final static String[] HELP_RANK = new String[] {
     "Change repository ranking.",
     "The rank is used to can change the order in which repositories",
-    "are searched.",
+    "are searched. Repository with highest ranking is searched first.",
     "<rank>       New rank of repository, must be an integer",
     "<repository> Wildcard name or id of repository"
   };
@@ -468,14 +469,18 @@ public class RepositoryCommandGroup
   }
 
   private boolean isInstalled(Resource r) {
+    Map<String, Object> identity = r.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE).iterator().next().getAttributes();
+    String name = (String) identity.get(IdentityNamespace.IDENTITY_NAMESPACE);
+    Version version = (Version) identity.get(IdentityNamespace.CAPABILITY_VERSION_ATTRIBUTE);
     Map<String, Object> content = r.getCapabilities(ContentNamespace.CONTENT_NAMESPACE).iterator().next().getAttributes();
-    Bundle b = bc.getBundle((String)content.get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE));
-    if (b != null) {
-      // TODO, check that we have correct bundle
+    Bundle lb = bc.getBundle((String)content.get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE));
+    if (lb != null && name.equals(lb.getSymbolicName()) && version.equals(lb.getVersion())) {
       return true;
-    } else {
-      // TODO, scan for bundle
-      
+    }
+    for (Bundle b : bc.getBundles()) {
+      if (name.equals(b.getSymbolicName()) && version.equals(b.getVersion())) {
+        return true;
+      }
     }
     return false;
   }

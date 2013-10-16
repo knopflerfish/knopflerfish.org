@@ -44,23 +44,37 @@ import org.osgi.resource.Requirement;
 
 
 /**
- * KF manager for interaction with OSGI repositories.
- * Registered as service factory. The service factory has one property
- * <tt>num_repositories</tt> of type <tt>Integer</tt> that tells how
- * many repositories are available. The services is updated whenever
- * any repository changes state.
+ * KF repository manager service for interaction with OSGI repositories.
+ * Registered as service factory. The service factory has two properties
+ * <tt>num_repositories</tt> that tells how many repositories are
+ * available and <tt>change_count</tt> that tells how many times the
+ * configuration of repositories has changed.
+ * The services is updated whenever there is change in any repository.
+ * 
+ * When a service is fetched you get a service local configuration of how
+ * the repositories are used and searched.
  */
+
 public interface RepositoryManager
 {
   
+  /**
+   * Service property that is incremented whenever the
+   * configuration changes. Value type is {@link Integer}.
+   */
   String CHANGE_COUNT = "change_count";
+
+  /**
+   * Service property that tells the number of available
+   * repositories. Value type is {@link Integer}.
+   */
   String NUM_REPOSITORIES = "num_repositories";
 
   /**
    * Find providers for a requirement.
    * 
    * @see org.osgi.service.resolve.ResolverContext.findProviders
-   * @param requirement
+   * @param requirement {@link Requirement} to find providers for.
    * @return
    */
   List<Capability> findProviders(Requirement requirement);
@@ -68,32 +82,40 @@ public interface RepositoryManager
   /**
    * Add a repository based on a repository XML file.
    * 
-   * @param url
-   * @param props
-   * @return
-   * @throws Exception
+   * @param url The URL to the repository file.
+   * @param props Optional service properties that are registered
+   *              with the Repository service. If <code>null</code>
+   *              then no extra properties are added.
+   * @return A RepositoryInfo entry for the added repository.
+   * @throws Exception If we failed to get or parse the XML file.
    */
   RepositoryInfo addXmlRepository(String url, Dictionary<String, Object> props) throws Exception;
 
   /**
    * Get all repositories available.
    * 
-   * @return
+   * @return A sorted set with all available repositories.
+   *         The first element is this the highest ranked
+   *         with the lowest id.
    */
   SortedSet<RepositoryInfo> getAllRepositories();
 
   /**
    * Get all enabled repositories.
    * 
-   * @return
+   * @return A sorted set with all enabled repositories. The
+   *         first element is this the highest ranked with
+   *         the lowest id.
    */
   SortedSet<RepositoryInfo> getRepositories();
 
   /**
    * Check if repository is enabled.
    * 
-   * @param ri
-   * @return
+   * @param ri Repository to check.
+   * @return <code>True</code> if repository is enabled, otherwise
+   *         <code>false</code> if repository is disabled or wasn't
+   *         found.
    */
   boolean isEnabled(RepositoryInfo ri);
 
@@ -102,16 +124,21 @@ public interface RepositoryManager
    * 
    * @param ri
    * @param enabled
-   * @return
+   * @return <code>True</code> if repository was enabled/disabled,
+   *         otherwise <code>false</code> if repository wasn't
+   *         found.
    */
   boolean setRepositoryEnabled(RepositoryInfo ri, boolean enabled);
 
   /**
    * Change ranking of a repository.
    * 
-   * @param ri
-   * @param rank
-   * @return
+   * @param ri Repository to update, this {@link RepositoryInfo} will
+   *           become defunct if rank change succeed.
+   * @param rank New rank for repository.
+   * @return <code>True</code> if repository was updated with new
+   *         rank, otherwise <code>false</code> if repository wasn't
+   *         found.
    */
   boolean setRepositoryRank(RepositoryInfo ri, int rank);
 

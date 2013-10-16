@@ -48,7 +48,7 @@ public class BasicRequirement implements Requirement {
    * MIME type to be stored in the extra field of a {@code ZipEntry} object
    * for an installable bundle file.
    * 
-   * @see org.osgi.service.provisioning.ProvisingService#MIME_BUNDLE
+   * @see org.osgi.service.provisioning.ProvisioningService#MIME_BUNDLE
    */
   public final static String  MIME_BUNDLE         = "application/vnd.osgi.bundle";
 
@@ -56,7 +56,7 @@ public class BasicRequirement implements Requirement {
    * Alternative MIME type to be stored in the extra field of a
    * {@code ZipEntry} object for an installable bundle file.
    * 
-   * @see org.osgi.service.provisioning.ProvisingService#MIME_BUNDLE_ALT
+   * @see org.osgi.service.provisioning.ProvisioningService#MIME_BUNDLE_ALT
    */
   public final static String  MIME_BUNDLE_ALT       = "application/x-osgi-bundle";
 

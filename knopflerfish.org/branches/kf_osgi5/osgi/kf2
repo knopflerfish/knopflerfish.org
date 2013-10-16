@@ -5,8 +5,12 @@ BOOTCLASSPATH_FLAG="-Xbootclasspath/a:"		# the bootclass path flag for the speci
 CLASSPATH_FLAG="-classpath "			# the class path flag for the specific
 
 # constants
-KF_MAIN_CLASS=org.knopflerfish.framework.Main			   # path to main class
-KF_CLASSPATH=framework.jar:$CLASSPATH				   # the class path to use 
+KF_MAIN_CLASS=org.knopflerfish.framework.Main	   # path to main class
+if [ -f framework.jar ] ; then
+    KF_CLASSPATH=framework.jar					   # the class path to use 
+else
+    KF_CLASSPATH=framework_small.jar			   # the class path to use 
+fi
 
 # args always sent to the JRE
 KF_JRE_ARGS="-Dorg.knopflerfish.framework.usingwrapperscript=true"
@@ -80,7 +84,7 @@ do
   if [ -r $fwdir/boot_cp ] ; then
       bootclasspath=$BOOTCLASSPATH_FLAG`cat $fwdir/boot_cp`
   fi
-  classpath=$CLASSPATH_FLAG$KF_CLASSPATH
+  classpath=$CLASSPATH_FLAG$KF_CLASSPATH:$CLASSPATH
   $JAVA $bootclasspath $jre_args $KF_JRE_ARGS $classpath $KF_MAIN_CLASS $args_orig $args
   retval=$?
   # only use args_orig the first time
