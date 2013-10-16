@@ -15,6 +15,10 @@ To build Knopflerfish from scratch you need:
  Ant 1.8.1 (or later)
 
 
+ [OPTIONAL] Proguard 4.10 (or later)
+    Proguard is only used when building the compact version of
+    framework.
+    
 Type "ant all" in this directory to build all bundles and test bundles.
 
 

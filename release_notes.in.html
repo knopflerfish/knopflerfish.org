@@ -121,8 +121,12 @@
       Relaxed the matching in bundle classloader method findLibrary,
       to handle library names which already are system specific.
     </div>
-
-    <div class="note_name"> Framework 7.0.0</div>
+    <div class="note_item">
+      There is a new version of framework built called framework_small.jar.
+      This a version with a reduced memory footprint. This version has
+      no security and certificate support compilied into it. This is only
+      supposed to be used for running and not to compile against.
+    </div>
     <div class="note_item">
       Unified API version handling. API version are now read from the
       <tt>packageinfo</tt> file in API source directory.
@@ -236,13 +240,6 @@
 
 <h2 class="kf">Knopflerfish Services</h2>
 <div class="release_notes">
-
-  <div class="note_group">
-    <div class="note_name">Classpatcher 5.0.0</div>
-    <div class="note_item">
-      Removed unnecessary Import-Package.
-    </div>
-  </div>
 
   <div class="note_group">
     <div class="note_name">CM-Commands 5.0.1</div>

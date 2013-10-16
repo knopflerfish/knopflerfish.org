@@ -647,7 +647,7 @@
       </zipfileset>
 
       <zipfileset dir="${distrib.dir}" prefix="${distrib_tiny.prefix}">
-        <include name="osgi/framework.jar"/>
+        <include name="osgi/framework_small.jar"/>
         <include name="osgi/remote-init.xargs"/>
         <include name="osgi/props.xargs"/>
       </zipfileset>
