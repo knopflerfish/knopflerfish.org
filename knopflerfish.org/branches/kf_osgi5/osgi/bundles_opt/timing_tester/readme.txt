@@ -15,9 +15,9 @@ To run a test, compile the bundle
 
  > ant
 
-then run the bash shell script
+then run the tests with bash
 
- > ./timingtests.sh
+ > bash ./timingtests.sh
 
 
 timingtests.sh will delete and create a new log file

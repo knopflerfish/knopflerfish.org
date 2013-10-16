@@ -47,7 +47,7 @@
 -install @event_all-N.N.N.jar@
 -install @prefs_all-N.N.N.jar@
 -install @repository_api-N.N.N.jar@
-$(AWT)-istart @trayicon_fw-N.N.N.jar@
+#$(AWT)-istart @trayicon_fw-N.N.N.jar@
 
 
 ## Some library bundles
