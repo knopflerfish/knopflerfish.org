@@ -11,7 +11,6 @@ import org.osgi.service.indexer.Resource;
 import org.osgi.service.indexer.ResourceAnalyzer;
 
 public class KnopflerfishExtentions implements ResourceAnalyzer {
-  // <?xml-stylesheet type="text/xsl" href="stylesheet.xsl"?>
 
   @Override
   public void analyzeResource(Resource resource, List<Capability> capabilities,
@@ -50,7 +49,6 @@ public class KnopflerfishExtentions implements ResourceAnalyzer {
           "Bundle-SubversionURL",
           "source"
         }
-        // TODO: Add source
     };
     Builder b = new Builder().setNamespace("org.knopflerfish.extra");
     for(String[] m : mappings) {
@@ -61,23 +59,7 @@ public class KnopflerfishExtentions implements ResourceAnalyzer {
       String attributeName = m[1];
       b = b.addAttribute(attributeName, manifestHeader);
     }
-    capabilities.add(b.buildCapability());  
-    /* 
-I namespacet "org.knopflerfish.extra" använder repository_desktop nu
-följande attribut:
-
-category         värdet på manifestheadern: Bundle-Category
-vendor           värdet på manifestheadern: Bundle-Vendor
-
-
-Och följande om de inte finns med i identity namespacet för en resurs:
-
-IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE
-IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE
-IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE
-IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE
-
-*/  
+    capabilities.add(b.buildCapability());   
 
   }
 
