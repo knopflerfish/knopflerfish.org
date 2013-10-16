@@ -7,6 +7,9 @@ Bundle-Category: API
 Bundle-Description: Resolver API
 Bundle-Vendor: OSGi
 Bundle-APIVendor: OSGi
+Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
+ description="BSD 3-clause";
+ link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html

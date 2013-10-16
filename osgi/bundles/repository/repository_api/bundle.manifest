@@ -8,6 +8,9 @@ Bundle-Description: Repository API
 Bundle-Vendor: OSGi
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
+ description="BSD 3-clause";
+ link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
