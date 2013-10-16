@@ -71,5 +71,62 @@ also need to compile the normal <code>framework.jar</code> to be able
 to build bundles.
 </p>
 <pre class="shell">
-$ ant -Dcompact=true
+$ ant -Dcompact=true -f framework/build.xml 
+Buildfile: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/build.xml
+
+compile:
+
+compile_full:
+
+compile_compact:
+
+chkBundleTaskSrc:
+
+chkBundleTasksBuild:
+
+build_bundle_tasks:
+
+define_bundle_tasks:
+
+bundle_tasks:
+
+genexports:
+   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/resources/exports
+
+jar:
+   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/resources/version
+   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/resources/tstamp
+
+writerelease:
+
+jar_file_full:
+
+jar_file_compact:
+      [jar] Building jar: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_small.jar
+
+proguard_compact:
+     [move] Moving 1 file to /Users/jan/workspace_osgi5/kf_osgi5/osgi
+ [proguard] ProGuard, version 4.10
+ [proguard] Reading program jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_small.jar.tmp.jar]
+ [proguard] Reading library jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/ee/ee.minimum.jar]
+ [proguard] Preparing output jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_small.jar]
+ [proguard]   Copying resources from program jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_small.jar.tmp.jar]
+   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_small.jar.tmp.jar
+
+add_dex:
+
+source.jar:
+
+save_javadoc_data:
+
+javadoc.jar:
+
+all:
+
+BUILD SUCCESSFUL
+Total time: 14 seconds
+$ ls -l framework*jar
+-rw-r--r--  1 jan  staff  617250 16 Okt 10:44 framework.jar
+-rw-r--r--  1 jan  staff  323070 16 Okt 10:44 framework_small.jar
+$ 
 </pre>
