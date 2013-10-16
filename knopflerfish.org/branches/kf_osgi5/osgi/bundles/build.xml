@@ -10,6 +10,7 @@
 	<equals arg1="${ant.java.version}" arg2="1.5"/>
 	<equals arg1="${ant.java.version}" arg2="1.6"/>
 	<equals arg1="${ant.java.version}" arg2="1.7"/>
+	<equals arg1="${ant.java.version}" arg2="1.8"/>
       </or>
     </condition>
   </target>
@@ -31,6 +32,7 @@
 
   <!-- Internal target that calls a specified target in all sub-dirs. -->
   <target name="doAntBuild" depends="setup">
+    <ant target="${the.target}" dir="namespace"/>
     <ant target="${the.target}" dir="util"/>
     <ant target="${the.target}" dir="cm/cm"/>
     <ant target="${the.target}" dir="event"/>
@@ -57,12 +59,17 @@
     <ant target="${the.target}" dir="prefs"/>
     <ant target="${the.target}" dir="scrcommands"/>
 
+    <ant target="${the.target}" dir="annotations"/>
     <ant target="${the.target}" dir="applicationadmin"/>
     <ant target="${the.target}" dir="blueprint"/>
+    <ant target="${the.target}" dir="coordinator"/>
     <ant target="${the.target}" dir="deploymentadmin"/>
     <ant target="${the.target}" dir="dmt"/>
     <ant target="${the.target}" dir="foreignapplication"/>
     <ant target="${the.target}" dir="monitor"/>
+    <ant target="${the.target}" dir="remoteserviceadmin"/>
+    <ant target="${the.target}" dir="serviceloader"/>
+    <ant target="${the.target}" dir="subsystem"/>
 
     <ant target="${the.target}" dir="measurement"/>
     <ant target="${the.target}" dir="position"/>
@@ -85,7 +92,8 @@
   <target name="all" 
 	  description="Builds all bundles">
     <!-- Resolve cyclic dependecy by building selected APIs first. -->
-    <ant dir="log"               target="jar_api"/>
+    <ant dir="log" target="jar_api"/>
+
     <!-- Build it all. -->
     <antcall target="doAntBuild">
       <param name="the.target" value="all"/>
