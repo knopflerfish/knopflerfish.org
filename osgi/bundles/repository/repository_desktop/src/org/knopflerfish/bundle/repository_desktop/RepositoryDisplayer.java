@@ -1327,93 +1327,92 @@ public class RepositoryDisplayer
         @Override
         public void run()
         {
-          try {
-            // Make sure that the service tracker customizer are done before
-            // doing the update.
-            Thread.sleep(2L);
-          } catch (final InterruptedException ie) {
-            return;
-          }
-          locationMap.clear();
-          final Resource oldSelection =
-            selectedRepositoryNode != null ? selectedRepositoryNode
-                .getResource() : null;
+          // Protect against synchronous refresh operations.
+          synchronized (locationMap) {
+            locationMap.clear();
+            final Resource oldSelection =
+              selectedRepositoryNode != null ? selectedRepositoryNode
+                  .getResource() : null;
 
-          setRootText(STR_LOADING);
+            setRootText(STR_LOADING);
 
-          rootNode = new TopNode(STR_TOPNAME, JRepositoryAdmin.this);
-          treeModel = new DefaultTreeModel(rootNode);
+            rootNode = new TopNode(STR_TOPNAME, JRepositoryAdmin.this);
+            treeModel = new DefaultTreeModel(rootNode);
 
-          // String (category) -> Set (Resource)
-          final Map<String, Set<Resource>> categories =
-            new TreeMap<String, Set<Resource>>(new Comparator<String>() {
-              @Override
-              public int compare(String s1, String s2)
-              {
-                return s1.compareToIgnoreCase(s2);
+            // String (category) -> Set (Resource)
+            final Map<String, Set<Resource>> categories =
+              new TreeMap<String, Set<Resource>>(new Comparator<String>() {
+                @Override
+                public int compare(String s1, String s2)
+                {
+                  return s1.compareToIgnoreCase(s2);
+                }
+              });
+
+            // move all resource into a sorted
+            // category map of sets
+            // First find all downloadable resources in all repos.
+            final Set<Resource> resources = new HashSet<Resource>();
+            final Requirement downloadableReq =
+              new DownloadableBundleRequirement();
+            final RepositoryManager repoMgr = repoManagerTracker.getService();
+            if (repoMgr != null) {
+              final List<Capability> capabilities =
+                repoManagerTracker.getService().findProviders(downloadableReq);
+              for (final Capability capability : capabilities) {
+                resources.add(capability.getResource());
               }
-            });
-
-          // move all resource into a sorted
-          // category map of sets
-          // First find all downloadable resources in all repos.
-          final Set<Resource> resources = new HashSet<Resource>();
-          final Requirement downloadableReq =
-            new DownloadableBundleRequirement();
-          final RepositoryManager repoMgr = repoManagerTracker.getService();
-          if (repoMgr != null) {
-            final List<Capability> capabilities =
-              repoManagerTracker.getService().findProviders(downloadableReq);
-            for (final Capability capability : capabilities) {
-              resources.add(capability.getResource());
             }
-          }
-          // Categorize each resource
-          for (final Resource resource : resources) {
-            final String category = deriveCatagory(resource, sortCategory);
+            // Categorize each resource
+            for (final Resource resource : resources) {
+              final String category = deriveCatagory(resource, sortCategory);
 
-            Set<Resource> set = categories.get(category);
-            if (set == null) {
-              set = new TreeSet<Resource>(new ResourceComparator());
-              categories.put(category, set);
+              Set<Resource> set = categories.get(category);
+              if (set == null) {
+                set = new TreeSet<Resource>(new ResourceComparator());
+                categories.put(category, set);
+              }
+              set.add(resource);
             }
-            set.add(resource);
-          }
 
-          DefaultMutableTreeNode selNode = null;
-          for (final Entry<String, Set<Resource>> entry : categories.entrySet()) {
-            final String category = entry.getKey();
-            final DefaultMutableTreeNode categoryNode =
-              new CategoryNode(category);
+            DefaultMutableTreeNode selNode = null;
+            for (final Entry<String, Set<Resource>> entry : categories
+                .entrySet()) {
+              final String category = entry.getKey();
+              final DefaultMutableTreeNode categoryNode =
+                new CategoryNode(category);
 
-            for (final Resource resource : entry.getValue()) {
-              final RepositoryNode resourceNode = new RepositoryNode(resource);
-              categoryNode.add(resourceNode);
-              final String loc = Util.getLocation(resource);
-              locationMap.put(loc, resourceNode);
-              if (oldSelection != null
-                  && loc.equals(Util.getLocation(oldSelection))) {
-                selNode = resourceNode;
-              } else {
-                // If this resource has a selected bundle, then make it
-                // selected. Needed to set up the selection when this displayer
-                // is (re)started.
-                final Bundle b = resourceNode.getBundle();
-                final BundleSelectionModel bsm = getBundleSelectionModel();
-                if (b != null && bsm.isSelected(b.getBundleId())) {
+              for (final Resource resource : entry.getValue()) {
+                final RepositoryNode resourceNode =
+                  new RepositoryNode(resource);
+                categoryNode.add(resourceNode);
+                final String loc = Util.getLocation(resource);
+                locationMap.put(loc, resourceNode);
+                if (oldSelection != null
+                    && loc.equals(Util.getLocation(oldSelection))) {
                   selNode = resourceNode;
+                } else {
+                  // If this resource has a selected bundle, then make it
+                  // selected. Needed to set up the selection when this
+                  // displayer
+                  // is (re)started.
+                  final Bundle b = resourceNode.getBundle();
+                  final BundleSelectionModel bsm = getBundleSelectionModel();
+                  if (b != null && bsm.isSelected(b.getBundleId())) {
+                    selNode = resourceNode;
+                  }
                 }
               }
+              rootNode.add(categoryNode);
             }
-            rootNode.add(categoryNode);
+
+            final TreePath selPath =
+              new TreePath(selNode != null
+                ? selNode.getPath()
+                : rootNode.getPath());
+
+            showPath(selPath, treeModel);
           }
-
-          final TreePath selPath =
-            new TreePath(selNode != null
-              ? selNode.getPath()
-              : rootNode.getPath());
-
-          showPath(selPath, treeModel);
         }
       };
       t.start();
@@ -1516,15 +1515,15 @@ public class RepositoryDisplayer
         final JPanel panel = new JPanel(new BorderLayout());
 
         final JTable table = new JTable(tm);
-        //table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+        // table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         final TableColumnModel tcm = table.getColumnModel();
         // The longest item in column 1 and 2 is the title...
         tcm.getColumn(1).setMinWidth(2 * 12);
         tcm.getColumn(1).setMaxWidth(RepositoriesTableModel.COLUMN_NAMES[1]
-            .length() * 12);
+                                         .length() * 12);
         tcm.getColumn(2).setMinWidth(2 * 12);
         tcm.getColumn(2).setMaxWidth(RepositoriesTableModel.COLUMN_NAMES[2]
-            .length() * 12);
+                                         .length() * 12);
         final JScrollPane scroll =
           new JScrollPane(table,
                           ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -1533,33 +1532,31 @@ public class RepositoryDisplayer
         scroll.setPreferredSize(new Dimension(700, 200));
 
         panel.add(scroll, BorderLayout.CENTER);
-        final String[] options = new String[]{"Cancel", "Add...", "Apply"};
+        final String[] options = new String[] { "Cancel", "Add...", "Apply" };
         final int option =
           JOptionPane.showOptionDialog(this, panel, "Configure Repositories",
                                        JOptionPane.YES_NO_CANCEL_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE,
-                                       null, options,
-                                       options[2]);
+                                       JOptionPane.QUESTION_MESSAGE, null,
+                                       options, options[2]);
 
         if (option == 1) {
           // Add new XML repository; ask for the URL.
           final Object urlString =
-            JOptionPane.showInputDialog(this,
-                                        "URL to the XML-file",
+            JOptionPane.showInputDialog(this, "URL to the XML-file",
                                         "Add XML-based Repository",
                                         JOptionPane.PLAIN_MESSAGE, null, null,
                                         null);
           if (urlString != null) {
             try {
               repoMgr.addXmlRepository((String) urlString, null);
-              refreshList();
+              // The service modified event for the repMgr will trigger refresh.
             } catch (final Exception e) {
               JOptionPane.showMessageDialog(this,
                                             "Failed to create XML repository for URL: '"
                                                 + urlString + "': " + e);
             }
           }
-        } else if (option== 2) {
+        } else if (option == 2) {
           tm.applyChanges();
           refreshList();
         }
