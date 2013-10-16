@@ -117,13 +117,6 @@ http://kxml.sourceforge.net
 Copyright (c) 2002,2003, Stefan Haustein, Oberhausen, Rhld., Germany
 
 ----------------------------------------------------------------------
--	Oscar Shell API Bundle Notice
-----------------------------------------------------------------------
-This product includes the oscar-shell  bundle which includes
-software developed by the Oscar project.
-Copyright (c) 2004, Richard S. Hall
-
-----------------------------------------------------------------------
 -	Service Component Runtime Bundle
 ----------------------------------------------------------------------
 This product includes the org.apache.felix.scr.ScrService API which
