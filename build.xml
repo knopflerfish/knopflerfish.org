@@ -113,7 +113,7 @@
 
 
   <target name="default"
-          description="Builds entire platform except optional and test bundles" >
+          description="Builds entire platform except test bundles" >
     <ant dir="${jarunpacker.dir}" target="jar"/>
     <ant dir="osgi"               target="default" />
   </target>

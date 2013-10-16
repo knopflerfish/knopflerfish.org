@@ -30,8 +30,6 @@
                    org/knopflerfish/util/**,
                    org/osgi/service/**"/> 
 
-  <property name="do.bundle.custom.pre" value="true"/>
-
   <target name="bundle.custom.pre">
 
     <!-- Embedd APIs for OSGi services that the desktop depends on -->
@@ -129,8 +127,6 @@
     </copy>
 
   </target>
-
-  <property name="do.bundle.custom.post" value="true"/>
 
   <path id="bundle.compile.path">
   </path>

@@ -35,7 +35,6 @@
     <pathelement location="${resources.dir}/componentC_test-1.0.0.jar"/>
   </path>
 
-  <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
     <mkdir dir="${ttb.outdir}"/>
     <antcall target="component-api_test"/>

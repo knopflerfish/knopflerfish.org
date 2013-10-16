@@ -82,7 +82,6 @@
 
 
   <!-- Embedd APIs for OSGi services that xerces depends on -->
-  <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
     <bundle_locator bundleNames="xml">
       <fileset dir="${jars.dir}">
