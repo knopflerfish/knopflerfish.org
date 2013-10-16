@@ -180,7 +180,40 @@
     </div>
   </div>
   
-   </div>
+  <div class="note_group">
+    <div class="note_name">Repository API 5.0.0</div>
+    <div class="note_item">
+
+      New API bundle providing the
+      <code>org.osgi.service.repository</code> package that was added
+      in OSGi R5.
+
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">Resolver API 5.0.0</div>
+    <div class="note_item">
+
+      New API bundle providing the
+      <code>org.osgi.service.resolver</code> package that was added
+      in OSGi R5.
+
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">Repository XML 5.0.0</div>
+    <div class="note_item">
+
+      New bundle providing an OSGi repository service based on data
+      from XML documents following the OSGi specified repository
+      schema, <code>http://www.osgi.org/xmlns/repository/v1.0.0</code>.
+
+    </div>
+  </div>
+
+  </div>
     <div class="note_group">
     <div class="note_name">SCR(component) 5.0.0</div>
     <div class="note_item">
@@ -382,12 +415,28 @@
 
   
   <div class="note_group">
+    <div class="note_name">Repository Commands 1.0.0</div>
+    <div class="note_item">
+
+      New bundle that provides console commands for interacting with
+      the repository manager service.
+
+    </div>
+  </div>
+
+  <div class="note_group">
     <div class="note_name">Repository Desktop 1.0.0</div>
     <div class="note_item">
 
       New desktop viewer bundle that supports the new OSGi R5
-      specified Repository service. This bundle repalces the old OSCAR
-      based Bundlerepository 3.1.3 bundle.
+      specified Repository service format. This bundle interacts with
+      repository services via the repository manager service.
+
+    </div>
+    <div class="note_item">
+
+      The repository desktop bundle repalces the OSCAR based
+      Bundlerepository 3.1.3 bundle in previous releases.
 
     </div>
     <div class="note_item">
@@ -396,6 +445,19 @@
       will only install the selected bundle itself, not any other
       bundle that might be needed to get the selected bundle fully
       functional.
+
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">Repository Manager 1.0.0</div>
+    <div class="note_item">
+
+      New bundle that tracks all repository services and provides a
+      method to search them. Repositories can be given a rank to
+      control the search order and they can be temporarely disabled
+      during the searches performd by via the repository manager
+      service.
 
     </div>
   </div>
