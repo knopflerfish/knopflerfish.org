@@ -565,7 +565,7 @@
         <include name="osgi/bundles/applicationadmin/**"/>
         <include name="osgi/bundles/blueprint/**"/>
         <include name="osgi/bundles/deploymentadmin/**"/>
-        <include name="osgi/bundles/dmtree/**"/>
+        <include name="osgi/bundles/dmt/**"/>
         <include name="osgi/bundles/foreignapplication/**"/>
         <include name="osgi/bundles/monitor/**"/>
 
