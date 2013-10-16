@@ -132,7 +132,7 @@
       <tt>packageinfo</tt> file in API source directory.
     </div>
     <div class="note_item">
-      Updated API:s and behaviour to be compliant with OSGi R5 specification.
+      Updated API:s and behavior to be compliant with OSGi R5 specification.
     </div>
   </div>
 </div>
@@ -501,9 +501,12 @@
     </div>
     <div class="note_item">
 
-      The repository desktop bundle repalces the OSCAR based
+      The repository desktop bundle replaces the OSCAR based
       Bundlerepository 3.1.3 bundle that has been removed from
-      Knopflerfish.
+      Knopflerfish. Since the bundlerepository-bundle was the only
+      bundle using the OSCAR shell bundle that bridged between the
+      Knopflerfish console the <code>oscar-shell</code> bundle has
+      also been removed.
 
     </div>
     <div class="note_item">
@@ -522,8 +525,8 @@
 
       New bundle that tracks all repository services and provides a
       method to search them. Repositories can be given a rank to
-      control the search order and they can be temporarely disabled
-      during the searches performd by via the repository manager
+      control the search order and they can be temporarily disabled
+      during the searches performed by via the repository manager
       service.
 
     </div>
