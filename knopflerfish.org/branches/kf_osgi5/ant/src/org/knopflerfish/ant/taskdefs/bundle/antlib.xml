@@ -10,10 +10,6 @@
            classname="org.knopflerfish.ant.taskdefs.bundle.BundleClasspathTask"/>
   <taskdef name="bundlehtml" 
            classname="org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
-  <taskdef name="bundleobr" 
-           classname="org.knopflerfish.ant.taskdefs.bundle.OBRExtractorTask"/>
-  <taskdef name="bindex"
-           classname="org.knopflerfish.ant.taskdefs.bundle.BIndexTask"/>
   <taskdef name="makehtml"
            classname="org.knopflerfish.ant.taskdefs.bundle.MakeHTMLTask"/>
   <taskdef name="byteformatter"
