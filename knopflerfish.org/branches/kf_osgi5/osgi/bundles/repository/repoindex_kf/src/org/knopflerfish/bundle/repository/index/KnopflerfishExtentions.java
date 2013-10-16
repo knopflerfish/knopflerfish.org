@@ -63,14 +63,14 @@ public class KnopflerfishExtentions implements ResourceAnalyzer {
     }
     capabilities.add(b.buildCapability());  
     /* 
-I namespacet "org.knopflerfish.extra" använder repository_desktop nu
-följande attribut:
+I namespacet "org.knopflerfish.extra" anv√§nder repository_desktop nu
+f√∂ljande attribut:
 
-category         värdet på manifestheadern: Bundle-Category
-vendor           värdet på manifestheadern: Bundle-Vendor
+category         v√§rdet p√• manifestheadern: Bundle-Category
+vendor           v√§rdet p√• manifestheadern: Bundle-Vendor
 
 
-Och följande om de inte finns med i identity namespacet för en resurs:
+Och f√∂ljande om de inte finns med i identity namespacet f√∂r en resurs:
 
 IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE
 IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE
