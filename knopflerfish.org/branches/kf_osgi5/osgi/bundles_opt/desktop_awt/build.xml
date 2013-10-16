@@ -16,7 +16,6 @@
   <property name="all-api.pattern"
 	    value="org/knopflerfish/service/console/**"/> 
 
-  <property name="do.bundle.custom.pre" value="true"/>
   <!-- Embedd the KF console API. -->
   <target name="bundle.custom.pre">
     <bundle_locator bundleNames="console_api">

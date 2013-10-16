@@ -472,22 +472,14 @@
     </path>
   </target>
 
+  <!-- Targets to be over ridden by individual build files when -->
+  <!-- needing to do something before / after a build.          -->
+  <target name="bundle.custom.pre"/>
+  <target name="bundle.custom.post"/>
+
   <target name="all"
-          depends="init"
+          depends="init, bundle.custom.pre, jars, bundle.custom.post"
           description="Builds all specified variants of the bundle.">
-    <antcall inheritRefs="true" target="try_bundle.custom.pre"/>
-    <antcall inheritRefs="true" target="jars"/>
-    <antcall inheritRefs="true" target="try_bundle.custom.post"/>
-  </target>
-
-  <!-- Check for and execute customized pre-target for this bundle. -->
-  <target name="try_bundle.custom.pre" if="do.bundle.custom.pre">
-    <antcall inheritRefs="true" target="bundle.custom.pre"/>
-  </target>
-
-  <!-- Check for and execute customized post-target for this bundle. -->
-  <target name="try_bundle.custom.post" if="do.bundle.custom.post">
-    <antcall inheritRefs="true" target="bundle.custom.post"/>
   </target>
 
   <macrodef name="bundlebuild_compile"

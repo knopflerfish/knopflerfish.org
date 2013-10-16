@@ -567,9 +567,33 @@
 
     <div class="note_item">
 
+      The <code>default</code>-target in the top-level build file as
+      well as that in the OSGi-level build file now builds all bundles
+      except for the test-bundles in the
+      <code>osgi/bundles_test</code>-directory.
+
+    </div>
+
+    <div class="note_item">
+
       Bundle kind specific manifest headers for other kinds of bundles
       than the one that is currently built is no longer propagated to
       the resulting manifest file.
+
+    </div>
+
+    <div class="note_item">
+
+      The ant properties <code>do.bundle.custom.pre</code> and
+      <code>do.bundle.custom.post</code> are now deprecated and thus
+      ignored. If a build file contains a
+      <code>bundle.custom.pre</code> or a
+      <code>bundle.custom.post</code>  target they will always be
+      executed before / after the <code>all</code>-target. Both the
+      pre and the post targets are now executed in the same ant-level
+      as the all target, thus any property or references defined inside
+      the pre and post targets are now visible when executing the
+      <code>all</code>-target.
 
     </div>
 

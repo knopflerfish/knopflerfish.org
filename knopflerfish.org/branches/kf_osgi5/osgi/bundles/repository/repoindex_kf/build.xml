@@ -5,40 +5,30 @@
   <dirname  property="proj.dir" file="${ant.file.repository}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
-   <property name="impl.pattern"
+  <property name="impl.pattern"
 	    value="org/knopflerfish/bundle/**"/>
 
-  <property name = "bundle.build.lib"   value = "false"/>
-  <property name = "bundle.build.api"   value = "false"/>
-  <property name = "bundle.build.impl"  value = "false"/>
-  <property name = "bundle.build.all"   value = "true"/>
+  <property name="bundle.build.lib"   value="false"/>
+  <property name="bundle.build.api"   value="false"/>
+  <property name="bundle.build.impl"  value="false"/>
+  <property name="bundle.build.all"   value="true"/>
 
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.minimum"/>
 
-  <property name="do.bundle.custom.pre" value="true"/>
-  <target name="bundle.custom.pre">
+  <path id="bundle.compile.path.pre">
+    <pathelement location="org.osgi.impl.bundle.repoindex.api-N.N.N.jar"/>
+  </path>
 
-    <!-- Embedd APIs for OSGi services that the desktop depends on -->
-    <bundle_locator bundleNames="org.osgi.impl.bundle.repoindex.api">
+  <target name="bundle.custom.pre">
+    <bundle_locator classPathRef="bundle.compile.path.pre"
+                    newClassPathId="bundle.compile.path"
+                    failOnMissingBundles="false">
       <fileset dir="${proj.dir}">
-        <exclude name="**/*-source.jar"/>
-        <exclude name="**/*-javadoc.jar"/>
-        <include name="**/*.jar"/>
+	<include name="*.jar"/>
       </fileset>
     </bundle_locator>
-    <copy todir="${classes.out.dir}">
-      <zipfileset src="${bap.org.osgi.impl.bundle.repoindex.api}">
-        <patternset>
-          <exclude name="META-INF/**/*"/>
-          <exclude name="**/*.dex"/>
-        </patternset>
-      </zipfileset>
-    </copy>
   </target>
-
-  <path id="bundle.compile.path">
-  </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 

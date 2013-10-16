@@ -25,8 +25,6 @@
     <pathelement location="${resources.dir}/bundleExt2_test-1.0.0.jar"/>
   </path>
 
-  <property name="do.bundle.custom.pre" value="true"/>
-
   <target name="bundle.custom.pre">
     <mkdir dir="${ttb.outdir}"/>
     <antcall target="bundleExt1_test"/>
