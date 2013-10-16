@@ -51,6 +51,13 @@
     <pathelement location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
   </path>
 
+  <!-- Download and install repoindex -->
+
+  <target name="install_repoindex">
+    <get src="https://bndtools.ci.cloudbees.com/job/bindex.master/lastStableBuild/artifact/cnf/releaserepo/org.osgi.impl.bundle.repoindex.cli/org.osgi.impl.bundle.repoindex.cli-0.0.4.jar" dest="${ant.lib}/org.osgi.impl.bundle.repoindex.cli-0.0.4.jar" verbose="false" skipexisting="true"/>
+    <get src="https://bndtools.ci.cloudbees.com/job/bindex.master/lastStableBuild/artifact/cnf/releaserepo/org.osgi.impl.bundle.repoindex.ant/org.osgi.impl.bundle.repoindex.ant-0.0.1.jar" dest="${ant.lib}/org.osgi.impl.bundle.repoindex.ant-0.0.1.jar" verbose="false" skipexisting="true"/>
+  </target>
+
   <!-- Compile and pack the Knopflerfish bundle tasks.  -->
   <property name="bundle_tasks.jar" location="${ant.lib}/bundle_tasks.jar"/>
 
@@ -64,11 +71,11 @@
   <target name="chkBundleTaskSrc">
     <condition property="bundleTasksBuild.notRequired">
       <not>
-	<and>
-	  <available type="dir"  file="${ant.dir}/src"/>
-	  <available type="dir"  file="${framework.dir}/src"/>
-	  <available type="file" file="${asm.jar}"/>
-	</and>
+        <and>
+          <available type="dir"  file="${ant.dir}/src"/>
+          <available type="dir"  file="${framework.dir}/src"/>
+          <available type="file" file="${asm.jar}"/>
+        </and>
       </not>
     </condition>
   </target>
@@ -79,18 +86,18 @@
   <target name="chkBundleTasksBuild" unless="bundleTasksBuild.notRequired">
     <condition property="bundleTasksBuild.notRequired">
       <uptodate>
-	<srcfiles dir="${ant.dir}/src"
+        <srcfiles dir="${ant.dir}/src"
 		  includes="org/knopflerfish/ant/**"/>
-	<srcfiles dir="${framework.dir}/src"
+        <srcfiles dir="${framework.dir}/src"
 		  includes="org/osgi/framework/Version.java,
 			    org/osgi/framework/Constants.java"/>
-	<mapper type="merge" to="${bundle_tasks.jar}"/>
+        <mapper type="merge" to="${bundle_tasks.jar}"/>
       </uptodate>
     </condition>
   </target>
 
 
-  <available property="jdk1.7+" classname="java.lang.ClassValue"/> 
+  <available property="jdk1.7+" classname="java.lang.ClassValue"/>
 
   <condition property="javac.source" value="1.5" else="1.5">
     <isset property="jdk1.7+"/>
@@ -98,7 +105,7 @@
   <condition property="javac.target" value="1.5" else="jsr14">
     <isset property="jdk1.7+"/>
   </condition>
-    
+
   <target name="build_bundle_tasks"
 	  depends="chkBundleTaskSrc,chkBundleTasksBuild"
 	  unless="bundleTasksBuild.notRequired">
