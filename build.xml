@@ -507,6 +507,10 @@
       <zipfileset dir="${distrib.osgi.dir}" prefix="osgi">
         <exclude name="**/*-source.jar"/>
         <exclude name="**/*-javadoc.jar"/>
+        <exclude name="osgi/test_jars/openssl.config"/>
+        <exclude name="osgi/test_jars/test.castore"/>
+        <exclude name="osgi/test_jars/test.keystore"/>
+        <exclude name="osgi/test_jars/testCA"/>
         <include name="**/*"/>
       </zipfileset>
 
@@ -515,7 +519,6 @@
         <exclude name="**/out/**"/>
         <exclude name="**/*.class"/>
         <exclude name="**/.svn"/>
-        <exclude name="keystore"/>
 
         <include name="ant/**"/>
         <exclude name="ant/classes/**"/>
@@ -579,12 +582,18 @@
         <include name="osgi/bundles/upnp/**"/>
         <include name="osgi/bundles/provisioning/**"/>
 
+        <include name="osgi/bundles/annotations/**"/>
         <include name="osgi/bundles/applicationadmin/**"/>
         <include name="osgi/bundles/blueprint/**"/>
+        <include name="osgi/bundles/coordinator/**"/>
         <include name="osgi/bundles/deploymentadmin/**"/>
-        <include name="osgi/bundles/dmtree/**"/>
+        <include name="osgi/bundles/dmt/**"/>
         <include name="osgi/bundles/foreignapplication/**"/>
         <include name="osgi/bundles/monitor/**"/>
+        <include name="osgi/bundles/namespace/**"/>
+        <include name="osgi/bundles/remoteserviceadmin/**"/>
+        <include name="osgi/bundles/serviceloader/**"/>
+        <include name="osgi/bundles/subsystem/**"/>
 
         <include name="osgi/bundles/demos/**"/>
 
@@ -595,13 +604,13 @@
         <include name="osgi/bundles/remotefw/**"/>
 
         <include name="osgi/bundles_opt/build.xml"/>
+        <include name="osgi/bundles_opt/classpatcher/**"/>
         <include name="osgi/bundles_opt/commons-logging/**"/>
         <include name="osgi/bundles_opt/desktop_awt/**"/>
         <include name="osgi/bundles_opt/desktop_displayers/**"/>
         <include name="osgi/bundles_opt/dirdeployer/**"/>
         <include name="osgi/bundles_opt/jini/**"/>
         <include name="osgi/bundles_opt/junit/**"/>
-        <include name="osgi/bundles_opt/oscar-shell/**"/>
         <include name="osgi/bundles_opt/serial/**"/>
         <include name="osgi/bundles_opt/soap/**"/>
 

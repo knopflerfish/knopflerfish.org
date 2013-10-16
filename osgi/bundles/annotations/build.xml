@@ -1,18 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 
-<project name="bundles_opt" default="all">
+<project name="annotations-dir" default="all">
 
   <!-- Internal target that calls a specified target in all sub-dirs. -->
   <target name="doAntBuild">
-    <ant target="${the.target}" dir="commons-logging"/>
-    <ant target="${the.target}" dir="soap"/>
-    <ant target="${the.target}" dir="junit"/>
-    <ant target="${the.target}" dir="serial"/>
-    <ant target="${the.target}" dir="desktop_displayers"/>
-    <ant target="${the.target}" dir="jini"/>
-    <ant target="${the.target}" dir="dirdeployer"/>
-    <ant target="${the.target}" dir="desktop_displayers"/>
-    <ant target="${the.target}" dir="classpatcher"/>
+    <ant target="${the.target}" dir="component_api"/>
   </target>
 
   <target name="all" 
