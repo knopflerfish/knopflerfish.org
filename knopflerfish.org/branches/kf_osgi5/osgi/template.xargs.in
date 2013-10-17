@@ -10,6 +10,10 @@
 # bundle URLs in "-install URL" command line options and in the console.
 -Forg.knopflerfish.gosg.jars=$(GOSG_JARS)
 
+# Comma seprated list of OSGi Repository xml URLs for instantiating 
+# RepositoryServices
+-Forg.knopflerfish.gosg.jars=$(REPOSITORY_XML_URLS)
+
 ## Basic KF bundles
 -initlevel 1
 -install @log_all-N.N.N.jar@

@@ -36,6 +36,7 @@ package org.knopflerfish.bundle.repository;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.StringTokenizer;
 
 import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
 import org.osgi.framework.BundleActivator;
@@ -47,7 +48,7 @@ import org.osgi.service.cm.ManagedServiceFactory;
 
 public class Activator implements BundleActivator {
   final static String REPOSITORY_XML_PID = "org.knopflerfish.repository.xml.MSF";
-  final static String REPOSITORY_XML_URL = "org.knopflerfish.repository.xml.url";
+  final static String REPOSITORY_XML_URLS = "org.knopflerfish.repository.xml.urls";
   BundleContext bc;
   FactoryImpl factory;
   ServiceRegistration<XmlBackedRepositoryFactory> sr;
@@ -57,10 +58,13 @@ public class Activator implements BundleActivator {
   public void start(BundleContext bc) throws Exception {
     this.bc  = bc;
     factory = new FactoryImpl(bc);
-    
-    String url = bc.getProperty(REPOSITORY_XML_URL);
-    if(url != null && !"".equals(url)) {
-      factory.create(url, null, null);
+    String commaSeparatedUrls = bc.getProperty(REPOSITORY_XML_URLS);
+    if(commaSeparatedUrls != null && !"".equals(commaSeparatedUrls)) {
+      StringTokenizer urls = new StringTokenizer((String)commaSeparatedUrls, ",");
+      while(urls.hasMoreTokens()) {
+        String url = urls.nextToken().trim();
+        factory.create(url, null, null);
+      }
     }
     
     sr = bc.registerService(XmlBackedRepositoryFactory.class, factory, null);
