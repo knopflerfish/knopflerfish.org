@@ -54,6 +54,7 @@
     <ant dir="bundles_opt"      target="all"/>
     <ant dir="bundles_examples" target="all"/>
     <antcall target="xargs"/>
+    <antcall target="repoindex"/>
   </target>
 
   <target name="all"
@@ -75,6 +76,12 @@
   <target name="bundles_test_missing" unless="dir.bundles_test.present">
    <echo level="warning"
          message="The directory for regression test bundles, bundles_test, is missing, skipping test bundles. To build test bundles use subversion to check out the complete knopflerfish.org tree."/>
+  </target>
+
+  <target name="repoindex"
+	  description="Generates the repository index file."
+	  depends="init,bundle_tasks,install_repoindex">
+    <repoindex name="Knopflerfish ${version} Repository" dir="${jars.dir}"/>
   </target>
 
 
