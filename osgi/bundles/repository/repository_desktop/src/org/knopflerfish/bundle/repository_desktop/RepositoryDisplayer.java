@@ -44,6 +44,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -1219,27 +1220,14 @@ public class RepositoryDisplayer
         return;
       }
 
-      // Check if bundle already is installed. If so,
-      // ask user if it should be updated, installed again or
-      // if the operation should be cancelled.
-      final Bundle b = getBundle(resource);
-      if (b != null) {
-
-        final boolean bIsRepoBundle = getResource(b) != null;
-
-        final String[] options =
-          bIsRepoBundle
-            ? (new String[] { "Update", "Cancel", })
-            : (new String[] { "Update", "Install again", "Cancel", });
+      // Check if bundle already is installed.
+      if (node.getBundle() != null) {
+        // Offer to update the bundle with data from the repository.
+        final String[] options = new String[] { "Update", "Cancel" };
 
         final String msg =
-          bIsRepoBundle
-            ? "The selected bundle is already installed\n"
-              + "from the repository.\n" + "\n"
-              + "It can be updated from the repository."
-            : "The selected bundle is already installed.\n" + "\n"
-              + "It can be updated from the repository, or\n"
-              + "a new instance can be installed from the\n" + "repository";
+          "The selected resource is already installed.\n"
+              + "It can be updated from the repository.";
 
         final int n =
           JOptionPane.showOptionDialog(resourceTree,
@@ -1249,59 +1237,54 @@ public class RepositoryDisplayer
                                        JOptionPane.QUESTION_MESSAGE, null, // icon
                                        options, options[0]);
 
-        if (bIsRepoBundle) {
-          if (n == 0) { // update
-            node.appendLog("Update.\n");
-          } else if (n == 1) { // Cancel
-            return;
-          }
-        } else {
-          if (n == 0) { // Update
-            InputStream in = null;
+        if (n == 0) { // Update
+          InputStream in = null;
+          try {
+            in = ((RepositoryContent) node.getResource()).getContent();
+            node.getBundle().update(in);
+            node.appendLog("Updated from "
+                           + Util.getLocation(node.getResource()) + "\n");
+          } catch (final Exception e) {
+            node.appendLog("Update failed: " + e + "\n");
+          } finally {
             try {
-              in = ((RepositoryContent) node.getResource()).getContent();
-              b.update(in);
-              node.appendLog("Updated from "
-                             + Util.getLocation(node.getResource()) + "\n");
-            } catch (final Exception e) {
-              node.appendLog("Update failed: " + e + "\n");
-            } finally {
-              try {
-                in.close();
-              } catch (final Exception ignored) {
-              }
+              in.close();
+            } catch (final Exception ignored) {
             }
-            return;
-          } else if (n == 1) { // install new
-            node.appendLog("Install new instance.\n");
-          } else if (n == 2) { // cancel
-            return;
           }
+          return;
         }
       }
 
       // Install the bundle from the repository resource
 
-      // TODO: Use resolver service to find and install other bundles that are
-      // needed to resolve and start the selected bundle.
-      InputStream in = null;
       String message = "";
+      InputStream in  = null;
       try {
+        // TODO: Use resolver service to find and install other bundles that are
+        // needed to resolve and start the selected bundle.
         final String location = Util.getLocation(resource);
-        in = ((RepositoryContent) node.getResource()).getContent();
-        final Bundle bundle = bc.installBundle(location, in);
-        node.setInstalled(b);
-        message += "Installed #" + bundle.getBundleId() + " from " + location;
+        Bundle bundle = null;
+        if (location.startsWith("file:")) {
+          bundle = bc.installBundle(location);
+        } else {
+          in = ((RepositoryContent) node.getResource()).getContent();
+          bundle = bc.installBundle(location, in);
+        }
+        node.setInstalled(bundle);
+        message +=
+          "Installed #" + bundle.getBundleId() + " from " + location + ".\n";
 
         if (bStart) {
           try {
-            b.start();
+            bundle.start();
+            message += "Started #" + bundle.getBundleId() + ".\n";
           } catch (final Exception es) {
-            message += ". Start failed: " + es.getMessage();
+            message += "Start failed: " + es.getMessage() + ".\n";
             Activator.log.error(message, es);
           }
         }
-        final boolean bOK = true; // resolve and install went ok.
+        final boolean bOK = true; // resolve and install went OK.
         if (bOK) {
           if (sortCategory == SORT_STATUS) {
             refreshList();
@@ -1311,6 +1294,12 @@ public class RepositoryDisplayer
         message += "Installation failed: " + ei.getMessage();
         Activator.log.error(message, ei);
       } finally {
+        if (in != null) {
+          try {
+            in.close();
+          } catch (final IOException e) {
+          }
+        }
         node.appendLog(message);
       }
 
