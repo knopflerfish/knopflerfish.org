@@ -14,7 +14,7 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/console/consoletcp/
-Bundle-Category: console
+Bundle-Category: management
 Bundle-Activator: org.knopflerfish.bundle.consoletcp.ConsoleTcp
 Provide-Capability: osgi.service;
  objectClass:List<String>="org.osgi.service.cm.ManagedService";

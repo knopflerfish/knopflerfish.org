@@ -3,9 +3,9 @@ Bundle-ManifestVersion: 2
 Bundle-Name: dmt
 Bundle-SymbolicName: org.knopflerfish.bundle.dmt
 Bundle-Version: 5.0.0
-Bundle-Category: API
+Bundle-Category: osgi
 Bundle-Description: DMT
-Bundle-Vendor: Knopflerfish,OSGi
+Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
 Bundle-License: http://opensource.org/licenses/Apache-2.0;
  link="http://www.apache.org/licenses/LICENSE-2.0";

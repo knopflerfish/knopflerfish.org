@@ -14,7 +14,7 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/cm/cm_cmd/
 Bundle-Activator: org.knopflerfish.bundle.cm.commands.impl.Activator
-Bundle-Category: service
+Bundle-Category: management
 Bundle-Icon: icon.png;size=32
 Provide-Capability: osgi.service;
  objectClass:List<String>="org.knopflerfish.service.console.CommandGroup"

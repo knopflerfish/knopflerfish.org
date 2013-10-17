@@ -9,6 +9,7 @@
     <ant target="${the.target}" dir="repositorymanager"/>
     <ant target="${the.target}" dir="repositorycommands"/>
     <ant target="${the.target}" dir="repository_desktop"/>
+    <ant target="${the.target}" dir="repoindex_kf"/>
   </target>
 
   <target name="all" 

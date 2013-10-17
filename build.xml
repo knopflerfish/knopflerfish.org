@@ -162,7 +162,7 @@
     <ant dir="${osgi.dir}/framework" inheritall="false">
       <property name="compact" value="true"/>
       <property name="jarfile_compact"
-                location="${distrib.osgi.dir}/framework_small.jar"/>
+                location="${distrib.osgi.dir}/framework_compact.jar"/>
       <property name="version" value="${version}"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>
@@ -656,7 +656,7 @@
       </zipfileset>
 
       <zipfileset dir="${distrib.dir}" prefix="${distrib_tiny.prefix}">
-        <include name="osgi/framework_small.jar"/>
+        <include name="osgi/framework_compact.jar"/>
         <include name="osgi/remote-init.xargs"/>
         <include name="osgi/props.xargs"/>
       </zipfileset>

@@ -6,6 +6,6 @@ Bundle-Description: Test bundle for SCR, circular deactivate test
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-Category: test
+Bundle-Category: testing
 Import-Package: org.osgi.service.component
 Service-Component: service.xml

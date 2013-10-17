@@ -14,7 +14,7 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/logcommands/
 Bundle-Activator: org.knopflerfish.bundle.logcommands.LogCommands
-Bundle-Category: service
+Bundle-Category: management
 Bundle-Icon: icon.png;size=32
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 api-Provide-Capability: [bundle.emptystring]

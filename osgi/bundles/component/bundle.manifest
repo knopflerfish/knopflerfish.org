@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: SCR
 Bundle-SymbolicName: org.knopflerfish.bundle.component
 Bundle-Version: 5.0.0
-Bundle-Category: service
+Bundle-Category: osgi
 Bundle-Description: Declarative Services SCR
 Bundle-Vendor: Knopflerfish
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause;

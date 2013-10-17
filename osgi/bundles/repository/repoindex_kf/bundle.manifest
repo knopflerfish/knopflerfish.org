@@ -2,11 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KF Resource Analyzer Extensions
 Bundle-SymbolicName: org.knopflerfish.bundle.repository.index
-Bundle-Version: 5.0.0
-Bundle-Category: IMPL
+Bundle-Version: 1.0.0
+Bundle-Category: utility
 Bundle-Description: KF Resource Analyzer Extensions
-Bundle-Vendor: OSGi
-Bundle-APIVendor: OSGi
+Bundle-Vendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html

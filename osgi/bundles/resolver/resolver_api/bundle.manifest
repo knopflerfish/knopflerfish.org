@@ -2,10 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: resolver
 Bundle-SymbolicName: org.knopflerfish.bundle.resolver
-Bundle-Version: 5.0.0
-Bundle-Category: API
+Bundle-Version: 1.0.0
+Bundle-Category: osgi
 Bundle-Description: Resolver API
-Bundle-Vendor: OSGi
+Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  description="BSD 3-clause";
