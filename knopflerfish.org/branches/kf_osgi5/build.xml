@@ -38,7 +38,7 @@
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
-  <property name="version"            value="4.0.1.svn-0000"/>
+  <property name="version"            value="5.0.0.svn-0000"/>
 
   <!-- The release date of this release -->
   <!-- *** Un-comment and set here on release branch. *** -->
