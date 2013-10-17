@@ -53,9 +53,27 @@
 
   <!-- Download and install repoindex -->
 
+  <property name="bndtools.download.url"
+	    value="https://bndtools.ci.cloudbees.com/job/bindex.master/lastStableBuild/artifact/cnf/releaserepo"/>
+
+  <property name="org.osgi.impl.bundle.repoindex.cli.jar"
+	    value="org.osgi.impl.bundle.repoindex.cli-0.0.4.jar"/>
+  <property name="org.osgi.impl.bundle.repoindex.cli.download.url"
+	    value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.cli/"/>
+
+  <property name="org.osgi.impl.bundle.repoindex.ant.jar"
+	    value="org.osgi.impl.bundle.repoindex.ant-0.0.1.jar"/>
+  <property name="org.osgi.impl.bundle.repoindex.ant.download.url"
+	    value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.ant"/>
+
   <target name="install_repoindex">
-    <get src="https://bndtools.ci.cloudbees.com/job/bindex.master/lastStableBuild/artifact/cnf/releaserepo/org.osgi.impl.bundle.repoindex.cli/org.osgi.impl.bundle.repoindex.cli-0.0.4.jar" dest="${ant.lib}/org.osgi.impl.bundle.repoindex.cli-0.0.4.jar" verbose="false" skipexisting="true"/>
-    <get src="https://bndtools.ci.cloudbees.com/job/bindex.master/lastStableBuild/artifact/cnf/releaserepo/org.osgi.impl.bundle.repoindex.ant/org.osgi.impl.bundle.repoindex.ant-0.0.1.jar" dest="${ant.lib}/org.osgi.impl.bundle.repoindex.ant-0.0.1.jar" verbose="false" skipexisting="true"/>
+    <get src="${org.osgi.impl.bundle.repoindex.cli.download.url}/${org.osgi.impl.bundle.repoindex.cli.jar}"
+	 dest="${ant.lib}/${org.osgi.impl.bundle.repoindex.cli.jar}"
+	 verbose="false"
+	 skipexisting="true"/>
+    <get src="${org.osgi.impl.bundle.repoindex.ant.download.url}/${org.osgi.impl.bundle.repoindex.ant.jar}"
+	 dest="${ant.lib}/${org.osgi.impl.bundle.repoindex.ant.jar}"
+	 verbose="false" skipexisting="true"/>
   </target>
 
   <!-- Compile and pack the Knopflerfish bundle tasks.  -->

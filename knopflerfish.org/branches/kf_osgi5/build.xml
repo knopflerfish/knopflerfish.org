@@ -751,31 +751,52 @@
   </target>
   
   <target name="repoindex" depends="bundle_tasks,install_repoindex">
+    <!-- build the plugin for the org.knopflerfish.extra namespace. -->
+    <ant dir="${osgi.dir}/bundles/repository/repoindex_kf" target="all"/>
+
+    <path id="repoindex.path.pre">
+      <pathelement location="org.osgi.impl.bundle.repoindex.cli-N.N.N.jar"/>
+      <pathelement location="repoindex_kf_all-N.N.N.jar"/>
+    </path>
+    <bundle_locator classPathRef="repoindex.path.pre"
+                    newClassPathId="repoindex.path"
+                    failOnMissingBundles="true">
+      <fileset dir="${ant.dir}/lib">
+        <include name="*.jar"/>
+        <exclude name="*-source.jar"/>
+        <exclude name="*-javadoc.jar"/>
+      </fileset>
+      <fileset dir="${osgi.dir}/jars/repoindex_kf/">
+        <include name="*.jar"/>
+        <exclude name="*-source.jar"/>
+        <exclude name="*-javadoc.jar"/>
+      </fileset>
+    </bundle_locator>
+
     <fileset id="repoindex.jars" dir="${osgi.dir}/jars/">
       <include name="**/*.jar"/>
+      <exclude name="**/*-source.jar"/>
+      <exclude name="**/*-javadoc.jar"/>
     </fileset>
     <pathconvert refid="repoindex.jars" property="repoindex.jars.line" pathsep=" "/>
     <java classname="org.osgi.impl.bundle.bindex.cli.Index"
           fork="yes"
           dir="${osgi.dir}/jars">
-      <classpath>
-        <pathelement location="${ant.dir}/lib/org.osgi.impl.bundle.repoindex.cli-0.0.4.jar"/>
-        <pathelement location="${osgi.dir}/jars/repoindex_kf/repoindex_kf_all-5.0.0.jar"/>
-      </classpath>
+      <classpath refid="repoindex.path"/>
       <arg value="--pretty"/>
       <arg value="-n"/>
       <arg value="Knopflerfish 5.0.0 Repository"/>
       <arg line="${repoindex.jars.line}"/>
     </java>
+
     <copy file="${knopflerfish.dir}/htdocs/css/repository2html.xsl"
-	  tofile="${osgi.dir}/jars/repository2html.xsl"/>
+          tofile="${osgi.dir}/jars/repository2html.xsl"/>
     <echo>${ant.file.knopflerfish}/htdocs/css/repository2html.xsl</echo>
     <replace file="${osgi.dir}/jars/index.xml">
       <replacetoken><![CDATA[<?xml version='1.0' encoding='utf-8'?>]]></replacetoken>
       <replacevalue><![CDATA[<?xml version='1.0' encoding='utf-8'?>
-<?xml-stylesheet type='text/xsl' href='file:repository2html.xsl'?>]]></replacevalue>
+      <?xml-stylesheet type='text/xsl' href='file:repository2html.xsl'?>]]></replacevalue>
     </replace>
   </target>
-
 
 </project>
