@@ -127,7 +127,11 @@ class BundleArchiveImpl implements BundleArchive {
    * @return A FileArchive object representing new archive, null if not found.
    */
   public FileArchive getFileArchive(String path) {
-    // NYI
+    for (Archive a : archives) {
+      if (a.path.equals(path)) {
+        return a;
+      }
+    }
     return null;
   }
 
