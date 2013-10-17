@@ -17,7 +17,7 @@
   <property name="frameworkdoc_template"
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.impl.version"   value="6.0.3"/>
+  <property name="fw.impl.version"   value="6.0.4"/>
   <property name="fw.export-package"
             value="org.osgi.framework;version=1.6,
                    org.osgi.framework.launch;version=1.0,

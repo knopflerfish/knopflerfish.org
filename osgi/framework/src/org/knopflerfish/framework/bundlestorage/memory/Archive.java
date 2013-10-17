@@ -80,6 +80,8 @@ class Archive implements FileArchive {
 
   ArrayList<String> subDirs/* = null */;
 
+  final String path;
+
 
   /**
    * Create an Archive based on contents of an InputStream, get file object for
@@ -90,6 +92,7 @@ class Archive implements FileArchive {
   @SuppressWarnings("resource") // The input stream, is, must not be closed here.
   Archive(BundleArchiveImpl ba, InputStream is) throws IOException {
     this.ba = ba;
+    path = ".";
     final JarInputStream ji = new JarInputStream(is);
     manifest = ji.getManifest();
     if (manifest == null) {
@@ -111,6 +114,7 @@ class Archive implements FileArchive {
    */
   Archive(Archive a, String path) throws IOException {
     ba = a.ba;
+    this.path = path;
     if (null != path && path.length() > 0 && '/' == path.charAt(0)) {
       path = path.substring(1);
     }
