@@ -12,7 +12,7 @@
 
 # Comma seprated list of OSGi Repository xml URLs for instantiating 
 # RepositoryServices
--Forg.knopflerfish.gosg.jars=$(REPOSITORY_XML_URLS)
+-Forg.knopflerfish.repository.xml.urls=$(REPOSITORY_XML_URLS)
 
 ## Basic KF bundles
 -initlevel 1

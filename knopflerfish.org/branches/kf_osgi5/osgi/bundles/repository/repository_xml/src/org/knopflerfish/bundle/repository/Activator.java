@@ -38,13 +38,14 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 
-import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
+
+import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
 
 public class Activator implements BundleActivator {
   final static String REPOSITORY_XML_PID = "org.knopflerfish.repository.xml.MSF";
@@ -53,24 +54,28 @@ public class Activator implements BundleActivator {
   FactoryImpl factory;
   ServiceRegistration<XmlBackedRepositoryFactory> sr;
   ServiceRegistration<ManagedServiceFactory> msfr;
-  
+
   @Override
   public void start(BundleContext bc) throws Exception {
     this.bc  = bc;
     factory = new FactoryImpl(bc);
-    String commaSeparatedUrls = bc.getProperty(REPOSITORY_XML_URLS);
+    final String commaSeparatedUrls = bc.getProperty(REPOSITORY_XML_URLS);
     if(commaSeparatedUrls != null && !"".equals(commaSeparatedUrls)) {
-      StringTokenizer urls = new StringTokenizer((String)commaSeparatedUrls, ",");
+      final StringTokenizer urls = new StringTokenizer(commaSeparatedUrls, ",");
       while(urls.hasMoreTokens()) {
-        String url = urls.nextToken().trim();
+        final String url = urls.nextToken().trim();
+        try {
         factory.create(url, null, null);
+        } catch (final Exception e) {
+          // TODO: Write to log.
+        }
       }
     }
-    
+
     sr = bc.registerService(XmlBackedRepositoryFactory.class, factory, null);
-    
-    
-    Hashtable<String, String> h = new Hashtable<String, String>();
+
+
+    final Hashtable<String, String> h = new Hashtable<String, String>();
     h.put(Constants.SERVICE_PID, REPOSITORY_XML_PID);
     msfr = bc.registerService(ManagedServiceFactory.class, new MSF(), h);
   }
@@ -87,7 +92,7 @@ public class Activator implements BundleActivator {
     }
     factory.destroyAll();
   }
-  
+
   class MSF implements ManagedServiceFactory {
 
     @Override
@@ -101,15 +106,15 @@ public class Activator implements BundleActivator {
 
         try {
           factory.create((String)p.get("url"), p, pid);
-        } catch (Exception e) {
+        } catch (final Exception e) {
           e.printStackTrace();
-        }  
+        }
     }
 
     @Override
     public synchronized void deleted(String pid) {
       factory.destroy(pid);
     }
-    
+
   }
 }
