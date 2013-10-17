@@ -17,6 +17,9 @@
     <attribute name="gosgJars"
 	       description="Semicolon separated URL-path to replace $(GOSG_JARS) with. Also used to search for bundles."
 	       default="file:jars/;file:test_jars/"/>
+    <attribute name="repositoryXmlUrls"
+	       description="Comma separated list of OSGi Repository xml urls to replace $(REPOSITORY_XML_URLS) with."
+	       default="file:jars/index.xml,http://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
     <attribute name="baseDir"
 	       description="Base directory for relative file URLs in the gosgJars path."
 	       default=""/>
@@ -78,6 +81,7 @@
       <replace file="@{xargs}"
                replacefilterfile="${bundleVersionFilter}">
 	<replacefilter token="$(GOSG_JARS)"    value="@{gosgJars}"/>
+    <replacefilter token="$(REPOSITORY_XML_URLS)"    value="@{repositoryXmlUrls}"/>
 	<replacefilter token="$(TESTJARS)"     value="@{testJars}"/>
 	<replacefilter token="$(VERSION)"      value="${version}"/>
 	<replacefilter token="$(OS_ARGS)"      value="${xargs.os.args}"/>
