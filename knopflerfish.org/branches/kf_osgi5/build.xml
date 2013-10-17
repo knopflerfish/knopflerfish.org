@@ -749,10 +749,20 @@
       <arg value="${distrib.doc.dir}/index.html"/>
     </exec>
   </target>
+ 
+  <target name="repoindex">
+    <antcall target="repoindex_param">
+      <param name="repoindex.osgi.dir"  location="${osgi.dir}"/>
+      <param name="repoindex.repo.name"  value="Knopflerfish ${version} Repository"/>
+    </antcall>
+  </target>
   
-  <target name="repoindex" depends="bundle_tasks,install_repoindex">
+  <!-- Parameters:  -->
+  <!--  repoindex.repo.name  The name of the repository        -->
+  <!--  repoindex.osgi.dir   The osgi dir of the build to index -->
+  <target name="repoindex_param" depends="bundle_tasks,install_repoindex">
     <!-- build the plugin for the org.knopflerfish.extra namespace. -->
-    <ant dir="${osgi.dir}/bundles/repository/repoindex_kf" target="all"/>
+    <ant dir="${repoindex.osgi.dir}/bundles/repository/repoindex_kf" target="all"/>
 
     <path id="repoindex.path.pre">
       <pathelement location="org.osgi.impl.bundle.repoindex.cli-N.N.N.jar"/>
@@ -766,14 +776,14 @@
         <exclude name="*-source.jar"/>
         <exclude name="*-javadoc.jar"/>
       </fileset>
-      <fileset dir="${osgi.dir}/jars/repoindex_kf/">
+      <fileset dir="${repoindex.osgi.dir}/jars/repoindex_kf/">
         <include name="*.jar"/>
         <exclude name="*-source.jar"/>
         <exclude name="*-javadoc.jar"/>
       </fileset>
     </bundle_locator>
 
-    <fileset id="repoindex.jars" dir="${osgi.dir}/jars/">
+    <fileset id="repoindex.jars" dir="${repoindex.osgi.dir}/jars/">
       <include name="**/*.jar"/>
       <exclude name="**/*-source.jar"/>
       <exclude name="**/*-javadoc.jar"/>
@@ -781,18 +791,17 @@
     <pathconvert refid="repoindex.jars" property="repoindex.jars.line" pathsep=" "/>
     <java classname="org.osgi.impl.bundle.bindex.cli.Index"
           fork="yes"
-          dir="${osgi.dir}/jars">
+          dir="${repoindex.osgi.dir}/jars">
       <classpath refid="repoindex.path"/>
       <arg value="--pretty"/>
       <arg value="-n"/>
-      <arg value="Knopflerfish 5.0.0 Repository"/>
+      <arg value="${repoindex.repo.name}"/>
       <arg line="${repoindex.jars.line}"/>
     </java>
 
     <copy file="${knopflerfish.dir}/htdocs/css/repository2html.xsl"
-          tofile="${osgi.dir}/jars/repository2html.xsl"/>
-    <echo>${ant.file.knopflerfish}/htdocs/css/repository2html.xsl</echo>
-    <replace file="${osgi.dir}/jars/index.xml">
+          tofile="${repoindex.osgi.dir}/jars/repository2html.xsl"/>
+    <replace file="${repoindex.osgi.dir}/jars/index.xml">
       <replacetoken><![CDATA[<?xml version='1.0' encoding='utf-8'?>]]></replacetoken>
       <replacevalue><![CDATA[<?xml version='1.0' encoding='utf-8'?>
       <?xml-stylesheet type='text/xsl' href='file:repository2html.xsl'?>]]></replacevalue>
