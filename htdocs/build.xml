@@ -64,24 +64,24 @@
      </filterset>
    </copy>
 
-   <makehtml title="${htdocs.distname}"
-             description="The ${htdocs.distname} framework is a complete OSGi R4 framework"
+   <makehtml title="${htdocs.distname} Open Source OSGi Serivce Platform"
+             description="The ${htdocs.distname} is an Open Source OSGi Service Platform designed to be compliant with the OSGi R4 v4.3 specifications"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="index.html"
              fromfile="${htdocs.dir}/html_src/index_main.html"
              disable="INDEX"/>
 
-   <makehtml description="Information, tips and recommendations for developing OSGi bundles"
-             title="${htdocs.distname}: Develop OSGi bundles"
+   <makehtml title="${htdocs.distname} Develop OSGi bundles"
+             description="Information, tips and recommendations for developing OSGi bundles"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="programming.html"
              fromfile="${htdocs.dir}/html_src/programming_main.html"
              disable="PROG"/>
 
-    <makehtml description=""
-              title="${htdocs.distname} License"
+    <makehtml title="${htdocs.distname} Knopflerfish Open Source License"
+              description="${htdocs.distname} - BSD 3-style open source license"
               template="${template.html}"
               outdir="${htdocs.out}"
               tofile="license.html"
@@ -111,63 +111,63 @@
               fromfile="${knopflerfish.dir}/release_notes.in.html"
               disable="CHANGELOG"/>
     <!-- Version for the local documentation site. -->
-    <makehtml description="Release notes for this release of ${htdocs.distname}"
-              title="${htdocs.distname} Release Notes"
+    <makehtml title="${htdocs.distname} Release Notes"
+              description="Release notes for this release of ${htdocs.distname}"
               template="${template.html}"
               outdir="${htdocs.out}"
               tofile="release_notes.html"
               fromfile="${knopflerfish.dir}/release_notes.in.html"
               disable="CHANGELOG"/>
 
-    <makehtml description="The contents of the ${htdocs.distname} distribution"
-              title="${htdocs.distname} contents"
+    <makehtml title="${htdocs.distname} What is included in the Knopflerfish distribution"
+              description="The contents of the ${htdocs.distname} distribution"
               template="${template.html}"
               outdir="${htdocs.out}"
               tofile="components.html"
               fromfile="${htdocs.dir}/html_src/components_main.html"
               disable="COMP"/>
 
-   <makehtml description="Installing Knopflerfish OSGi"
-             title="Installing"
+   <makehtml title="${htdocs.distname} Installing Knopflerfish"
+             description="Installing Knopflerfish OSGi"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="installing.html"
              fromfile="${htdocs.dir}/html_src/installing.html"
              disable="INSTALLING"/>
 
-   <makehtml description="Running Knopflerfish OSGi"
-             title="Running"
+   <makehtml title="${htdocs.distname} Running Knopflerfish"
+             description="Running Knopflerfish OSGi"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="running.html"
              fromfile="${htdocs.dir}/html_src/running.html"
              disable="RUNNING"/>
 
-   <makehtml description="Building Knopflerfish OSGi"
-             title="Building"
+   <makehtml title="${htdocs.distname} Building"
+             description="Building Knopflerfish OSGi"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="building.html"
              fromfile="${htdocs.dir}/html_src/building.html"
              disable="BUILDING"/>
 
-   <makehtml description="Testing Knopflerfish OSGi"
-             title="Testing"
+   <makehtml title="${htdocs.distname} Testing"
+             description="Testing Knopflerfish OSGi"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="testing.html"
              fromfile="${htdocs.dir}/html_src/testing.html"
              disable="TESTING"/>
 
-   <makehtml description="The Knopflerfish OSGi Desktop"
-             title="Desktop"
+   <makehtml title="${htdocs.distname} the famous KF Desktop bundle, visualizing the OSGi service platform"
+             description="The Knopflerfish OSGi Desktop"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="desktop.html"
              fromfile="${htdocs.dir}/html_src/desktop_main.html"
              disable="DESKTOP"/>
 
-    <makehtml title="${htdocs.distname} - Tutorials"
+    <makehtml title="${htdocs.distname} Tutorials"
               description="The tutorials shipped with KF"
               template="${template.html}"
               outdir="${htdocs.out}"
@@ -175,7 +175,7 @@
               fromfile="${htdocs.dir}/html_src/tutorials.html"
 	      disable="TUTORIALS"/>
 
-    <makehtml title="${htdocs.distname} - OSGi Service Tutorial"
+    <makehtml title="${htdocs.distname} OSGi Service Tutorial"
               description="The OSGi Service Tutorial"
               template="${template.html}"
               outdir="${htdocs.out}"
@@ -183,7 +183,7 @@
               fromfile="${htdocs.dir}/html_src/osgi_service_tutorial.html"
 	      disable="TUTORIALS"/>
 
-    <makehtml title="${htdocs.distname} - OSGi with Security"
+    <makehtml title="${htdocs.distname} OSGi with Security"
               description="Running OSGi with Security"
               template="${template.html}"
               outdir="${htdocs.out}"
@@ -191,7 +191,7 @@
               fromfile="${htdocs.dir}/html_src/osgi_with_security.html"
 	      disable="TUTORIALS"/>
 
-    <makehtml title="${htdocs.distname} - running on Android / Dalvik"
+    <makehtml title="${htdocs.distname} running on Android / Dalvik"
               description="Tutorial for running KF on Android / Dalvik"
               template="${template.html}"
               outdir="${htdocs.out}"
