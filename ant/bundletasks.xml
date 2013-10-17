@@ -54,27 +54,95 @@
   <!-- Download and install repoindex -->
 
   <property name="bndtools.download.url"
-	    value="https://bndtools.ci.cloudbees.com/job/bindex.master/lastStableBuild/artifact/cnf/releaserepo"/>
+            value="https://bndtools.ci.cloudbees.com/job/bindex.master/lastStableBuild/artifact/cnf/releaserepo"/>
 
   <property name="org.osgi.impl.bundle.repoindex.cli.jar"
-	    value="org.osgi.impl.bundle.repoindex.cli-0.0.4.jar"/>
+            value="org.osgi.impl.bundle.repoindex.cli-0.0.4.jar"/>
   <property name="org.osgi.impl.bundle.repoindex.cli.download.url"
-	    value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.cli/"/>
+            value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.cli/"/>
 
   <property name="org.osgi.impl.bundle.repoindex.ant.jar"
-	    value="org.osgi.impl.bundle.repoindex.ant-0.0.1.jar"/>
+            value="org.osgi.impl.bundle.repoindex.ant-0.0.1.jar"/>
   <property name="org.osgi.impl.bundle.repoindex.ant.download.url"
-	    value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.ant"/>
+            value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.ant"/>
 
   <target name="install_repoindex">
     <get src="${org.osgi.impl.bundle.repoindex.cli.download.url}/${org.osgi.impl.bundle.repoindex.cli.jar}"
-	 dest="${ant.lib}/${org.osgi.impl.bundle.repoindex.cli.jar}"
-	 verbose="false"
-	 skipexisting="true"/>
+         dest="${ant.lib}/${org.osgi.impl.bundle.repoindex.cli.jar}"
+         verbose="false"
+         skipexisting="true"/>
     <get src="${org.osgi.impl.bundle.repoindex.ant.download.url}/${org.osgi.impl.bundle.repoindex.ant.jar}"
-	 dest="${ant.lib}/${org.osgi.impl.bundle.repoindex.ant.jar}"
-	 verbose="false" skipexisting="true"/>
+         dest="${ant.lib}/${org.osgi.impl.bundle.repoindex.ant.jar}"
+         verbose="false" skipexisting="true"/>
   </target>
+
+  <macrodef name="repoindex"
+            description="Generates repository XML description.">
+    <attribute name="name"
+               description="The name of the repository to create."/>
+    <attribute name="dir"
+               description="The directory to index."/>
+
+    <sequential>
+      <path id="repoindex.path.pre">
+        <pathelement location="org.osgi.impl.bundle.repoindex.cli-N.N.N.jar"/>
+        <pathelement location="repoindex_kf_all-N.N.N.jar"/>
+      </path>
+      <bundle_locator classPathRef="repoindex.path.pre"
+                      newClassPathId="repoindex.path"
+                      failOnMissingBundles="true">
+        <fileset dir="${ant.dir}/lib">
+          <include name="*.jar"/>
+          <exclude name="*-source.jar"/>
+          <exclude name="*-javadoc.jar"/>
+        </fileset>
+        <!-- Search the local repository first (where jars are placed) -->
+        <fileset dir="${jars.dir}/repoindex_kf">
+          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-javadoc.jar"/>
+          <include name="**/*.jar"/>
+        </fileset>
+        <!-- Search the local default repository second -->
+        <fileset dir="${osgi.jars.dir}/repoindex_kf">
+          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-javadoc.jar"/>
+          <include name="**/*.jar"/>
+        </fileset>
+        <!-- Search the default repository third -->
+        <fileset dir="${osgi.dir}/jars/repoindex_kf">
+          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-javadoc.jar"/>
+          <include name="**/*.jar"/>
+        </fileset>
+      </bundle_locator>
+
+      <local name="repoindex.jars.line"/>
+      <fileset id="repoindex.jars" dir="@{dir}">
+        <include name="**/*.jar"/>
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
+      </fileset>
+      <pathconvert refid="repoindex.jars" property="repoindex.jars.line" pathsep=" "/>
+      <java classname="org.osgi.impl.bundle.bindex.cli.Index"
+            fork="yes"
+            dir="@{dir}">
+        <classpath refid="repoindex.path"/>
+        <arg value="--pretty"/>
+        <arg value="-n"/>
+        <arg value="@{name}"/>
+        <arg line="${repoindex.jars.line}"/>
+      </java>
+
+      <copy file="${ant.dir}/xsl/repository2html.xsl"
+            tofile="@{dir}/repository2html.xsl"/>
+      <replace file="@{dir}/index.xml">
+        <replacetoken><![CDATA[<?xml version='1.0' encoding='utf-8'?>]]></replacetoken>
+        <replacevalue><![CDATA[<?xml version='1.0' encoding='utf-8'?>
+        <?xml-stylesheet type='text/xsl' href='file:repository2html.xsl'?>]]></replacevalue>
+      </replace>
+    </sequential>
+  </macrodef>
+
 
   <!-- Compile and pack the Knopflerfish bundle tasks.  -->
   <property name="bundle_tasks.jar" location="${ant.lib}/bundle_tasks.jar"/>
@@ -105,10 +173,10 @@
     <condition property="bundleTasksBuild.notRequired">
       <uptodate>
         <srcfiles dir="${ant.dir}/src"
-		  includes="org/knopflerfish/ant/**"/>
+                  includes="org/knopflerfish/ant/**"/>
         <srcfiles dir="${framework.dir}/src"
-		  includes="org/osgi/framework/Version.java,
-			    org/osgi/framework/Constants.java"/>
+                  includes="org/osgi/framework/Version.java,
+                            org/osgi/framework/Constants.java"/>
         <mapper type="merge" to="${bundle_tasks.jar}"/>
       </uptodate>
     </condition>
@@ -125,8 +193,8 @@
   </condition>
 
   <target name="build_bundle_tasks"
-	  depends="chkBundleTaskSrc,chkBundleTasksBuild"
-	  unless="bundleTasksBuild.notRequired">
+          depends="chkBundleTaskSrc,chkBundleTasksBuild"
+          unless="bundleTasksBuild.notRequired">
     <mkdir dir="${antclasses}"/>
     <javac destdir="${antclasses}"
            classpathref="bundle_tasks.path"
