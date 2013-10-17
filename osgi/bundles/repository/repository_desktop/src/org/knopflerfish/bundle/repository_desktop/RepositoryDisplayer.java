@@ -106,7 +106,6 @@ import org.osgi.service.repository.RepositoryContent;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.knopflerfish.service.repositorymanager.RepositoryInfo;
 import org.knopflerfish.service.repositorymanager.RepositoryManager;
 
@@ -183,6 +182,9 @@ public class RepositoryDisplayer
   // Name of top node
   static String STR_TOPNAME = "Repository";
 
+  /** The currently selected bundle. */
+  long currentSelection = -1;
+
   public RepositoryDisplayer(BundleContext bc)
   {
     super(bc, "Repository", "View and install bundles from OSGi Repositories",
@@ -219,19 +221,21 @@ public class RepositoryDisplayer
   }
 
   @Override
-  public void valueChanged(final long bid)
+  protected void valueChangedLazy(long bid)
   {
-    super.valueChanged(bid);
-    // If unselecting and multiple selected bundles, choose another one.
-    final long selectedBid =
-      bundleSelModel.getSelectionCount() > 1
-        ? bundleSelModel.getSelected()
-        : bid;
-    for (final Object element : components) {
-      final JRepositoryAdmin repositoryAdmin =
-        (JRepositoryAdmin) (JComponent) element;
-      repositoryAdmin.valueChanged(selectedBid);
+    // Currently this displayer only support a single selection...
+    if (bundleSelModel.isSelected(currentSelection)) {
+      // The bundle we have selected is still amongst the selected bundles;
+      // nothing to do.
+    } else if (!selectionChangeInProgress) {
+      // Choose another selected bundle...
+      currentSelection = bundleSelModel.getSelected();
+      for (final JComponent component : components) {
+        final JRepositoryAdmin repositoryAdmin = (JRepositoryAdmin) component;
+        repositoryAdmin.valueChanged(currentSelection);
+      }
     }
+    super.valueChangedLazy(bid);
   }
 
   @Override
@@ -568,6 +572,10 @@ public class RepositoryDisplayer
 
       public Bundle getBundle()
       {
+        if (bundle != null && bundle.getState() == Bundle.UNINSTALLED) {
+          // Clear stale bundle reference.
+          bundle = null;
+        }
         if (bundle == null) {
           // Check to see if there is a bundle now.
           bundle = RepositoryDisplayer.getBundle(resource);
@@ -750,7 +758,11 @@ public class RepositoryDisplayer
       {
         // This is displayed in the HTML to the right.
         if (bundle != null) {
-          return "#" + bundle.getBundleId() + " " + name;
+          if (bundle.getState() != Bundle.UNINSTALLED) {
+            return "#" + bundle.getBundleId() + " " + name;
+          } else {
+            bundle = null;
+          }
         }
         return name;
       }
@@ -771,7 +783,11 @@ public class RepositoryDisplayer
 
     TopNode rootNode;
 
-    // currently selected node
+    // Currently selected bundle in this JRepositoryAdmin.
+    Bundle selectedBundle = null;
+
+    // Currently selected tree node. Will differ from node of the selected
+    // bundle when the user has selected a node for an uninstalled resource.
     RepositoryNode selectedRepositoryNode = null;
 
     JMenuItem contextItem;
@@ -1064,19 +1080,11 @@ public class RepositoryDisplayer
     {
       try {
         if (bid >= 0) {
-          final Bundle b = bc.getBundle(bid);
-          if (b != null) {
-            final RepositoryNode repositoryNode = getRepositoryNode(b);
-            if (repositoryNode != null) {
-              if (repositoryNode != selectedRepositoryNode) {
-                final TreePath tp = new TreePath(repositoryNode.getPath());
-                showPath(tp, null);
-              }
-            } else {
-              setSelected(null);
-            }
-          }
+          selectedBundle = bc.getBundle(bid);
+        } else {
+          selectedBundle = null;
         }
+        updateTreeSelection(null);
       } catch (final Exception e) {
       }
     }
@@ -1319,10 +1327,6 @@ public class RepositoryDisplayer
           // Protect against synchronous refresh operations.
           synchronized (locationMap) {
             locationMap.clear();
-            final Resource oldSelection =
-              selectedRepositoryNode != null ? selectedRepositoryNode
-                  .getResource() : null;
-
             setRootText(STR_LOADING);
 
             rootNode = new TopNode(STR_TOPNAME, JRepositoryAdmin.this);
@@ -1364,7 +1368,6 @@ public class RepositoryDisplayer
               set.add(resource);
             }
 
-            DefaultMutableTreeNode selNode = null;
             for (final Entry<String, Set<Resource>> entry : categories
                 .entrySet()) {
               final String category = entry.getKey();
@@ -1377,30 +1380,11 @@ public class RepositoryDisplayer
                 categoryNode.add(resourceNode);
                 final String loc = Util.getLocation(resource);
                 locationMap.put(loc, resourceNode);
-                if (oldSelection != null
-                    && loc.equals(Util.getLocation(oldSelection))) {
-                  selNode = resourceNode;
-                } else {
-                  // If this resource has a selected bundle, then make it
-                  // selected. Needed to set up the selection when this
-                  // displayer
-                  // is (re)started.
-                  final Bundle b = resourceNode.getBundle();
-                  final BundleSelectionModel bsm = getBundleSelectionModel();
-                  if (b != null && bsm.isSelected(b.getBundleId())) {
-                    selNode = resourceNode;
-                  }
-                }
               }
               rootNode.add(categoryNode);
             }
 
-            final TreePath selPath =
-              new TreePath(selNode != null
-                ? selNode.getPath()
-                : rootNode.getPath());
-
-            showPath(selPath, treeModel);
+            updateTreeSelection(treeModel);
           }
         }
       };
@@ -1408,27 +1392,47 @@ public class RepositoryDisplayer
     }
 
     /**
-     * Show the specified path and possible model (on the Swing thread)
+     * Update the resource tree to show the node for the selected bundle.
      *
-     * @param selPath
-     *          path to show
      * @param model
      *          if not <tt>null</tt>, set as tree's model before setting
      *          selected path.
      */
-    void showPath(final TreePath selPath, final TreeModel model)
+    void updateTreeSelection(final TreeModel model)
     {
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run()
         {
+          // Get the currently selected bundle to show and select the node for.
+          final Bundle selectedBundle = JRepositoryAdmin.this.selectedBundle;
+
+          // Make the new model active.
           if (model != null) {
             resourceTree.setModel(model);
           }
+          final TreeModel treeModel = resourceTree.getModel();
 
-          resourceTree.expandPath(selPath);
-          resourceTree.setSelectionPath(selPath);
-          resourceTree.scrollPathToVisible(selPath);
+          final RepositoryNode bundleNode =
+            selectedBundle != null ? getRepositoryNode(selectedBundle) : null;
+
+          TreePath tp = null;
+          if (bundleNode != null) {
+            if (bundleNode != selectedRepositoryNode) {
+              tp = new TreePath(bundleNode.getPath());
+            }
+          } else {
+            // No node for the selected bundle, select the root node.
+            tp =
+              new TreePath(((DefaultMutableTreeNode) treeModel.getRoot())
+                  .getPath());
+          }
+
+          if (tp != null) {
+            resourceTree.expandPath(tp);
+            resourceTree.setSelectionPath(tp);
+            resourceTree.scrollPathToVisible(tp);
+          }
         }
       });
     }
@@ -1563,9 +1567,7 @@ public class RepositoryDisplayer
         selectedRepositoryNode = (RepositoryNode) node;
         final Bundle b = selectedRepositoryNode.getBundle();
         if (b != null) {
-          gotoBid(b.getBundleId());
-        } else {
-          getBundleSelectionModel().clearSelection();
+          selectBid(b.getBundleId());
         }
       } else {
         selectedRepositoryNode = null;
@@ -1611,6 +1613,8 @@ public class RepositoryDisplayer
       if (node != null && (node instanceof HTMLAble)) {
         final HTMLAble htmlNode = (HTMLAble) node;
         sb.append(htmlNode.toHTML());
+      } else {
+        appendHelp(sb);
       }
 
       sb.append("</html>");
@@ -1653,12 +1657,32 @@ public class RepositoryDisplayer
     }
   }
 
-  void gotoBid(long bid)
+  /**
+   * Set to true before clearing the selection when it will be immediately
+   * followed by a new selection. Reset to false when the clear is done.
+   */
+  boolean selectionChangeInProgress = false;
+
+  /**
+   * Set the given bundle as selected in the global selection model.
+   *
+   * @param bid
+   *          The bundle to select.
+   *
+   * @return {@code true} is the selection was changed by this call.
+   */
+  boolean selectBid(long bid)
   {
     if (!getBundleSelectionModel().isSelected(bid)) {
-      getBundleSelectionModel().clearSelection();
+      if (getBundleSelectionModel().getSelectionCount() > 0) {
+        selectionChangeInProgress = true;
+        getBundleSelectionModel().clearSelection();
+        selectionChangeInProgress = false;
+      }
       getBundleSelectionModel().setSelected(bid, true);
+      return true;
     }
+    return false;
   }
 
   void appendHelp(StringBuffer sb)
