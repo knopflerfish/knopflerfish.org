@@ -1,11 +1,11 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: foreignapplication
+Bundle-Name: Foreign application
 Bundle-SymbolicName: org.knopflerfish.bundle.foreignapplication
 Bundle-Version: 4.0.0
-Bundle-Category: API
+Bundle-Category: osgi
 Bundle-Description: Foreign Application Access API
-Bundle-Vendor: OSGi
+Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc

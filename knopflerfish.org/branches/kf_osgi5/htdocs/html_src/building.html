@@ -58,7 +58,7 @@ href="programming.html">programming</a> section.
 <h1 class="kf">Building a compact Knopflerfish framework</h1>
 
 You can build a compact version of the framework called
-<code>framework_small.jar</code>. To build this you need to download
+<code>framework_compact.jar</code>. To build this you need to download
 <a href="http://proguard.sourceforge.net/">Proguard 4.10</a>.
 Install the proguard.jar file into ${KF_ROOT}/ant/lib and build
 the framework with the property <code>compact</code> set to
@@ -102,16 +102,16 @@ writerelease:
 jar_file_full:
 
 jar_file_compact:
-      [jar] Building jar: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_small.jar
+      [jar] Building jar: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar
 
 proguard_compact:
      [move] Moving 1 file to /Users/jan/workspace_osgi5/kf_osgi5/osgi
  [proguard] ProGuard, version 4.10
- [proguard] Reading program jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_small.jar.tmp.jar]
+ [proguard] Reading program jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar.tmp.jar]
  [proguard] Reading library jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/ee/ee.minimum.jar]
- [proguard] Preparing output jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_small.jar]
- [proguard]   Copying resources from program jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_small.jar.tmp.jar]
-   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_small.jar.tmp.jar
+ [proguard] Preparing output jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar]
+ [proguard]   Copying resources from program jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar.tmp.jar]
+   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar.tmp.jar
 
 add_dex:
 
@@ -127,6 +127,6 @@ BUILD SUCCESSFUL
 Total time: 14 seconds
 $ ls -l framework*jar
 -rw-r--r--  1 jan  staff  617250 16 Okt 10:44 framework.jar
--rw-r--r--  1 jan  staff  323070 16 Okt 10:44 framework_small.jar
+-rw-r--r--  1 jan  staff  323070 16 Okt 10:44 framework_compact.jar
 $ 
 </pre>

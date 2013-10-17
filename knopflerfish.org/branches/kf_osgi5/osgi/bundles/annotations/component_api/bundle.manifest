@@ -2,10 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Component Annotations
 Bundle-SymbolicName: org.knopflerfish.bundle.component_annotations
-Bundle-Version: 5.0.0
-Bundle-Category: API
+Bundle-Version: 1.0.0
+Bundle-Category: osgi
 Bundle-Description: OSGi specified component annotations
-Bundle-Vendor: OSGi
+Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause;

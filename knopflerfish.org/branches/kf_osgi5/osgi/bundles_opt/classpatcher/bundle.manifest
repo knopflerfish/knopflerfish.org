@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Class Patcher
 Bundle-SymbolicName: org.knopflerfish.bundle.classpatcher
 Bundle-Version: 5.0.0
-Bundle-Category: utility
+Bundle-Category: framework
 Bundle-Description: Implements a WeavingHook to allow patching of classes at load time using ASM
 Bundle-Vendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org

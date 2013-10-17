@@ -37,11 +37,14 @@ package org.knopflerfish.bundle.repositorycommands;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.SortedSet;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
@@ -54,10 +57,13 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
 import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.resource.Capability;
+import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
 import org.osgi.service.repository.ContentNamespace;
 import org.osgi.service.repository.RepositoryContent;
@@ -397,6 +403,12 @@ public class RepositoryCommandGroup
     BasicRequirement requirement;
     requirement = new BasicRequirement(namespace);
     if (filterStr != null) {
+      try {
+        FrameworkUtil.createFilter(filterStr);
+      } catch (InvalidSyntaxException e) {
+        out.println("Invalid filter: " + e.getMessage());
+        return 1;
+      }
       requirement.addDirective("filter", filterStr); 
     }
     List<Capability> cs = getRepositoryManager().findProviders(requirement);
@@ -462,11 +474,79 @@ public class RepositoryCommandGroup
       Map<String, Object> nsAttrs = capabilities.iterator().next().getAttributes();
       out.println(nsAttrs.get(namespace));
       if (verbose) {
-        out.println("----------");
-        out.println(r);
+        out.println("---------------");
+        out.println("  Capabilities:");
+        final List<Capability> caps = new ArrayList<Capability>(r.getCapabilities(null));
+        Collections.sort(caps, new Comparator<Capability>() {
+          @SuppressWarnings("unchecked")
+          @Override
+          public int compare(Capability c1, Capability c2) {
+            final String ns = c1.getNamespace();
+            int res = ns.compareTo(c2.getNamespace());
+            if (res == 0) {
+              Object a1 = c1.getAttributes().get(ns);
+              if (a1 instanceof Comparable) {
+                res = ((Comparable<Object>)a1).compareTo(c2.getAttributes().get(ns));
+              }
+            }
+            return res;
+          }
+        });
+        String oldNs = null;
+        for (Capability rc : caps) {
+          String ns = rc.getNamespace();
+          if (!ns.equals(oldNs)) {
+            out.println("    Namespace: " + ns);
+            oldNs = ns;
+          } else {
+            out.println("     --");            
+          }
+          printMap(out, rc.getAttributes(), "       ", " = ");
+          printMap(out, rc.getDirectives(), "       ", " := ");
+        }
+        out.println("  Requirements:");
+        final List<Requirement> reqs = new ArrayList<Requirement>(r.getRequirements(null));
+        Collections.sort(reqs, new Comparator<Requirement>() {
+          @SuppressWarnings("unchecked")
+          @Override
+          public int compare(Requirement r1, Requirement r2) {
+            final String ns = r1.getNamespace();
+            int res = ns.compareTo(r2.getNamespace());
+            if (res == 0) {
+              Object a1 = r1.getAttributes().get(ns);
+              if (a1 instanceof Comparable) {
+                res = ((Comparable<Object>)a1).compareTo(r2.getAttributes().get(ns));
+              }
+            }
+            return res;
+          }
+        });
+        oldNs = null;
+        for (Requirement rr : r.getRequirements(null)) {
+          String ns = rr.getNamespace();
+          if (!ns.equals(oldNs)) {
+            out.println("    Namespace: " + ns);
+            oldNs = ns;
+          } else {
+            out.println("     --");            
+          }
+          printMap(out, rr.getAttributes(), "       ", " = ");
+          printMap(out, rr.getDirectives(), "       ", " := ");
+        }
+        out.println();
       }
     }
   }
+
+  private void printMap(PrintWriter out, Map<String,?> m, String prefix, String div) {
+    for (Entry<String,?> e : m.entrySet()) {
+      out.print(prefix);
+      out.print(e.getKey());
+      out.print(div);
+      out.println(e.getValue());
+    }
+  }
+
 
   private boolean isInstalled(Resource r) {
     Map<String, Object> identity = r.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE).iterator().next().getAttributes();

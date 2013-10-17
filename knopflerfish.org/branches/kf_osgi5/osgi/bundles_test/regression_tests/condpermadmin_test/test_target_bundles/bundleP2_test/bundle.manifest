@@ -5,4 +5,4 @@ Bundle-Description: Test bundle for framework, bundleP2_test for test
   Also used for conditional permission tests.
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-Activator: org.knopflerfish.bundle.bundleP2_test.BundleActivator
-Bundle-Category: test
+Bundle-Category: testing

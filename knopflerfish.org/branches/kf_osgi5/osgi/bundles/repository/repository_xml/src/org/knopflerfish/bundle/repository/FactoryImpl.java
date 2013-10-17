@@ -61,7 +61,6 @@ public class FactoryImpl implements XmlBackedRepositoryFactory {
   public ServiceReference<Repository> create(String url, Dictionary<String, ?> properties, Object handle) throws Exception {
     if(url != null && !"".equals(url) && !repositoryRegistrations.containsKey(url)) {
       Collection<Resource> rs = RepositoryXmlParser.parse(url);
-      RepositoryXmlParser.debug(rs);
       if(!rs.isEmpty()) {
         RepositoryImpl repo = new RepositoryImpl(bc, rs);
         Hashtable<String, Object> h = new Hashtable<String, Object>();

@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: KF-AWT-Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.desktop_awt
 Bundle-Version: 4.0.1
-Bundle-Category: console
+Bundle-Category: management
 Bundle-Description: AWT framework desktop
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish

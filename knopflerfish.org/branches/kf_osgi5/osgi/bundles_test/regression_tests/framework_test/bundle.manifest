@@ -7,7 +7,7 @@ Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.framework_test.Activator
-Bundle-Category: test
+Bundle-Category: testing
 Bundle-Classpath: ., subdir/res1.jar, res2.jar, res1.jar, subdir
 Export-Package: org.knopflerfish.service.framework_test; specification
  -version=1.0.0

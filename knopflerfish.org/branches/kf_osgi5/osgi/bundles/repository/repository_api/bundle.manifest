@@ -1,11 +1,11 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: repository
+Bundle-Name: Repository
 Bundle-SymbolicName: org.knopflerfish.bundle.repository
-Bundle-Version: 5.0.0
-Bundle-Category: API
+Bundle-Version: 1.0.0
+Bundle-Category: osgi
 Bundle-Description: Repository API
-Bundle-Vendor: OSGi
+Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause;

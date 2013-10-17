@@ -9,7 +9,7 @@ KF_MAIN_CLASS=org.knopflerfish.framework.Main	   # path to main class
 if [ -f framework.jar ] ; then
     KF_CLASSPATH=framework.jar					   # the class path to use 
 else
-    KF_CLASSPATH=framework_small.jar			   # the class path to use 
+    KF_CLASSPATH=framework_compact.jar			   # the class path to use 
 fi
 
 # args always sent to the JRE

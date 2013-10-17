@@ -23,7 +23,7 @@
   <property name="jarfile"
             location="${topdir}/${ant.project.name}.jar"/>
   <property name="jarfile_compact"
-            location="${topdir}/${ant.project.name}_small.jar"/>
+            location="${topdir}/${ant.project.name}_compact.jar"/>
   <property name="source.jarfile"
             location="${topdir}/${ant.project.name}-source.jar"/>
   <property name="javadoc.jarfile"
