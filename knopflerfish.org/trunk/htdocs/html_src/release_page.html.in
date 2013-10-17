@@ -9,17 +9,16 @@
 	  content    = "NO-CACHE"/>
 
     <meta name       = "description"
-	  content    = "The Knopflerfish OSGi framework is a complete OSGi R4 framework"/>
+	  content    = "Knopflerfish OSGi @VERSION@ - is an Open Source OSGi Service Platform designed to be compliant with OSGi R4 v4.3"/>
     
     <meta name       = "title"
-	  content    = "Knopflerfish OSGi @VERSION@"/>
+	  content    = "Knopflerfish OSGi @VERSION@ - Release Overview Page"/>
 
-    <title>Knopflerfish OSGi @VERSION@</title>
+    <title>Knopflerfish OSGi @VERSION@ - Release Overview Page</title>
 
     <LINK href="docs/css/knopflerfish.css" rel="stylesheet" type="text/css">
 
   </head>
-
 
   <body>
     <div id="main">
@@ -27,6 +26,22 @@
       <div id="header">
 	<div id="header_logo">
 	  <a href="index.html"><img src="docs/images/kf300_black.png" border="0" alt="knopflerfish logo"/></a>
+	</div>
+	<div id="header_centerbox">
+	  <div class="header_centerinfo_top">
+	    Distribution Overview
+	  </div>
+	  <div class="header_centerinfo_bottom">
+	    Knopferfish OSGi @VERSION@
+	  </div>
+	</div>
+	<div id="header_rightinfo">
+	  <div class="header_stylish">
+	    Open Source OSGi Service Platform Maintained by
+	  </div>
+	  <a href="http://www.makewave.com">
+	    <img border="0" alt="Makewave" src="docs/images/makewave_logo.png" border="0" style="margin-top: 4px;">
+	  </a>
 	</div>
 	<div id="header_fade">
 	</div>
@@ -66,12 +81,12 @@
       <div id="mainblock">
 	<a name="release_page"></a>
 
-	<h2>Knopflerfish @VERSION@</h2>
+	<h1 class="kf">Knopflerfish @VERSION@</h1>
 
 	This is the release page for Knopflerfish @VERSION@
 	@BUILD_KIND@ from @REPO_URL@/@TAG@, made on @DATE@.
 
-	<h3>Downloads</h3>
+	<h2 class="kf">Downloads</h2>
 
 	<table cellpadding="2">
 	  <tr>
