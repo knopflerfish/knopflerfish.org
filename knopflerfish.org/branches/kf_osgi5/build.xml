@@ -113,7 +113,7 @@
 
 
   <target name="default"
-          description="Builds entire platform except test bundles" >
+         description="Builds entire platform except test bundles" >
     <ant dir="${jarunpacker.dir}" target="jar"/>
     <ant dir="osgi"               target="default" />
   </target>
@@ -752,7 +752,7 @@
   
   <target name="repoindex" depends="bundle_tasks,install_repoindex">
     <fileset id="repoindex.jars" dir="${osgi.dir}/jars/">
-                        <include name="**/*.jar"/>
+      <include name="**/*.jar"/>
     </fileset>
     <pathconvert refid="repoindex.jars" property="repoindex.jars.line" pathsep=" "/>
     <java classname="org.osgi.impl.bundle.bindex.cli.Index"
@@ -767,7 +767,8 @@
       <arg value="Knopflerfish 5.0.0 Repository"/>
       <arg line="${repoindex.jars.line}"/>
     </java>
-    <copyfile dest="${osgi.dir}/jars/repository2html.xsl" src="${knopflerfish.dir}/htdocs/css/repository2html.xsl"/>
+    <copy file="${knopflerfish.dir}/htdocs/css/repository2html.xsl"
+	  tofile="${osgi.dir}/jars/repository2html.xsl"/>
     <echo>${ant.file.knopflerfish}/htdocs/css/repository2html.xsl</echo>
     <replace file="${osgi.dir}/jars/index.xml">
       <replacetoken><![CDATA[<?xml version='1.0' encoding='utf-8'?>]]></replacetoken>
