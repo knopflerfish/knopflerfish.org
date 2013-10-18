@@ -76,7 +76,7 @@ public class Util
    * Equality is tested on
    * <ol>
    * <li>location,
-   * <li>bundle symbolic name and version.
+   * <li>bundle symbolic name and version for resources without location.
    * </ol>
    * </p>
    *
@@ -85,16 +85,17 @@ public class Util
    * @param resource
    *          The resource to compare the bundle to.
    */
-  static boolean bundleEqual(Bundle bundle, Resource resource)
+  static boolean isBundleFromResource(Bundle bundle, Resource resource)
   {
-    if (bundle.getLocation().equals(Util.getLocation(resource))) {
+    final String resourceLoc = Util.getLocation(resource);
+    if (bundle.getLocation().equals(resourceLoc)) {
       return true;
-    }
-
-    final String bsn = getResourceName(resource);
-    if (bsn.equals(bundle.getSymbolicName())) {
-      final Version version = getResourceVersion(resource);
-      return bundle.getVersion().equals(version);
+    } if (resourceLoc == null) {
+      final String bsn = getResourceName(resource);
+      if (bsn.equals(bundle.getSymbolicName())) {
+        final Version version = getResourceVersion(resource);
+        return bundle.getVersion().equals(version);
+      }
     }
     return false;
   }
@@ -322,7 +323,8 @@ public class Util
    *
    * @param resource
    *          the resource to determine the installation location for.
-   * @return location to use when installing this resource.
+   * @return location to use when installing this resource or {@code null} if
+   *         location is available for this resource.
    */
   public static String getLocation(Resource resource)
   {
@@ -338,10 +340,7 @@ public class Util
         }
       }
     }
-    // All resources this class works with are supposed to be bundles with a
-    // valid download URL in the osgi.content name space. If not then simply
-    // return something unique for the resource.
-    return String.valueOf(resource.hashCode());
+    return null;
   }
 
   /**
