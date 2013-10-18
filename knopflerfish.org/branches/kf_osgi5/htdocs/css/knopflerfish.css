@@ -31,8 +31,11 @@ BODY  {
 
 #header {
   background: #0B2229;
-  margin-bottom: 40px;
-  height: 70px;
+  margin-bottom: 20px;
+  height: 90px;
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
 }
 
 #header_logo {
@@ -43,10 +46,12 @@ BODY  {
 
 #header_centerbox {
     background: #0B2229;
-    height: 65px;
+    height: 75px;
     width: 400px;
     float:left;
     text-align: center;
+    margin: 0px;
+    border: 0px;
 }
 
 .header_centerinfo_top {
@@ -71,11 +76,18 @@ BODY  {
     text-align: right;
     margin-left: 0px;
     height: 65px;
+    border-style: none;
+    margin: 0px;
+    border: 0px;
 }
 
 #header_fade {
-  height: 10px;
+  height: 15px;
+  border: 0px;
+  margin: 0px 0px -4px 0px;
+  border-style: none;
   background-image: url('../images/fadeout_15.png');
+  background-size: 15px;
   background-repeat: repeat-x;
   clear:both;
 }
@@ -85,6 +97,7 @@ BODY  {
   margin-left: 10px;
   width: 180px;
   float:left;
+  margin-top: 12px;
   /*  background: #f4d6ea; */
 }
 
@@ -115,7 +128,6 @@ DD.leftmenu2  {
   /* font-size:	0.8em; */
   padding:	0px 0px 0px 12px;
   margin:	0px 0px 0px 0px;
-  /* background-image: url('/images/slash_small.jpg'); */
   background-repeat: no-repeat;
   background-position: 0 .5em;
 }
@@ -164,7 +176,7 @@ H1, H1.kf {
     border-color: #802060;
     border-width: 0px 0px 1px 0px;
     padding-bottom: 2px;
-    margin: 2.0em 0 0.6em 0;
+    margin: 1.4em 0 0.6em 0;
     color: #444444;
 }
 
