@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: blueprint
+Bundle-SymbolicName: org.knopflerfish.bundle.blueprint
+Bundle-Version: 4.0.0
+Bundle-Category: API
+Bundle-Description: Blueprint Container API
+Bundle-Vendor: OSGi
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
+ g/trunk/osgi/bundles/blueprint
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+api-Import-Package: org.osgi.framework; version="[1.6,2)"
+

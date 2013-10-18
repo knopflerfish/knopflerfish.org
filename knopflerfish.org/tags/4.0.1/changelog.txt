@@ -1,0 +1,75 @@
+2013-10-18 09:42:51 +0200 (Fri, 18 Oct 2013), revision 4228, jan
+Fixed filenames and a missing word.
+U   knopflerfish.org/trunk/htdocs/html_src/installing.html
+U   knopflerfish.org/trunk/release_notes.in.html
+
+2013-10-17 19:16:25 +0200 (Thu, 17 Oct 2013), revision 4223, cl
+Spelling!!
+U   knopflerfish.org/trunk/htdocs/html_templates/template.html
+
+2013-10-17 18:37:51 +0200 (Thu, 17 Oct 2013), revision 4222, jan
+Fixed memory bundlestorage.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/memory/Archive.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/memory/BundleArchiveImpl.java
+U   knopflerfish.org/trunk/release_notes.in.html
+
+2013-10-17 18:01:13 +0200 (Thu, 17 Oct 2013), revision 4218, cl
+Updated release overview page to use correct styles. Went over all htdocs to make sure title and description were up-to-date
+U   knopflerfish.org/trunk/htdocs/build.xml
+U   knopflerfish.org/trunk/htdocs/html_src/release_page.html.in
+
+2013-10-16 15:14:28 +0200 (Wed, 16 Oct 2013), revision 4195, ekolin
+Exclude generated ceritficate files.
+U   knopflerfish.org/trunk/build.xml
+
+2013-10-16 14:36:17 +0200 (Wed, 16 Oct 2013), revision 4194, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/release_notes.in.html
+
+2013-10-16 14:26:27 +0200 (Wed, 16 Oct 2013), revision 4193, ekolin
+Add missing source tree
+U   knopflerfish.org/trunk/build.xml
+
+2013-10-16 14:01:48 +0200 (Wed, 16 Oct 2013), revision 4190, ekolin
+It is the dmt bundle, not dmtree that shall be included.
+U   knopflerfish.org/trunk/build.xml
+
+2013-10-07 13:18:22 +0200 (Mon, 07 Oct 2013), revision 4145, ekolin
+Add top level build instruction for those checking out Knopflerfish from svn.
+A   knopflerfish.org/trunk/BUILD.txt
+
+2013-09-26 16:23:09 +0200 (Thu, 26 Sep 2013), revision 4133, jan
+Spelling.
+U   knopflerfish.org/trunk/release_notes.in.html
+
+2013-09-18 09:56:52 +0200 (Wed, 18 Sep 2013), revision 4126, jan
+Releasenote about classpatcher
+U   knopflerfish.org/trunk/release_notes.in.html
+
+2013-09-18 09:53:37 +0200 (Wed, 18 Sep 2013), revision 4125, jan
+Removed unneseccary import-package
+U   knopflerfish.org/trunk/osgi/bundles_opt/classpatcher/bundle.manifest
+
+2013-08-22 14:06:39 +0200 (Thu, 22 Aug 2013), revision 4070, jan
+New version of SCR (4.0.3), info see release notes. Updated test case to test new behaviour.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ReferenceListener.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/src/org/knopflerfish/bundle/component_test/ComponentTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/resources/service.xml
+U   knopflerfish.org/trunk/release_notes.in.html
+
+2013-07-25 17:55:26 +0200 (Thu, 25 Jul 2013), revision 4066, jan
+The framework didn't by default export the packages org.osgi.framework.hooks.bundle;version=1.0, org.osgi.framework.hooks.weaving;version=1.0 and org.osgi.framework.hooks.resolver;version=1.0
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/FrameworkContext.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+
+2013-07-12 13:42:09 +0200 (Fri, 12 Jul 2013), revision 4063, jan
+Post 4.0 release update
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in.html

@@ -1,0 +1,95 @@
+<!-- The first line in this file is used by the desktop to check -->
+<!-- for new releases, i.e., do not change its format.           -->
+<!-- It must contain the word "Knopflerfish" followed by a space -->
+<!-- and then the version followed by another space.             -->
+
+<h1 class="kf">Release Notes Knopflerfish $(VERSION) (OSGi R4 v4.3)</h1>
+<p>
+  Maintaince release Knopflerfish 4 available from
+  $(BASE_URL)/$(VERSION). Released $(RELEASE_DATE).
+</p>
+<p>
+  Knopflerfish 4 is an implementation of the "OSGi Service Platform
+  Release 4 Version 4.3". It contains all services specified in the
+  "Core Specification" and most of the non Enterprise Edition related
+  services specified in the "Compendium Specification".
+</p>
+<p>
+  The Release Notes include all new features & changes for 
+  Knopflerfish $(VERSION) compared to the release of Knopflerfish $(VERSION_PREV).
+</p>
+
+<h2 class="kf">Knopflerfish Framework - OSGi Core Specification</h2>
+<div class="release_notes">
+
+  <div class="note_group">
+    <div class="note_name"> Framework 6.0.4</div>
+    <div class="note_item">
+      Fixed broken support for memory bundlestorage.
+    </div>
+    <div class="note_item">
+      The system bundle didn't by default export the packages
+      org.osgi.framework.hooks.bundle;version=1.0,
+      org.osgi.framework.hooks.weaving;version=1.0 and
+      org.osgi.framework.hooks.resolver;version=1.0.
+    </div>
+  </div>
+</div>
+
+
+<h2 class="kf">OSGi Compendium Specification</h2>
+<div class="release_notes">
+
+  <div class="note_group">
+    <div class="note_name">SCR(component) 4.0.3</div>
+    <div class="note_item">
+      Fixed bug that caused the instance properties to be ignored
+      for certain factory components.
+    </div>
+    <div class="note_item">
+      Fixed dead-lock during component activation.
+    </div>
+    <div class="note_item">
+      Widen the search for circular component activations to include
+      components that might be activated depending on CM and/or instance
+      properties.
+    </div>
+  </div>
+  
+</div>
+
+<h2 class="kf">Knopflerfish Services</h2>
+<div class="release_notes">
+
+  <div class="note_group">
+    <div class="note_name">Classpatcher 1.0.1</div>
+    <div class="note_item">
+      Removed unnecessary Import-Package.
+    </div>
+  </div>
+
+</div>
+
+
+<h2 class="kf">Misc, start scripts, build system etc </h2>
+<div class="release_notes">
+
+  <div class="note_group">
+    <div class="note_name">Build system and SDK packing</div>
+    <div class="note_item">
+
+      The build files in the SDK refered to
+      <code>osgi/bundles/dmtree</code> but that bundle was replaced by
+      <code>osgi/bundles/dmt</code>.
+
+    </div>
+    <div class="note_item">
+
+      The build files in the SDK refered to
+      <code>osgi/bundles_opt/classpatcher</code> but the source code
+      for that bundle was not included in the SDK.
+
+    </div>
+  </div>
+
+</div>

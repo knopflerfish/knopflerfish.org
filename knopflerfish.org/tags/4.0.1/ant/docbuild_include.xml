@@ -1,0 +1,56 @@
+<project name="docbuild" basedir=".">
+
+  <dirname property="docbuild.basedir" file="${ant.file.docbuild}"/>
+
+  <target name="build_doc"
+          description="Builds user or bundle doc">
+
+    <!-- Make the makehtml-task available -->
+    <taskdef resource="org/knopflerfish/ant/taskdefs/bundle/antlib.xml"
+             classpath="${docbuild.basedir}/lib/bundle_tasks.jar"/>
+
+    <!-- Default out dir -->
+    <property name="docbuild.outdir"
+              location="${docbuild.basedir}/../osgi/out/doc/${docbuild.name}"/>
+
+    <!-- Check if there's a readme.txt, but not an index.html 
+         In that case w should create a simple readme.txt
+         Experimental!!
+      -->
+    <condition property="fix_readme_index">
+      <and>
+        <not>
+          <available file="${docbuid.fromdir}/index.html"/>
+        </not>
+        <available file="${docbuid.fromdir}/readme.txt"/>
+      </and>
+    </condition>
+    <!-- Experimental, and therefor commented out 
+         <antcall target="do_create_readme_index"/>
+         -->
+    
+    <makehtml title="${docbuild.title}"
+              description="${docbuild.description}"
+              template="${docbuild.basedir}/html_template/bundledoc_ext.html"
+              outdir="${docbuild.outdir}"
+              manstyle="${docbuild.manstyle}">
+      <!--
+         <available file="${docbuid.fromdir}/index.html" property="index.html.present">
+           <available file="${docbuid.fromdir}/readme.txt" property="readme.txt.present">
+             -->        
+      <fileset dir="${docbuild.fromdir}">
+        <include name="**/*.html"/>
+      </fileset>
+    </makehtml>
+    <copy todir="${docbuild.outdir}">
+      <fileset dir="${docbuild.fromdir}">
+        <exclude name="**/*.html"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="do_create_readme_index">
+  </target>
+
+
+</project>

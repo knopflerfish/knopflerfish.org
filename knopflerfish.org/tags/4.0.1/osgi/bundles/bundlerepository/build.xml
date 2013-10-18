@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="bundlerepository" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.bundlerepository}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name="bundle.build.api"      value="false"/>
+  <property name="bundle.build.impl"     value="false"/>
+  <property name="bundle.build.lib"      value="false"/>
+  <property name="bundle.build.all"      value="true"/>
+
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
+
+  <property name="api.pattern"
+            value="org/ungoverned/osgi/service/bundlerepository/**"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/osgi/bundle/**/*,
+                   org/ungoverned/osgi/bundle/**,
+                   fr/imag/adele/metadataparser/**,
+                   kxml/sax/**,
+		   org/kxml/**"/>
+
+  <property name="all-api.pattern"
+            value="org/knopflerfish/service/console/**"/>
+
+  <property name="all.pattern"
+            value="org/knopflerfish/service/console/*"/>
+
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <!-- Embedd the KF console API. -->
+  <target name="bundle.custom.pre">
+    <bundle_locator bundleNames="console_api">
+      <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
+        <include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.console_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+  </target>
+
+  <path id="bundle.compile.path">
+    <pathelement location="desktop_api-N.N.N.jar"/>
+    <pathelement location="console_api-N.N.N.jar"/>
+    <pathelement location="libs/oscar-shell_api-1.0.0.jar"/>
+    <pathelement location="resources/kxml-min.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

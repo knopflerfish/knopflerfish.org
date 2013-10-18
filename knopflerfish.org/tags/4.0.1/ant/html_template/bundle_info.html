@@ -1,0 +1,147 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+  <link href="${relpathup}style.css" rel="stylesheet" type="text/css">
+  <title>${FILE}</title>
+  <script type="text/javascript">
+    function windowTitle() {
+      if (location.href.indexOf('is-external=true') == -1) {
+        parent.document.title=document.title;
+      }
+    }
+  </script>
+</head>
+
+<body onload="windowTitle();">
+
+<h2>${FILE}</h2>
+
+<p>
+<a href="${jarRelPath}">download</a> (${FILEINFO})
+</p>
+
+<table width="100%">
+ <tr>
+  <td class="mfheader" colspan=2>OSGi manifest attributes</td>
+ </tr>
+
+ <tr>
+  <td>Bundle-Name</td>
+  <td>${Bundle-Name}</td>
+ </tr>
+ <tr>
+  <td>Bundle-SymbolicName</td>
+  <td>${Bundle-SymbolicName}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Version</td>
+  <td>${Bundle-Version}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Description</td>
+  <td>${Bundle-Description}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Vendor</td>
+  <td>${Bundle-Vendor}</td>
+ </tr>
+ <tr>
+  <td>Bundle-ContactAddress</td>
+  <td>${Bundle-ContactAddress}</td>
+ </tr>
+ <tr>
+  <td>Bundle-DocURL</td>
+  <td><a target="_top" href="${Bundle-DocURL}">${Bundle-DocURL}</a></td>
+ </tr>
+ <tr>
+  <td>Bundle-ManifestVersion</td>
+  <td>${Bundle-ManifestVersion}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Activator</td>
+  <td>${Bundle-Activator}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Classpath</td>
+  <td>${Bundle-Classpath}</td>
+ </tr>
+
+ <tr>
+  <td>Export-Package</td>
+  <td>${Export-Package}</td>
+ </tr>
+ <tr>
+  <td>Import-Package</td>
+  <td>${Import-Package}</td>
+ </tr>
+ <tr>
+  <td>Dynamic-ImportPackage</td>
+  <td>${DynamicImport-Package}</td>
+ </tr>
+
+ <tr>
+  <td>Provide-Capability</td>
+  <td>${Provide-Capability}</td>
+ </tr>
+ <tr>
+  <td>Require-Capability</td>
+  <td>${Require-Capability}</td>
+ </tr>
+
+
+ <tr>
+  <td  class="mfheader" colspan=2>Other manifest attributes</td>
+ </tr>
+
+ ${MF.UNHANDLED}
+
+</table>
+
+
+<h4>Depends on (<tt>osgi.wiring.package</tt>)</h4>
+
+This section lists bundles that can provide one or more of the
+capabilities that is required in the <tt>osgi.wiring.package</tt>
+namespace. Only one provider of each capability is required.
+
+<p>
+
+The first column is the providing bundle and the second column lists
+the sub-set of its provided packages that are required by this bundle.
+
+<p>
+
+<table>
+${depends.list}
+</table>
+
+<h4>Other bundles depending on this bundle (<tt>osgi.wiring.package</tt>)</h4>
+
+This section lists bundles that requires one or more of the
+capabilities that is provided in the namespace
+<tt>osgi.wiring.package</tt> by the current bundle.
+
+<p>
+
+The first column is the requiring bundle and the second column lists
+the sub-set of capabilities that this bundle may provide to the
+requiring bundle.
+
+<p>
+
+<table>
+${depending.list}
+</table>
+
+
+<a name="source"></a>
+<h4>Bundle source</h4>
+
+Here are links to the source files of this bundle.
+
+${sources.list}
+
+</body>
+</html>
+
+

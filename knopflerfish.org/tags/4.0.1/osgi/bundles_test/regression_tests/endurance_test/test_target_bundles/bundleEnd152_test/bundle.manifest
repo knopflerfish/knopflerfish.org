@@ -1,0 +1,11 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleEnd152_test
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleEnd152_test
+Bundle-Version: 1.0.0
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Bundle-Description: %description
+Bundle-UUID: org.knopflerfish:bundleEnd152_test:1.0.0:all
+Fragment-Host: org.knopflerfish.bundle.bundleEnd151_test

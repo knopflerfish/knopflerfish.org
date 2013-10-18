@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="fb_B" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.fb_B}"/>
+  <import  file="${proj.dir}/../../../test_import.xml"/>
+
+  <property name = "bundle.build.all"  value="false"/>
+  <property name = "bundle.build.api"  value="false"/>
+  <property name = "bundle.build.lib"  value="true"/>
+  <property name = "bundle.build.impl" value="false"/>
+  <property name = "bundle.build.doc"  value="false"/>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <property name  = "api.pattern"
+            value = "fragclasses/**"/>
+  <property name  = "impl.pattern"
+            value = ""/>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="${impl.jar}/../fb_C_api-1.0.0.jar"/>
+  </path>
+
+  <target name="bundle.custom.pre">
+    <mkdir dir="${classes.out.dir}/fragclasses"/>
+    <javac destdir="${classes.out.dir}/fragclasses"
+           debug="on"
+           includeAntRuntime="false"
+           srcdir="${src.dir}"
+           target="${javac.target}"
+           source="${javac.source}"
+           classpathref="bundle.compile.path"
+           includes="test_fb/common/**"
+           >
+    </javac>
+  </target>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>
+
+
+

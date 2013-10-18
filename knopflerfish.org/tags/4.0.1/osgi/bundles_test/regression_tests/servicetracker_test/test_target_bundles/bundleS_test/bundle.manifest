@@ -1,0 +1,11 @@
+Bundle-Name: bundleS_test
+Bundle-SymbolicName: bundleS_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleS_test Service tr
+ acker test, registers and unregisters services.
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleS_test
+Import-Package: org.knopflerfish.service.bundleS_test,org.osgi.framework

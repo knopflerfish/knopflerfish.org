@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: foreignapplication
+Bundle-SymbolicName: org.knopflerfish.bundle.foreignapplication
+Bundle-Version: 4.0.0
+Bundle-Category: API
+Bundle-Description: Foreign Application Access API
+Bundle-Vendor: OSGi
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/foreignapplication/
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+api-Import-Package: org.osgi.framework; version="[1.6,2)"

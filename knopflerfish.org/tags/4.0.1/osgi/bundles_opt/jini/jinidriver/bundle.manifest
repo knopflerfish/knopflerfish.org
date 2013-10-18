@@ -1,0 +1,47 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Jini-Driver
+Bundle-SymbolicName: org.knopflerfish.bundle.jinidriver
+Bundle-Version: 0.1.0
+Bundle-Category: service
+Bundle-Description: Jini driver (experimental) using Sun's jini impl. 
+ jini-core.jar and jini-ext.jar, see http://wwws.sun.com/software/jini
+ /licensing/SCSL3_JiniTSA1.html
+Bundle-Vendor: Knopflerfish/Nico Goeminne
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/jini/jinidriver
+Bundle-Classpath: .,lib/jini-core.jar,lib/jini-ext.jar
+Bundle-Activator: org.knopflerfish.bundle.jini.Activator
+Export-Package: net.jini.core.lookup,
+ net.jini.core.entry,
+ net.jini.core.event,
+ net.jini.core.lease,
+ net.jini.core.discovery,
+ net.jini.admin,
+ net.jini.discovery,
+ net.jini.lookup,
+ net.jini.lookup.entry,
+ net.jini.lease,
+ org.osgi.service.jini;specification-version=1.0
+DynamicImport-Package: *
+Import-Package: org.osgi.framework,
+ org.osgi.service.packageadmin,
+ org.osgi.util.tracker,
+ org.osgi.service.http,
+ javax.servlet,
+ javax.servlet.http,
+ org.osgi.service.cm,
+ net.jini.core.lookup,
+ net.jini.core.entry,
+ net.jini.core.event,
+ net.jini.core.lease,
+ net.jini.core.discovery,
+ net.jini.admin,
+ net.jini.discovery,
+ net.jini.lookup,
+ net.jini.lookup.entry,
+ net.jini.lease,
+ org.osgi.service.jini;specification-version=1.0
