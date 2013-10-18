@@ -31,6 +31,9 @@ BODY  {
   background: #0B2229;
   margin-bottom: 20px;
   height: 90px;
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
 }
 
 #header_logo {
@@ -41,10 +44,12 @@ BODY  {
 
 #header_centerbox {
     background: #0B2229;
-    height: 65px;
+    height: 75px;
     width: 400px;
     float:left;
     text-align: center;
+    margin: 0px;
+    border: 0px;
 }
 
 .header_centerinfo_top {
@@ -69,11 +74,18 @@ BODY  {
     text-align: right;
     margin-left: 0px;
     height: 65px;
+    border-style: none;
+    margin: 0px;
+    border: 0px;
 }
 
 #header_fade {
   height: 15px;
+  border: 0px;
+  margin: 0px 0px -4px 0px;
+  border-style: none;
   background-image: url('../images/fadeout_15.png');
+  background-size: 15px;
   background-repeat: repeat-x;
   clear:both;
 }
