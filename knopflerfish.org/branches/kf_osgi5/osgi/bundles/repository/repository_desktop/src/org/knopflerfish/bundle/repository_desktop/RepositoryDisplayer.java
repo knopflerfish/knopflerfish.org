@@ -295,7 +295,7 @@ public class RepositoryDisplayer
     final Bundle[] bl = bc.getBundles();
 
     for (int i = 0; bl != null && i < bl.length; i++) {
-      if (Util.bundleEqual(bl[i], resource)) {
+      if (Util.isBundleFromResource(bl[i], resource)) {
         return bl[i];
       }
     }
@@ -330,7 +330,9 @@ public class RepositoryDisplayer
     } else {
       // Bundle location
       final String loc = Util.getLocation(resource);
-
+      if (loc == null) {
+        return "[no location]";
+      }
       int ix = loc.indexOf(":");
       if (ix != -1) {
         category = loc.substring(0, ix);
@@ -1104,7 +1106,7 @@ public class RepositoryDisplayer
       }
 
       for (final RepositoryNode rn : locationMap.values()) {
-        if (Util.bundleEqual(b, rn.getResource())) {
+        if (Util.isBundleFromResource(b, rn.getResource())) {
           return rn;
         }
       }
@@ -1119,7 +1121,7 @@ public class RepositoryDisplayer
       for (final RepositoryNode rn : locationMap.values()) {
         final Resource resource = rn.getResource();
         final String rLoc = Util.getLocation(resource);
-        if (rLoc.equals(b.getLocation())) {
+        if (b.getLocation().equals(rLoc)) {
           return resource;
         }
       }
@@ -1272,6 +1274,9 @@ public class RepositoryDisplayer
         // TODO: Use resolver service to find and install other bundles that are
         // needed to resolve and start the selected bundle.
         final String location = Util.getLocation(resource);
+        if (location == null) {
+          throw new Exception("No location found for resource: " +resource);
+        }
         Bundle bundle = null;
         if (location.startsWith("file:")) {
           bundle = bc.installBundle(location);
@@ -1376,10 +1381,12 @@ public class RepositoryDisplayer
 
               for (final Resource resource : entry.getValue()) {
                 final RepositoryNode resourceNode =
-                  new RepositoryNode(resource);
+                    new RepositoryNode(resource);
                 categoryNode.add(resourceNode);
                 final String loc = Util.getLocation(resource);
-                locationMap.put(loc, resourceNode);
+                if (loc != null) {
+                  locationMap.put(loc, resourceNode);
+                }
               }
               rootNode.add(categoryNode);
             }
@@ -1623,10 +1630,6 @@ public class RepositoryDisplayer
       resourceTree.repaint();
     }
 
-    public void setBundle(Bundle b)
-    {
-    }
-
     public void stop()
     {
       if (resourceTree != null) {
@@ -1738,6 +1741,18 @@ public class RepositoryDisplayer
           final Version v1 = Util.getResourceVersion(r1);
           final Version v2 = Util.getResourceVersion(r2);
           n = v1.compareTo(v2);
+
+          if (n == 0) {
+            final String loc1 = Util.getLocation(r1);
+            final String loc2 = Util.getLocation(r2);
+            if (loc1 != null && loc2 != null) {
+              n = loc1.compareTo(loc2);
+            } else if (loc1 == null) {
+              n = -1;
+            } else {
+              n = loc2 == null ? 0 : 1;
+            }
+          }
         }
       } catch (final Exception e) {
       }
