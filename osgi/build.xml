@@ -9,7 +9,14 @@
   <property name="ant.dir"         location="${topdir}/../ant"/>
   <property name="jars.dir"        location="jars"/>
   <property name="gosg.jars"       value="file:jars/"/>
-  <property name="repository.xml.urls"       value="file:jars/index.xml,http://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
+
+  <property name="repository.current.release"
+	    value="http://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
+  <property name="repository.local"
+	    value="file:jars/index.xml"/>
+  <property name="repository.xml.urls"
+	    value="${repository.local},
+		   ${repository.current.release}"/>
 
   <!-- Properties controling javadoc generation -->
   <property name="root.out.dir"    location="out"/>
@@ -119,6 +126,7 @@
            baseDir="${xargs.base.dir}"
            gosgJars="${base.url}/${version}/osgi/jars/"
            testJars="${test_jars}"
+           repositoryXmlUrls="${repository.xml.urls}"
            outDir="${root.out.dir}/xargs">
       <bundles>
         <fileset dir="${jars.dir}"
