@@ -403,6 +403,9 @@
         <include name="*.html" />
         <exclude name="bundledoc_list.html"/>
       </fileset>
+      <filterset begintoken="@" endtoken="@">
+        <filter token="VERSION"      value="${version}"/>
+      </filterset>
     </copy>
   </target>
 
