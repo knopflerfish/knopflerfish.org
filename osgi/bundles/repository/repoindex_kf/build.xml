@@ -16,8 +16,9 @@
   <property name="bundle.build.impl"  value="false"/>
   <property name="bundle.build.all"   value="true"/>
 
-  <!-- Build for OSGi Minimum Execution Environment. -->
-  <property name="bundle.compile.EE" value="ee.minimum"/>
+	  <!-- Build for Java 2 Standard Edition 1.5 Execution Environment. -->
+	  <!-- Uses java.awt, javax.swing, ... -->
+	  <property name="bundle.compile.EE" value="ee.JavaSE_1.5"/>
 
   <path id="bundle.compile.path">
   </path>
