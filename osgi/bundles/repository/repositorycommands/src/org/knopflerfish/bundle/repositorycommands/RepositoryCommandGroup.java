@@ -139,7 +139,8 @@ public class RepositoryCommandGroup
   public final static String[] HELP_BUNDLE = new String[] {
     "List bundle resources.",
     "List all bundles that matches <symbolicname>",
-    "and <versionRange>.",
+    "and <versionRange>. Mark with a '*' in the first",
+    "column if a bundle is installed.",
     "-l             Verbose output",
     "<symbolicname> Bundle symbolic name to match",
     "<versionRange> Optional bundle version range"
@@ -315,7 +316,8 @@ public class RepositoryCommandGroup
     = "[-l] [<repository>]";
 
   public final static String[] HELP_LIST = new String[] {
-    "List repositories.",
+    "List repositories. Mark with a '*' in the first",
+    "column if a repository is enabled.",
     "-l           Verbose output",
     "<repository> Name or id of repository"
   };

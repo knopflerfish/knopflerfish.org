@@ -8,7 +8,7 @@
 The Repository commands bundle includes a set of commands through which the Knopflerfish Repository Manager can be controlled. This includes bundle search and install, repository management (add, remove, ordering, enable and disable).
 
 <h2>Repository Command Group</h2>
-The console command group is <b>repository</b>
+
 <pre class="code">
 Available repository commands:
   add [-help] [-r #rank#] &lt;url&gt; - Add a XML based repository.
@@ -19,6 +19,150 @@ Available repository commands:
   list [-help] [-l] [&lt;repository&gt;] - List repositories.
   rank [-help] &lt;rank&gt; &lt;repository&gt; ... - Change repository ranking.
   show [-help] [-t] &lt;namespace&gt; [&lt;filter&gt;] - Show all capabilities and requirements for selected resources.
+</pre>
+
+<h3>add</h3>
+<p>
+  Add a XML based repository.
+</p>
+<pre>
+add [-help] [-r #rank#] &lt;url&gt;
+</pre>
+<p>Parameters:</p>
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>-r #rank#</b></dt><dd>Set rank explicitly.</dd>
+  <dt><b>&lt;url&gt;</b></dt><dd>URL for repository file.</dd>
+</dl>
+
+<h3>bundle</h3>
+<p>
+  List bundle resources. List all bundles that matches &ltsymbolicname&gt
+  and &ltversionRange&gt. Mark with a '*' in the first column if a
+  bundle is installed.
+</p>
+<pre>
+bundle [-help] [-l] [&lt;symbolicname&gt; [&lt;versionRange&gt;]]
+</pre>
+<p>Parameters:</p>
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>-l</b></dt><dd>Verbose output.</dd>
+  <dt><b>&lt;symbolicname&gt;</b></dt><dd>Bundle symbolic name to match.</dd>
+  <dt><b>&lt;versionRange&gt;</b></dt><dd>Optional bundle version range.</dd>
+</dl>
+
+<h3>disable</h3>
+<p>
+  Disable selected repository. Disables a repository so that it won't
+  be used when searching for resources.
+</p>
+<pre>
+disable [-help] &lt;repository&gt; ...
+</pre>
+<p>Parameters:</p>
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>&lt;repository&gt;</b></dt><dd>Wildcard name or id of repository.</dd>
+</dl>
+
+<h3>enable</h3>
+<p>
+  Enable selected repository. Enables a repository so that it will be used
+  when searching for resources.
+</p>
+<pre>
+enable [-help] &lt;repository&gt; ...
+</pre>
+<p>Parameters:</p>
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>&lt;repository&gt;</b></dt><dd>Wildcard name or id of repository.</dd>
+</dl>
+
+<h3>install</h3>
+<p>
+  Install bundle resource. Installs first bundle resource that
+  matches &lt;symbolicname&gt; and optional &lt;versionRange&gt;.
+</p>
+<pre>
+install [-help] [-s] [&lt;symbolicname&lt; [&lt;versionRange&lt;]]
+</pre>
+<p>Parameters:</p>
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>-s</b></dt><dd>Persistently start bundle according to activation policy.</dd>
+  <dt><b>&lt;symbolicname&gt;</b></dt><dd>Bundle symbolic name to match.</dd>
+  <dt><b>&lt;versionRange&gt;</b></dt><dd>Optional bundle version range.</dd>
+</dl>
+
+<h3>list</h3>
+<p>
+  List repositories. Mark with a '*' in the first column if a repository
+  is enabled.
+</p>
+<pre>
+list [-help] [-l] &lt;repository&gt;
+</pre>
+<p>Parameters:</p>
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>-l</b></dt><dd>Verbose output.</dd>
+  <dt><b>&lt;repository&gt;</b></dt><dd>Wildcard name or id of repository.</dd>
+</dl>
+
+<h3>rank</h3>
+<p>
+  Change repository ranking. The rank is used to can change the order
+  in which repositories are searched. Repository with highest ranking
+  is searched first.
+</p>
+<pre>
+rank [-help] &lt;rank&gt; &lt;repository&gt; ...
+</pre>
+<p>Parameters:</p>
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>&lt;rank&gt;</b></dt><dd>New rank of repository, must be an integer.</dd>
+  <dt><b>&lt;repository&gt;</b></dt><dd>Wildcard name or id of repository.</dd>
+</dl>
+
+<h3>show</h3>
+<p>
+ Show all capabilities and requirements for selected resources.
+</p>
+<pre>
+show [-help] [-t] &lt;namespace&lt; [&lt;filter&lt;]
+</pre>
+<p>Parameters:</p>
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>-t</b></dt><dd>Terse output, only show namespace attribute.</dd>
+  <dt><b>&lt;namespace&gt;</b></dt><dd>Which namespace to search.</dd>
+  <dt><b>&lt;filter&gt;</b></dt><dd>OSGi filter expression for selecting resources.</dd>
+</dl>
+
+<h3>Examples</h3>
+<p>
+List all repository available.
+</p>
+<pre>
+repository&gt; list
+E  Id Rank  Description
+------------------------
+*  15    0  XML repository from URL: file:jars/index.xml
+</pre>
+
+<p>
+List bundles with a symbolic name starting with
+"org.knopflerfish.bundle.repository" that are available
+from the repository.
+</p>
+
+<pre>
+repository&gt; b org.knopflerfish.bundle.repository*
+I Bundle resource
+- --------------------
+  org.knopflerfish.bundle.repository.index, version=1.0.0
+* org.knopflerfish.bundle.repository-API, version=1.0.0
+* org.knopflerfish.bundle.repository_desktop, version=1.0.0
+* org.knopflerfish.bundle.repository.xml, version=1.0.0
+  org.knopflerfish.bundle.repository.xml-API, version=1.0.0
+* org.knopflerfish.bundle.repositorycommands-IMPL, version=1.0.0
+* org.knopflerfish.bundle.repositorymanager, version=1.0.0
+  org.knopflerfish.bundle.repositorymanager-API, version=1.0.0
 </pre>
 
 <h2>See Also</h2>
