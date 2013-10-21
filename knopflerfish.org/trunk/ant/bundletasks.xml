@@ -144,7 +144,7 @@
       <replace file="@{dir}/index.xml">
         <replacetoken><![CDATA[<?xml version='1.0' encoding='utf-8'?>]]></replacetoken>
         <replacevalue><![CDATA[<?xml version='1.0' encoding='utf-8'?>
-        <?xml-stylesheet type='text/xsl' href='file:repository2html.xsl'?>]]></replacevalue>
+        <?xml-stylesheet type='text/xsl' href='repository2html.xsl'?>]]></replacevalue>
       </replace>
     </sequential>
   </macrodef>
