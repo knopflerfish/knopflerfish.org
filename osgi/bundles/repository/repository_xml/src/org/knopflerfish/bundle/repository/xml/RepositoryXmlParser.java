@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.repository.xml;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -48,6 +49,7 @@ import org.osgi.resource.Capability;
 import org.osgi.resource.Resource;
 import org.osgi.service.repository.ContentNamespace;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 public class RepositoryXmlParser {
   
@@ -62,6 +64,15 @@ public class RepositoryXmlParser {
     
     InputStream is = repositoryUrl.openStream(); 
 
+    Collection<Resource> rs = parse(is);
+    
+    ensureOsgiContentUrlsAreAbsolute(repositoryUrl, rs);
+
+    return rs;
+  }
+
+  public static Collection<Resource> parse(InputStream is)
+      throws XmlPullParserException, IOException, Exception {
     XmlPullParser p = new KXmlParser();
     p.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
     p.setInput(new InputStreamReader(is));
@@ -78,13 +89,10 @@ public class RepositoryXmlParser {
         rs.add(r);
       }
     }
-    
-    ensureOsgiContentUrlsAreAbsolute(repositoryUrl, rs);
-
     return rs;
   }
 
-  private static void ensureOsgiContentUrlsAreAbsolute(URL repositoryUrl, ArrayList<Resource> rs) throws Exception {
+  private static void ensureOsgiContentUrlsAreAbsolute(URL repositoryUrl, Collection<Resource> rs) throws Exception {
     for(Resource r : rs) {
       for(Capability c : r.getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
         String url = (String)c.getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
@@ -240,18 +248,53 @@ public class RepositoryXmlParser {
     } else if("String".equals(type)) {
       // No conversion needed
     } else if ("Version".equals(type)) {
-      value = Version.parseVersion((String)value);
+      value = Version.parseVersion(((String)value).trim());
     } else if ("Long".equals(type)) {
       value = Long.parseLong(((String)value).trim());
     } else if ("Double".equals(type)) {
       value = Double.parseDouble(((String)value).trim());
     } else if (type.startsWith("List<")) {
       String scalarType = type.substring("List<".length(), type.length() - 1);
-      StringTokenizer values = new StringTokenizer((String)value, ",");
+      StringTokenizer values = new StringTokenizer((String)value, ",\\", true);
   
       ArrayList<Object> list =  new ArrayList<Object>();
-      while(values.hasMoreTokens()) {
-        list.add(convertValueIfNecessary(values.nextToken().trim(), scalarType));
+      String t = null;
+      String v = null;
+      while(t != null || values.hasMoreTokens()) {
+        if(t == null) t = values.nextToken();
+        if(t.equals("\\")) {
+          if(values.hasMoreTokens()) {
+            t = values.nextToken();
+            if(t.equals("\\")) {
+              v = v == null ? "\\" : v + "\\" ;
+              t = null;
+            } else if(t.equals(",")) {
+              v = v == null ? "," : v + "," ;
+              t = null;
+            } else {
+              v = v == null ? "\\" : v + "\\" ;
+            }
+          } else {
+            v = v == null ? "\\" : v + "\\" ;
+            t = null;
+          }
+        } else if(t.equals(",")) {
+          if(v == null) {
+            list.add(convertValueIfNecessary("", scalarType));
+          } else if(v.endsWith("\\")) {
+            v += ",";
+          } else {
+            list.add(convertValueIfNecessary(v.trim(), scalarType));
+            v = null;
+          }
+          t = null;
+        } else {
+          v = v == null ? t : v + t ;
+          t = null;
+        }
+      }
+      if(v != null) {
+        list.add(convertValueIfNecessary(v.trim(), scalarType));
       }
       value = list;
     } else {

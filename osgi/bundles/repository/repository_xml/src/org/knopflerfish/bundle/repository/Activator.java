@@ -38,14 +38,16 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 
+import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
-
-import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 public class Activator implements BundleActivator {
   final static String REPOSITORY_XML_PID = "org.knopflerfish.repository.xml.MSF";
@@ -54,9 +56,10 @@ public class Activator implements BundleActivator {
   FactoryImpl factory;
   ServiceRegistration<XmlBackedRepositoryFactory> sr;
   ServiceRegistration<ManagedServiceFactory> msfr;
+  ServiceTracker<String, String> tckTracker;
 
   @Override
-  public void start(BundleContext bc) throws Exception {
+  public void start(final BundleContext bc) throws Exception {
     this.bc  = bc;
     factory = new FactoryImpl(bc);
     final String commaSeparatedUrls = bc.getProperty(REPOSITORY_XML_URLS);
@@ -64,12 +67,21 @@ public class Activator implements BundleActivator {
       final StringTokenizer urls = new StringTokenizer(commaSeparatedUrls, ",");
       while(urls.hasMoreTokens()) {
         final String url = urls.nextToken().trim();
-        try {
-        factory.create(url, null, null);
-        } catch (final Exception e) {
-          // TODO: Write to log.
-        }
+
+        new Thread(new Runnable() {
+
+          @Override
+          public void run() {
+            try {
+            factory.create(url, null, null);
+          } catch (final Exception e) {
+         // TODO: Add logging
+          }
+
+            
+          }}).run(); 
       }
+
     }
 
     sr = bc.registerService(XmlBackedRepositoryFactory.class, factory, null);
@@ -78,6 +90,48 @@ public class Activator implements BundleActivator {
     final Hashtable<String, String> h = new Hashtable<String, String>();
     h.put(Constants.SERVICE_PID, REPOSITORY_XML_PID);
     msfr = bc.registerService(ManagedServiceFactory.class, new MSF(), h);
+ 
+    if ("true".equals(bc.getProperty("org.knopflerfish.repository.ct.prime"))) {
+      tckTracker = new ServiceTracker<String, String>(bc, String.class,
+          new ServiceTrackerCustomizer<String, String>() {
+
+            @Override
+            public String addingService(ServiceReference<String> reference) {
+              if (reference.getProperty("repository-xml") == null) {
+                return null;
+              }
+              final String xml = bc.getService(reference);
+              new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                  Dictionary<String, String> p = new Hashtable<String, String>();
+                  p.put("repository-populated",
+                      "org.osgi.test.cases.repository.junit.RepositoryTest");
+                  try {
+                    factory.createFromString(xml);
+                  } catch (final Exception e) {
+                    // TODO: Add logging
+                  }
+                  bc.registerService(Object.class, new Object(), p);
+
+                }
+              }).run();
+              return xml;
+            }
+
+            @Override
+            public void modifiedService(ServiceReference<String> r, String s) {
+            }
+
+            @Override
+            public void removedService(ServiceReference<String> r, String s) {
+            }
+          });
+
+      tckTracker.open();
+    }
+    
   }
 
 

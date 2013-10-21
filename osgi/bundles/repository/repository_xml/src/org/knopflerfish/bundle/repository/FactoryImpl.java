@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.repository;
 
+import java.io.ByteArrayInputStream;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -50,6 +51,7 @@ import org.osgi.resource.Resource;
 import org.osgi.service.repository.Repository;
 
 public class FactoryImpl implements XmlBackedRepositoryFactory {
+
   private final BundleContext bc;
   private final HashMap<Object, ServiceRegistration<Repository>> repositoryRegistrations = new HashMap<Object, ServiceRegistration<Repository>>();
 
@@ -80,6 +82,27 @@ public class FactoryImpl implements XmlBackedRepositoryFactory {
           // User provided non-url custom handle
           repositoryRegistrations.put(handle, sr);
         }
+        return sr.getReference();
+      }
+    }
+    return null;
+  }
+  
+  public ServiceReference<Repository> createFromString(String xml) throws Exception {
+    System.out.println(xml);
+    if(xml != null && !"".equals(xml) && !repositoryRegistrations.containsKey(xml)) {
+      ByteArrayInputStream is = new ByteArrayInputStream(xml.getBytes());
+      Collection<Resource> rs = RepositoryXmlParser.parse(is);
+      if(!rs.isEmpty()) {
+        RepositoryImpl repo = new RepositoryImpl(bc, rs);
+        Hashtable<String, Object> h = new Hashtable<String, Object>();
+        h.put(Constants.SERVICE_PID, "org.knopflerfish.repository.xml");
+        h.put(Constants.SERVICE_DESCRIPTION, "XML repository from String");
+        //h.put("repository.url", url);
+ 
+        ServiceRegistration<Repository> sr = bc.registerService(Repository.class, repo, h);
+
+        repositoryRegistrations.put(xml, sr);
         return sr.getReference();
       }
     }

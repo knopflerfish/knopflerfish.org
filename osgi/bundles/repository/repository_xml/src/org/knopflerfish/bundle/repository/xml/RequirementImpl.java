@@ -36,7 +36,6 @@ package org.knopflerfish.bundle.repository.xml;
 
 import java.util.Map;
 
-import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
 
