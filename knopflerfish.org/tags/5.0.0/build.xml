@@ -38,12 +38,12 @@
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
-  <property name="version"            value="5.0.0.svn-0000"/>
+  <property name="version"            value="5.0.0"/>
 
   <!-- The release date of this release -->
   <!-- *** Un-comment and set here on release branch. *** -->
   <!-- Defaults to current date, set here if another value is wanted. -->
-  <!-- property name="release.date"     value="2013-10-18"/ -->
+  <property name="release.date"     value="2013-10-21"/>
 
   <!-- The previous official release version for this build -->
   <property name="version.previous"   value="4.0.1"/>
