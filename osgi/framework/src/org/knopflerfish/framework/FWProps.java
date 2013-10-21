@@ -34,6 +34,8 @@
 
 package org.knopflerfish.framework;
 
+import java.io.InputStream;
+import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -86,10 +88,10 @@ public class FWProps {
   /**
    * Property specifying the amount of time in seconds that the framework waits for a
    * BundleActivator.start() or .stop() call to complete and return. The default value is 0 which
-   * means to wait indefinitely. 
+   * means to wait indefinitely.
    */
   public final static String BUNDLETHREAD_TIMEOUT = "org.knopflerfish.framework.bundlethread.timeout";
-  
+
   /**
    * Name of system property for basic system packages to be exported. The
    * normal OSGi exports will be added to this list.
@@ -352,7 +354,7 @@ public class FWProps {
   protected void initProperties(FrameworkContext fwCtx) {
     setPropertyIfNotSet(Constants.FRAMEWORK_BOOTDELEGATION, "");
     setPropertyIfNotSet(Constants.FRAMEWORK_BSNVERSION,
-                        Constants.FRAMEWORK_BSNVERSION_SINGLE);
+                        Constants.FRAMEWORK_BSNVERSION_MANAGED);
     setPropertyIfNotSet(Constants.FRAMEWORK_BUNDLE_PARENT,
                         Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
     setPropertyIfNotSet(Constants.FRAMEWORK_EXECPERMISSION, "");
@@ -441,7 +443,7 @@ public class FWProps {
     setPropertyIfNotSet(Constants.FRAMEWORK_WINDOWSYSTEM, "");
 
     // Impl. constants
-    props.put(Constants.FRAMEWORK_VERSION, FrameworkContext.SPEC_VERSION);
+    props.put(Constants.FRAMEWORK_VERSION, Util.readFrameworkVersion());
     props.put(Constants.FRAMEWORK_VENDOR, "Knopflerfish");
     props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
     props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);

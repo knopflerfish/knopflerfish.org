@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2010). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ package org.osgi.service.event;
  * 
  * @ThreadSafe
  * @noimplement
- * @version $Id: d21a164e318da4b9ca165d1e481e270610cc0c77 $
+ * @author $Id: 9a845e5269829c3f713d43391364f6c9097fd342 $
  */
 public interface EventAdmin {
 	/**
@@ -34,8 +34,8 @@ public interface EventAdmin {
 	 *        topic of the event.
 	 * 
 	 * @throws SecurityException If the caller does not have
-	 *         {@code TopicPermission[topic,PUBLISH]} for the topic
-	 *         specified in the event.
+	 *         {@code TopicPermission[topic,PUBLISH]} for the topic specified in
+	 *         the event.
 	 */
 	void postEvent(Event event);
 
@@ -47,8 +47,8 @@ public interface EventAdmin {
 	 *        topic of the event.
 	 * 
 	 * @throws SecurityException If the caller does not have
-	 *         {@code TopicPermission[topic,PUBLISH]} for the topic
-	 *         specified in the event.
+	 *         {@code TopicPermission[topic,PUBLISH]} for the topic specified in
+	 *         the event.
 	 */
 	void sendEvent(Event event);
 }

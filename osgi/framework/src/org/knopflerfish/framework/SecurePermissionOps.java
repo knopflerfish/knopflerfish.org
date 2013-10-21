@@ -77,7 +77,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 
-class SecurePermissionOps
+public class SecurePermissionOps
   extends PermissionOps
 {
 
@@ -113,7 +113,7 @@ class SecurePermissionOps
 
   Hashtable<Bundle, AdminPermission[]> adminPerms = new Hashtable<Bundle, AdminPermission[]>();
 
-  SecurePermissionOps(FrameworkContext fw)
+  public SecurePermissionOps(FrameworkContext fw)
   {
     framework = fw;
   }
@@ -698,6 +698,12 @@ class SecurePermissionOps
         return bg.getBundleClassPathEntries(name, onlyFirst);
       }
     });
+  }
+
+  @Override
+  AccessControlContext getAccessControlContext(BundleImpl bundle) {
+    ProtectionDomain pd = bundle.current().getProtectionDomain();
+    return pd != null ?new AccessControlContext(new ProtectionDomain[] {pd}) : null;
   }
 
   //

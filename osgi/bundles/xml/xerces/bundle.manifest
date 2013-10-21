@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Xerces-J
 Bundle-SymbolicName: org.knopflerfish.bundle.xerces
-Bundle-Version: 2.10.1.kf3
+Bundle-Version: 2.10.1.kf5
 Bundle-Category: lib
 Bundle-Copyright: http://www.apache.org/licenses/LICENSE-2.0
 Bundle-Description: The Apache Xerces2 Java XML parser
@@ -62,7 +62,8 @@ Export-Package: javax.xml;version=1.3,
  org.apache.xerces.xpointer,
  org.apache.xerces.xs,
  org.apache.xerces.xs.datatypes,
- org.apache.xml.serialize
+ org.apache.xml.serialize,
+ org.osgi.util.xml
 Import-Package: org.osgi.framework,
  javax.xml.datatype;version=1.3,
  javax.xml.namespace;version=1.3,

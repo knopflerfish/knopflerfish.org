@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,19 +40,25 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.selectors.FilenameSelector;
 import org.apache.tools.ant.util.FileUtils;
+
+import org.osgi.framework.Version;
+
 import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
 
 /**
@@ -221,10 +227,10 @@ public class MakeHTMLTask
    */
   private String bundleList;
 
-  private ArrayList filesets = new ArrayList();
+  private final ArrayList<ResourceCollection> filesets = new ArrayList<ResourceCollection>();
   private String disable;
 
-  private final Map fragments = new HashMap();
+  private final Map<String, HtmlFragment> fragments = new HashMap<String,HtmlFragment>();
 
   public void setFromfile(String s) {
     fromFile = s;
@@ -238,6 +244,7 @@ public class MakeHTMLTask
     this.title = title;
   }
 
+  @Override
   public void setDescription(String description) {
     this.description = description;
   }
@@ -284,13 +291,20 @@ public class MakeHTMLTask
 
 
 
+  @Override
   public void execute() {
-    Project proj = getProject();
+    final Project proj = getProject();
     this.projectName = proj.getName();
 
-    if (template == null) throw new BuildException("template must be set");
-    if (title == null) title = "";
-    if (description == null) description = "";
+    if (template == null) {
+      throw new BuildException("template must be set");
+    }
+    if (title == null) {
+      title = "";
+    }
+    if (description == null) {
+      description = "";
+    }
 
     if (filesets.isEmpty() && fromFile == null && toFile == null) {
       throw new BuildException("Need to specify tofile and fromfile or give a fileset");
@@ -304,30 +318,36 @@ public class MakeHTMLTask
       }
       transform(fromFile, toFile.toString());
     } else {
-      if (fromFile != null)
+      if (fromFile != null) {
         throw new BuildException("Can not specify fromfile when using filesets");
-      if (toFile != null)
+      }
+      if (toFile != null) {
         throw new BuildException("Can not specify tofile when using filesets");
+      }
 
-      for (Iterator iter = filesets.iterator(); iter.hasNext(); ) {
-        FileSet fs = (FileSet) iter.next();
-        DirectoryScanner ds = fs.getDirectoryScanner(getProject());
-        String[] files = ds.getIncludedFiles();
+      for (final Object element : filesets) {
+        final FileSet fs = (FileSet) element;
+        final DirectoryScanner ds = fs.getDirectoryScanner(getProject());
+        final String[] files = ds.getIncludedFiles();
 
-        for (int i = 0; i < files.length; i++) {
+        for (final String file : files) {
           transform(new File(fs.getDir(getProject()),
-                             files[i]).getAbsolutePath(), files[i]);
+                             file).getAbsolutePath(), file);
         }
       }
     }
   }
 
   private void transform(String fromFile, String toFile) {
-    if (fromFile == null) throw new BuildException("fromfile must be set");
-    if (toFile == null) throw new BuildException("tofile must be set");
+    if (fromFile == null) {
+      throw new BuildException("fromfile must be set");
+    }
+    if (toFile == null) {
+      throw new BuildException("tofile must be set");
+    }
 
     try {
-      Project proj = getProject();
+      final Project proj = getProject();
       File tmp = new File(outdir, toFile).getParentFile();
 
       if (!tmp.exists()) {
@@ -352,18 +372,18 @@ public class MakeHTMLTask
       }
       final String pathToJavadocDir = pathToOutDir + javadocRelPath;
 
-      String content = Util.loadFile(template.toString());
+      String content = FileUtil.loadFile(template.toString());
       content = Util.replace(content, "$(LINKS)", links());
-      content = Util.replace(content, "$(MAIN)", Util.loadFile(fromFile));
-      for (Iterator it = fragments.keySet().iterator(); it.hasNext(); ) {
-        final String key = (String) it.next();
-        final HtmlFragment frag = (HtmlFragment) fragments.get(key);
+      content = Util.replace(content, "$(MAIN)", FileUtil.loadFile(fromFile));
+      for (final Object element : fragments.keySet()) {
+        final String key = (String) element;
+        final HtmlFragment frag = fragments.get(key);
         final String linkText = frag.getLinkText();
         if (null!=linkText && 0<linkText.length()) {
-          String fragLink = "<a href=\"#" +key +"\">" +linkText +"</a>";
+          final String fragLink = "<a href=\"#" +key +"\">" +linkText +"</a>";
           content = Util.replace(content, "$("+key +"_LINK)", fragLink);
         }
-        String fragCont = Util.loadFile(frag.getFromFile().getPath());
+        String fragCont = FileUtil.loadFile(frag.getFromFile().getPath());
         if (null!=fragCont && 0<fragCont.length()) {
           fragCont = "<a name=\"" +key +"\"></a>\n" + fragCont;
         }
@@ -431,33 +451,33 @@ public class MakeHTMLTask
         content = Util.replace(content, "<H3", "<h3 class=\"man\"");
       }
 
-      String s = proj.getProperty("navigation_pages");
-      String navEnabled = proj.getProperty("css_navigation_enabled");
-      String navDisabled = proj.getProperty("css_navigation_disabled");
+      final String s = proj.getProperty("navigation_pages");
+      final String navEnabled = proj.getProperty("css_navigation_enabled");
+      final String navDisabled = proj.getProperty("css_navigation_disabled");
       // System.out.println("Navigation pages: " + s);
       if (s != null) {
-        String[] navPages = Util.splitwords(s);
-        for (int i = 0; i < navPages.length; i++) {
+        final String[] navPages = Util.splitwords(s);
+        for (final String navPage : navPages) {
           // System.out.println("Checking: " + navPages[i]);
-          if (disable != null && disable.equals(navPages[i])) {
+          if (disable != null && disable.equals(navPage)) {
             content = Util.replace(content,
-                                   "$(CLASS_NAVIGATION_" + navPages[i] + ")",
+                                   "$(CLASS_NAVIGATION_" + navPage + ")",
                                    navDisabled);
           }
           else {
             content = Util.replace(content,
-                                   "$(CLASS_NAVIGATION_" + navPages[i] + ")",
+                                   "$(CLASS_NAVIGATION_" + navPage + ")",
                                    navEnabled);
           }
         }
       }
 
-      Util.writeStringToFile(new File(outdir, toFile), content);
+      FileUtil.writeStringToFile(new File(outdir, toFile), content);
       log("Created: " + new File(outdir, toFile));
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
       throw new BuildException(e);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
       throw new BuildException(e);
     }
@@ -472,17 +492,17 @@ public class MakeHTMLTask
   private static final String CSS_CLASS_DISABLED = "htdocs.link.disabled.class";
 
   private String links() {
-    Project proj = getProject();
-    StringBuffer buf = new StringBuffer();
+    final Project proj = getProject();
+    final StringBuffer buf = new StringBuffer();
 
     for (int i = 0; ; i++) {
-      String id   = proj.getProperty(LINK_ID + i);
+      final String id   = proj.getProperty(LINK_ID + i);
 
       if (id == null) {
         break;
       }
 
-      String type = proj.getProperty(LINK_TYPE + i);
+      final String type = proj.getProperty(LINK_TYPE + i);
       if (type == null) {
         throw new BuildException("must set htdocs.link.type." + i);
       }
@@ -492,8 +512,8 @@ public class MakeHTMLTask
 
       } else if (type.equals("link")) {
 
-        String name = proj.getProperty(LINK_NAME + i);
-        String url  = proj.getProperty(LINK_URL + i);
+        final String name = proj.getProperty(LINK_NAME + i);
+        final String url  = proj.getProperty(LINK_URL + i);
         if (name == null) {
           throw new BuildException("Name not set for htdocs.link.url." + i);
         }
@@ -537,7 +557,7 @@ public class MakeHTMLTask
    *         file sets described above or null if no file set was defined.
    */
   private BundleArchives getBundleArchives() {
-    final List fileSets = new ArrayList();
+    final List<ResourceCollection> fileSets = new ArrayList<ResourceCollection>();
     final Project proj = getProject();
 
     // File set for bundlebuild.xml properties
@@ -551,6 +571,7 @@ public class MakeHTMLTask
         final FilenameSelector fns = new FilenameSelector();
         fns.setName(proj.getProperty("jardir.name") + "/**/*.jar");
         fileSet.add(fns);
+        fileSet.setExcludes("**/*-source.jar,**/*-javadoc.jar");
         fileSets.add(fileSet);
         log("Found build results (bundlebuild): " + fileSet, Project.MSG_DEBUG);
       }
@@ -573,10 +594,12 @@ public class MakeHTMLTask
     }
 
     // FileSet defined with id (for bundle overview documentation).
-    final FileSet docbuildeFileSet = (FileSet) proj.getReference("docbuild.jarfiles");
+    final FileSet docbuildeFileSet
+      = (FileSet) proj.getReference("docbuild.jarfiles");
     if (null!=docbuildeFileSet) {
       fileSets.add(docbuildeFileSet);
-      log("Found build results (docbuild.jarfiles): " + docbuildeFileSet, Project.MSG_DEBUG);
+      log("Found build results (docbuild.jarfiles): " + docbuildeFileSet,
+          Project.MSG_DEBUG);
     }
 
     if (0 < fileSets.size()) {
@@ -620,10 +643,9 @@ public class MakeHTMLTask
 
     if (null != bas) {
       final boolean javadocPresent = pathToJavadocDir != null && 0<pathToJavadocDir.length();
-      for (Iterator pkgIt = bas.allExports.entrySet().iterator(); pkgIt.hasNext(); ) {
-        final Map.Entry pkgEntry = (Map.Entry) pkgIt.next();
+      for (final Entry<String, SortedMap<Version, SortedSet<BundleArchive>>> pkgEntry: bas.allExports.entrySet()) {
         final String pkg = pkgEntry.getKey().toString();
-        final Map verToProvides = (Map) pkgEntry.getValue();
+        final Map<Version,SortedSet<BundleArchive>> verToProvides = pkgEntry.getValue();
 
         final String docFile = replace(pkg, ".", "/") +BundleHTMLExtractorTask.PACKAGE_SUMMARY_HTML;
         final String docPath = pathToJavadocDir +"/index.html?" +docFile;
@@ -631,10 +653,9 @@ public class MakeHTMLTask
                                 +pathToJavadocDir.replace('/', File.separatorChar)
                                 +File.separator
                                 +docFile.replace('/', File.separatorChar));
-        for (Iterator vIt = verToProvides.entrySet().iterator(); vIt.hasNext(); ) {
-          final Map.Entry vtpEntry = (Map.Entry) vIt.next();
+        for (final Entry<Version,SortedSet<BundleArchive>> vtpEntry : verToProvides.entrySet()) {
           final String version = vtpEntry.getKey().toString();
-          final Set providers = (Set) vtpEntry.getValue();
+          final Set<BundleArchive> providers = vtpEntry.getValue();
 
           String row = packageListRow;
           if(javadocPresent) {
@@ -668,8 +689,8 @@ public class MakeHTMLTask
     final StringBuffer res = new StringBuffer();
 
     if (null != bas) {
-      for (Iterator it = bas.allBundleArchives.iterator(); it.hasNext();) {
-        final BundleArchive ba = (BundleArchive) it.next();
+      for (final Object element : bas.allBundleArchives) {
+        final BundleArchive ba = (BundleArchive) element;
 
         if (0 < res.length()) {
           res.append("<br>\n");
@@ -680,12 +701,10 @@ public class MakeHTMLTask
     return res.toString();
   }
 
-  private String providersToString(final Set providers) {
+  private String providersToString(final Set<BundleArchive> providers) {
     final StringBuffer res = new StringBuffer();
 
-    for (Iterator it = providers.iterator(); it.hasNext();) {
-      final BundleArchive ba = (BundleArchive) it.next();
-
+    for (final BundleArchive ba : providers) {
       if (0 < res.length()) {
         res.append(", ");
       }

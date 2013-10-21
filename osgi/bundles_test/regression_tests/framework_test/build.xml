@@ -28,8 +28,6 @@
 		<pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
 	</path>
 
-	<property name="do.bundle.custom.pre" value="true"/>
-
 	<target name="buildres">
 		<jar destfile="${resources.dir}/res1.jar" 
         basedir="res1"/>

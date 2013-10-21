@@ -10,7 +10,7 @@
 
     <title>Knopflerfish OSGi - snapshot builds</title>
 
-    <link href="/css/knopflerfish2.css" rel="stylesheet" type="text/css">
+    <link href="/css/knopflerfish2.3.css" rel="stylesheet" type="text/css">
     <link rel="shortcut icon" href="/images/favicon.png" >
 
   </head>
@@ -22,6 +22,15 @@
 	<div id="header_logo">
 	  <a href="/index.html"><img src="/images/kf300_black.png" border="0" alt="knopflerfish logo"/></a>
 	</div>
+	<div id="header_ad">
+	  <div class="header_stylish">
+	    Open Source OSGi Service Platform Maintained by<br>
+	    <a href="http://www.makewave.com">
+	      <img style="margin-top: 4px;" src="images/makewave_logo.png" alt="Makewave" border="0">
+	    </a>
+	  </div>
+	</div>
+	<div class="break"></div>
 	<div id="header_menu">
 	  <a class="button_closed" href="/index.html">Home</a>
 	</div>
@@ -44,6 +53,6 @@
       </div>
 
       <div id="mainblock">
-	<h2>Knopflerfish snapshot builds @DATE@</h2>
+	<h1 class="kf">Knopflerfish snapshot builds @DATE@</h1>
 
 

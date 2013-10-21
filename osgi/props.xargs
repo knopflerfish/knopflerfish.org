@@ -29,9 +29,6 @@
 # Avoid java verifier bug
 #-Forg.knopflerfish.framework.bundlestorage.file.jar_verifier_bug=true
 
-# URL to bundle repository
-#-Foscar.repository.url=http://www.knopflerfish.org/releases/current/repository.xml
-
 # Various debug flags
 #-Forg.knopflerfish.framework.debug.resolver=true
 -Forg.knopflerfish.framework.debug.errors=true

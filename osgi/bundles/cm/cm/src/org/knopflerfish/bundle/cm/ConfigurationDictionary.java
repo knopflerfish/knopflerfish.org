@@ -43,12 +43,13 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * This class implements the data-type restrictions, and case insensitive
  * lookup, required of configuration dictionaries in the CM.
- * 
+ *
  * @author Gatespace AB *
  */
 
@@ -57,6 +58,7 @@ final class ConfigurationDictionary
 {
 
   private final static String IS_NULL_DICTIONARY = "org.knopflerfish.is.null.dictionary";
+  private final static String KEY_CHANGE_COUNT = "org.knopflerfish.bundle.cm.changeCount";
 
   /**
    * * Use BigDecimal if available.
@@ -66,7 +68,7 @@ final class ConfigurationDictionary
   static {
     try {
       classBigDecimal = Class.forName("java.math.BigDecimal");
-    } catch (Throwable ignore) {
+    } catch (final Throwable ignore) {
       classBigDecimal = null;
     }
   }
@@ -134,6 +136,7 @@ final class ConfigurationDictionary
    */
   final Hashtable<String, Object> originalCase;
 
+
   public ConfigurationDictionary()
   {
     this(new Hashtable<String, Object>());
@@ -141,12 +144,13 @@ final class ConfigurationDictionary
   }
 
   /**
-   * * Construct a ConfigurationDictionary given an ordinary Dictionary. * *
-   * 
+   * Construct a ConfigurationDictionary wrapping an ordinary Dictionary. I.e.,
+   * the ownership of the given dictionary will be taken over by the new
+   * configuration dictionary instance.
+   *
    * @param dictionary
    *          The original dictionary.
    */
-
   public ConfigurationDictionary(Hashtable<String, Object> dictionary)
   {
     this.lowercaseToOriginalCase = new Hashtable<String, String>();
@@ -154,11 +158,20 @@ final class ConfigurationDictionary
     updateLowercaseToOriginalCase();
   }
 
+  /**
+   * Construct a ConfigurationDictionary by cloning another one. I.e., a clone
+   * of the given dictionary will be used in the new configuration dictionary
+   * instance.
+   *
+   * @param original
+   *          The original configuration dictionary to clone.
+   *
+   */
   private ConfigurationDictionary(ConfigurationDictionary original)
   {
     this.originalCase = copyDictionary(original.originalCase);
-    this.lowercaseToOriginalCase = new Hashtable<String, String>(
-                                                                 original.lowercaseToOriginalCase);
+    this.lowercaseToOriginalCase =
+      new Hashtable<String, String>(original.lowercaseToOriginalCase);
   }
 
   @Override
@@ -170,15 +183,14 @@ final class ConfigurationDictionary
   @Override
   public Object get(Object key)
   {
-
     Object val = originalCase.get(key);
 
     if (val != null) {
       return val;
     }
 
-    String lowercaseKey = ((String) key).toLowerCase();
-    String originalCaseKey = lowercaseToOriginalCase.get(lowercaseKey);
+    final String lowercaseKey = ((String) key).toLowerCase();
+    final String originalCaseKey = lowercaseToOriginalCase.get(lowercaseKey);
     if (originalCaseKey != null) {
       key = originalCaseKey;
     }
@@ -203,11 +215,11 @@ final class ConfigurationDictionary
   @Override
   public String toString()
   {
-    StringBuffer sb = new StringBuffer();
+    final StringBuffer sb = new StringBuffer();
     sb.append("ConfigurationDictionary{");
-    for (Enumeration<String> e = keys(); e.hasMoreElements();) {
-      String key = e.nextElement();
-      Object val = get(key);
+    for (final Enumeration<String> e = keys(); e.hasMoreElements();) {
+      final String key = e.nextElement();
+      final Object val = get(key);
 
       sb.append(key + "=" + val);
       if (e.hasMoreElements()) {
@@ -221,12 +233,12 @@ final class ConfigurationDictionary
   @Override
   public Object put(String key, Object value)
   {
-    String lowercaseKey = key.toLowerCase();
-    String originalCaseKey = lowercaseToOriginalCase.get(lowercaseKey);
+    final String lowercaseKey = key.toLowerCase();
+    final String originalCaseKey = lowercaseToOriginalCase.get(lowercaseKey);
     if (originalCaseKey != null) {
       key = originalCaseKey;
     }
-    Object o = originalCase.put(key, value);
+    final Object o = originalCase.put(key, value);
     if (originalCaseKey == null) {
       updateLowercaseToOriginalCase(key);
     }
@@ -236,11 +248,11 @@ final class ConfigurationDictionary
   @Override
   public Object remove(Object key)
   {
-    String lowercaseKey = ((String) key).toLowerCase();
+    final String lowercaseKey = ((String) key).toLowerCase();
     if (!lowercaseToOriginalCase.containsKey(lowercaseKey)) {
       return null;
     }
-    String originalCaseKey = lowercaseToOriginalCase.remove(lowercaseKey);
+    final String originalCaseKey = lowercaseToOriginalCase.remove(lowercaseKey);
     return originalCase.remove(originalCaseKey);
   }
 
@@ -270,14 +282,14 @@ final class ConfigurationDictionary
 
   ConfigurationDictionary createCopyAndRemoveLocation()
   {
-    ConfigurationDictionary cd = createCopy();
+    final ConfigurationDictionary cd = createCopy();
     cd.removeLocation();
     return cd;
   }
 
   boolean isNullDictionary()
   {
-    Boolean b = (Boolean) get(IS_NULL_DICTIONARY);
+    final Boolean b = (Boolean) get(IS_NULL_DICTIONARY);
     return b != null && b.booleanValue();
   }
 
@@ -292,9 +304,9 @@ final class ConfigurationDictionary
 
   private void updateLowercaseToOriginalCase()
   {
-    Enumeration<String> keys = originalCase.keys();
+    final Enumeration<String> keys = originalCase.keys();
     while (keys.hasMoreElements()) {
-      String originalKey = (String) keys.nextElement();
+      final String originalKey = keys.nextElement();
       updateLowercaseToOriginalCase(originalKey);
     }
   }
@@ -304,7 +316,7 @@ final class ConfigurationDictionary
     if (originalKey == null) {
       return;
     }
-    String lowercaseKey = originalKey.toLowerCase();
+    final String lowercaseKey = originalKey.toLowerCase();
     if (!lowercaseToOriginalCase.containsKey(lowercaseKey)) {
       lowercaseToOriginalCase.put(lowercaseKey, originalKey);
     }
@@ -313,23 +325,31 @@ final class ConfigurationDictionary
   static public ConfigurationDictionary createDeepCopy(Dictionary<String, ?> properties)
   {
     final Hashtable<String, Object> h = copyDictionary(properties);
-    return new ConfigurationDictionary(h);
+    final ConfigurationDictionary res = new ConfigurationDictionary(h);
+    return res;
   }
 
-  static public Hashtable<String, Object> copyDictionary(Dictionary<String,?> properties)
+  /**
+   * Make a deep clone of the given dictionary.
+   *
+   * @param properties
+   *          dictionary to clone.
+   * @return A clone of the given dictionary.
+   */
+  static public Hashtable<String, Object> copyDictionary(final Dictionary<String, ?> properties)
   {
     if (properties == null) {
       return null;
     }
 
-    Hashtable<String, Object> out = new Hashtable<String, Object>();
-    Enumeration<String> keys = properties.keys();
+    final Hashtable<String, Object> res = new Hashtable<String, Object>();
+    final Enumeration<String> keys = properties.keys();
     while (keys.hasMoreElements()) {
-      String key = keys.nextElement();
-      Object val = copyValue(properties.get(key));
-      out.put(key, val);
+      final String key = keys.nextElement();
+      final Object val = copyValue(properties.get(key));
+      res.put(key, val);
     }
-    return out;
+    return res;
   }
 
   static private Object copyValue(Object in)
@@ -351,8 +371,8 @@ final class ConfigurationDictionary
     if (in == null) {
       return null;
     }
-    Vector<Object> out = new Vector<Object>();
-    Iterator<?> i = in.iterator();
+    final Vector<Object> out = new Vector<Object>();
+    final Iterator<?> i = in.iterator();
     while (i.hasNext()) {
       out.addElement(copyValue(i.next()));
     }
@@ -364,8 +384,8 @@ final class ConfigurationDictionary
     if (in == null) {
       return null;
     }
-    int length = Array.getLength(in);
-    Object out = Array.newInstance(in.getClass().getComponentType(), length);
+    final int length = Array.getLength(in);
+    final Object out = Array.newInstance(in.getClass().getComponentType(), length);
     for (int i = 0; i < length; ++i) {
       Array.set(out, i, copyValue(Array.get(in, i)));
     }
@@ -379,28 +399,28 @@ final class ConfigurationDictionary
       return;
     }
 
-    Enumeration<?> keys = dictionary.keys();
+    final Enumeration<?> keys = dictionary.keys();
     while (keys.hasMoreElements()) {
-      Object key = keys.nextElement();
+      final Object key = keys.nextElement();
       if (key.getClass() != String.class) {
         throw new IllegalArgumentException(
                                            "The key "
                                                + key
                                                + " is not of type java.lang.String.");
       }
-      Object val = dictionary.get(key);
+      final Object val = dictionary.get(key);
       try {
         validateValue(val);
-      } catch (IllegalArgumentException e) {
+      } catch (final IllegalArgumentException e) {
         throw new IllegalArgumentException("The value for key " + key
                                            + " is not of correct type: "
                                            + e.getMessage());
       }
 
-      String s = (String) key;
-      String lower = s.toLowerCase();
+      final String s = (String) key;
+      final String lower = s.toLowerCase();
       if (!s.equals(lower)) {
-        Object val2 = dictionary.get(lower);
+        final Object val2 = dictionary.get(lower);
         if (null != val2 && val != val2) {
           throw new IllegalArgumentException("key '" + s + "'"
                                              + " also appears with different "
@@ -417,7 +437,7 @@ final class ConfigurationDictionary
       return;
     }
 
-    Class<? extends Object> valueClass = value.getClass();
+    final Class<? extends Object> valueClass = value.getClass();
     if (valueClass.isArray()) {
       validateArray(value);
     } else if (value instanceof Collection) {
@@ -432,14 +452,14 @@ final class ConfigurationDictionary
 
   static private void validateArray(Object array)
   {
-    Class<?> componentType = array.getClass().getComponentType();
-    int length = Array.getLength(array);
+    final Class<?> componentType = array.getClass().getComponentType();
+    final int length = Array.getLength(array);
     if (componentType.isArray()
         || Collection.class.isAssignableFrom(componentType)) {
       for (int i = 0; i < length; ++i) {
-        Object o = Array.get(array, i);
+        final Object o = Array.get(array, i);
         if (o != null) {
-          Class<? extends Object> objectClass = o.getClass();
+          final Class<? extends Object> objectClass = o.getClass();
           if (objectClass != componentType) {
             throw new IllegalArgumentException(
                                                "Objects with different type in array. "
@@ -459,7 +479,7 @@ final class ConfigurationDictionary
                                                + componentType.toString());
       }
       for (int i = 0; i < length; ++i) {
-        Object o = Array.get(array, i);
+        final Object o = Array.get(array, i);
         if (o != null) {
           Class<? extends Object> objectClass = o.getClass();
           if (componentType.isPrimitive()) {
@@ -480,15 +500,68 @@ final class ConfigurationDictionary
 
   static private void validateCollection(Collection<?> collection)
   {
-    Iterator<?> i = collection.iterator();
+    final Iterator<?> i = collection.iterator();
     while (i.hasNext()) {
       validateValue(i.next());
     }
   }
 
+  /**
+   * Removes properties from this dictionary that should not be included in a
+   * Configuration-object handed out to Managed Services.
+   */
   public void removeLocation()
   {
     remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
     remove(ConfigurationAdminFactory.DYNAMIC_BUNDLE_LOCATION);
+    remove(KEY_CHANGE_COUNT);
   }
+
+  /**
+   * Get the location that this configuration dictionary is bound to.
+   * @return current location.
+   */
+  String getLocation() {
+    return (String) get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+  }
+
+  /**
+   * Get the PID that this configuration dictionary is bound to.
+   * @return current PID.
+   */
+  String getPid() {
+    return (String) get(Constants.SERVICE_PID);
+  }
+
+  /**
+   * Get the factory PID that this configuration dictionary is bound to.
+   * @return current factory PID or {@code null} if not a factory configuration.
+   */
+  String getFactoryPid() {
+    return (String) get(ConfigurationAdmin.SERVICE_FACTORYPID);
+  }
+
+  private final Object changeCountLock = new Object();
+  public long getChangeCount()
+  {
+    synchronized (changeCountLock) {
+      final Long cc = (Long) originalCase.get(KEY_CHANGE_COUNT);
+      return cc == null ? 0L : cc.longValue();
+    }
+  }
+
+  void setChangeCount(long changeCount)
+  {
+    synchronized (changeCountLock) {
+      put(KEY_CHANGE_COUNT, new Long(changeCount));
+    }
+  }
+
+  void incrementChangeCount()
+  {
+    synchronized (changeCountLock) {
+      setChangeCount(getChangeCount()+1);
+    }
+  }
+
 }

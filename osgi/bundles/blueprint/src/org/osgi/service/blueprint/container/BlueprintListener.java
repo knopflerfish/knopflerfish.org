@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.blueprint.container;
 
 /**
- * A <code>BlueprintEvent</code> Listener.
+ * A {@code BlueprintEvent} Listener.
  * 
  * <p>
  * To receive Blueprint Events, a bundle must register a Blueprint Listener
@@ -37,7 +38,7 @@ package org.osgi.service.blueprint.container;
  * 
  * @see BlueprintEvent
  * @ThreadSafe
- * @version $Revision: 8083 $
+ * @author $Id: d86b4e08b710e0929acd80dd9742dedeb35e2c0f $
  */
 public interface BlueprintListener {
 

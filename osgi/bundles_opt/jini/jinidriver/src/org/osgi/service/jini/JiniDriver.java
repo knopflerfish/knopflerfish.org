@@ -6,7 +6,7 @@
  * This source code is owned by ProSyst Software AG.
  *
  * These materials have been contributed  to the Open Services Gateway
- * Initiative (OSGi) as “MEMBER LICENSED MATERIALS” as defined in,
+ * Initiative (OSGi) as "MEMBER LICENSED MATERIALS" as defined in,
  * and subject to the terms of, the OSGi Member Agreement by and
  * between OSGi and ProSyst Software AG, specifically including but
  * not limited to, the license rights and warranty disclaimers as set

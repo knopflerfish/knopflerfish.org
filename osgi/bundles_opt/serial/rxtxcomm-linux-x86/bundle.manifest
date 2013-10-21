@@ -3,9 +3,9 @@ Bundle-ManifestVersion: 2
 Bundle-Name: RXTXcomm-linux-x86
 Bundle-SymbolicName: org.knopflerfish.bundle.rxtxcomm-linux-x86
 Bundle-Version: 2.2.0.pre2
-Bundle-Category: service
+Bundle-Category: utility
 Bundle-Description: RXTX comm native driver for Linux/x86
-Bundle-Vendor: Piayda/RXTX
+Bundle-Vendor: Knopflerfish/Piayda/RXTX
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=serial

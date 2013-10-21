@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
@@ -149,6 +149,10 @@ import org.apache.tools.ant.Task;
  *         path pointing to the file <tt>index.html</tt> inside the
  *         sub-directory holding the properties file.</dd>
  *
+ *     <dt><tt>linkRef</tt></dt>
+ *     <dd>A reference part to append to the generated link. I.e., this will
+ *         make a link that points a named anchor on the linked page.
+ *
  *     <dt><tt>sortKey</tt></dt>
  *     <dd>String to use when sorting links. Default is the value of
  *         the title key.</dd>
@@ -203,7 +207,9 @@ public class BundleUserDocNavigateTask
 
   public void setOutdir(File f) {
     outDir = f;
-    if (null==docDir) docDir = f;
+    if (null==docDir) {
+      docDir = f;
+    }
   }
 
 
@@ -257,31 +263,33 @@ public class BundleUserDocNavigateTask
   }
 
   // Mapping from category name to sorted set with link data.
-  private Map/*<String,SortedSet<LinkData>>*/ categories = new HashMap();
+  private final Map<String, SortedSet<LinkData>> categories =
+    new HashMap<String, SortedSet<LinkData>>();
 
   // Insert a link data item to a category in the categories map
   private void add(final String category, final LinkData ld)
   {
-    SortedSet lds = (SortedSet) categories.get(category);
+    SortedSet<LinkData> lds = categories.get(category);
     if (null==lds) {
-      lds = new TreeSet();
+      lds = new TreeSet<LinkData>();
       categories.put(category, lds);
     }
     lds.add(ld);
   }
 
   // Build a html-string with links to the lds in the set.
-  private String links(final Set lds)
+  private String links(final Set<LinkData> lds)
   {
     final StringBuffer sb = new StringBuffer(1024);
-    for (Iterator it = lds.iterator(); it.hasNext(); ) {
-      final LinkData ld = (LinkData) it.next();
-
+    for (final LinkData ld : lds) {
       sb.append("      <dd class=\"leftmenu");
       sb.append(ld.depth +1);
       sb.append("\">");
       sb.append("<a target=\"bundledoc_main\" href=\"");
       sb.append(ld.linkPath);
+      if (ld.linkRef != null && ld.linkRef.length() > 0) {
+        sb.append("#").append(ld.linkRef);
+      }
       sb.append("\">");
       sb.append(ld.title);
       sb.append("</a></dd>\n");
@@ -291,10 +299,11 @@ public class BundleUserDocNavigateTask
   }
 
   // The data needed to create a document link in a category.
-  static class LinkData implements Comparable
+  static class LinkData implements Comparable<LinkData>
   {
     String title;
     String linkPath;
+    String linkRef;
     String sortKey;
     int depth = 1;
 
@@ -305,9 +314,9 @@ public class BundleUserDocNavigateTask
       this.linkPath = linkPath;
     }
 
-    public int compareTo(Object o)
+    @Override
+    public int compareTo(LinkData other)
     {
-      LinkData other = (LinkData) o;
       return sortKey.compareTo(other.sortKey);
     }
   }
@@ -319,11 +328,12 @@ public class BundleUserDocNavigateTask
     ld.title = docProps.getProperty(prefix +"title", ld.title);
     ld.sortKey = docProps.getProperty(prefix +"sortKey", ld.title);
     ld.linkPath = docProps.getProperty(prefix +"linkPath", ld.linkPath);
+    ld.linkRef = docProps.getProperty(prefix +"linkRef", ld.linkRef);
     final String sd = docProps.getProperty(prefix +"depth");
     if (null!=sd && 0<sd.length()) {
       try {
         ld.depth = Integer.parseInt(sd);
-      } catch (NumberFormatException nfe) {
+      } catch (final NumberFormatException nfe) {
       }
     }
     final String category = docProps.getProperty("category", defaultCategory);
@@ -333,11 +343,13 @@ public class BundleUserDocNavigateTask
   private void analyzeDocDir()
   {
     final File[] files = docDir.listFiles();
-    for (int i=0; i<files.length; i++) {
-      final File file = files[i];
+    for (final File file2 : files) {
+      final File file = file2;
 
       // Only interested in directories.
-      if (!file.isDirectory()) continue;
+      if (!file.isDirectory()) {
+        continue;
+      }
 
       final String defaultTitle = file.getName();
       final String defaultLinkPath = file.getName() +"/index.html";
@@ -353,7 +365,7 @@ public class BundleUserDocNavigateTask
           if (null!=linkCntS && 0<linkCntS.length()) {
             try {
               linkCnt = Integer.parseInt(linkCntS);
-            } catch (NumberFormatException nfe) {
+            } catch (final NumberFormatException nfe) {
               log("Invalid linkCount value, '"+linkCntS
                   +"' found in '"+docPropsFile +"': "+nfe.getMessage(),
                   Project.MSG_WARN);
@@ -372,7 +384,7 @@ public class BundleUserDocNavigateTask
               add(category, ld);
             }
           }
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
           log("Failed to load user documentation property description from '"
               +docPropsFile +"': "+ioe.getMessage(), Project.MSG_ERR);
         }
@@ -385,14 +397,24 @@ public class BundleUserDocNavigateTask
   }
 
 
+  @Override
   public void execute() {
-    if (template == null)   throw new BuildException("template must be set");
-    if (docDir == null)     throw new BuildException("docdir must be set");
-    if (outDir == null)     throw new BuildException("outdir must be set");
-    if (toFileName == null) throw new BuildException("tofile must be set");
+    if (template == null) {
+      throw new BuildException("template must be set");
+    }
+    if (docDir == null) {
+      throw new BuildException("docdir must be set");
+    }
+    if (outDir == null) {
+      throw new BuildException("outdir must be set");
+    }
+    if (toFileName == null) {
+      throw new BuildException("tofile must be set");
+    }
 
-    if (defaultCategory == null)
+    if (defaultCategory == null) {
       throw new BuildException("defaultCategory must not be null.");
+    }
 
     analyzeDocDir();
 
@@ -402,26 +424,25 @@ public class BundleUserDocNavigateTask
   private void transform(final File fromFile, final String toFileName) {
 
     try {
-      // Ensure that the direcotry to write the output file to exists
+      // Ensure that the directory to write the output file to exists
       final File toFile = new File(outDir, toFileName);
-      File tmp = toFile.getParentFile();
+      final File tmp = toFile.getParentFile();
       if (!tmp.exists()) {
         if (tmp.exists() || !tmp.mkdirs()) {
           throw new IOException("Could not create " + tmp);
         }
       }
 
-      String content = Util.loadFile(fromFile.getAbsolutePath());
+      String content = FileUtil.loadFile(fromFile.getAbsolutePath());
       content = Util.replace(content, "$(TITLE)", pageTitle);
 
-      for (Iterator it = categories.entrySet().iterator(); it.hasNext();) {
-        final Map.Entry entry = (Map.Entry) it.next();
-        final String category = (String) entry.getKey();
-        final Set lds = (Set) entry.getValue();
+      for (final Entry<String,SortedSet<LinkData>> entry : categories.entrySet()) {
+        final String category = entry.getKey();
+        final Set<LinkData> lds = entry.getValue();
 
         final String ldHtml = links(lds);
         if (0<ldHtml.length()) {
-          int oldContentLength = content.length();
+          final int oldContentLength = content.length();
           content = Util.replace(content, "$("+category+")", links(lds));
           if (oldContentLength == content.length()) {
             final String msg = "Found bundle user documentation with category '"
@@ -435,12 +456,12 @@ public class BundleUserDocNavigateTask
         }
       }
 
-      Util.writeStringToFile(toFile, content);
+      FileUtil.writeStringToFile(toFile, content);
       log("Created: " + toFile.getAbsolutePath());
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
       throw new BuildException(e);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
       throw new BuildException(e);
     }

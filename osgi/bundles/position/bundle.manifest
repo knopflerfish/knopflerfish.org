@@ -4,14 +4,14 @@ Bundle-Name: position
 Bundle-SymbolicName: org.knopflerfish.bundle.position
 Bundle-Version: 4.0.0
 Bundle-Description: Position API
-Bundle-Vendor: OSGi
+Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/position/
-Bundle-Category: API
+Bundle-Category: osgi
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Import-Package: org.osgi.util.position; version="[1.0,1.1)",
  org.osgi.util.measurement; version="[1.0,2)"

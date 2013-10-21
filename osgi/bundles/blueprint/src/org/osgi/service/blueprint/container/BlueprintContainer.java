@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.blueprint.container;
 
 import java.util.Collection;
 import java.util.Set;
-
 import org.osgi.service.blueprint.reflect.BeanMetadata;
 import org.osgi.service.blueprint.reflect.ComponentMetadata;
 import org.osgi.service.blueprint.reflect.ReferenceListMetadata;
@@ -30,16 +30,17 @@ import org.osgi.service.blueprint.reflect.ServiceReferenceMetadata;
  * 
  * A Blueprint Container provides access to all managed components. These are
  * the beans, services, and service references. Only bundles in the
- * <code>ACTIVE</code> state (and also the <code>STARTING</code> state for
- * bundles awaiting lazy activation) can have an associated Blueprint Container.
- * A given Bundle Context has at most one associated Blueprint Container.
+ * {@code ACTIVE} state (and also the {@code STARTING} state for bundles
+ * awaiting lazy activation) can have an associated Blueprint Container. A given
+ * Bundle Context has at most one associated Blueprint Container.
  * 
  * A Blueprint Container can be obtained by injecting the predefined
  * &quot;blueprintContainer&quot; component id. The Blueprint Container is also
  * registered as a service and its managed components can be queried.
  * 
  * @ThreadSafe
- * @version $Revision: 8083 $
+ * @noimplement
+ * @author $Id: f557311df439793513b9e15fc066d7b6ccedebeb $
  */
 public interface BlueprintContainer {
 	/**
@@ -48,7 +49,7 @@ public interface BlueprintContainer {
 	 * @return An immutable Set of Strings, containing the ids of all of the
 	 *         components managed within this Blueprint Container.
 	 */
-	Set/* <String> */getComponentIds();
+	Set<String> getComponentIds();
 
 	/**
 	 * Return the component instance for the specified component id.
@@ -90,11 +91,11 @@ public interface BlueprintContainer {
 	 * Metadata objects of the requested type, including components that are
 	 * declared inline.
 	 * 
+	 * @param <T> Type of Component Metadata.
 	 * @param type The super type or type of the requested Component Metadata
 	 *        objects.
 	 * @return An immutable collection of Component Metadata objects of the
 	 *         specified type.
 	 */
-	/* <T extends ComponentMetadata> */Collection/* <T> */getMetadata(
-			Class/* <T> */type);
+	<T extends ComponentMetadata> Collection<T> getMetadata(Class<T> type);
 }

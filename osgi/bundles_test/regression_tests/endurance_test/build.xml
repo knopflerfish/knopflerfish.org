@@ -31,7 +31,6 @@
       <pathelement location="log_api-N.N.N.jar"/>
   </path>
 
-  <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
    <antcall target="bundleEnd1_test"/>
    <antcall target="bundleEnd5_test"/>

@@ -77,21 +77,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 ======================================================================
 
 ----------------------------------------------------------------------
--	Bundlerepository Bundle Notice
-----------------------------------------------------------------------
-This product includes the bundlerepository bundle which includes
-the following software:
-
-  OBR related software developed by the the Oscar Project.
-  Copyright (c) 2004, Richard S. Hall
-
-  XML Parser software
-  Copyright (c) 2004, Didier Donsez
-
-  kxml parser
-  Copyright (c) 2002,2003, Stefan Haustein, Oberhausen, Rhld., Germany
-
-----------------------------------------------------------------------
 -	Commons Logging Bundle Notice
 ----------------------------------------------------------------------
 This product includes the commons_logging bundle which includes
@@ -132,11 +117,10 @@ http://kxml.sourceforge.net
 Copyright (c) 2002,2003, Stefan Haustein, Oberhausen, Rhld., Germany
 
 ----------------------------------------------------------------------
--	Oscar Shell API Bundle Notice
+-	Repository Indexer
 ----------------------------------------------------------------------
-This product includes the oscar-shell  bundle which includes
-software developed by the Oscar project.
-Copyright (c) 2004, Richard S. Hall
+This product includes the org.osgi.service.indexer API which
+is licensed under Apache Software License, Version 2.0. (c) 2001-2004
 
 ----------------------------------------------------------------------
 -	Service Component Runtime Bundle

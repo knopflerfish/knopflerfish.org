@@ -27,9 +27,16 @@
     }
 
     DIV.header_fade {
-      height: 10px;
+      height: 15px;
+      border: 0px;
+      margin: 0px;
+      padding:0px;
+      border-style: none;
       background-image: url('../images/fadeout_15.png');
+      background-size: 15px;
       background-repeat: repeat-x;
+      clear:both;
+      overflow: hidden; /* To prevent IE to add an extra 1px at the bottom */
     }
 
     BODY  {
@@ -37,6 +44,7 @@
       margin-top:   5px;
       margin-left:  10px;
       margin-right: 10px;
+      font-size: 0.8125em;
     }
   </style>
     
@@ -49,7 +57,23 @@
         <img src="../images/kf300_black.png" border="0" alt="knopflerfish logo"/>
       </a>
     </div>
-    <div style="clear:both;"></div>
+    <div id="header_centerbox">
+      <div class="header_centerinfo_top">
+	Distribution Documentation
+      </div>
+      <div class="header_centerinfo_bottom">
+	Knopflerfish OSGi
+      </div>
+    </div>
+    <div id="header_rightinfo">
+      <div class="header_stylish">
+	Open Source OSGi Service Platform Maintained by
+      </div>
+      <a href="http://www.makewave.com">
+	<img border="0" alt="Makewave" src="../images/makewave_logo.png" border="0" style="margin-top: 4px;">
+      </a>
+    </div>
+    <!-- <div style="clear:both;"></div> -->
     <div class="header_fade">
     </div>
   </div>

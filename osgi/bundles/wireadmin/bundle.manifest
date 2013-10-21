@@ -2,11 +2,14 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: wireadmin
 Bundle-SymbolicName: org.knopflerfish.bundle.wireadmin
-Bundle-Version: 4.0.0
-Bundle-Category: API
+Bundle-Version: 5.0.0
+Bundle-Category: osgi
 Bundle-Description: WireAdmin
-Bundle-Vendor: OSGi
+Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
+Bundle-License: http://opensource.org/licenses/Apache-2.0;
+ link="http://www.apache.org/licenses/LICENSE-2.0";
+ description="Apache License, Version 2.0"
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html

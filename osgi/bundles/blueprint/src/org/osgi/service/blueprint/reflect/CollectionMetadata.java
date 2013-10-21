@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.blueprint.reflect;
 
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.List;
  * collection to a specific type.
  * 
  * @ThreadSafe
- * @version $Revision: 8083 $
+ * @author $Id: 4f230604fc391b46ac1dda9ab5c2dec14a2a1aa0 $
  */
 
 public interface CollectionMetadata extends NonNullMetadata {
@@ -31,18 +32,18 @@ public interface CollectionMetadata extends NonNullMetadata {
 	/**
 	 * Return the type of the collection.
 	 * 
-	 * The possible types are: array (<code>Object[]</code>), <code>Set</code>,
-	 * and <code>List</code>. This information is specified in the element name.
+	 * The possible types are: array ({@code Object[]}), {@code Set}, and
+	 * {@code List}. This information is specified in the element name.
 	 * 
-	 * @return The type of the collection. <code>Object[]</code> is returned to
+	 * @return The type of the collection. {@code Object[]} is returned to
 	 *         indicate an array.
 	 */
-	Class/* <?> */getCollectionClass();
+	Class<?> getCollectionClass();
 
 	/**
 	 * Return the type specified for the values of the collection.
 	 * 
-	 * The <code>value-type</code> attribute specified this information.
+	 * The {@code value-type} attribute specified this information.
 	 * 
 	 * @return The type specified for the values of the collection.
 	 */
@@ -53,5 +54,5 @@ public interface CollectionMetadata extends NonNullMetadata {
 	 * 
 	 * @return A List of Metadata for the values of the collection.
 	 */
-	List /* <Metadata> */getValues();
+	List<Metadata> getValues();
 }

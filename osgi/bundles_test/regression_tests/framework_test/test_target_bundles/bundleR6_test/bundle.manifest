@@ -6,6 +6,6 @@ Bundle-Description: Test bundle for framework, bundleR6_test, access t
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-Category: test
+Bundle-Category: testing
 Import-Package: org.knopflerfish.bundle.bundleR5_test
 Bundle-UUID: org.knopflerfish:bundleR6_test:1.0.0:all

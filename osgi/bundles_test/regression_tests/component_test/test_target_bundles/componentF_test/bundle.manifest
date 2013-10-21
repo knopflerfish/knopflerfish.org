@@ -1,12 +1,12 @@
 Bundle-ManifestVersion: 2
-Bundle-Name: componentU_test
-Bundle-SymbolicName: org.knopflerfish.bundle.componentU_test
+Bundle-Name: componentF_test
+Bundle-SymbolicName: org.knopflerfish.bundle.componentF_test
 Bundle-Version: 1.0.0
 Bundle-Description: Test bundle for SCR, circular deactivate test
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-Category: test
+Bundle-Category: testing
 Import-Package: org.osgi.service.component,
- org.osgi.framework, org.knopflerfish.service.component_test
+ org.knopflerfish.service.component_test
 Service-Component: service.xml

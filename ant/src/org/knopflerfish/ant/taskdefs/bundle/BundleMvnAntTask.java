@@ -40,7 +40,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -48,13 +50,17 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
-import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
-import org.osgi.framework.Version;
+import org.apache.tools.ant.types.ResourceCollection;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
+
+import org.osgi.framework.Version;
+
+import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
+import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
 
 /**
  * Task that analyzes a set of bundle jar files and builds an ant
@@ -253,12 +259,16 @@ public class BundleMvnAntTask extends Task {
     settingsFile = f;
   }
 
-  private List rcs = new ArrayList();
-  public void addFileSet(FileSet fs) {
+  private final List<ResourceCollection> rcs =
+    new ArrayList<ResourceCollection>();
+
+  public void addFileSet(FileSet fs)
+  {
     rcs.add(fs);
   }
 
   // Implements Task
+  @Override
   public void execute() throws BuildException {
     if (null==outDir) {
       throw new BuildException("Mandatory attribute 'outDir' missing.");
@@ -286,7 +296,7 @@ public class BundleMvnAntTask extends Task {
     try {
       writeBuildFile();
       writeDependencyManagementFile();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       final String msg = "Failed to create ant build file: " +e;
       log(msg, Project.MSG_ERR);
       throw new BuildException(msg, e);
@@ -302,8 +312,8 @@ public class BundleMvnAntTask extends Task {
     final String prefix1 = "  ";
     final String prefix2 = prefix1 + "  ";
 
-    final Document doc = Util.loadXML(templateAntFile);
-    final Element project = (Element) doc.getDocumentElement();
+    final Document doc = FileUtil.loadXML(templateAntFile);
+    final Element project = doc.getDocumentElement();
 
     setPropertyValue(project,"group.id", groupId);
 
@@ -325,13 +335,10 @@ public class BundleMvnAntTask extends Task {
 
     final StringBuffer targetNames = new StringBuffer(2048);
 
-    final Iterator it = bas.bsnToBundleArchives.entrySet().iterator();
-    while (it.hasNext()) {
-      final Map.Entry entry = (Map.Entry) it.next();
-      final Set bsnSet = (Set) entry.getValue();
+    for (final Entry<String,SortedSet<BundleArchive>> entry : bas.bsnToBundleArchives.entrySet()) {
+      final SortedSet<BundleArchive> bsnSet = entry.getValue();
       // Sorted set with bundle archives, same bsn, different versions
-      for (Iterator itV = bsnSet.iterator(); itV.hasNext();) {
-        final BundleArchive ba = (BundleArchive) itV.next();
+      for (final BundleArchive ba : bsnSet) {
         final String targetName = ba.bsn + "-" + ba.version;
         targetNames.append(",").append(targetName);
 
@@ -378,7 +385,7 @@ public class BundleMvnAntTask extends Task {
 
     setTargetAttr(project, "all", "depends", "init" +targetNames.toString());
 
-    Util.writeDocumentToFile(buildFile, doc);
+    FileUtil.writeDocumentToFile(buildFile, doc);
     log("wrote " + buildFile, Project.MSG_VERBOSE);
   }
 
@@ -396,8 +403,8 @@ public class BundleMvnAntTask extends Task {
     final String prefix2 = prefix1 + "  ";
     final String prefix3 = prefix2 + "  ";
 
-    final Document doc = Util.createXML("KF");
-    final Element root = (Element) doc.getDocumentElement();
+    final Document doc = FileUtil.createXML("KF");
+    final Element root = doc.getDocumentElement();
 
     // Create and add the xml-stylesheet instruction
     final ProcessingInstruction pi
@@ -422,14 +429,10 @@ public class BundleMvnAntTask extends Task {
     final Element dependencies = doc.createElement("dependencies");
     dm.appendChild(dependencies);
 
-    final Iterator it = bas.bsnToBundleArchives.entrySet().iterator();
-    while (it.hasNext()) {
-      final Map.Entry entry = (Map.Entry) it.next();
-      final Set bsnSet = (Set) entry.getValue();
+    for (final Entry<String, SortedSet<BundleArchive>> entry : bas.bsnToBundleArchives.entrySet()) {
+      final SortedSet<BundleArchive> bsnSet = entry.getValue();
       // Sorted set with bundle archives, same bsn, different versions
-      for (Iterator itV = bsnSet.iterator(); itV.hasNext();) {
-        final BundleArchive ba = (BundleArchive) itV.next();
-
+      for (final BundleArchive ba : bsnSet) {
         dependencies.appendChild(doc.createTextNode("\n\n" +prefix2));
         dependencies.appendChild(doc.createComment(ba.relPath));
         dependencies.appendChild(doc.createTextNode("\n" +prefix2));
@@ -494,7 +497,7 @@ public class BundleMvnAntTask extends Task {
     dm.appendChild(doc.createTextNode("\n"));
     root.appendChild(doc.createTextNode("\n"));
 
-    Util.writeDocumentToFile(dependencyManagementFile, doc);
+    FileUtil.writeDocumentToFile(dependencyManagementFile, doc);
     log("wrote " + dependencyManagementFile, Project.MSG_VERBOSE);
   }
 
@@ -653,7 +656,7 @@ public class BundleMvnAntTask extends Task {
    */
   private String getMavenPath(final Element ela)
   {
-    String path = ela.getAttribute("groupId").replace('.','/') +"/"
+    final String path = ela.getAttribute("groupId").replace('.','/') +"/"
       +ela.getAttribute("artifactId") +"/"
       +ela.getAttribute("version")    +"/"
       +ela.getAttribute("artifactId") +"-"
@@ -684,20 +687,19 @@ public class BundleMvnAntTask extends Task {
 
     boolean addDefault = true;
 
-    final Iterator licenseIt = ba.getBundleLicense();
-    while (licenseIt.hasNext()) {
+    final List<HeaderEntry> licenseEntries = ba.getBundleLicense();
+    for (final HeaderEntry licenseEntry : licenseEntries) {
       addDefault = false;
-      final Map licenseMap = (Map) licenseIt.next();
       final Element license = el.getOwnerDocument().createElement("license");
-      license.setAttribute("name", licenseMap.get("$key").toString());
+      license.setAttribute("name", licenseEntry.getKey());
       licenses.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix2));
       licenses.appendChild(license);
 
-      if (licenseMap.containsKey("description")) {
-        license.setAttribute("comments", licenseMap.get("description").toString());
+      if (licenseEntry.getAttributes().containsKey("description")) {
+        license.setAttribute("comments", licenseEntry.getAttributes().get("description").toString());
       }
-      if (licenseMap.containsKey("link")) {
-        license.setAttribute("url", licenseMap.get("link").toString());
+      if (licenseEntry.getAttributes().containsKey("link")) {
+        license.setAttribute("url", licenseEntry.getAttributes().get("link").toString());
       }
     }
 
@@ -730,12 +732,9 @@ public class BundleMvnAntTask extends Task {
     el.appendChild(dependencies);
     el.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix));
 
-    final Iterator depEntryIter = selectCtDeps(ba).entrySet().iterator();
-    while (depEntryIter.hasNext()) {
-      final Map.Entry depEntry = (Map.Entry) depEntryIter.next();
-      final BundleArchives.BundleArchive depBa = (BundleArchives.BundleArchive)
-        depEntry.getKey();
-      final Set pkgNames = (Set) depEntry.getValue();
+    for (final Entry<BundleArchive,SortedSet<String>> depEntry : selectCtDeps(ba).entrySet()) {
+      final BundleArchives.BundleArchive depBa = depEntry.getKey();
+      final SortedSet<String> pkgNames = depEntry.getValue();
 
       dependencies.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix2));
       dependencies.appendChild(el.getOwnerDocument().createComment(pkgNames.toString()));
@@ -764,30 +763,29 @@ public class BundleMvnAntTask extends Task {
    *
    * @param ba Bundle archive to select dependencies for.
    */
-  private Map selectCtDeps(final BundleArchives.BundleArchive ba)
+  private Map<BundleArchive,SortedSet<String>> selectCtDeps(final BundleArchives.BundleArchive ba)
   {
     log("Selecting dependencies for : "+ba, Project.MSG_VERBOSE);
 
     // The total set of packages that are provided by the dependencies.
-    final Set pkgs = new TreeSet();
+    final TreeSet<String> pkgs = new TreeSet<String>();
 
     // The sub-set of the dependency entries that are API-bundles.
-    final List depsApi = new ArrayList();
+    final List<Entry<BundleArchive, SortedSet<String>>> depsApi =
+      new ArrayList<Entry<BundleArchive, SortedSet<String>>>();
 
     // The sub-set of the dependency entries that are not API-bundles.
-    final List depsNonApi = new ArrayList();
+    final List<Entry<BundleArchive, SortedSet<String>>> depsNonApi =
+      new ArrayList<Entry<BundleArchive, SortedSet<String>>>();
 
     // The resulting collection of dependencies
-    final Map res = new TreeMap();
+    final Map<BundleArchive,SortedSet<String>> res = new TreeMap<BundleArchive,SortedSet<String>>();
 
     // Group providing bundles in to API-bundles and non-API-bundles
     // and the set of packages provided by all providers.
-    final Iterator itCtP = ba.pkgCtProvidersMap.entrySet().iterator();
-    while (itCtP.hasNext()) {
-      final Map.Entry ctPEntry = (Map.Entry) itCtP.next();
-      final BundleArchives.BundleArchive ctBa = (BundleArchives.BundleArchive)
-        ctPEntry.getKey();
-      final Set ctPkgs = (Set) ctPEntry.getValue();
+    for (final Entry<BundleArchive, SortedSet<String>> ctPEntry : ba.pkgCtProvidersMap.entrySet()) {
+      final BundleArchive ctBa = ctPEntry.getKey();
+      final SortedSet<String> ctPkgs = ctPEntry.getValue();
 
       if (ctBa.isAPIBundle()) {
         log("  APIbundle: "+ctBa +" provides "+ctPkgs, Project.MSG_DEBUG);
@@ -801,7 +799,7 @@ public class BundleMvnAntTask extends Task {
 
     log("  Provided imported packages: "+pkgs, Project.MSG_VERBOSE);
 
-    final Comparator cmp = new ProvidesEntrySetComparator();
+    final Comparator<Entry<BundleArchive, SortedSet<String>>> cmp = new ProvidesEntrySetComparator();
     Collections.sort(depsApi, cmp);
     Collections.sort(depsNonApi, cmp);
 
@@ -822,17 +820,16 @@ public class BundleMvnAntTask extends Task {
    *             providers added to res.
    * @param deps Provider bundles that are dependency candidates.
    */
-  private void selectProviders(final Map res,
-                               final Set pkgs,
-                               final List deps)
+  private void selectProviders(final Map<BundleArchive,SortedSet<String>> res,
+                               final Set<String> pkgs,
+                               final List<Entry<BundleArchive, SortedSet<String>>> deps)
   {
     // Iterate over dependency candidates that exports packages,
     // Add bundles that contributes at least one package to res.
-    for (Iterator itDeps = deps.iterator(); 0<pkgs.size() && itDeps.hasNext();){
-      final Map.Entry entry = (Map.Entry) itDeps.next();
-      final BundleArchives.BundleArchive ba = (BundleArchives.BundleArchive)
-        entry.getKey();
-      final Set pPkgs = (Set) entry.getValue();
+    for (final Iterator<Entry<BundleArchive, SortedSet<String>>> itDeps = deps.iterator(); 0<pkgs.size() && itDeps.hasNext();){
+      final Entry<BundleArchive, SortedSet<String>> entry = itDeps.next();
+      final BundleArchives.BundleArchive ba = entry.getKey();
+      final SortedSet<String> pPkgs = entry.getValue();
 
       log("  Trying provider: " +ba +": exporting " +pPkgs + " looking for: "
           +pkgs, Project.MSG_DEBUG);
@@ -844,11 +841,11 @@ public class BundleMvnAntTask extends Task {
 
         // Remove any provider that will not provide any unique
         // package after the addition of ba.
-        for (Iterator itRes = res.entrySet().iterator(); itRes.hasNext();) {
-          final Map.Entry resEntry = (Map.Entry) itRes.next();
+        for (final Iterator<Entry<BundleArchive, SortedSet<String>>> itRes = res.entrySet().iterator(); itRes.hasNext();) {
+          final Entry<BundleArchive, SortedSet<String>> resEntry = itRes.next();
           final BundleArchives.BundleArchive resBa
-            = (BundleArchives.BundleArchive) resEntry.getKey();
-          final Set resPkgs = (Set) resEntry.getValue();
+            = resEntry.getKey();
+          final SortedSet<String> resPkgs = resEntry.getValue();
 
           if (pPkgs.containsAll(resPkgs)) {
             log("  Removing redundant provider: "+resBa, Project.MSG_VERBOSE);
@@ -962,24 +959,24 @@ public class BundleMvnAntTask extends Task {
    * if equal the natural order of the bundle archives.
    */
   static class ProvidesEntrySetComparator
-    implements Comparator
+    implements Comparator<Entry<BundleArchive, SortedSet<String>>>
   {
-    public int compare(Object o1, Object o2)
+    @Override
+    public int compare(Entry<BundleArchive, SortedSet<String>> o1,
+                       Entry<BundleArchive, SortedSet<String>> o2)
     {
-      Map.Entry e1 = (Map.Entry) o1;
-      Map.Entry e2 = (Map.Entry) o2;
-
-      int res = ((Set) e1.getValue()).size() - ((Set) e2.getValue()).size();
+      final int res = o1.getValue().size() - o2.getValue().size();
 
       return 0!=res ? res
-        : ((BundleArchives.BundleArchive)e1.getKey())
-        .compareTo((BundleArchives.BundleArchive)e1.getKey());
+        : o1.getKey().compareTo(o2.getKey());
     }
 
+    @Override
     public boolean equals(Object obj)
     {
       return this==obj;
     }
+
   }
 
   static String replace(String src, String a, String b) {

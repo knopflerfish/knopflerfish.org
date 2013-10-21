@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2010). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.metatype;
 
 import org.osgi.framework.Bundle;
@@ -23,7 +24,7 @@ import org.osgi.framework.Bundle;
  * 
  * @ThreadSafe
  * @noimplement
- * @version $Id: a3c051c77e1450323620dc1c48681ef864e7e338 $
+ * @author $Id: 5d795691070f69f49d88c1930f811b7b90210848 $
  * @since 1.1
  */
 public interface MetaTypeInformation extends MetaTypeProvider {

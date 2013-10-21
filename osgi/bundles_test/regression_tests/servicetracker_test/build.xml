@@ -24,7 +24,6 @@
     <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
   </path>
 
-  <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
     <mkdir dir="${ttb.outdir}"/>
     <antcall target="bundleS_test"/>

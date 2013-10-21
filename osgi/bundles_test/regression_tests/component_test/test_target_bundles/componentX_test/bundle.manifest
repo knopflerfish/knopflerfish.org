@@ -6,8 +6,7 @@ Bundle-Description: Test bundle for SCR, circular bind test
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-Category: test
-Import-Package: org.osgi.service.component,
- org.osgi.framework
+Bundle-Category: testing
+Import-Package: org.osgi.service.component
 Service-Component: service.xml
 

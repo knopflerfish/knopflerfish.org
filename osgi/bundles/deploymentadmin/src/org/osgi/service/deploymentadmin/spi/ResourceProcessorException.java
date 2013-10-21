@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2008). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2012). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,57 +13,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.deploymentadmin.spi;
 
 import java.io.InputStream;
 
 /**
- * Checked exception received when something fails during a call to a Resource 
- * Processor. A <code>ResourceProcessorException</code> always contains an error 
- * code (one of the constants specified in this class), and may optionally contain 
+ * Checked exception received when something fails during a call to a Resource
+ * Processor. A {@code ResourceProcessorException} always contains an error code
+ * (one of the constants specified in this class), and may optionally contain
  * the textual description of the error condition and a nested cause exception.
  */
 public class ResourceProcessorException extends Exception {
-	
+
 	/**
 	 * 
 	 */
-	private static final long	serialVersionUID	= 9135007015668223386L;
+	private static final long	serialVersionUID				= 9135007015668223386L;
 
 	/**
-	 * Resource Processors are allowed to raise an exception with this error code 
-	 * to indicate that the processor is not able to commit the operations it made 
-	 * since the last call of {@link ResourceProcessor#begin(DeploymentSession)} method.<p>
+	 * Resource Processors are allowed to raise an exception with this error
+	 * code to indicate that the processor is not able to commit the operations
+	 * it made since the last call of
+	 * {@link ResourceProcessor#begin(DeploymentSession)} method.
+	 * <p>
 	 * 
-	 * Only the {@link ResourceProcessor#prepare()} method is allowed to throw exception 
-	 * with this error code.  
+	 * Only the {@link ResourceProcessor#prepare()} method is allowed to throw
+	 * exception with this error code.
 	 */
-	public static final int	CODE_PREPARE					= 1;
+	public static final int		CODE_PREPARE					= 1;
 
 	/**
-	 * An artifact of any resource already exists.<p>
+	 * An artifact of any resource already exists.
+	 * <p>
 	 * 
-	 * Only the {@link ResourceProcessor#process(String, InputStream)} method 
-	 * is allowed to throw exception with this error code.  
+	 * Only the {@link ResourceProcessor#process(String, InputStream)} method is
+	 * allowed to throw exception with this error code.
 	 */
-	public static final int	CODE_RESOURCE_SHARING_VIOLATION	= 461;
+	public static final int		CODE_RESOURCE_SHARING_VIOLATION	= 461;
 
 	/**
-	 * Other error condition.<p>
+	 * Other error condition.
+	 * <p>
 	 * 
-	 * All Resource Processor methods which throw <code>ResourceProcessorException</code> 
-	 * is allowed throw an exception with this error code if the error condition cannot be 
-	 * categorized. 
+	 * All Resource Processor methods which throw
+	 * {@code ResourceProcessorException} is allowed throw an exception with
+	 * this error code if the error condition cannot be categorized.
 	 */
-	public static final int	CODE_OTHER_ERROR				= 463;
+	public static final int		CODE_OTHER_ERROR				= 463;
 
-	private final int				code;
+	private final int			code;
 
 	/**
 	 * Create an instance of the exception.
 	 * 
 	 * @param code The error code of the failure. Code should be one of the
-	 *        predefined integer values (<code>CODE_X</code>).
+	 *        predefined integer values ({@code CODE_X}).
 	 * @param message Message associated with the exception
 	 * @param cause the originating exception
 	 */
@@ -77,7 +82,7 @@ public class ResourceProcessorException extends Exception {
 	 * null.
 	 * 
 	 * @param code The error code of the failure. Code should be one of the
-	 *        predefined integer values (<code>CODE_X</code>).
+	 *        predefined integer values ({@code CODE_X}).
 	 * @param message Message associated with the exception
 	 */
 	public ResourceProcessorException(int code, String message) {
@@ -90,7 +95,7 @@ public class ResourceProcessorException extends Exception {
 	 * implicitly set to null.
 	 * 
 	 * @param code The error code of the failure. Code should be one of the
-	 *        predefined integer values (<code>CODE_X</code>).
+	 *        predefined integer values ({@code CODE_X}).
 	 */
 	public ResourceProcessorException(int code) {
 		super();
@@ -98,11 +103,9 @@ public class ResourceProcessorException extends Exception {
 	}
 
 	/**
-	 * Returns the cause of this exception or <code>null</code> if no cause was
-	 * set.
+	 * Returns the cause of this exception or {@code null} if no cause was set.
 	 * 
-	 * @return The cause of this exception or <code>null</code> if no cause was
-	 *         set.
+	 * @return The cause of this exception or {@code null} if no cause was set.
 	 */
 	public Throwable getCause() {
 		return super.getCause();

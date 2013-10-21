@@ -58,11 +58,12 @@ import org.osgi.framework.ServiceRegistration;
 import org.knopflerfish.service.desktop.BundleSelectionListener;
 import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SelectionAware;
 import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 
 public abstract class DefaultSwingBundleDisplayer
-  implements SwingBundleDisplayer, BundleListener, ServiceListener,
-  BundleSelectionListener
+  implements SwingBundleDisplayer, SelectionAware, BundleListener,
+  ServiceListener, BundleSelectionListener
 {
 
   final String name;
@@ -71,7 +72,6 @@ public abstract class DefaultSwingBundleDisplayer
 
   boolean bAlive = false;
   BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
-  private Bundle[] bundles;
 
   ServiceRegistration<SwingBundleDisplayer> reg = null;
 
@@ -92,12 +92,10 @@ public abstract class DefaultSwingBundleDisplayer
 
   protected Bundle[] getBundleArray()
   {
-
-    if (bundles == null) {
-      bundles = getAndSortBundles();
-    }
-
-    return bundles;
+    // Using a bundle listener and caching the list of bundles will not work
+    // since the caller of this method may be notified by another bundle
+    // listener before we are.
+    return getAndSortBundles();
   }
 
   public ServiceRegistration<SwingBundleDisplayer> register()
@@ -167,24 +165,33 @@ public abstract class DefaultSwingBundleDisplayer
     }
   }
 
-  void getAllServices()
+  public void close()
   {
-    try {
-      final ServiceReference<?>[] srl =
-        Activator.getTargetBC_getServiceReferences();
-      for (int i = 0; srl != null && i < srl.length; i++) {
-        serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
-      }
-    } catch (final Exception e) {
-      e.printStackTrace();
+    bAlive = false;
+
+    if (bundleSelModel != null) {
+      bundleSelModel.removeBundleSelectionListener(this);
     }
+    Activator.getTargetBC().removeBundleListener(this);
+    Activator.getTargetBC().removeServiceListener(this);
+
+    // Must clone components to avoid concurrent modification since dispose will
+    // remove items from components.
+    for (final JComponent comp : new HashSet<JComponent>(components)) {
+      disposeJComponent(comp);
+    }
+    components.clear(); // Should be a noop since disposeJComponent shall remove it...
   }
 
+
+  /**
+   * Send out bundle changed events for all existing bundles so that displayers
+   * that overrides {@link #bundleChanged(BundleEvent)} gets notified about all
+   * installed bundles.
+   */
   void getAllBundles()
   {
     try {
-      final int delay = 0;
-
       final Bundle[] bl = Activator.getBundles();
 
       // do something reasonable with bundles already installed
@@ -199,29 +206,26 @@ public abstract class DefaultSwingBundleDisplayer
           break;
         }
         bundleChanged(ev);
-        if (delay > 0) {
-          Thread.sleep(delay);
-        }
+      }
+    } catch (final Exception e) {
+      Activator.log
+          .error("Failed to send catch-up events to bundle listeners: "
+                     + e.getMessage(), e);
+      ;
+    }
+  }
+
+  void getAllServices()
+  {
+    try {
+      final ServiceReference<?>[] srl =
+        Activator.getTargetBC_getServiceReferences();
+      for (int i = 0; srl != null && i < srl.length; i++) {
+        serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
     } catch (final Exception e) {
       e.printStackTrace();
     }
-  }
-
-  public void close()
-  {
-    bAlive = false;
-
-    if (bundleSelModel != null) {
-      bundleSelModel.removeBundleSelectionListener(this);
-    }
-    Activator.getTargetBC().removeBundleListener(this);
-    Activator.getTargetBC().removeServiceListener(this);
-
-    for (final JComponent comp : components) {
-      disposeJComponent(comp);
-    }
-    components.clear();
   }
 
   /**
@@ -240,6 +244,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   long lastBID = -1;
 
+  @Override
   public void valueChanged(long bid)
   {
     boolean bHasVisible = false;
@@ -256,19 +261,19 @@ public abstract class DefaultSwingBundleDisplayer
     }
   }
 
-  public void setTabSelected()
+  @Override
+  public void displayerSelected()
   {
     valueChangedLazy(lastBID);
   }
 
   // BundleListener interface, only called when bUseListeners = true
+  @Override
   public void bundleChanged(BundleEvent ev)
   {
     if (!bAlive) {
       return;
     }
-
-    bundles = getAndSortBundles();
 
     if (bUpdateOnBundleChange) {
       updateComponents(Activator.desktop.getSelectedBundles());
@@ -276,6 +281,7 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
   // ServiceListener interface, only called when bUseListeners = true
+  @Override
   public void serviceChanged(ServiceEvent ev)
   {
     if (!bAlive) {
@@ -293,6 +299,7 @@ public abstract class DefaultSwingBundleDisplayer
   void updateComponents(final Bundle[] bl)
   {
     SwingUtilities.invokeLater(new Runnable() {
+      @Override
       public void run()
       {
         for (final JComponent comp : components) {
@@ -320,6 +327,7 @@ public abstract class DefaultSwingBundleDisplayer
     return bl;
   }
 
+  @Override
   public void setBundleSelectionModel(BundleSelectionModel model)
   {
     if (bundleSelModel != null) {
@@ -336,16 +344,16 @@ public abstract class DefaultSwingBundleDisplayer
 
   Set<JComponent> components = new HashSet<JComponent>();
 
+  @Override
   public JComponent createJComponent()
   {
     final JComponent comp = newJComponent();
     components.add(comp);
 
-    getAllBundles();
-
-    return comp;
+     return comp;
   }
 
+  @Override
   public void disposeJComponent(JComponent comp)
   {
     components.remove(comp);
@@ -359,21 +367,41 @@ public abstract class DefaultSwingBundleDisplayer
     }
   }
 
+  @Override
   public Icon getLargeIcon()
   {
     return null;
   }
 
+  @Override
   public Icon getSmallIcon()
   {
     return null;
   }
 
+  @Override
   public void setTargetBundleContext(BundleContext bc)
   {
-    this.bc = bc;
+    if (this.bc != bc) {
+      this.bc.removeBundleListener(this);
+      this.bc.removeServiceListener(this);
+
+      // TODO Send bundle / service events to remove bundles / services for the
+      // old framework
+
+      this.bc = bc;
+
+      if (bUseListeners) {
+        this.bc.addBundleListener(this);
+        this.bc.addServiceListener(this);
+
+        getAllBundles();
+        getAllServices();
+      }
+    }
   }
 
+  @Override
   public void showBundle(Bundle b)
   {
   }

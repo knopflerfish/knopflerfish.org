@@ -10,7 +10,7 @@ Bundle-ActivationPolicy: lazy;
  include:="org.knopflerfish.service.bundleA_lazy";
  exclude:="org.knopflerfish.bundle.bundleA_lazy"
 Bundle-Activator: org.knopflerfish.bundle.bundleA_lazy.BundleActivator
-Bundle-Category: test
+Bundle-Category: testing
 Export-Package: org.knopflerfish.service.bundleA_lazy;version=1.0.0
 Import-Package: org.knopflerfish.service.bundleA_lazy,
  org.osgi.framework

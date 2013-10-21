@@ -6,7 +6,7 @@ Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleCU_test.BundleActivator
-Bundle-Category: test
+Bundle-Category: testing
 Bundle-UUID: org.knopflerfish:bundleCU_test:1.0.0:all
 Import-Package: org.osgi.framework
 Require-Capability: org.knopflerfish.test.capability; filter:="(name=CUC2)"

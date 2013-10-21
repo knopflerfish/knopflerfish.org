@@ -34,15 +34,11 @@
 
 package org.knopflerfish.bundle.desktop.cm;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.cm.ManagedService;
-import org.osgi.service.cm.ManagedServiceFactory;
 import org.osgi.service.metatype.MetaTypeInformation;
+import org.osgi.service.metatype.MetaTypeService;
 import org.osgi.util.tracker.ServiceTracker;
 
 import org.knopflerfish.service.log.LogRef;
@@ -51,105 +47,71 @@ import org.knopflerfish.util.metatype.SystemMetatypeProvider;
 public class Activator
   implements BundleActivator
 {
-
   static public LogRef log;
   static public BundleContext bc;
 
-  static ServiceTracker<SystemMetatypeProvider, SystemMetatypeProvider> mtpTracker;
-  // static SystemMetatypeProvider sysMTP;
+  static ServiceTracker<MetaTypeService, MetaTypeService> mtsTracker;
 
   static CMDisplayer disp;
 
+  @Override
   public void start(BundleContext _bc)
   {
     Activator.bc = _bc;
     Activator.log = new LogRef(bc);
 
+    mtsTracker =
+      new ServiceTracker<MetaTypeService, MetaTypeService>(
+                                                           bc,
+                                                           MetaTypeService.class,
+                                                           null);
+    mtsTracker.open();
+
     // bundle displayers
     disp = new CMDisplayer(bc);
     disp.open();
     disp.register();
+  }
 
-    mtpTracker =
-      new ServiceTracker<SystemMetatypeProvider, SystemMetatypeProvider>(
-                                                                         bc,
-                                                                         SystemMetatypeProvider.class,
-                                                                         null);
-    mtpTracker.open();
-
-    /*
-     * try {
-     *
-     *
-     * test(); } catch (Exception e) { e.printStackTrace(); }
-     */
+  static MetaTypeInformation getMTI(Bundle b)
+  {
+    final MetaTypeService mts = mtsTracker.getService();
+    if (mts != null) {
+      return mts.getMetaTypeInformation(b);
+    } else {
+      log.warn("No MetaTypeService available");
+    }
+    return null;
   }
 
   static MetaTypeInformation getMTP(Bundle b)
   {
-    final SystemMetatypeProvider sysMTP = mtpTracker.getService();
-    if (sysMTP != null) {
-      return sysMTP.getMTP(b);
-    } else {
-      log.warn("No SystemMetatypeProvider found");
-      return null;
+    final MetaTypeService mts = mtsTracker.getService();
+    if (mts != null && mts instanceof SystemMetatypeProvider) {
+      final SystemMetatypeProvider smtp = (SystemMetatypeProvider) mts;
+      return smtp.getMTP(b);
     }
+    return null;
   }
 
-  void test()
-  {
-    final ManagedService ms = new ManagedService() {
-      public void updated(Dictionary<String, ?> props)
-      {
-        System.out.println("managedservice service got " + props);
-      }
-    };
-
-    final ManagedServiceFactory mf = new ManagedServiceFactory() {
-      public void deleted(java.lang.String pid)
-      {
-        System.out.println("factory deleted " + pid);
-      }
-
-      public java.lang.String getName()
-      {
-        return "my factory";
-      }
-
-      public void updated(String pid, Dictionary<String, ?> props)
-      {
-        System.out.println("factory updated pid=" + pid + ", props=" + props);
-      }
-    };
-
-    Dictionary<String, Object> props = new Hashtable<String, Object>();
-    props.put("service.pid", "service1");
-    bc.registerService(ManagedService.class.getName(), ms, props);
-
-    props.put("service.pid", "testconfig");
-    bc.registerService(ManagedService.class.getName(), ms, props);
-
-    props = new Hashtable<String, Object>();
-    props.put("service.pid", "factory1");
-    bc.registerService(ManagedServiceFactory.class.getName(), mf, props);
-  }
-
+  @Override
   public void stop(BundleContext bc)
   {
     try {
-      if (log != null) {
-        log = null;
-      }
-
       disp.close();
       disp = null;
 
-      mtpTracker.close();
-      mtpTracker = null;
+      mtsTracker.close();
+      mtsTracker = null;
 
       Activator.bc = null;
     } catch (final Exception e) {
-      e.printStackTrace();
+      log.error("stop failed: " + e.getMessage(), e);
+    }
+
+    if (log != null) {
+      log.close();
+      log = null;
     }
   }
 

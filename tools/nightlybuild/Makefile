@@ -143,7 +143,7 @@ outindex:
 	@echo "A more detailed description of the principles for the " >> ${OUT_DIR}/index.html
 	@echo "Knopflerfish maven repository can be found ">> ${OUT_DIR}/index.html
 	@echo "<a href=\"/maven.html\">here</a>.<p/>"  >> ${OUT_DIR}/index.html
-	@echo "<h3>All available snapshot builds</h3>" >> ${OUT_DIR}/index.html
+	@echo "<h2 class=\"kf\">All available snapshot builds</h2>" >> ${OUT_DIR}/index.html
 	@echo "Builds are listed in descending build " >> ${OUT_DIR}/index.html
 	@echo "date order, i.e., most recent first."   >> ${OUT_DIR}/index.html
 	@echo "<p>"                                    >> ${OUT_DIR}/index.html

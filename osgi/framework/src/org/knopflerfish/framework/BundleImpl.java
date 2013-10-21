@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.AccessControlContext;
 import java.security.Permission;
 import java.security.PermissionCollection;
 import java.security.cert.X509Certificate;
@@ -183,14 +184,14 @@ public class BundleImpl implements Bundle {
    *              extension.
    * @exception IllegalArgumentException Faulty manifest for bundle
    */
-  BundleImpl(FrameworkContext fw, BundleArchive ba, Object checkContext) throws BundleException {
+  BundleImpl(FrameworkContext fw, BundleArchive ba, Object checkContext, Bundle caller) throws BundleException {
     fwCtx = fw;
     secure = fwCtx.perm;
     id = ba.getBundleId();
     location = ba.getBundleLocation();
     state = INSTALLED;
     generations = new Vector<BundleGeneration>(2);
-    final BundleGeneration gen = new BundleGeneration(this, ba, null);
+    final BundleGeneration gen = new BundleGeneration(this, ba, null, caller);
     generations.add(gen);
     gen.checkPermissions(checkContext);
     doExportImport();
@@ -378,8 +379,7 @@ public class BundleImpl implements Bundle {
     try {
       if (ba != null) {
         @SuppressWarnings("unchecked")
-        final
-		Class<BundleActivator> c =
+        final Class<BundleActivator> c =
             (Class<BundleActivator>) getClassLoader().loadClass(ba.trim());
         error_type = BundleException.ACTIVATOR_ERROR;
         bactivator = c.newInstance();
@@ -786,7 +786,7 @@ public class BundleImpl implements Bundle {
       }
 
       newArchive = fwCtx.storage.updateBundleArchive(archive, bin);
-      newGeneration = new BundleGeneration(this, newArchive, current);
+      newGeneration = new BundleGeneration(this, newArchive, current, this);
       newGeneration.checkPermissions(checkContext);
       newArchive.setStartLevel(oldStartLevel);
       fwCtx.storage.replaceBundleArchive(archive, newGeneration.archive);
@@ -1224,20 +1224,6 @@ public class BundleImpl implements Bundle {
             if (triggers != null) {
               fwCtx.resolverHooks.beginResolve(triggers);
             }
-            @SuppressWarnings("deprecation")
-            final
-            String ee = current.archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-            if (ee != null) {
-              if (fwCtx.debug.resolver) {
-                fwCtx.debug.println("bundle #" + current.archive.getBundleId() + " has EE=" + ee);
-              }
-              if (!fwCtx.isValidEE(ee)) {
-                throw new BundleException("Bundle#" + id +
-                                          ", unable to resolve: Execution environment '"
-                                          + ee + "' is not supported",
-                                          BundleException.RESOLVE_ERROR);
-              }
-            }
             if (current.isFragment()) {
               final List<BundleGeneration> hosts = current.fragment.targets();
               if (!hosts.isEmpty()) {
@@ -1261,7 +1247,7 @@ public class BundleImpl implements Bundle {
                 }
               }
             } else {
-              if (current.resolvePackages()) {
+              if (current.resolvePackages(triggers)) {
                 current.setWired();
                 state = RESOLVED;
                 operation = RESOLVING;
@@ -1278,16 +1264,23 @@ public class BundleImpl implements Bundle {
               }
             }
             if (triggers != null && triggers.length == 1) {
-              fwCtx.resolverHooks.endResolve(triggers);
+              BundleImpl[] t = triggers;
+              triggers = null;
+              fwCtx.resolverHooks.endResolve(t);
             }
           }
         }
       } catch (final BundleException be) {
-        if (triggers != null && triggers.length == 1) {
-          fwCtx.resolverHooks.endResolve(triggers);
-        }
         resolveFailException = be;
         fwCtx.frameworkError(this, be);
+        if (triggers != null && triggers.length == 1) {
+          try {
+            fwCtx.resolverHooks.endResolve(triggers);
+          } catch (final BundleException be2) {
+            resolveFailException = be2;
+            fwCtx.frameworkError(this, be2);
+          }
+        }
       }
     }
     return state;
@@ -1688,7 +1681,6 @@ public class BundleImpl implements Bundle {
    */
   public Enumeration<URL> getResources(String name) throws IOException {
     checkUninstalled();
-    // NYI! Fix BundleGeneration
     final BundleGeneration current = current();
     if (secure.okResourceAdminPerm(this) && !current.isFragment()) {
       Enumeration<URL> e = null;
@@ -1838,6 +1830,10 @@ public class BundleImpl implements Bundle {
     } else if (fwCtx.startLevelController != null &&
 	           BundleStartLevel.class.equals(type)) {
       res = fwCtx.startLevelController.bundleStartLevel(this);
+    } else if (BundleContext.class.equals(type)) {
+      res = bundleContext;
+    } else if (AccessControlContext.class.equals(type)) {
+      res = secure.getAccessControlContext(this);
     }
     return (A) res;
   }
