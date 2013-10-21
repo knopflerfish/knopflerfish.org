@@ -36,6 +36,7 @@ package org.knopflerfish.bundle.repository.xml;
 
 import java.util.Map;
 
+import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
 
@@ -67,5 +68,20 @@ public class RequirementImpl implements Requirement {
   
   public String toString() {
     return "Requirement[\n" + d.toString() +"]\n";
+  }
+  
+  public boolean equals(Object other) {
+    if (this == other)
+      return true;
+    if (other == null)
+      return false;
+    if (!(other instanceof Requirement))
+      return false;
+    Requirement r = (Requirement)other;
+    return 
+        getNamespace().equals(r.getNamespace()) &&
+        getDirectives().equals(r.getDirectives()) &&
+        getAttributes().equals(r.getAttributes()) &&
+        getResource().equals(r.getResource());
   }
 }

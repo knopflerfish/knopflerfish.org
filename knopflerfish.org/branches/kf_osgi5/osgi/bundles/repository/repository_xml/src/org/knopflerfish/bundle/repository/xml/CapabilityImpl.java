@@ -68,4 +68,19 @@ public class CapabilityImpl implements Capability {
   public String toString() {
     return "Capability[\n" + d.toString() +"]\n";
   }
+  
+  public boolean equals(Object other) {
+    if (this == other)
+      return true;
+    if (other == null)
+      return false;
+    if (!(other instanceof Capability))
+      return false;
+    Capability c = (Capability)other;
+    return 
+        getNamespace().equals(c.getNamespace()) &&
+        getDirectives().equals(c.getDirectives()) &&
+        getAttributes().equals(c.getAttributes())  &&
+        getResource().equals(c.getResource());
+  }
 }

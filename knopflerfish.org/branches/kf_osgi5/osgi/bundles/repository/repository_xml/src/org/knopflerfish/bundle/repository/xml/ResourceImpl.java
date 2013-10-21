@@ -114,4 +114,17 @@ public class ResourceImpl implements Resource, RepositoryContent {
     sb.append("]\n");
     return sb.toString();
   }
+  
+   public boolean equals(Object other) {
+     if (this == other)
+       return true;
+     if (other == null)
+       return false;
+     if (!(other instanceof Resource))
+       return false;
+     Resource r = (Resource)other;
+     return 
+         getCapabilities(null).equals(r.getCapabilities(null)) &&
+         getRequirements(null).equals(r.getRequirements(null));
+   }
 }
