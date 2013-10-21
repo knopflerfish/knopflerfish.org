@@ -31,9 +31,6 @@
 
   <import file="${ant.dir}/android.xml"/>
 
-  <!-- Use proguard if installed in ant.lib dir -->
-  <available property="proguard.available" file="${ant.lib}/proguard.jar"/>
-
   <available property="jdk1.7+" classname="java.lang.ClassValue"/> 
   <condition property="javac.source" value="1.5" else="1.5">
     <isset property="jdk1.7+"/>
@@ -426,5 +423,8 @@
   </target>
 
   <import file="${topdir}/../ant/bundletasks.xml"/>
+
+  <!-- Use proguard if installed in ant.lib dir -->
+  <available property="proguard.available" file="${ant.lib}/proguard.jar"/>
 
 </project>
