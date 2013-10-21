@@ -8,6 +8,9 @@
   <property name="impl.pattern"
 	    value="org/knopflerfish/bundle/**"/>
 
+  <property name="api.pattern"
+	    value="org/osgi/service/indexer/**"/>
+
   <property name="bundle.build.lib"   value="false"/>
   <property name="bundle.build.api"   value="false"/>
   <property name="bundle.build.impl"  value="false"/>
@@ -16,6 +19,10 @@
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.minimum"/>
 
+  <path id="bundle.compile.path">
+  </path>
+
+  <!--
   <path id="bundle.compile.path.pre">
     <pathelement location="org.osgi.impl.bundle.repoindex.api-N.N.N.jar"/>
   </path>
@@ -24,11 +31,12 @@
     <bundle_locator classPathRef="bundle.compile.path.pre"
                     newClassPathId="bundle.compile.path"
                     failOnMissingBundles="false">
-      <fileset dir="${proj.dir}">
+      <fileset dir="${proj.dir}/lib">
 	<include name="*.jar"/>
       </fileset>
     </bundle_locator>
   </target>
+  -->
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
