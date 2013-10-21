@@ -114,6 +114,12 @@
           <exclude name="**/*-javadoc.jar"/>
           <include name="**/*.jar"/>
         </fileset>
+        <!-- Search the repository to index fourth -->
+        <fileset dir="@{dir}">
+          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-javadoc.jar"/>
+          <include name="**/*.jar"/>
+        </fileset>
       </bundle_locator>
 
       <local name="repoindex.jars.line"/>
