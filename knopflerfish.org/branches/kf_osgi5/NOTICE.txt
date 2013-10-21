@@ -117,6 +117,12 @@ http://kxml.sourceforge.net
 Copyright (c) 2002,2003, Stefan Haustein, Oberhausen, Rhld., Germany
 
 ----------------------------------------------------------------------
+-	Repository Indexer
+----------------------------------------------------------------------
+This product includes the org.osgi.service.indexer API which
+is licensed under Apache Software License, Version 2.0. (c) 2001-2004
+
+----------------------------------------------------------------------
 -	Service Component Runtime Bundle
 ----------------------------------------------------------------------
 This product includes the org.apache.felix.scr.ScrService API which
