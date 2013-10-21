@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: JUnitRunner
 Bundle-SymbolicName: org.knopflerfish.bundle.junit_runner
 Bundle-Version: 4.0.0
-Bundle-Category: service
+Bundle-Category: testing
 Bundle-Description: Grunt, the JUnit test runner. Runs JUnit tests reg
  istered in the framework and dumps results to XML files.
 Bundle-Vendor: Knopflerfish

@@ -5,8 +5,6 @@
   <dirname  property="proj.dir" file="${ant.file.http}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
-  <property name  = "do.bundle.custom.pre"  value="true"/>
-
   <property name = "bundle.build.doc"   value = "true"/>
 
   <property name  = "api.pattern"

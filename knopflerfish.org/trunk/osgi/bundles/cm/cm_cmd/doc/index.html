@@ -5,14 +5,15 @@
 </div>
 
 <h2>Description</h2>
+
 <p>
-  The CM Commands bundle provides the <b>configuration</b> 
-  <a href="../console/index.html"> console</a> command group. 
-  The command group defines a set of console commands
-  available for interacting with the Configuration Manager.
-  The following  list gives a short description of what the commands
-  do, for complete   details on parameters, use help on each command
-  in the console.  
+  The CM Commands bundle provides the <b>configuration</b> <a
+  href="../console/index.html"> console</a> command group.  The
+  command group defines a set of console commands available for
+  interacting with the Configuration Manager.  The list below gives a
+  short description of what the commands do, for complete details on
+  parameters, use help on each command in the console.
+</p>
 
 <p>
   The Knopflerfish CM implementation provides a legacy XML DTD, <a
@@ -32,19 +33,80 @@
 
   <pre class="code">
 Available configuration commands:
-  create [-help] [-f] &lt;pid&gt; - Create a configuration and open it for editing.
-  current [-help]  - Show the currently open configuration.
+  create [-help] [-f] &lt;pid&gt; [&lt;template&gt;] - Create a configuration and open it for editing.
+  current [-help] [-t] - Show the currently open configuration.
   delete [-help] &lt;selection&gt; - Delete an existing configuration.
   edit [-help] &lt;selection&gt; - Edit an existing configuration.
   export [-help] &lt;file&gt;] [&lt;selection&gt;] ... - Export configurations in xml format to file.
   import [-help] &lt;url&gt; - Import configuration data from xml file at url.
-  list [-help] [&lt;selection&gt;] ... - List the pids of existing configurations.
+  list [-help] [&lt;selection&gt;] ... - List the PIDs of existing configurations.
   save [-help] [-force] - Save the currently open configuration in the CM.
   set [-help] &lt;property&gt; &lt;value&gt; [&lt;type&gt;] - Set a property in the currently open configuration.
-  show [-help] [&lt;selection&gt;] ... - Show the saved versions of configurations.
+  show [-help]  [-t] [&lt;selection&gt;] ... - Show the saved versions of configurations.
   unset [-help] &lt;property&gt; - Remove a property from the currently open configuration.
 </pre>
     
+
+<h2>Examples</h2>
+
+<p>The following lists the PIDs of all configurations in CM, then shows
+the configuration properties of the second configuration in the output
+of list (using the list index on the beginning of the line).</p>
+
+<pre class="code">
+<b>configuration&gt; </b>list
+Available configurations:
+[0] org.knopflerfish.bundle.consoletelnet.TelnetServer
+[1] org.knopflerfish.bundle.consoletelnet.TelnetServer|org.knopflerfish.bundle.consoletelnet-IMPL
+[2] org.knopflerfish.bundle.http.factory.HttpServer.2
+<b>configuration&gt; </b>show 1
+[1] org.knopflerfish.bundle.consoletelnet.TelnetServer|org.knopflerfish.bundle.consoletelnet-IMPL
+ location: file:jars/consoletelnet/consoletelnet-4.0.1.jar
+ change count: 11
+ properties:
+  busywait= false
+  defaultPassword= admin
+  defaultUser= admin
+  forbiddenGroup= 
+  host= localhost
+  port= 2321
+  requiredGroup= 
+  service.pid= org.knopflerfish.bundle.consoletelnet.TelnetServer|org.knopflerfish.bundle.consoletelnet-IMPL
+  um= false
+<b>configuration&gt; </b>
+</pre>
+
+<p>Now create a new targeted configuration that will use [1] above as
+template to initialize its properties. Then we change the port property
+and saves the edited configuration.</p>
+
+<pre class="code">
+<b>configuration&gt; </b>create 'org.knopflerfish.bundle.consoletelnet.TelnetServer|org.knopflerfish.bundle.consoletelnet-IMPL|file:jars/consoletelnet/consoletelnet-4.0.1.jar' 1
+<b>configuration&gt; </b>current -t
+[-] org.knopflerfish.bundle.consoletelnet.TelnetServer|org.knopflerfish.bundle.consoletelnet-IMPL|file:jars/consoletelnet/consoletelnet-4.0.1.jar
+ location: -
+ change count: 1
+ properties:
+  busywait:Boolean= false
+  defaultPassword:String= admin
+  defaultUser:String= admin
+  forbiddenGroup:String= 
+  host:String= localhost
+  port:Short= 2321
+  requiredGroup:String= 
+  service.pid:String= org.knopflerfish.bundle.consoletelnet.TelnetServer|org.knopflerfish.bundle.consoletelnet-IMPL|file:jars/consoletelnet/consoletelnet-4.0.1.jar
+  um:Boolean= false
+<b>configuration&gt; </b>set port 2322
+<b>configuration&gt; </b>save
+<b>configuration&gt; </b>l
+Available configurations:
+[0] org.knopflerfish.bundle.consoletelnet.TelnetServer
+[1] org.knopflerfish.bundle.consoletelnet.TelnetServer|org.knopflerfish.bundle.consoletelnet-IMPL
+[2] org.knopflerfish.bundle.consoletelnet.TelnetServer|org.knopflerfish.bundle.consoletelnet-IMPL|file:jars/consoletelnet/consoletelnet-4.0.1.jar
+[3] org.knopflerfish.bundle.http.factory.HttpServer.2
+<b>configuration&gt; </b>
+</pre>
+
 
 <h2>See Also</h2>
 <a href="../cm/index.html">CM - Configuration Management</a>

@@ -48,6 +48,7 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
@@ -82,6 +83,7 @@ public class BundleMetaTypeResource
     this.bundle = bundle;
   }
 
+  @Override
   public Bundle getBundle()
   {
     return bundle;
@@ -92,6 +94,7 @@ public class BundleMetaTypeResource
     metaDatas.add(md);
   }
 
+  @Override
   public String[] getFactoryPids()
   {
     final Vector<String> factoryPidsV = new Vector<String>();
@@ -99,6 +102,7 @@ public class BundleMetaTypeResource
     return factoryPidsV.toArray(new String[factoryPidsV.size()]);
   }
 
+  @Override
   public String[] getPids()
   {
     final Vector<String> pidsV = new Vector<String>();
@@ -126,11 +130,13 @@ public class BundleMetaTypeResource
     this.locales = locales.toArray(new String[locales.size()]);
   }
 
+  @Override
   public String[] getLocales()
   {
     return locales;
   }
 
+  @Override
   public ObjectClassDefinition getObjectClassDefinition(String id, String locale)
   {
     MetaData md;
@@ -307,7 +313,7 @@ class MetaData
                         String pid,
                         String ocdref,
                         Configuration conf,
-                        Vector<?> currentAttributes)
+                        List<AE> currentAttributes)
   {
 
     ObjectClassDefinition ocd;
@@ -324,9 +330,7 @@ class MetaData
 
         final Dictionary<String, Object> props = conf.getProperties();
 
-        final Enumeration<?> attrsAssigns = currentAttributes.elements();
-        while (attrsAssigns.hasMoreElements()) {
-          final AE ae = (AE) attrsAssigns.nextElement();
+        for (final AE ae : currentAttributes) {
           final AttributeDefinition ad =
             ADs.get(ae.adref);
 

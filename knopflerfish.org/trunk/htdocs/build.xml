@@ -65,7 +65,7 @@
    </copy>
 
    <makehtml title="${htdocs.distname} Open Source OSGi Serivce Platform"
-             description="The ${htdocs.distname} is an Open Source OSGi Service Platform designed to be compliant with the OSGi R4 v4.3 specifications"
+             description="The ${htdocs.distname} is an Open Source OSGi Service Platform designed to be compliant with the OSGi R5 specifications"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="index.html"

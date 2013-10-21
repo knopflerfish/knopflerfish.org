@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.blueprint.reflect;
 
 /**
- * Metadata for a simple <code>String</code> value that will be type-converted
- * if necessary before injecting.
+ * Metadata for a simple {@code String} value that will be type-converted if
+ * necessary before injecting.
  * 
  * @ThreadSafe
- * @version $Revision: 8083 $
+ * @author $Id: 69bf6aaf988e94fe8769f3d21cdb45a6534714e2 $
  */
 public interface ValueMetadata extends NonNullMetadata {
 	/**
 	 * Return the unconverted string representation of the value.
 	 * 
-	 * This is specified by the <code>value</code> attribute or text part of the
-	 * <code>value</code> element.
+	 * This is specified by the {@code value} attribute or text part of the
+	 * {@code value} element.
 	 * 
 	 * @return The unconverted string representation of the value.
 	 */
@@ -36,10 +37,10 @@ public interface ValueMetadata extends NonNullMetadata {
 	/**
 	 * Return the name of the type to which the value should be converted.
 	 * 
-	 * This is specified by the <code>type</code> attribute.
+	 * This is specified by the {@code type} attribute.
 	 * 
 	 * @return The name of the type to which the value should be converted or
-	 *         <code>null</code> if no type is specified.
+	 *         {@code null} if no type is specified.
 	 */
 	String getType();
 }

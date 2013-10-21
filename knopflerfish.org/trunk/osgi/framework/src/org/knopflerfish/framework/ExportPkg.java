@@ -334,11 +334,13 @@ class ExportPkg
   }
 
 
+  @Override
   public String getNamespace() {
     return BundleRevision.PACKAGE_NAMESPACE;
   }
 
 
+  @Override
   public Map<String, String> getDirectives() {
     final Map<String,String> res = new HashMap<String, String>(1);
 
@@ -355,6 +357,7 @@ class ExportPkg
   }
 
 
+  @Override
   public Map<String, Object> getAttributes() {
     final Map<String,Object> res
       = new HashMap<String, Object>(4+attributes.size());
@@ -371,7 +374,14 @@ class ExportPkg
   }
 
 
+  @Override
   public BundleRevision getRevision() {
+    return bpkgs.bg.bundleRevision;
+  }
+
+
+  @Override
+  public BundleRevision getResource() {
     return bpkgs.bg.bundleRevision;
   }
 
@@ -385,6 +395,7 @@ class ExportPkg
    * @return Less than zero, zero or greater than zero of this object is smaller
    *  than, equals to or greater than {@code o}.
    */
+  @Override
   public int compareTo(ExportPkg o)
   {
     return this.orderal - o.orderal;

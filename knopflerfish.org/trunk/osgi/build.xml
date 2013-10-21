@@ -10,6 +10,14 @@
   <property name="jars.dir"        location="jars"/>
   <property name="gosg.jars"       value="file:jars/"/>
 
+  <property name="repository.current.release"
+	    value="http://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
+  <property name="repository.local"
+	    value="file:jars/index.xml"/>
+  <property name="repository.xml.urls"
+	    value="${repository.local},
+		   ${repository.current.release}"/>
+
   <!-- Properties controling javadoc generation -->
   <property name="root.out.dir"    location="out"/>
   <property name="javadoc.out.dir" location="${root.out.dir}/javadoc"/>
@@ -37,32 +45,28 @@
   <!-- targets -->
   <target name="init">
     <mkdir dir="${root.out.dir}"/>
-    <available property="dir.bundles_opt.present"  file="bundles_opt"/>
     <available property="dir.bundles_test.present" file="bundles_test"/>
     <available property="dir.bundles_examples.present" file="bundles_examples"/>
   </target>
 
   <target name="default"
-          description="Builds the framework and bundles in bundles-directory"
+          description="Builds the framework and all non test bundles"
           depends="init,bundle_tasks">
     <delete file="${exported.file}"/>
     <delete file="${sources.file}"/>
     <property name="generate.javadoc.data" value="true"/>
 
-    <ant dir="framework"    target="all"/>
-    <ant dir="bundles"      target="all"/>
-    <antcall inheritAll="true" target="xargs"/>
+    <ant dir="framework" target="all"/>
+    <ant dir="bundles"          target="all"/>
+    <ant dir="bundles_opt"      target="all"/>
+    <ant dir="bundles_examples" target="all"/>
+    <antcall target="xargs"/>
+    <antcall target="repoindex"/>
   </target>
 
   <target name="all"
-          description="Builds the framework and all bundles including optional and test bundles"
-          depends="default,bundles_opt,bundles_test,bundles_examples">
-  </target>
-
-  <target name="bundles_opt" depends="init">
-   <fail unless="dir.bundles_opt.present"
-         message="The directory for optional bundles, bundles_opt, is missing. Please download Knopflerfish_opt_&lt;version&gt;.jar and install it in the same directory as Knopflerfish_osgi_&lt;version&gt;.jar"/>
-    <ant dir="bundles_opt"  target="all"/>
+          description="Builds the framework and all bundles including test bundles"
+          depends="default,bundles_test">
     <antcall target="xargs"/>
   </target>
 
@@ -81,13 +85,17 @@
          message="The directory for regression test bundles, bundles_test, is missing, skipping test bundles. To build test bundles use subversion to check out the complete knopflerfish.org tree."/>
   </target>
 
-  <target name="bundles_examples" depends="init">
-   <fail unless="dir.bundles_examples.present"
-         message="The directory for example bundles, bundles_examples, is missing."/>
-    <ant dir="bundles_examples"  target="all"/>
-    <antcall target="xargs"/>
+  <target name="repoindex"
+	  description="Generates the repository index file."
+	  depends="init,bundle_tasks,install_repoindex">
+    <local name="version.repoindex"/>
+    <condition property="version.repoindex"
+               value="${version} "
+               else="">
+      <isset property="version"/>
+    </condition>
+    <repoindex name="Knopflerfish ${version.repoindex}Repository" dir="${jars.dir}"/>
   </target>
-
 
 
   <target name="xargs" depends="init,bundle_tasks">
@@ -124,10 +132,11 @@
            baseDir="${xargs.base.dir}"
            gosgJars="${base.url}/${version}/osgi/jars/"
            testJars="${test_jars}"
+           repositoryXmlUrls="${repository.xml.urls}"
            outDir="${root.out.dir}/xargs">
       <bundles>
         <fileset dir="${jars.dir}"
-                 excludes="**/*-source.jar,**/*-javdoc.jar"
+                 excludes="**/*-source.jar,**/*-javadoc.jar"
                  includes="**/*.jar"/>
       </bundles>
     </xargs>
@@ -165,6 +174,7 @@
            xargs="${xargs.out.dir}/init.xargs"
            baseDir="${xargs.base.dir}"
            gosgJars="${gosg.jars}"
+           repositoryXmlUrls="${repository.xml.urls}"
            testJars="${test_jars}"
            outDir="${root.out.dir}/xargs"/>
   </target>
@@ -432,7 +442,7 @@
 
  <target name="clean"
          description="Removes all generated files and directories."
-         depends="init,clean_bundles_test">
+         depends="init,clean_ant,clean_bundles_test">
   <delete file="framework.jar"/>
   <delete dir="${root.out.dir}"/>
   <delete dir="jars"/>
@@ -455,11 +465,12 @@
          inheritAll="false" inheritRefs="false"/>
     <ant dir="bundles"      target="clean"
          inheritAll="false" inheritRefs="false"/>
-    <ant target="clean_bundles_opt"/>
+    <ant dir="bundles_opt"   target="clean"
+         inheritAll="false" inheritRefs="false"/>
     <ant target="clean_bundles_test"/>
  </target>
- <target name="clean_bundles_opt" if="dir.bundles_opt.present">
-   <ant dir="bundles_opt"   target="clean"
+ <target name="clean_ant">
+   <ant dir="${ant.dir}"   target="clean"
         inheritAll="false" inheritRefs="false"/>
  </target>
  <target name="clean_bundles_test" if="dir.bundles_test.present">

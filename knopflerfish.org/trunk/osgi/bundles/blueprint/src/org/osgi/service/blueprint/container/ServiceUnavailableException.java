@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.blueprint.container;
 
 import org.osgi.framework.ServiceException;
@@ -23,7 +24,7 @@ import org.osgi.framework.ServiceException;
  * This exception is thrown when an invocation is made on a service reference
  * and a backing service is not available.
  * 
- * @version $Revision: 8083 $
+ * @author $Id: c489b063b8e2c41ca1f21558e54c00635447708f $
  */
 public class ServiceUnavailableException extends ServiceException {
 	private static final long	serialVersionUID	= 1L;
@@ -51,8 +52,7 @@ public class ServiceUnavailableException extends ServiceException {
 	 * @param filter The filter used for the service lookup.
 	 * @param cause The cause of this exception.
 	 */
-	public ServiceUnavailableException(String message, String filter,
-			Throwable cause) {
+	public ServiceUnavailableException(String message, String filter, Throwable cause) {
 		super(message, UNREGISTERED, cause);
 		this.filter = filter;
 	}

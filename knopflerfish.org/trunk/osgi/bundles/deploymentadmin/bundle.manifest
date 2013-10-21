@@ -3,9 +3,9 @@ Bundle-ManifestVersion: 2
 Bundle-Name: deploymentadmin
 Bundle-SymbolicName: org.knopflerfish.bundle.deploymentadmin
 Bundle-Version: 4.0.0
-Bundle-Category: API
+Bundle-Category: osgi
 Bundle-Description: Deployment Admin API
-Bundle-Vendor: OSGi
+Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc

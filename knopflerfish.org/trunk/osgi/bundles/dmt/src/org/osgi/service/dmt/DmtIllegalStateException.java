@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2006, 2011). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2006, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,45 +20,45 @@ package org.osgi.service.dmt;
  * Unchecked illegal state exception. This class is used in DMT because
  * java.lang.IllegalStateException does not exist in CLDC.
  * 
- * @version $Id: 8e8822e7497488d6dc9066726ccba24a44719d78 $
+ * @author $Id: ab7441ab9ccea82894de416498a66b9376001581 $
  */
 public class DmtIllegalStateException extends RuntimeException {
-    private static final long serialVersionUID = 2015244852018469700L;
+	private static final long	serialVersionUID	= 2015244852018469700L;
 
-    /**
-     * Create an instance of the exception with no message.
-     */
-    public DmtIllegalStateException() {
-        super();
-    }
+	/**
+	 * Create an instance of the exception with no message.
+	 */
+	public DmtIllegalStateException() {
+		super();
+	}
 
-    /**
-     * Create an instance of the exception with the specified message.
-     * 
-     * @param message the reason for the exception
-     */
-    public DmtIllegalStateException(String message) {
-        super(message);
-    }
+	/**
+	 * Create an instance of the exception with the specified message.
+	 * 
+	 * @param message the reason for the exception
+	 */
+	public DmtIllegalStateException(String message) {
+		super(message);
+	}
 
-    /**
-     * Create an instance of the exception with the specified cause exception
-     * and no message.
-     * 
-     * @param cause the cause of the exception
-     */
-    public DmtIllegalStateException(Throwable cause) {
-        super(cause);
-    }
+	/**
+	 * Create an instance of the exception with the specified cause exception
+	 * and no message.
+	 * 
+	 * @param cause the cause of the exception
+	 */
+	public DmtIllegalStateException(Throwable cause) {
+		super(cause);
+	}
 
-    /**
-     * Create an instance of the exception with the specified message and cause
-     * exception.
-     * 
-     * @param message the reason for the exception
-     * @param cause the cause of the exception
-     */
-    public DmtIllegalStateException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	/**
+	 * Create an instance of the exception with the specified message and cause
+	 * exception.
+	 * 
+	 * @param message the reason for the exception
+	 * @param cause the cause of the exception
+	 */
+	public DmtIllegalStateException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

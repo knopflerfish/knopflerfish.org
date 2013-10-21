@@ -18,14 +18,12 @@
   <path id="bundle.compile.path">
   </path>
 
-  <property name="bmfa.Bundle-Description"    value="OSGi Service tracker"/>
+  <property name="bmfa.Bundle-Description"    value="OSGi Tracker"/>
   <property name="bmfa.Bundle-Category"       value="util"/>
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
   <property name="bmfa.Bundle-ApiVendor"      value="OSGi"/>
-  <property name="bmfa.Bundle-Version"        value="1.4.0"/>
+  <property name="bmfa.Bundle-Version"        value="5.0.0"/>
   <property name="bmfa.Bundle-DocURL"         value="http://www.osgi.org"/>
-
-  <property name="bmfa.Export-Package"        value="org.osgi.util.tracker;version=1.4"/>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 

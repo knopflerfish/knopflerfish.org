@@ -6,7 +6,7 @@ Bundle-Description: Test bundle for component, component-api_test
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-Category: test
+Bundle-Category: testing
 Export-Package: org.knopflerfish.service.component_test
 Import-Package: org.knopflerfish.service.component_test
 

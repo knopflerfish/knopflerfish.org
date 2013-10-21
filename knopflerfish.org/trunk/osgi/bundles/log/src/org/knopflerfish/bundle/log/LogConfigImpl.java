@@ -34,18 +34,6 @@
 
 package org.knopflerfish.bundle.log;
 
-import org.knopflerfish.service.log.LogConfig;
-import org.knopflerfish.service.log.LogUtil;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.cm.ManagedService;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -56,10 +44,22 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ManagedService;
+
+import org.knopflerfish.service.log.LogConfig;
+import org.knopflerfish.service.log.LogUtil;
 
 /**
  * This class implements the log configuration of the log service.
@@ -158,7 +158,7 @@ class LogConfigImpl
 
   synchronized void start() {
     dir = initDir((String) configCollection.get(DIR));
-    String[] clazzes = new String[]{ManagedService.class.getName(),
+    final String[] clazzes = new String[]{ManagedService.class.getName(),
         LogConfig.class.getName()};
     bc.registerService(clazzes, this, configCollection);
   }
@@ -201,6 +201,7 @@ class LogConfigImpl
    *
    * @see org.knopflerfish.service.log.LogConfig#commit()
    */
+  @Override
   public synchronized void commit() {
     updateConfig();
   }
@@ -211,6 +212,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#isDefaultConfig()
    */
 
+  @Override
   public boolean isDefaultConfig() {
     return isDefaultConfig;
   }
@@ -221,10 +223,11 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#setMemorySize(int)
    */
 
+  @Override
   public synchronized void setMemorySize(int size) {
-    int oldSize = getMemorySize();
+    final int oldSize = getMemorySize();
     if (size != oldSize) {
-      Integer newSize = new Integer(size);
+      final Integer newSize = new Integer(size);
       notify(MEM, newSize);
       set(MEM, newSize);
     }
@@ -236,6 +239,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getMemorySize()
    */
 
+  @Override
   public int getMemorySize() {
     return ((Integer) get(MEM)).intValue();
   }
@@ -246,8 +250,9 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#setFilter(int)
    */
 
+  @Override
   public synchronized void setFilter(int filter) {
-    int oldFilter = getFilter();
+    final int oldFilter = getFilter();
     if (filter == 0) {
       filter = LOG_WARNING;
     }
@@ -262,6 +267,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getFilter()
    */
 
+  @Override
   public int getFilter() {
     return LogUtil.toLevel((String) get(L_FILTER), LOG_WARNING);
   }
@@ -273,10 +279,11 @@ class LogConfigImpl
    *      int)
    */
 
+  @Override
   public synchronized void setFilter(String bundleLocation, int filter) {
     bundleLocation = bundleLocation.trim();
 
-    Integer f = blFilters.get(bundleLocation);
+    final Integer f = blFilters.get(bundleLocation);
     if (filter == 0 && f != null) {
       blFilters.remove(bundleLocation);
       setCollection(true, bundleLocation, filter);
@@ -293,6 +300,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getFilters()
    */
 
+  @Override
   public synchronized HashMap<String, Integer> getFilters() {
     return new HashMap<String, Integer>(blFilters);
   }
@@ -303,8 +311,9 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#setOut(boolean)
    */
 
+  @Override
   public synchronized void setOut(boolean b) {
-    boolean oldOut = getOut();
+    final boolean oldOut = getOut();
     if (b != oldOut) {
       set(OUT, new Boolean(b));
     }
@@ -316,6 +325,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getOut()
    */
 
+  @Override
   public boolean getOut() {
     return ((Boolean) get(OUT)).booleanValue();
   }
@@ -328,11 +338,12 @@ class LogConfigImpl
    *
    * @see org.knopflerfish.service.log.LogConfig#setFile(boolean)
    */
+  @Override
   public synchronized void setFile(boolean f) {
     if ((dir != null)) {
-      boolean oldFile = getFile();
+      final boolean oldFile = getFile();
       if (f != oldFile) {
-        Boolean newFile = f ? Boolean.TRUE : Boolean.FALSE;
+        final Boolean newFile = f ? Boolean.TRUE : Boolean.FALSE;
         notify(FILE, newFile);
         set(FILE, newFile);
       }
@@ -345,6 +356,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getFile()
    */
 
+  @Override
   public boolean getFile() {
     return (((Boolean) get(FILE)).booleanValue() && (getDir() != null));
   }
@@ -355,6 +367,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getDir()
    */
 
+  @Override
   public synchronized File getDir() {
     return dir;
   }
@@ -365,8 +378,9 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#setFileSize(int)
    */
 
+  @Override
   public synchronized void setFileSize(int fS) {
-    int oldSize = getFileSize();
+    final int oldSize = getFileSize();
     if (oldSize != fS) {
       set(FILE_S, new Integer(fS));
     }
@@ -378,6 +392,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getFileSize()
    */
 
+  @Override
   public int getFileSize() {
     return ((Integer) get(FILE_S)).intValue();
   }
@@ -388,6 +403,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#setMaxGen(int)
    */
 
+  @Override
   public synchronized void setMaxGen(final int maxGen) {
     final int oldGen = getMaxGen();
     if (oldGen != maxGen) {
@@ -403,6 +419,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getMaxGen()
    */
 
+  @Override
   public int getMaxGen() {
     final int gen = ((Integer) get(GEN)).intValue();
     return (gen < 1) ? 1 : gen;
@@ -414,6 +431,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#setFlush(boolean)
    */
 
+  @Override
   public synchronized void setFlush(boolean f) {
     final boolean oldFlush = getFlush();
     if (f != oldFlush) {
@@ -427,6 +445,7 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getFlush()
    */
 
+  @Override
   public boolean getFlush() {
     return ((Boolean) get(FLUSH)).booleanValue();
   }
@@ -437,6 +456,7 @@ class LogConfigImpl
    *
    * @see org.knopflerfish.service.log.LogConfig#setTimestampPattern(String)
    */
+  @Override
   public void setTimestampPattern(String pattern)
   {
     final String oldPattern = getTimestampPattern();
@@ -449,7 +469,7 @@ class LogConfigImpl
         new SimpleDateFormat(pattern);
         notify(TIMESTAMP_PATTERN, pattern);
         set(TIMESTAMP_PATTERN, pattern);
-      } catch (Throwable t) {
+      } catch (final Throwable t) {
         // Keep the old pattern.
       }
     }
@@ -461,6 +481,7 @@ class LogConfigImpl
    *
    * @see org.knopflerfish.service.log.LogConfig#getTimestampPattern()
    */
+  @Override
   public String getTimestampPattern()
   {
     return (String) get(TIMESTAMP_PATTERN);
@@ -483,12 +504,12 @@ class LogConfigImpl
   }
 
   static String[] getBL(final String bundleStr) {
-    String[] bundle = new String[]{null, null};
-    int ix = bundleStr.indexOf(";");
+    final String[] bundle = new String[]{null, null};
+    final int ix = bundleStr.indexOf(";");
     try {
-      bundle[0] = bundleStr.substring(0, ix).trim();
-      bundle[1] = bundleStr.substring(ix + 1).trim();
-    } catch (Exception e) {
+      bundle[LOCATION_POS] = bundleStr.substring(0, ix).trim();
+      bundle[FILTER_POS] = bundleStr.substring(ix + 1).trim();
+    } catch (final Exception e) {
       throw new IllegalArgumentException
           ("Bundle entries must be in the format location;level");
     }
@@ -501,7 +522,7 @@ class LogConfigImpl
   private void computeBidFilters()
   {
     // Use a temporary map to avoid holding lock during the computation.
-    Map<Long, Integer> bidFiltersTmp = new HashMap<Long, Integer>();
+    final Map<Long, Integer> bidFiltersTmp = new HashMap<Long, Integer>();
 
     final Bundle[] bundles = bc.getBundles();
     for (int i = bundles.length - 1; 0 <= i; i--) {
@@ -530,13 +551,19 @@ class LogConfigImpl
     if (null == level) {
       String l = getSymbolicName(bundle);
       if (null == l || 0 == l.length()) {
-        l = (String) bundle.getHeaders("").get("Bundle-Name");
+        l = bundle.getHeaders("").get("Bundle-Name");
       }
 
       if (null != l) {
         level = blFilters.get(l);
       }
     }
+
+    // Finally try with the bundle id as key.
+    if (level == null) {
+      level = blFilters.get(String.valueOf(bundle.getBundleId()));
+    }
+
     if (null != level) {
       final Long key = new Long(bundle.getBundleId());
       synchronized (bidFilters) {
@@ -560,7 +587,7 @@ class LogConfigImpl
     }
 
     final Dictionary<String, String> d = bundle.getHeaders("");
-    String bsn = (String) d.get("Bundle-SymbolicName");
+    String bsn = d.get("Bundle-SymbolicName");
     if (bsn != null && bsn.length() >0) {
       // Remove parameters and directives from the value
       final int semiPos = bsn.indexOf(';');
@@ -574,6 +601,7 @@ class LogConfigImpl
 
   // Implements BundleListener
 
+  @Override
   public void bundleChanged(BundleEvent event) {
     switch (event.getType()) {
       case BundleEvent.INSTALLED: // Fall through
@@ -593,6 +621,7 @@ class LogConfigImpl
   private void setCollection(boolean remove, String bundleLocation, int filter) {
     synchronized (configCollection) {
       @SuppressWarnings("unchecked")
+      final
       Vector<String> v = (Vector<String>) configCollection.get(BL_FILTERS);
       String[] bundF;
       boolean notFound = true;
@@ -639,21 +668,21 @@ class LogConfigImpl
 
   private void updateConfig() {
     try {
-      ServiceReference<ConfigurationAdmin> sr = bc
+      final ServiceReference<ConfigurationAdmin> sr = bc
           .getServiceReference(ConfigurationAdmin.class);
       if (sr != null) {
-        ConfigurationAdmin ca = bc.getService(sr);
+        final ConfigurationAdmin ca = bc.getService(sr);
         if (ca != null) {
-          Configuration conf = ca.getConfiguration(pid);
+          final Configuration conf = ca.getConfiguration(pid);
           if (conf != null) {
             conf.update(configCollection);
           }
         }
         bc.ungetService(sr);
       }
-    } catch (IOException io) {
-    } catch (java.lang.IllegalArgumentException iae) {
-    } catch (java.lang.IllegalStateException ise) {
+    } catch (final IOException io) {
+    } catch (final java.lang.IllegalArgumentException iae) {
+    } catch (final java.lang.IllegalStateException ise) {
     }
   }
 
@@ -687,7 +716,7 @@ class LogConfigImpl
     try {
       new SimpleDateFormat(timestampPattern);
       ht.put(TIMESTAMP_PATTERN, timestampPattern);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       ht.put(TIMESTAMP_PATTERN, DEFAULT_TIMESTAMP_PATTERN);
     }
 
@@ -701,7 +730,7 @@ class LogConfigImpl
       if (result == null) {
         result = def;
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       System.err.println("Failed to get property " + key + " : " + e);
       result = def;
     }
@@ -715,12 +744,12 @@ class LogConfigImpl
       if (str != null && 0 < str.length()) {
         try {
           result = new Integer(str);
-        } catch (NumberFormatException nfe) {
+        } catch (final NumberFormatException nfe) {
           System.err.println("Failed to parse integer property with key '"
               + key + "' and value '" + str + "': " + nfe);
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       System.err.println("Failed to get property " + key + " : " + e);
     }
     return result;
@@ -732,6 +761,7 @@ class LogConfigImpl
   /* ManagedService is updated. */
   /* ======================================================================== */
 
+  @Override
   public synchronized void updated(Dictionary<String, ?> cfg)
       throws ConfigurationException, IllegalArgumentException {
     if (cfg == null) {
@@ -749,7 +779,7 @@ class LogConfigImpl
   PrintStream origErr = null;
 
   void updateGrabIO() {
-    boolean bDebugClass = "true".equals
+    final boolean bDebugClass = "true".equals
         (getProperty("org.knopflerfish.framework.debug.classloader", "false"));
     if (!bDebugClass) {
       if (getGrabIO()) {
@@ -792,22 +822,26 @@ class LogConfigImpl
       this.level = level;
     }
 
+    @Override
     public void println(String s) {
       super.print(prefix);
       super.println(s);
       log(s);
     }
 
+    @Override
     public void print(String s) {
       super.print(s);
     }
 
+    @Override
     public void println(Object x) {
       super.print(prefix);
       super.println(x);
       log("" + x);
     }
 
+    @Override
     public void print(Object x) {
       super.print(x);
     }
@@ -859,7 +893,7 @@ class LogConfigImpl
         try {
           applyConfig(cfg);
           valid = true;
-        } catch (Exception all) {
+        } catch (final Exception all) {
           throw new ConfigurationException(null,
                                            "Fault occurred when "
                                            +"setting configuration. "
@@ -869,7 +903,7 @@ class LogConfigImpl
           if (!valid) {
             // Rollback. E.g., configCollection = rollBack;
             synchronized (configCollection) {
-              for (Enumeration<String> keys = rollBack.keys(); keys.hasMoreElements();) {
+              for (final Enumeration<String> keys = rollBack.keys(); keys.hasMoreElements();) {
                 final String key = keys.nextElement();
                 final Object value = rollBack.remove(key);
                 configCollection.put(key, value);
@@ -886,20 +920,20 @@ class LogConfigImpl
   private void checkLogLevel(Dictionary<String, Object> cfg)
       throws ConfigurationException, IllegalArgumentException {
     String filter = null;
-    Object obj = cfg.get(L_FILTER);
+    final Object obj = cfg.get(L_FILTER);
     if (obj == null) {
       throw new IllegalArgumentException(
           "No log level given. Please supply a valid log level.");
     }
     try {
       filter = ((String) obj).trim();
-    } catch (ClassCastException cce) {
+    } catch (final ClassCastException cce) {
       throw new IllegalArgumentException(
           "Wrong type supplied when attempting to set log level."
               + " Correct type to use is String. " + obj + " "
               + obj.getClass().getName());
     }
-    int filterVal = LogUtil.toLevel(filter, -1);
+    final int filterVal = LogUtil.toLevel(filter, -1);
     if (filterVal == -1) {
       throw new ConfigurationException(L_FILTER, "Undefined log level <"
           + filter + ">.");
@@ -915,19 +949,20 @@ class LogConfigImpl
     Vector<String> v = null;
     try {
       @SuppressWarnings("unchecked")
+      final
       Vector<String> v1 = (Vector<String>) cfg.get(BL_FILTERS);
       v = v1;
-    } catch (ClassCastException cce) {
+    } catch (final ClassCastException cce) {
       throw new IllegalArgumentException
           ("Wrong type supplied when attempting to set log level for "
-              + "specific bundle. Correct type to use is Vector of String[].");
+              + "specific bundle. Correct type to use is Vector of String.");
     }
     if (v != null) {
       String[] bundle = null;
       for (int i = 0; i < v.size(); i++) {
         try {
           bundle = getBL(v.elementAt(i));
-        } catch (ClassCastException cce) {
+        } catch (final ClassCastException cce) {
           throw new IllegalArgumentException
               ("Wrong type supplied when attempting to set log level for "
                   + "specific bundle. Correct type to use is String.");
@@ -937,7 +972,6 @@ class LogConfigImpl
               ("Empty configuration supplied when attempting to set log level "
                   + " for specific bundle.");
         }
-        bundle[LOCATION_POS] = bundle[LOCATION_POS].trim();
         if (bundle[LOCATION_POS] == null
             || bundle[LOCATION_POS].length() <= 0) {
           throw new IllegalArgumentException
@@ -951,7 +985,7 @@ class LogConfigImpl
                   + "Please supply a valid log level.");
         }
         int testFilter = 0;
-        testFilter = LogUtil.toLevel((bundle[FILTER_POS].trim()), -1);
+        testFilter = LogUtil.toLevel(bundle[FILTER_POS], -1);
         if (testFilter == -1) {
           throw new ConfigurationException
               (BL_FILTERS,
@@ -980,12 +1014,12 @@ class LogConfigImpl
       final String pattern = (String) obj;
       try {
         new SimpleDateFormat(pattern);
-      } catch (Throwable t) {
+      } catch (final Throwable t) {
         throw new ConfigurationException(TIMESTAMP_PATTERN,
                                          "Invalid timestamp pattern: '"
                                          +pattern +"' "+t.getMessage());
       }
-    } catch (ClassCastException cce) {
+    } catch (final ClassCastException cce) {
       throw new IllegalArgumentException(
           "Wrong type supplied when attempting to set timestamp pattern."
               + " Correct type to use is String. " + obj + " "
@@ -994,20 +1028,21 @@ class LogConfigImpl
   }
 
   /**
-   * Copy changed values from the specified config to the active
-   * configuration object. Notify about changed propeties (those that
-   * the LogReaderServiceFactory needs to handle explicitly).
+   * Copy changed values from the specified configuration to the active
+   * configuration object. Notify about changed properties (those that the
+   * LogReaderServiceFactory needs to handle explicitly).
    *
-   * Called once the validity of the given configuration has been
-   * checked.
+   * Called once the validity of the given configuration has been checked.
    *
-   * @param cfg The new, validated configuration to apply.
+   * @param cfg
+   *          The new, validated configuration to apply.
    */
   private void applyConfig(final Dictionary<String, ?> cfg) {
     @SuppressWarnings("unchecked")
+    final
     Vector<String> bls = (Vector<String>) cfg.get(BL_FILTERS);
     setFilterCfg(bls);
-    
+
     Object newV = null;
     if ((newV = diff(L_FILTER, cfg)) != null) {
       set(L_FILTER, newV);
@@ -1020,7 +1055,7 @@ class LogConfigImpl
       set(OUT, newV);
     }
     if ((newV = diff(DIR, cfg)) != null) {
-      File newDir = initDir((String) newV);
+      final File newDir = initDir((String) newV);
       if (dir != null) {
         if (!dir.getAbsolutePath().equals(newDir.getAbsolutePath())) {
           synchronized(this) {
@@ -1071,18 +1106,18 @@ class LogConfigImpl
     if (newV != null) {
       String[] bundle = null;
       int newFilter = -1;
-      Set<String> newKeys = new HashSet<String>();
+      final Set<String> newKeys = new HashSet<String>();
       for (int i = 0; (i < newV.size()); i++) {
         bundle = getBL(newV.elementAt(i));
-        newFilter = LogUtil.toLevel((bundle[FILTER_POS].trim()), LOG_WARNING);
+        newFilter = LogUtil.toLevel((bundle[FILTER_POS]), LOG_WARNING);
         blFilters.put(bundle[LOCATION_POS], new Integer(newFilter));
         newKeys.add(bundle[LOCATION_POS]);
       }
       // Remove obsolete bl filter mappings.
-      Set<String> obsoleteKeys = new HashSet<String>(blFilters.keySet());
+      final Set<String> obsoleteKeys = new HashSet<String>(blFilters.keySet());
       obsoleteKeys.removeAll(newKeys);
-      for (Iterator<String> okit = obsoleteKeys.iterator(); okit.hasNext();) {
-        blFilters.remove(okit.next());
+      for (final String string : obsoleteKeys) {
+        blFilters.remove(string);
       }
       set(BL_FILTERS, newV);
       computeBidFilters();

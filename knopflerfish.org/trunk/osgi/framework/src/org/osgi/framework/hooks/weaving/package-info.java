@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,8 @@
  * <p>
  * {@code  Import-Package: org.osgi.framework.hooks.weaving; version="[1.0,2.0)"}
  * </p>
- * @version $Id: fb1848295893f5889dc0260aecfc1437132da157 $
+ * @version $Id: 8b788094aec5fd8ca4d2dfe6a8e4afc04a461290 $
  */
 
 package org.osgi.framework.hooks.weaving;
+

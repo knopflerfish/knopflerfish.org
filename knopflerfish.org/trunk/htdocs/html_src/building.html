@@ -15,7 +15,7 @@ or by (re)building an installed distribution.
 </p>
 
 <p>
- The top level build file is located in the <tt>osgi</tt>
+ The top level build file is located in the <code>osgi</code>
  directory. The default target is to build the framework and all
  bundles in the bundles directory.
 </p>
@@ -25,7 +25,7 @@ Invoking ant with the -p option will display the possible targets.
 </p>
 
 <pre class="shell">
-bash-3.2$ ant -p
+$ ant -p
 Buildfile: build.xml
 
 Main targets:
@@ -47,10 +47,86 @@ Main targets:
  run-secure           (Re)start framework with security enabled.
  run-secure-init      Initial start with security enabled and default set of bundles.
 Default target: default
-bash-3.2$ 
+$ 
 </pre>
 
 <p>
 To add and build additional bundles see the <a
 href="programming.html">programming</a> section.
 </p>
+
+<h2 class="kf">Building a compact Knopflerfish framework</h2>
+
+You can build a compact version of the framework called
+<code>framework_compact.jar</code>. To build this you need to download
+<a href="http://proguard.sourceforge.net/">Proguard 4.10</a>.
+Install the proguard.jar file into ${KF_ROOT}/ant/lib and build
+the framework with the property <code>compact</code> set to
+<code>true</code>.
+<p>
+This a version with a reduced memory footprint. This version has
+no security and certificate support compiled into it. This is only
+supposed to be used for running and not to compile against. So you
+also need to compile the normal <code>framework.jar</code> to be able
+to build bundles.
+</p>
+<pre class="shell">
+$ ant -Dcompact=true -f framework/build.xml 
+Buildfile: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/build.xml
+
+compile:
+
+compile_full:
+
+compile_compact:
+
+chkBundleTaskSrc:
+
+chkBundleTasksBuild:
+
+build_bundle_tasks:
+
+define_bundle_tasks:
+
+bundle_tasks:
+
+genexports:
+   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/resources/exports
+
+jar:
+   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/resources/version
+   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/resources/tstamp
+
+writerelease:
+
+jar_file_full:
+
+jar_file_compact:
+      [jar] Building jar: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar
+
+proguard_compact:
+     [move] Moving 1 file to /Users/jan/workspace_osgi5/kf_osgi5/osgi
+ [proguard] ProGuard, version 4.10
+ [proguard] Reading program jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar.tmp.jar]
+ [proguard] Reading library jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/ee/ee.minimum.jar]
+ [proguard] Preparing output jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar]
+ [proguard]   Copying resources from program jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar.tmp.jar]
+   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar.tmp.jar
+
+add_dex:
+
+source.jar:
+
+save_javadoc_data:
+
+javadoc.jar:
+
+all:
+
+BUILD SUCCESSFUL
+Total time: 14 seconds
+$ ls -l framework*jar
+-rw-r--r--  1 jan  staff  617250 16 Okt 10:44 framework.jar
+-rw-r--r--  1 jan  staff  323070 16 Okt 10:44 framework_compact.jar
+$ 
+</pre>

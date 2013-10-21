@@ -350,7 +350,7 @@ class Resolver {
    * @return String with reason for failure or null if all were resolved.
    * @throws BundleException Resolver hook complaint.
    */
-  synchronized String resolve(BundleGeneration bg, BundlePackages importBpkgs) throws BundleException {
+  synchronized String resolve(BundleGeneration bg, BundlePackages importBpkgs, BundleImpl[] triggers) throws BundleException {
     String res = null;
     if (framework.debug.resolver) {
       framework.debug.println("resolve: " + bg);
@@ -408,6 +408,9 @@ class Resolver {
             StringBuffer failReason = new StringBuffer(
                 "Missing package(s) or can not resolve all of the them:");
             if (resolvePackages(importBpkgs.getImports(), failReason)) {
+              if (triggers != null && triggers.length == 1) {
+                framework.resolverHooks.endResolve(triggers);
+              }
               registerNewWires();
               registerNewProviders(bg.bundle);
               res = null;
@@ -554,7 +557,7 @@ class Resolver {
         List<BundleWireImpl> bwl = bbg.getCapabilityWires();
         if (bwl != null) {
           for (final BundleWireImpl bcw : bwl) {
-            BundleImpl bbr = bcw.getRequirer().bundle;
+            BundleImpl bbr = bcw.getRequirerGeneration().bundle;
             if (!bundles.contains(bbr)) {
               moreBundles.add(bbr);
               if (framework.debug.resolver) {

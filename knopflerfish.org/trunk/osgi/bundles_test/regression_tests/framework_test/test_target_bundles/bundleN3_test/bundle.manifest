@@ -5,7 +5,7 @@ Bundle-Description: Test bundle for deprecated arm native code
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-Category: test
+Bundle-Category: testing
 Bundle-NativeCode: foo ; osname = Linux ; osname = MacOSX ;
                    osname = SunOS ; osname = VxWork ; osname = Win32 ; 
                    processor = arm

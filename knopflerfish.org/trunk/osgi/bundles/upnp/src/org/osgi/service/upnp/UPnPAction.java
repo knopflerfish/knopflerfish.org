@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2010). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.upnp;
 
 import java.util.Dictionary;
@@ -23,7 +24,7 @@ import java.util.Dictionary;
  * Each UPnP service contains zero or more actions. Each action may have zero or
  * more UPnP state variables as arguments.
  * 
- * @version $Id: 2db11f45a7dd2f34775d673355095ad3037821db $
+ * @author $Id: f1ba100ae6041a6c8020a6d128455cfedc9d42bc $
  */
 public interface UPnPAction {
 	/**

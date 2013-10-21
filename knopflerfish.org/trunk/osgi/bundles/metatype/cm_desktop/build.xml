@@ -8,6 +8,8 @@
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.JavaSE_1.5"/>
 
+  <property name="bundle.build.doc"      value="true"/>
+
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/desktop/cm/**"/>
 
@@ -24,7 +26,6 @@
    <pathelement location="kf_metatype-N.N.N.jar"/>
   </path>
   
-  <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
     <!-- Embedd the the cm_data-XML parser from the CM shared pkg. -->
     <bundle_locator bundleNames="cm_all">

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2010). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2012). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.util.List;
  * 
  * @ThreadSafe
  * @noimplement
- * @version $Id: 3b16b47db71fa449d60d5acdcc9f7dddc7679a25 $
+ * @version $Id: 7487aa7d2558f34c0115b924180ed17e6e13e22e $
  * @since 1.1
  */
 public interface ConditionalPermissionUpdate {
@@ -37,19 +37,19 @@ public interface ConditionalPermissionUpdate {
 	 * method will be replace the Conditional Permission Table if commit is
 	 * called and is successful.
 	 * <p>
-	 * The {@link ConditionalPermissionInfo#delete delete} method of the
+	 * The {@link ConditionalPermissionInfo#delete() delete} method of the
 	 * ConditionalPermissionInfos in the list must throw
 	 * UnsupportedOperationException.
 	 * <p>
 	 * The list returned by this method is ordered and the most significant
 	 * table entry is the first entry in the list.
 	 * 
-	 * @return A {@code List} of the {@link ConditionalPermissionInfo}s
-	 *         which represent the Conditional Permissions maintained by this
-	 *         update. Modifications to this list will not affect the
-	 *         Conditional Permission Table until successfully committed. The
-	 *         list may be empty if the Conditional Permission Table was empty
-	 *         when this update was created.
+	 * @return A {@code List} of the {@link ConditionalPermissionInfo}s which
+	 *         represent the Conditional Permissions maintained by this update.
+	 *         Modifications to this list will not affect the Conditional
+	 *         Permission Table until successfully committed. The list may be
+	 *         empty if the Conditional Permission Table was empty when this
+	 *         update was created.
 	 */
 	List<ConditionalPermissionInfo> getConditionalPermissionInfos();
 
@@ -70,14 +70,13 @@ public interface ConditionalPermissionUpdate {
 	 * Conditional Permissions are determined to be inconsistent in some way
 	 * then an {@code IllegalStateException} will be thrown.
 	 * <p>
-	 * This method returns {@code false} if the commit did not occur
-	 * because the Conditional Permission Table has been modified since the
-	 * creation of this update.
+	 * This method returns {@code false} if the commit did not occur because the
+	 * Conditional Permission Table has been modified since the creation of this
+	 * update.
 	 * 
-	 * @return {@code true} if the commit was successful.
-	 *         {@code false} if the commit did not occur because the
-	 *         Conditional Permission Table has been modified since the creation
-	 *         of this update.
+	 * @return {@code true} if the commit was successful. {@code false} if the
+	 *         commit did not occur because the Conditional Permission Table has
+	 *         been modified since the creation of this update.
 	 * @throws SecurityException If the caller does not have
 	 *         {@code AllPermission}.
 	 * @throws IllegalStateException If this update's Conditional Permissions

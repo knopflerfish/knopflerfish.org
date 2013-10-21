@@ -6,7 +6,7 @@ Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleW1_test.BundleActivator
-Bundle-Category: test
+Bundle-Category: testing
 Export-Package: org.knopflerfish.service.bundleW1_test
 Import-Package: org.knopflerfish.service.bundleW1_test,org.osgi.framew
  ork

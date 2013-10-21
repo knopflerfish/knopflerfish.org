@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2011). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Dictionary;
  * It provides function to get the absolute mounted uri and a shortcut method to
  * post events via the DmtAdmin.
  * 
- * @version $Id: 7853d5ca44c270a30f7bf9748476d7a9bd4477a1 $
+ * @author $Id: 6d6910e16554d58dfca19741425f6b314091865d $
  * @since 2.0
  */
 public interface MountPoint {
@@ -45,14 +45,12 @@ public interface MountPoint {
 	 * 
 	 * @param topic the topic of the event to send. Valid values are:
 	 *        <ul>
-	 *        <li>{@code org/osgi/service/dmt/DmtEvent/ADDED} if the change
-	 *        was caused by a rename action
-	 *        <p>
-	 *        <li>{@code org/osgi/service/dmt/DmtEvent/DELETED} if the change
-	 *        was caused by a copy action
-	 *        <p>
-	 *        <li>{@code org/osgi/service/dmt/DmtEvent/REPLACED} if the
-	 *        change was caused by a copy action
+	 *        <li>{@code org/osgi/service/dmt/DmtEvent/ADDED} if the change was
+	 *        caused by an add action</li><li>
+	 *        {@code org/osgi/service/dmt/DmtEvent/DELETED} if the change was
+	 *        caused by a delete action</li><li>
+	 *        {@code org/osgi/service/dmt/DmtEvent/REPLACED} if the change was
+	 *        caused by a replace action</li>
 	 *        </ul>
 	 *        Must not be {@code null}.
 	 * @param relativeURIs an array of affected node {@code URI}'s. All
@@ -85,10 +83,9 @@ public interface MountPoint {
 	 * @param topic the topic of the event to send. Valid values are:
 	 *        <ul>
 	 *        <li>{@code org/osgi/service/dmt/DmtEvent/RENAMED} if the change
-	 *        was caused by a rename action
-	 *        <p>
-	 *        <li>{@code org/osgi/service/dmt/DmtEvent/COPIED} if the change
-	 *        was caused by a copy action
+	 *        was caused by a rename action</li><li>
+	 *        {@code org/osgi/service/dmt/DmtEvent/COPIED} if the change was
+	 *        caused by a copy action</li>
 	 *        </ul>
 	 *        Must not be {@code null}.
 	 * @param relativeURIs an array of affected node {@code URI}'s.
@@ -115,8 +112,7 @@ public interface MountPoint {
 	 * @throws IllegalArgumentException if the topic has not one of the defined
 	 *         values
 	 */
-	void postEvent(String topic, String[] relativeURIs,
-			String[] newRelativeURIs, Dictionary properties);
+	void postEvent(String topic, String[] relativeURIs, String[] newRelativeURIs, Dictionary properties);
 
 	/**
 	 * This object must provide a suitable hash function such that a Mount Point

@@ -52,9 +52,13 @@ import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.osgi.framework.BundleContext;
@@ -71,7 +75,6 @@ import org.knopflerfish.service.console.CommandGroupAdapter;
 import org.knopflerfish.service.console.Session;
 import org.knopflerfish.shared.cm.CMDataReader;
 import org.knopflerfish.shared.cm.CMDataWriter;
-import org.knopflerfish.shared.cm.DictionaryUtils;
 import org.knopflerfish.util.sort.Sort;
 
 // ******************** CMCommands ********************
@@ -87,25 +90,40 @@ public class CMCommands
 {
   /***************************************************************************
    * Key in the session properties dictionary used to store the current (open)
-   * configuration.*
+   * configuration.
    **************************************************************************/
   private static final String CURRENT =
     "org.knopflerfish.bundle.cm.commands.impl.current";
 
   /***************************************************************************
    * Key in the session properties dictionary used to store the dictionary that
-   * is edited for the current configuration.*
+   * is edited for the current configuration.
    **************************************************************************/
   private static final String EDITED =
     "org.knopflerfish.bundle.cm.commands.impl.edited";
 
   /***************************************************************************
-   * Key in the session properties dictionary used to store the * result of the
+   * Key in the session properties dictionary used to store the change count of
+   * the edited configuration when starting an edit operation.
+   **************************************************************************/
+  private static final String EDITED_VERSION =
+    "org.knopflerfish.bundle.cm.commands.impl.edited.version";
+
+  /***************************************************************************
+   * Key in the session properties dictionary used to store the result of the
    * latest list command for later reference using -i options to several
-   * commands. *
+   * commands.
    **************************************************************************/
   private static final String LISTED_CONFIGS =
     "org.knopflerfish.bundle.cm.commands.impl.listed.configs";
+
+  /***************************************************************************
+   * Key in the session properties dictionary used to store a mapping from PID
+   * to index number of the result from the latest list command for later
+   * reference by the show commands.
+   **************************************************************************/
+  private static final String LISTED_CONFIGS_PID_TO_INDEX =
+    "org.knopflerfish.bundle.cm.commands.impl.listed.configs.pid.to.ix";
 
   BundleContext bc;
 
@@ -142,11 +160,11 @@ public class CMCommands
   public final static String USAGE_LIST = "[<selection>] ...";
 
   public final static String[] HELP_LIST =
-    new String[] { "List the pids of existing configurations.",
-                  "<selection>  A pid that can contain wildcards '*',",
+    new String[] { "List the PIDs of existing configurations.",
+                  "<selection>  A PID that can contain wildcards '*',",
                   "             or an ldap filter, or an index in output",
                   "             from the latest use of this command.",
-                  "             If no selection is given all existing pids",
+                  "             If no selection is given all existing PIDs",
                   "             will be listed." };
 
   public int cmdList(Dictionary<?, ?> opts,
@@ -165,13 +183,18 @@ public class CMCommands
       if (selection == null) {
         cs = srvCA.listConfigurations(null);
       } else {
-        cs = getConfigurations(session, srvCA, selection);
+        cs = getConfigurations(out, session, srvCA, selection);
       }
       if (cs == null || cs.length == 0) {
         out.println("No configurations available");
       } else {
         sortConfigurationArray(cs);
         setSessionProperty(session, LISTED_CONFIGS, cs);
+        final Map<String,Integer> pidToIndex = new HashMap<String, Integer>();
+        for (int i = 0; i<cs.length; i++) {
+          pidToIndex.put(cs[i].getPid(), new Integer(i));
+        }
+        setSessionProperty(session, LISTED_CONFIGS_PID_TO_INDEX, pidToIndex);
         out.println("Available configurations:");
         for (int i = 0; i < cs.length; ++i) {
           out.println("[" + i + "] " + cs[i].getPid());
@@ -180,7 +203,7 @@ public class CMCommands
 
       retcode = 0; // Success!
     } catch (final Exception e) {
-      out.println("List failed. Details:");
+      out.print("List failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
 
@@ -192,12 +215,13 @@ public class CMCommands
     return retcode;
   }
 
-  public final static String USAGE_SHOW = "[<selection>] ...";
+  public final static String USAGE_SHOW = "[-t] [<selection>] ...";
 
   public final static String[] HELP_SHOW =
     new String[] { "Show the saved versions of configurations.",
+                  "-t           Include type for each property in the output.",
                   "<selection>  A pid that can contain wildcards '*',",
-                  "             or an ldap filter, or an index in output",
+                  "             or an ldap filter, or an index in the output",
                   "             from the latest use of the 'list' command.",
                   "             If no selection is given all configurations",
                   "             will be shown.",
@@ -210,28 +234,21 @@ public class CMCommands
                      Session session)
   {
     ConfigurationAdmin srvCA = null;
+    final boolean printTypes = opts.get("-t") != null;
 
     try {
       srvCA = getCA();
       final String[] selection = (String[]) opts.get("selection");
-      final Configuration[] cs = getConfigurations(session, srvCA, selection);
+      final Configuration[] cs = getConfigurations(out, session, srvCA, selection);
       if (cs == null || cs.length == 0) {
         throw new Exception("No matching configurations for selection.");
       }
-      for (int i = 0; i < cs.length; ++i) {
-        if (i > 0) {
-          out.println();
-        }
-        final Dictionary<String, Object> d = cs[i].getProperties();
-        if (d == null) {
-          out.println("No properties set in " + cs[i].getPid());
-        } else {
-          out.println("Properties for " + cs[i].getPid());
-          printDictionary(out, d);
-        }
+      sortConfigurationArray(cs);
+      for (final Configuration cfg : cs) {
+        printConfiguration(out, session, cfg, printTypes);
       }
     } catch (final Exception e) {
-      out.println("Show failed. Details:");
+      out.print("Show failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
     } finally {
@@ -242,13 +259,20 @@ public class CMCommands
     return 0;
   }
 
-  public final static String USAGE_CREATE = "[-f] <pid>";
+  public final static String USAGE_CREATE = "[-f] <pid> [<template>]";
 
   public final static String[] HELP_CREATE =
     new String[] { "Create a configuration and open it for editing.",
                   "-f     If specified the pid argument is a factory pid.",
-                  "<pid>  Pid or factory pid of configuration to create",
-                  "       depending on if -f flag is specified." };
+                  "<pid>  PID or factory pid of configuration to create",
+                  "       depending on if -f flag is specified.",
+                  "<template> Template configuration that the new configuration",
+                  "           will be a clone of. The value is either a pid that",
+                  "           can contain wildcards '*', or an ldap filter,",
+                  "           or an index in output from the latest use of",
+                  "           the 'list' command.",
+                  "           If the template selectio doesn't match exactly one",
+                  "           configuration it will have to be refined." };
 
   public int cmdCreate(Dictionary<?, ?> opts,
                        Reader in,
@@ -257,26 +281,60 @@ public class CMCommands
   {
     int retcode = 1; // 1 initially not set to 0 until end of try block
     setCurrent(session, null);
-    setEditingDict(session, null);
+    setEditingDict(session);
+    final String pid = (String) opts.get("pid");
+    final boolean createFactoryConfiguration = opts.get("-f") != null;
+
     ConfigurationAdmin srvCA = null;
+    Configuration templateCfg = null;
     try {
       srvCA = getCA();
-      final String pid = (String) opts.get("pid");
-      final boolean createFactoryConfiguration = opts.get("-f") != null;
+
+      final String template = (String) opts.get("template");
+      if (template != null) {
+        final Configuration[] templates = getConfigurations(out, session, srvCA, template);
+        if (templates == null || templates.length == 0) {
+          throw new Exception("Template didn't match any configurations. "
+                              + "Remove the template parameter or change "
+                              + "your it to match exactly one "
+                              +"configuration.");
+        } else if (templates.length == 1) {
+          templateCfg = templates[0];
+          if (pid.equals(templateCfg.getPid())) {
+            throw new Exception("template configuration has the same PID as "
+                                +"the new one.");
+          }
+        } else {
+          throw new Exception("Template matched " + templates.length
+                              + " configurations. Refine your selection "
+                              +"to match exactly one configuration.");
+        }
+      }
+
       Configuration cfg = null;
       if (createFactoryConfiguration) {
         cfg = srvCA.createFactoryConfiguration(pid, null);
       } else {
+        final Configuration[] exisitingCfgs =
+          srvCA
+              .listConfigurations("(" + Constants.SERVICE_PID + "=" + pid + ")");
+        if (exisitingCfgs != null && exisitingCfgs.length == 1) {
+          throw new Exception("A configuration with PID '" + pid
+                              + "' already exists.");
+        }
         cfg = srvCA.getConfiguration(pid, null);
       }
 
       if (cfg == null) {
-        throw new Exception("Failed creating configuration for " + pid);
+        throw new Exception("Failed creating configuration with PID: '" + pid +"'.");
+      }
+      if (templateCfg != null) {
+        cfg.update(templateCfg.getProperties());
       }
       setCurrent(session, cfg);
       retcode = 0; // Success!
     } catch (final Exception e) {
-      out.println("Create failed. Details:");
+      out.print("Create failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
 
@@ -310,7 +368,7 @@ public class CMCommands
 
       srvCA = getCA();
 
-      final Configuration[] cs = getConfigurations(session, srvCA, selection);
+      final Configuration[] cs = getConfigurations(out, session, srvCA, selection);
       if (cs == null || cs.length == 0) {
         throw new Exception("Selection didn't match any configurations. "
                             + "Change your selection to match exactly "
@@ -320,7 +378,7 @@ public class CMCommands
         final Configuration current = getCurrent(session);
         if (current != null && current.getPid().equals(cs[0].getPid())) {
           setCurrent(session, null);
-          setEditingDict(session, null);
+          setEditingDict(session);
         }
         cs[0].delete();
       } else {
@@ -332,7 +390,7 @@ public class CMCommands
       }
       retcode = 0; // Success!
     } catch (final Exception e) {
-      out.println("Delete failed. Details:");
+      out.print("Delete failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
 
@@ -360,7 +418,7 @@ public class CMCommands
                      Session session)
   {
     int retcode = 1; // 1 initially not set to 0 until end of try block
-    setEditingDict(session, null);
+    setEditingDict(session);
     setCurrent(session, null);
 
     ConfigurationAdmin srvCA = null;
@@ -369,7 +427,7 @@ public class CMCommands
 
       srvCA = getCA();
 
-      final Configuration[] cs = getConfigurations(session, srvCA, selection);
+      final Configuration[] cs = getConfigurations(out, session, srvCA, selection);
       if (cs == null || cs.length == 0) {
         throw new Exception(
                             "Selection didn't match any configurations. "
@@ -389,7 +447,7 @@ public class CMCommands
 
       retcode = 0; // Success!
     } catch (final Exception e) {
-      out.println("Edit failed. Details:");
+      out.print("Edit failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
 
@@ -401,29 +459,28 @@ public class CMCommands
     return retcode;
   }
 
-  public final static String USAGE_CURRENT = "";
+  public final static String USAGE_CURRENT = "[-t]";
 
   public final static String[] HELP_CURRENT =
-    new String[] { "Show the currently open configuration." };
+    new String[] { "Show the currently open configuration.",
+                   "-t           Include type for each property in the output."};
 
   public int cmdCurrent(Dictionary<?, ?> opts,
                         Reader in,
                         PrintWriter out,
                         Session session)
   {
+    final boolean printTypes = opts.get("-t") != null;
     final Configuration cfg = getCurrent(session);
     if (cfg == null) {
       out.println("No configuration open currently");
     } else {
-      if (isEditing(session)) {
-        printDictionary(out, getEditingDict(session));
-      } else {
-        final Dictionary<String, Object> d = cfg.getProperties();
-        if (d == null) {
-          out.println("No properties set in current configuration");
-        } else {
-          printDictionary(out, d);
-        }
+      try {
+        printConfiguration(out, session, cfg, printTypes);
+      } catch (final Exception e) {
+        out.print("Current failed. Details:");
+        final String reason = e.getMessage();
+        out.println(reason == null ? "<unknown>" : reason);
       }
     }
     return 0;
@@ -450,21 +507,23 @@ public class CMCommands
       }
       srvCA = getCA();
 
-      if (forceOptionNotSpecified && configurationHasChanged(srvCA, cfg)) {
-        throw new Exception(
-                            "The configuration has changed in CM since it was opened."
-                                + "Use -force option if you want to force saving of your changes.");
-      }
-
       if (isEditing(session)) {
+        final long oldVersion = getEditingVersion(session);
+        final long currentVersion = cfg.getChangeCount();
+
+        if (forceOptionNotSpecified && currentVersion > oldVersion) {
+          throw new Exception("The configuration has changed in CM since "
+                              + "it was opened. Use -force option if you "
+                              + "want to force saving of your changes.");
+        }
         cfg.update(getEditingDict(session));
-        setEditingDict(session, null);
+        setEditingDict(session);
       } else {
         throw new Exception("No changes to save");
       }
       retcode = 0; // Success!
     } catch (final Exception e) {
-      out.println("Save failed. Details:");
+      out.print("Save failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
     } finally {
@@ -528,7 +587,7 @@ public class CMCommands
       }
       retcode = 0; // Success!
     } catch (final Exception e) {
-      out.println("Set failed. Details:");
+      out.print("Set failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
     } finally {
@@ -563,7 +622,7 @@ public class CMCommands
       }
       retcode = 0; // Success!
     } catch (final Exception e) {
-      out.println("Unset failed. Details:");
+      out.print("Unset failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
     } finally {
@@ -590,6 +649,7 @@ public class CMCommands
       final URL url = new URL(spec);
 
       AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+        @Override
         public Object run()
             throws Exception
         {
@@ -605,23 +665,17 @@ public class CMCommands
             final Hashtable<String, Object>[] configs =
               cmDataReader.readCMDatas(reader);
 
-            for (final Hashtable<String, Object> config2 : configs) {
-              final String pid = (String) config2.get(CMDataReader.SERVICE_PID);
+            for (final Hashtable<String, Object> props : configs) {
+              final String pid = (String) props.get(CMDataReader.SERVICE_PID);
               final String fpid =
-                (String) config2.get(CMDataReader.FACTORY_PID);
+                (String) props.get(CMDataReader.FACTORY_PID);
               Configuration config;
               if (fpid == null) {
                 config = configAdmin.getConfiguration(pid, null);
               } else {
                 config = configAdmin.createFactoryConfiguration(fpid, null);
               }
-              if (config.getBundleLocation() != null) {
-                config.setBundleLocation(null);
-              }
-              if (config2.get("service.bundleLocation") != null) {
-                config2.remove("service.bundleLocation");
-              }
-              config.update(config2);
+              config.update(props);
             }
           } finally {
             if (reader != null) {
@@ -637,16 +691,16 @@ public class CMCommands
 
       retcode = 0; // Success!
     } catch (final MalformedURLException e) {
-      out.println("Could not create URL. Details:");
+      out.print("Could not create URL. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
     } catch (final PrivilegedActionException pae) {
-      out.println("Import failed. Details:");
+      out.print("Import failed. Details:");
       final Exception reason = pae.getException();
       // Android don't supply nested exception
       out.println(reason == null ? "<unknown>" : reason.toString());
     } catch (final Exception e) {
-      out.println("Import failed. Details:");
+      out.print("Import failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
     } finally {
@@ -685,7 +739,7 @@ public class CMCommands
       if (selection == null || selection.length == 0) {
         cs = srvCA.listConfigurations(null);
       } else {
-        cs = getConfigurations(session, srvCA, selection);
+        cs = getConfigurations(out, session, srvCA, selection);
       }
 
       if (cs == null || cs.length == 0) {
@@ -693,10 +747,12 @@ public class CMCommands
       }
 
       final String fileName = (String) opts.get("file");
-      final File file = new File(fileName);
+      final File file =
+        new File(fileName.endsWith(".xml") ? fileName : (fileName + ".xml"));
         pw =
           AccessController
               .doPrivileged(new PrivilegedExceptionAction<PrintWriter>() {
+                @Override
                 public PrintWriter run()
                     throws Exception
                 {
@@ -713,15 +769,15 @@ public class CMCommands
         }
       retcode = 0; // Success!
     } catch (final IOException e) {
-      out.println("Export failed. Details:");
+      out.print("Export failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
     } catch (final PrivilegedActionException pae) {
-      out.println("Export failed. Details:");
+      out.print("Export failed. Details:");
       final String reason = pae.getException().getMessage();
       out.println(reason == null ? "<unknown>" : reason);
     } catch (final Exception e) {
-      out.println("Export failed. Details:");
+      out.print("Export failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
     } finally {
@@ -742,6 +798,7 @@ public class CMCommands
         srvCA =
           AccessController
               .doPrivileged(new PrivilegedExceptionAction<ConfigurationAdmin>() {
+                @Override
                 public ConfigurationAdmin run()
                     throws Exception
                 {
@@ -814,45 +871,48 @@ public class CMCommands
       (Dictionary<String, Object>) session.getProperties().get(EDITED);
     if (dict == null) {
       final Configuration cfg = getCurrent(session);
+      long changeCount = Long.MIN_VALUE;
       if (cfg != null) {
+        changeCount = cfg.getChangeCount();
         dict = cfg.getProperties();
       }
       if (dict == null) {
         dict = new Hashtable<String, Object>();
       }
-      setEditingDict(session, dict);
+      setEditingDict(session, dict, changeCount);
     }
     return dict;
   }
 
-  private boolean configurationHasChanged(ConfigurationAdmin ca,
-                                          Configuration c1)
-      throws Exception
+  /***************************************************************************
+   * Helper method that gets the editing version of the current configuration
+   * from the session.
+   **************************************************************************/
+  private long getEditingVersion(Session session)
   {
-    final String pid = c1.getPid();
-    final Configuration c2 = ca.getConfiguration(pid, null);
-    return DictionaryUtils.dictionariesAreNotEqual(c1.getProperties(),
-                                                   c2.getProperties());
+    final Long version = (Long) session.getProperties().get(EDITED_VERSION);
+    return (version == null) ? Long.MIN_VALUE : version.longValue();
   }
 
-  private Configuration[] getConfigurations(Session session,
+  private Configuration[] getConfigurations(PrintWriter out, Session session,
                                             ConfigurationAdmin cm,
                                             String[] selection)
       throws Exception
   {
-    final Filter[] filters = convertToFilters(session, selection);
+    final Filter[] filters = convertToFilters(out, session, selection);
     return getConfigurationsMatchingFilters(cm, filters);
   }
 
-  private Configuration[] getConfigurations(Session session,
+  private Configuration[] getConfigurations(PrintWriter out,
+                                            Session session,
                                             ConfigurationAdmin cm,
                                             String selection)
       throws Exception
   {
-    return getConfigurations(session, cm, new String[] { selection });
+    return getConfigurations(out, session, cm, new String[] { selection });
   }
 
-  private Filter[] convertToFilters(Session session, String[] selection)
+  private Filter[] convertToFilters(PrintWriter out, Session session, String[] selection)
       throws Exception
   {
     if (selection == null) {
@@ -863,7 +923,11 @@ public class CMCommands
       final String current = selection[i];
       Filter filter = null;
       if (isInteger(current)) {
-        filter = tryToCreateFilterFromIndex(session, current);
+        try {
+          filter = tryToCreateFilterFromIndex(session, current);
+        } catch (final Exception e) {
+          out.println("Warning: " +e.getMessage());
+        }
       } else if (startsWithParenthesis(current)) {
         filter = tryToCreateFilterFromLdapExpression(current);
       } else {
@@ -942,6 +1006,33 @@ public class CMCommands
     return pid;
   }
 
+  /**
+   * Find the index of a PID from the last call to the list command.
+   *
+   * @param session
+   *          the console session to fetch last list result from.
+   * @param pid
+   *          the PID that we are looking for.
+   * @return the index of the specified PID or -1 if not present in the list.
+   * @throws Exception
+   */
+  private int getIndexOfPidInLastList(Session session, String pid)
+      throws Exception
+  {
+    int res = -1;
+    @SuppressWarnings("unchecked")
+    final Map<String, Integer> pidToIndex =
+      (Map<String, Integer>) session.getProperties()
+          .get(LISTED_CONFIGS_PID_TO_INDEX);
+    if (pidToIndex != null) {
+      final Integer ix = pidToIndex.get(pid);
+      if (ix != null) {
+        res = ix.intValue();
+      }
+    }
+    return res;
+  }
+
   private Configuration[] getConfigurationsMatchingFilters(ConfigurationAdmin cm,
                                                            Filter[] filters)
       throws Exception
@@ -954,35 +1045,90 @@ public class CMCommands
       return cs;
     }
 
-    final Vector<Configuration> matching = new Vector<Configuration>();
-    for (final Configuration element : cs) {
+    final List<Configuration> matching = new ArrayList<Configuration>();
+    for (final Configuration cfg : cs) {
       for (final Filter filter : filters) {
-        if (filter.match(element.getProperties())) {
-          matching.addElement(element);
+        if (filter.match(cfg.getProperties())) {
+          matching.add(cfg);
           break;
         }
       }
     }
 
-    final Configuration[] result = new Configuration[matching.size()];
-    matching.copyInto(result);
-    return result;
+    return matching.toArray(new Configuration[matching.size()]);
+  }
+
+  /***************************************************************************
+   * Helper method that clears the editing dictionary in the session.
+   *
+   * @param session
+   *          the console session to update.
+   **************************************************************************/
+  private void setEditingDict(Session session)
+  {
+    setEditingDict(session, null, Long.MIN_VALUE);
   }
 
   /***************************************************************************
    * Helper method that sets the editing dictionary of the current configuration
-   * in the session.*
+   * in the session.
+   *
+   * @param session
+   *          the console session to update.
+   * @param dict
+   *          the configuration dictionary to edit.
+   * @param version
+   *          The change count from the configuration.
    **************************************************************************/
-  private void setEditingDict(Session session, Dictionary<String, Object> dict)
+  private void setEditingDict(Session session, Dictionary<String, Object> dict, long version)
   {
     if (dict == null) {
       session.getProperties().remove(EDITED);
+      session.getProperties().remove(EDITED_VERSION);
     } else {
       session.getProperties().put(EDITED, dict);
+      session.getProperties().put(EDITED_VERSION, new Long(version));
     }
   }
 
-  private void printDictionary(PrintWriter out, Dictionary<String, Object> d)
+  private void printConfiguration(PrintWriter out,
+                                  Session session,
+                                  final Configuration cfg,
+                                  boolean printTypes)
+      throws Exception
+  {
+    final String pid = cfg.getPid();
+    final int listIndex = getIndexOfPidInLastList(session, pid);
+    out.print('[');
+    out.print(listIndex > -1 ? String.valueOf(listIndex) : "-" );
+    out.print("] ");
+    out.println(pid);
+
+    final String factoryPid = cfg.getFactoryPid();
+    if (factoryPid != null) {
+      out.print(" factory PID: ");
+      out.println(factoryPid);
+    }
+
+    out.print(" location: ");
+    final String location = cfg.getBundleLocation();
+    out.println(location != null ? location : "-");
+
+    out.print(" change count: ");
+    out.println(cfg.getChangeCount());
+
+    final Dictionary<String, Object> d = cfg.getProperties();
+    out.println(" properties:");
+    if (d == null) {
+      out.println("  -");
+    } else {
+      printDictionary(out, d, printTypes);
+    }
+  }
+
+  private void printDictionary(PrintWriter out,
+                               Dictionary<String, Object> d,
+                               boolean printTypes)
   {
     final String[] keyNames = new String[d.size()];
     int i = 0;
@@ -991,11 +1137,63 @@ public class CMCommands
     }
     Sort.sortStringArray(keyNames);
     for (i = 0; i < keyNames.length; i++) {
-      out.print(" ");
+      out.print("  ");
       out.print(keyNames[i]);
-      out.print(": ");
-      printValue(out, d.get(keyNames[i]));
+
+      final Object value = d.get(keyNames[i]);
+      if (printTypes) {
+        out.print(":");
+        printValueType(out, value);
+      }
+
+      out.print("= ");
+      printValue(out, value);
       out.println();
+    }
+  }
+
+  private void printValueType(PrintWriter out, Object value)
+  {
+    try {
+      if (value == null) {
+        out.print('?');
+      } else {
+        final Class<?> c = value.getClass();
+        if (c == String.class) {
+          out.print("String");
+        } else if (c == Integer.class) {
+          out.print("Integer");
+        } else if (c == Long.class) {
+          out.print("Long");
+        } else if (c == Float.class) {
+          out.print("Float");
+        } else if (c == Double.class) {
+          out.print("Double");
+        } else if (c == Byte.class) {
+          out.print("Byte");
+        } else if (c == Short.class) {
+          out.print("Short");
+        } else if (c == BigInteger.class) {
+          out.print("BigInteger");
+        } else if (classBigDecimal != null && c == classBigDecimal) {
+          out.print("BigDecimal");
+        } else if (c == Character.class) {
+          out.print("Character");
+        } else if (c == Boolean.class) {
+          out.print("Boolean");
+        } else if (c.isArray()) {
+          out.print("[");
+          printValueType(out, Array.get(value, 0));
+          out.print("]");
+        } else if (c.isInstance(Vector.class)) {
+          final Vector<?> v = (Vector<?>) value;
+          out.print("{");
+          printValueType(out, v.elementAt(0));
+          out.print("}");
+        }
+      }
+    } catch (final Exception ignored) {
+      out.print('?');
     }
   }
 
@@ -1171,6 +1369,7 @@ public class CMCommands
   }
 
   // //////////////////////////////////
+  @Override
   public void serviceChanged(ServiceEvent event)
   {
     switch (event.getType()) {

@@ -26,7 +26,7 @@
 
 
   <property name="xargs" location="test.xargs"/>
-  <property name="do.bundle.custom.post" value="true"/>
+
   <target name="bundle.custom.post">
     <property name="bundleVersionFilterTester"
 	      location="${outdir}/${ant.project.name}.props"/>
