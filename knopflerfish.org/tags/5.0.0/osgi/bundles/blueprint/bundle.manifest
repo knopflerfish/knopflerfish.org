@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: blueprint
+Bundle-SymbolicName: org.knopflerfish.bundle.blueprint
+Bundle-Version: 5.0.0
+Bundle-Category: osgi
+Bundle-Description: Blueprint Container API
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi
+Bundle-License: http://opensource.org/licenses/Apache-2.0;
+ link="http://www.apache.org/licenses/LICENSE-2.0";
+ description="Apache License, Version 2.0"
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
+ g/trunk/osgi/bundles/blueprint
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+api-Import-Package: org.osgi.framework; version="[1.6,2)"
+

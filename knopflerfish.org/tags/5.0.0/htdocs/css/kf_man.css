@@ -1,0 +1,110 @@
+BODY {
+ /* font-size:12px; */
+ font-family: Lucida Grande, Tahoma, Helvetica, Arial, sans-serif;
+ font-size: 16px;
+}
+
+.mainblock {
+  background: #fff;
+  /* font-size:12px; */
+  font-size: 0.8125em;
+}
+
+.manpage {
+ font-family: Lucida Grande, Tahoma, Helvetica, Arial, sans-serif;
+ /* font-size:12px; */
+}
+
+H1.man {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 2em;
+    font-weight:bold;
+    margin-left: 0;
+    border-style: none;
+}
+
+H2.man {
+   font-family: Lucida Grande, Verdana, Helvetica, Arial, sans-serif;
+    font-size:	1.3em;
+    font-weight:bold;
+    border-style: solid;
+    color:		#444444;
+    border-style:  solid;
+    border-color:	#ccc;
+    border-width:	1px 0px 1px 0px;
+    background-image: url('../images/shortfadeout_20px.png');
+    background-repeat: repeat-x;
+    padding:		3px 0px 2px 8px;
+    margin: 1.4em 0 0.8em 0;
+}
+
+H3.man  {
+ font-family: Lucida Grande, Verdana, Helvetica, Arial, sans-serif;
+ font-size: 1.1em;
+ font-weight:bold;
+ background:          #fff;  
+ color:		      #000;
+ border-style:        solid;
+ border-color:	#805362;
+ border-width:	0px 0px 0px 0px;
+ padding: 0;
+}
+
+.userdoc_hdr_left {
+  font-weight: bold;		   
+  float:left;
+}
+
+#man_leftmenu A {
+  color: #000;	      
+  text-decoration: none;
+}
+	      
+#man_leftmenu A:hover {
+  color: #805362;	      
+  text-decoration: underline;
+  font-weight:      bold;
+}
+
+.userdoc_hdr_right {
+  font-weight: bold;		   
+  text-align: right;
+}
+
+.abstract {
+  font-style: italic;
+}
+
+table.man {
+    border-width: 1px;
+    border-color: #666666;
+    border-collapse: collapse;
+}
+
+table table.man_inner {
+    border-style: hidden;
+    border-collapse: collapse;
+}
+
+table table.man_inner td {
+    border-style: hidden;
+    padding: 4px;
+}
+
+table.man th {
+    font-size:12px;
+    border-width: 1px;
+    padding: 6px;
+    border-style: solid;
+    border-color: #666666;
+    background-color: #fafff5;
+    color:		#444444;
+}
+
+table.man td {
+    border-width: 1px;
+    padding: 6px;
+    border-style: solid;
+    border-color: #666666;
+    background-color: #ffffff;
+}

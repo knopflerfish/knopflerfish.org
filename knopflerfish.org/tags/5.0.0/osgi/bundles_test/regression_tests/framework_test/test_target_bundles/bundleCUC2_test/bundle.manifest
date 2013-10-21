@@ -1,0 +1,13 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleCUC_test
+Bundle-SymbolicName: bundleCUC_test
+Bundle-Version: 2.0.0
+Bundle-Description: Test bundle for framework, bundleCU_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: testing
+Bundle-UUID: org.knopflerfish:bundleCUC_test:2.0.0:all
+Import-Package: org.knopflerfish.service.bundleCUP_test ; version="[2,3)",
+                org.osgi.framework ; version="[1.6,2)"
+Provide-Capability: org.knopflerfish.test.capability; name=CUC2 ; uses:=org.knopflerfish.service.bundleCUP_test

@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: prefs
+Bundle-SymbolicName: org.knopflerfish.bundle.prefs
+Bundle-Version: 4.0.1
+Bundle-Description: Preferences
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=prefs/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/prefs
+Bundle-Activator: org.knopflerfish.bundle.prefs.Activator
+Bundle-Category: osgi
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+Import-Package: org.osgi.framework; version="[1.6,2)",
+ org.osgi.service.prefs; version="[1.1,1.2)",
+ org.knopflerfish.service.log; version="[1.2,2)",
+ org.knopflerfish.util
+ 

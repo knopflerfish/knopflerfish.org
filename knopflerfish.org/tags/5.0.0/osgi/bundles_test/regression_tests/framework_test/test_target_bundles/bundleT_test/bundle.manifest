@@ -1,0 +1,12 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleT_test
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleT_test
+Bundle-Version: 1.0.0
+Bundle-Description: %description
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleT_test.BundleActivator
+Bundle-Category: testing
+Bundle-UUID: org.knopflerfish:bundleT_test:1.0.0:all
+

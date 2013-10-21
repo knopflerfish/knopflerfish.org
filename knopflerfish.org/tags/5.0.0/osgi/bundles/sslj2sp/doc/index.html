@@ -1,0 +1,136 @@
+<h1>SSL Provider &mdash; Using the Java&nbsp;2 Security Architecture.</h1>
+
+<div class="abstract">
+
+  The sslj2sp bundle registers one or several
+  <tt>SslServerSocketFactory</tt> objects as OSGi services.  These
+  services can be used by other bundles to establish secure TCP
+  connections.  For example, to implement HTTPS, look at the
+  documentation of your HTTP Service bundle to see if it will support
+  the use of such services.
+
+</div>
+
+
+<h2>Java Secure Socket Extension (JSSE)</h2>
+
+This bundle relies on the presence of Sun's <em>Java™ Secure Socket
+Extensions (JSSE)</em>; more specifically, jsse.jar must be available
+on the system class-path.  This is always the case when using Sun's
+Java™ Platform Standard Edition, v1.4+. To read more about this see
+the JSSE Reference Guide for Java Platform Standard Edition <a
+target="_blank"
+href="http://docs.oracle.com/javase/1.4.2/docs/guide/security/jsse/JSSERefGuide.html">1.4</a>
+or <a target="_blank"
+href="http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html">7</a>.
+
+<p>
+
+To create your customized SSL certificate, see section "Creating a
+Keystore to Use with JSSE".  NOTE: This material is owned by Sun
+Microsystems, please refer to their terms and conditions.
+
+You can use the Configuration Manager to tell the <tt>sslj2sp</tt>
+bundle what <tt>SslServerSocketFactory</tt> service(s) to create, see
+section Configuration Manager. If nothing is specified, a default
+configuration will be used.
+
+
+<h3>Configuration</h3>
+
+The sslj2sp bundle may be configured using the OSGi Configuration
+Manager (CM). It accepts factory configurations with the factory PID
+
+<pre>
+  org.knopflerfish.bundle.ssl.j2sp
+</pre>
+
+If no configuration is available in CM, a default configuration with
+values equals to the defaults described below will be used.
+
+<p>
+
+Properties with a name <tt>[none]</tt> can not be configured in the
+current implementation.
+
+<p>
+
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+
+  <tr>
+    <td>[none]</td>
+    <td>
+
+	SSL protocol to use.
+
+    </td>
+    <td>String</td>
+    <td>TLSv1</td>
+  </tr>
+
+  <tr>
+    <td>[none]</td>
+    <td>
+
+	Keystore type
+
+    </td>
+    <td>String</td>
+    <td>JKS</td>
+  </tr>
+
+  <tr>
+    <td>keystore</td>
+    <td>
+
+	This property represents a keystore, which must be created as
+        described in section "JSSE".
+
+	The sslj2sp will interpret the value for this property as
+	follows:
+	<ul>
+	  <li> assume that the keystore has been stored to the CM as
+	       an array of bytes (byte[]).
+
+	  <li> assume that the value is the name of the keystore file
+               on the local file system.
+  
+	</ul>
+
+	If none of these assumptions lead to a valid key manager, the
+        bundle will log a warning and use the default.
+    </td>
+    <td>String or byte[]</td>
+    <td>[internal]</td>
+  </tr>
+
+  <tr>
+    <td>keystorepass</td>
+    <td>
+
+	The password for the store (plain text).
+
+    </td>
+    <td>String</td>
+    <td>[internal]</td>
+  </tr>
+
+  <tr>
+    <td>[none]</td>
+    <td>
+
+	Keymanager type.
+
+    </td>
+    <td>String</td>
+    <td>SunX509</td>
+  </tr>
+
+</table>
+  

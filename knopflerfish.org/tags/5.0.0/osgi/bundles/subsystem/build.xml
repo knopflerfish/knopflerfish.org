@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="subsystem" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.subsystem}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name="api.pattern" value="org/osgi/service/subsystem/**"/> 
+
+  <property name = "bundle.build.lib"   value = "false"/>
+  <property name = "bundle.build.api"   value = "true"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "false"/>
+
+  <!-- Build for Java 2 Standard Edition 1.5 Execution Environment. -->
+  <!-- Uses Enum -->
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.5"/>
+  <property name="javac.source" value="1.5"/>
+  <property name="javac.target" value="1.5"/>
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>
