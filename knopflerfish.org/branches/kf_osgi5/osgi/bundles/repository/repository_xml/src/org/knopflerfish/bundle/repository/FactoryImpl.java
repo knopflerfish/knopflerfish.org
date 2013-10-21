@@ -35,19 +35,18 @@
 package org.knopflerfish.bundle.repository;
 
 import java.io.ByteArrayInputStream;
-import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.knopflerfish.bundle.repository.xml.RepositoryXmlParser;
+import org.knopflerfish.bundle.repository.xml.RepositoryXmlParser.ParseResult;
 import org.knopflerfish.service.repository.XmlBackedRepositoryFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.resource.Resource;
 import org.osgi.service.repository.Repository;
 
 public class FactoryImpl implements XmlBackedRepositoryFactory {
@@ -62,13 +61,13 @@ public class FactoryImpl implements XmlBackedRepositoryFactory {
   @Override
   public ServiceReference<Repository> create(String url, Dictionary<String, ?> properties, Object handle) throws Exception {
     if(url != null && !"".equals(url) && !repositoryRegistrations.containsKey(url)) {
-      Collection<Resource> rs = RepositoryXmlParser.parse(url);
-      if(!rs.isEmpty()) {
-        RepositoryImpl repo = new RepositoryImpl(bc, rs);
+      ParseResult pr =  RepositoryXmlParser.parse(url);
+      if(!pr.resources.isEmpty()) {
+        RepositoryImpl repo = new RepositoryImpl(bc, pr.resources);
         Hashtable<String, Object> h = new Hashtable<String, Object>();
-        h.put(Constants.SERVICE_PID, "org.knopflerfish.repository.xml");
-        h.put(Constants.SERVICE_DESCRIPTION, "XML repository from URL: " + url);
-        //h.put("repository.url", url);
+        h.put(Constants.SERVICE_PID, "org.knopflerfish.repository.xml.PROP." + System.currentTimeMillis());
+        h.put(Constants.SERVICE_DESCRIPTION, pr.name);
+        h.put(Repository.URL, url);
         if (properties != null) {
           for (Enumeration<String> e = properties.keys(); e.hasMoreElements(); ) {
             String key = e.nextElement();
@@ -92,13 +91,12 @@ public class FactoryImpl implements XmlBackedRepositoryFactory {
     System.out.println(xml);
     if(xml != null && !"".equals(xml) && !repositoryRegistrations.containsKey(xml)) {
       ByteArrayInputStream is = new ByteArrayInputStream(xml.getBytes());
-      Collection<Resource> rs = RepositoryXmlParser.parse(is);
-      if(!rs.isEmpty()) {
-        RepositoryImpl repo = new RepositoryImpl(bc, rs);
+      ParseResult pr = RepositoryXmlParser.parse(is);
+      if(!pr.resources.isEmpty()) {
+        RepositoryImpl repo = new RepositoryImpl(bc, pr.resources);
         Hashtable<String, Object> h = new Hashtable<String, Object>();
-        h.put(Constants.SERVICE_PID, "org.knopflerfish.repository.xml");
-        h.put(Constants.SERVICE_DESCRIPTION, "XML repository from String");
-        //h.put("repository.url", url);
+        h.put(Constants.SERVICE_PID, "org.knopflerfish.repository.xml.STRING." + System.currentTimeMillis());
+        h.put(Constants.SERVICE_DESCRIPTION, pr.name);
  
         ServiceRegistration<Repository> sr = bc.registerService(Repository.class, repo, h);
 

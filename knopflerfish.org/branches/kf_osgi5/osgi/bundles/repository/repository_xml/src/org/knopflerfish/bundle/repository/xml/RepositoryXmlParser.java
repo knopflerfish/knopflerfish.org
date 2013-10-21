@@ -54,30 +54,57 @@ import org.xmlpull.v1.XmlPullParserException;
 public class RepositoryXmlParser {
   
   public static class ParseResult {
-    String name;
-    Long increment;
-    Collection<Resource> resources;
+    public String name;
+    public Long increment;
+    public Collection<Resource> resources = new ArrayList<Resource>();
   }
 
-  public static Collection<Resource> parse(String url) throws Exception {
+  public static ParseResult parse(String url) throws Exception {
     final URL repositoryUrl = new URL(url);
     
     InputStream is = repositoryUrl.openStream(); 
 
-    Collection<Resource> rs = parse(is);
+    ParseResult pr = parse(is);
     
-    ensureOsgiContentUrlsAreAbsolute(repositoryUrl, rs);
+    ensureOsgiContentUrlsAreAbsolute(repositoryUrl, pr.resources);
 
-    return rs;
+    return pr;
   }
 
-  public static Collection<Resource> parse(InputStream is)
+  public static ParseResult parse(InputStream is)
       throws XmlPullParserException, IOException, Exception {
     XmlPullParser p = new KXmlParser();
     p.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
     p.setInput(new InputStreamReader(is));
-    ArrayList<Resource> rs = new ArrayList<Resource>();
-    // TODO Parse the attributes in the repository tag?
+    ParseResult rs = null;
+
+    for (int  e = p.getEventType();
+              e != XmlPullParser.END_DOCUMENT;
+              e = p.next()) {
+      if (e == XmlPullParser.START_TAG && "repository".equals(p.getName())) {
+        rs = parseRepository(p);
+      }
+    }
+    return rs;
+  }
+
+  private static ParseResult parseRepository(XmlPullParser p)
+      throws XmlPullParserException, IOException, Exception {
+    if(!"repository".equals(p.getName())) return null;
+    
+    ParseResult pr = new ParseResult();
+    
+    for(int i = 0; i < p.getAttributeCount(); ++i) {
+      if("name".equalsIgnoreCase(p.getAttributeName(i))) {
+        pr.name = p.getAttributeValue(i);
+        continue;
+      }
+      if("increment".equalsIgnoreCase(p.getAttributeName(i))) {
+        pr.increment = Long.parseLong(p.getAttributeValue(i).trim());
+        continue;
+      }
+    }
+    
     for (int  e = p.getEventType();
               e != XmlPullParser.END_DOCUMENT;
               e = p.next()) {
@@ -86,10 +113,10 @@ public class RepositoryXmlParser {
         r = parseResource(p);
       }
       if (r != null) {
-        rs.add(r);
+        pr.resources.add(r);
       }
     }
-    return rs;
+    return pr;
   }
 
   private static void ensureOsgiContentUrlsAreAbsolute(URL repositoryUrl, Collection<Resource> rs) throws Exception {
@@ -303,20 +330,22 @@ public class RepositoryXmlParser {
     return value;
   }
   
-  public static void debug(Collection<Resource> rs) {
-    System.out.println("======= BEGIN PARSED REPOSITORY XML =======");
-    for(Resource r : rs) {
+  public static void debug(ParseResult pr) {
+    System.out.println("======= BEGIN PARSED REPOSITORY XML ======="); 
+    for(Resource r : pr.resources) {
      System.out.println(r.toString()); 
     }
     System.out.println("======== END PARSED REPOSITORY XML ========");
-    System.out.println("======== RESOURCES FOUND: " + rs.size());
+    System.out.println("======== NAME: " + pr.name);
+    System.out.println("======== INCREMENT: " + pr.increment);
+    System.out.println("======== RESOURCES FOUND: " + pr.resources.size());
     System.out.flush();
   }
   
   public static void main(String[] a) {
     try {
-      Collection<Resource> rs = RepositoryXmlParser.parse(a[0]);
-      debug(rs);
+      ParseResult pr = RepositoryXmlParser.parse(a[0]);
+      debug(pr);
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     } catch (Exception e) {
