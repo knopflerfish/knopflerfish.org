@@ -59,7 +59,7 @@
 	  <dt class="leftmenu2"><a class="navigation_enabled" href="http://www.knopflerfish.org/">www.knopflerfish.org</a></dt>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="https://sourceforge.net/forum/forum.php?forum_id=328005">KF Forum</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://sourceforge.net/tracker/?atid=567241&group_id=82798&func=browse">Bug tracker</a></dd>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="repository.html">Bundle repository</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="osgi/jars/index.xml">Bundle repository</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="@REPO_URL@/@TAG@">Source (subversion)</a></dd>
 	</dl>
 
