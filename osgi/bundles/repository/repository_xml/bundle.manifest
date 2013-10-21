@@ -16,5 +16,6 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/repository/repository_xml
 Provide-Capability: osgi.service;
  objectClass:List<String>="org.osgi.service.Repository",
- "org.knopflerfish.service.repository.XmlBackedRepositoryFactory"
+ osgi.service;
+ objectClass:List<String>="org.knopflerfish.service.repository.XmlBackedRepositoryFactory"
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
