@@ -36,8 +36,6 @@ package org.knopflerfish.framework;
 
 import java.util.ArrayList;
 
-import org.osgi.framework.Version;
-
 
 /**
  * Class representing a package.
@@ -228,14 +226,7 @@ class Pkg {
      */
     public int compare(ImportPkg a, ImportPkg b)
     {
-      int d;
-      if (a.packageRange == null) {
-        d = b.packageRange == null ? 0 : Version.emptyVersion.compareTo(b.packageRange.getLeft());
-      } else if (b.packageRange == null) {
-        d = a.packageRange.getLeft().compareTo(Version.emptyVersion);        
-      } else {
-        d = a.packageRange.getLeft().compareTo(b.packageRange.getLeft());
-      }
+      int d = a.packageRange.compareTo(b.packageRange);
       if (d == 0) {
         final long ld = b.bpkgs.bg.bundle.id - a.bpkgs.bg.bundle.id;
         if (ld < 0)

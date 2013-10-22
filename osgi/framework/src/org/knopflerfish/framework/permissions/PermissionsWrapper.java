@@ -49,7 +49,6 @@ import java.util.PropertyPermission;
 import org.osgi.framework.AdminPermission;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.CapabilityPermission;
-import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.permissionadmin.PermissionInfo;
 
@@ -290,8 +289,7 @@ public class PermissionsWrapper extends PermissionCollection {
                                AdminPermission.METADATA + "," +
                                AdminPermission.CLASS));
     pc.add(new PropertyPermission("org.osgi.framework.*", "read"));
-    pc.add(new CapabilityPermission(ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE,
-                                    CapabilityPermission.REQUIRE));
+    pc.add(new CapabilityPermission("osgi.ee", CapabilityPermission.REQUIRE));
     return pc;
   }
 

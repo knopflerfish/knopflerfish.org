@@ -74,16 +74,16 @@ class ConfigurationStore {
 
     private final File storeDir;
 
-    private final Properties storeData;
+    private Properties storeData;
 
-    private final Properties pidToFileName;
+    private Properties pidToFileName;
 
     private Hashtable<String, Object> factoryPidToPids;
 
-    private final Hashtable<String, ConfigurationDictionary> cache
+    private Hashtable<String, ConfigurationDictionary> cache
       = new Hashtable<String, ConfigurationDictionary>();
 
-    private final CMDataReader cmDataReader = new CMDataReader();
+    private CMDataReader cmDataReader = new CMDataReader();
 
     public ConfigurationStore(File storeDir) throws IOException {
         this.storeDir = storeDir;
@@ -103,7 +103,7 @@ class ConfigurationStore {
 
     public synchronized ConfigurationDictionary load(String pid)
             throws IOException {
-        String fileName = pidToFileName.getProperty(pid);
+        String fileName = (String) pidToFileName.getProperty(pid);
         if (fileName == null) {
             return null;
         }
@@ -133,81 +133,82 @@ class ConfigurationStore {
 
   public synchronized void store(String pid,
                                  String factoryPid,
-                                 ConfigurationDictionary configuration,
-                                 boolean incrementChangeCount)
+                                 ConfigurationDictionary configuration)
       throws IOException
   {
     String fileName = fileNameOf(pid, factoryPid);
 
-    storeConfigurationDictionary(configuration, fileName, incrementChangeCount);
+    storeConfigurationDictionary(configuration, fileName);
   }
 
-  public synchronized ConfigurationDictionary delete(String pid)
-      throws IOException
-  {
-    if (pid == null || "".equals(pid)) {
-      return null;
-    }
-    String fileName = (String) pidToFileName.remove(pid);
-    if (fileName == null || "".equals(fileName)) {
-      return null;
-    }
-    storeProperties(pidToFileName, pidDataFile);
-
-    ConfigurationDictionary d = loadConfigurationDictionary(fileName);
-    uncacheConfigurationDictionary(fileName);
-    String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
-    if (fpid != null) {
-      @SuppressWarnings("unchecked")
-      Vector<String> v = (Vector<String>) factoryPidToPids.get(fpid);
-      if (v.removeElement(pid)) {
-        if (v.isEmpty()) {
-          factoryPidToPids.remove(fpid);
+    public synchronized ConfigurationDictionary delete(String pid)
+            throws IOException {
+        if (pid == null || "".equals(pid)) {
+            return null;
         }
-        storeHashtable(factoryPidToPids, factoryPidDataFile);
-      }
-    }
-
-    File f = new File(storeDir, fileName);
-    if (f.exists()) {
-      f.delete();
-    }
-    return d;
-  }
-
-    public synchronized String generatePid(String targetedFactoryPid)
-        throws IOException
-    {
-      // Remove the target specification from the factory PID before using it as a
-      // base for the generated PID.
-      final int barPos = targetedFactoryPid.indexOf('|');
-      final boolean isTargetedPID = barPos > 0; // At least one char in the PID.
-      final String factoryPid = isTargetedPID ? targetedFactoryPid.substring(0, barPos) : targetedFactoryPid;
-
-      String suffix = null;
-      Properties p = new Properties();
-      File pidFile = new File(storeDir, generatedPids);
-      if (pidFile.exists()) {
-        InputStream is = new BufferedInputStream(new FileInputStream(pidFile));
-        p.load(is);
-        if (is != null) {
-          is.close();
+        String fileName = (String) pidToFileName.remove(pid);
+        if (fileName == null || "".equals(fileName)) {
+            return null;
         }
-        suffix = p.getProperty(factoryPid);
-      }
-      if (suffix == null) {
-        suffix = new Long(0).toString();
-      } else {
-        long l = Long.parseLong(suffix) + 1;
-        suffix = new Long(l).toString();
-      }
-      p.put(factoryPid, suffix);
-      FileOutputStream os = new FileOutputStream(pidFile);
-      p.save(os, "Suffixes used for generating pids");
-      if (os != null) {
-        os.close();
-      }
-      return factoryPid + "." + suffix;
+        storeProperties(pidToFileName, pidDataFile);
+
+        ConfigurationDictionary d = loadConfigurationDictionary(fileName);
+        uncacheConfigurationDictionary(fileName);
+        String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
+        if (fpid != null) {
+            @SuppressWarnings("unchecked")
+            Vector<String> v = (Vector<String>) factoryPidToPids.get(fpid);
+            if (v.removeElement(pid)) {
+                storeHashtable(factoryPidToPids, factoryPidDataFile);
+            }
+        }
+
+        File f = new File(storeDir, fileName);
+        if (f.exists()) {
+            f.delete();
+        }
+        return d;
+    }
+
+    public synchronized void deleteAll(String factoryPid) throws IOException {
+        @SuppressWarnings("unchecked")
+        Vector<String> v = (Vector<String>) factoryPidToPids.get(factoryPid);
+        if (v == null) {
+            return;
+        }
+        Enumeration<String> e = v.elements();
+        while (e.hasMoreElements()) {
+            delete((String) e.nextElement());
+        }
+    }
+
+    public synchronized String generatePid(String factoryPid)
+            throws IOException {
+        String suffix = null;
+        Properties p = new Properties();
+        File pidFile = new File(storeDir, generatedPids);
+        if (pidFile.exists()) {
+            InputStream is = new BufferedInputStream(new FileInputStream(
+                    pidFile));
+            p.load(is);
+            if (is != null) {
+                is.close();
+            }
+            suffix = p.getProperty(factoryPid);
+        }
+        if (suffix == null) {
+            suffix = new Long(0).toString();
+        } else {
+            long l = Long.parseLong(suffix) + 1;
+            suffix = new Long(l).toString();
+        }
+        p.put(factoryPid, suffix);
+        FileOutputStream os = new FileOutputStream(pidFile);
+        p.save(os, "Suffixes used for generating pids");
+        if (os != null) {
+            os.close();
+        }
+        return factoryPid + "." + suffix;
     }
 
     // ////////////////////
@@ -242,9 +243,9 @@ class ConfigurationStore {
             Vector<String> v = (Vector<String>) factoryPidToPids.get(factoryPid);
             if (v == null) {
                 v = new Vector<String>();
-                factoryPidToPids.put(factoryPid, v);
             }
             v.addElement(pid);
+            factoryPidToPids.put(factoryPid, v);
             storeHashtable(factoryPidToPids, factoryPidDataFile);
         }
 
@@ -336,12 +337,8 @@ class ConfigurationStore {
     }
 
     private void uncacheConfigurationDictionary(String fileName) {
-      cache.remove(fileName);
-  }
-
-    private void cacheConfigurationDictionary(String fileName, ConfigurationDictionary d) {
-      cache.put(fileName, d);
-  }
+        cache.remove(fileName);
+    }
 
     private ConfigurationDictionary loadConfigurationDictionary(String fileName)
             throws IOException {
@@ -357,32 +354,23 @@ class ConfigurationStore {
         return d;
     }
 
-  private void storeConfigurationDictionary(ConfigurationDictionary d,
-                                            String fileName,
-                                            boolean incrementChangeCount)
-      throws IOException
-  {
-    // uncacheConfigurationDictionary(fileName);
-    // using uncache here will loose the change count since it is not persisted.
-    cacheConfigurationDictionary(fileName, d);
-    File f = new File(storeDir, fileName);
-    PrintWriter w =
-      new PrintWriter(new OutputStreamWriter(new FileOutputStream(f),
-                                             CMDataWriter.ENCODING));
+    private void storeConfigurationDictionary(ConfigurationDictionary d, String fileName)
+            throws IOException {
+        uncacheConfigurationDictionary(fileName);
+        File f = new File(storeDir, fileName);
+        PrintWriter w = new PrintWriter(new OutputStreamWriter(
+                new FileOutputStream(f), CMDataWriter.ENCODING));
 
-    if (incrementChangeCount) {
-      d.incrementChangeCount();
-    }
-    String pid = (String) d.get(Constants.SERVICE_PID);
-    String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
-    if (fpid == null) {
-      CMDataWriter.writeConfiguration(pid, d, w);
-    } else {
-      CMDataWriter.writeFactoryConfiguration(fpid, pid, d, w);
-    }
+        String pid = (String) d.get(Constants.SERVICE_PID);
+        String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
+        if (fpid == null) {
+            CMDataWriter.writeConfiguration(pid, d, w);
+        } else {
+            CMDataWriter.writeFactoryConfiguration(fpid, pid, d, w);
+        }
 
-    if (w != null) {
-      w.close();
+        if (w != null) {
+            w.close();
+        }
     }
-  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2010). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.metatype;
 
 import java.io.IOException;
@@ -23,7 +22,7 @@ import java.io.InputStream;
  * Description for the data type information of an objectclass.
  * 
  * @ThreadSafe
- * @author $Id: f65f64dbce209cf7f7418be8c812cd2162ac7835 $
+ * @version $Id: f717a14d0bdc24afce0f1de5cc02f921ed200efc $
  */
 public interface ObjectClassDefinition {
 	/**
@@ -43,8 +42,8 @@ public interface ObjectClassDefinition {
 	/**
 	 * Argument for {@code getAttributeDefinitions(int)}.
 	 * <p>
-	 * {@code ALL} indicates that all the definitions are returned. The value is
-	 * -1.
+	 * {@code ALL} indicates that all the definitions are returned. The value
+	 * is -1.
 	 */
 	public static final int	ALL			= 0xFFFFFFFF;
 
@@ -61,15 +60,15 @@ public interface ObjectClassDefinition {
 	 * Return the id of this object class.
 	 * 
 	 * <p>
-	 * {@code ObjectDefintion} objects share a global namespace in the registry.
-	 * They share this aspect with LDAP/X.500 attributes. In these standards the
-	 * OSI Object Identifier (OID) is used to uniquely identify object classes.
-	 * If such an OID exists, (which can be requested at several standard
-	 * organisations and many companies already have a node in the tree) it can
-	 * be returned here. Otherwise, a unique id should be returned which can be
-	 * a java class name (reverse domain name) or generated with a GUID
-	 * algorithm. Note that all LDAP defined object classes already have an OID
-	 * associated. It is strongly advised to define the object classes from
+	 * {@code ObjectDefintion} objects share a global namespace in the
+	 * registry. They share this aspect with LDAP/X.500 attributes. In these
+	 * standards the OSI Object Identifier (OID) is used to uniquely identify
+	 * object classes. If such an OID exists, (which can be requested at several
+	 * standard organisations and many companies already have a node in the
+	 * tree) it can be returned here. Otherwise, a unique id should be returned
+	 * which can be a java class name (reverse domain name) or generated with a
+	 * GUID algorithm. Note that all LDAP defined object classes already have an
+	 * OID associated. It is strongly advised to define the object classes from
 	 * existing LDAP schemes which will give the OID for free. Many such schemes
 	 * exist ranging from postal addresses to DHCP parameters.
 	 * 
@@ -91,7 +90,8 @@ public interface ObjectClassDefinition {
 	 * 
 	 * <p>
 	 * Return a set of attributes. The filter parameter can distinguish between
-	 * {@code ALL},{@code REQUIRED} or the {@code OPTIONAL} attributes.
+	 * {@code ALL},{@code REQUIRED} or the {@code OPTIONAL}
+	 * attributes.
 	 * 
 	 * @param filter {@code ALL},{@code REQUIRED},{@code OPTIONAL}
 	 * @return An array of attribute definitions or {@code null} if no
@@ -100,18 +100,19 @@ public interface ObjectClassDefinition {
 	public AttributeDefinition[] getAttributeDefinitions(int filter);
 
 	/**
-	 * Return an {@code InputStream} object that can be used to create an icon
-	 * from.
+	 * Return an {@code InputStream} object that can be used to create an
+	 * icon from.
 	 * 
 	 * <p>
-	 * Indicate the size and return an {@code InputStream} object containing an
-	 * icon. The returned icon maybe larger or smaller than the indicated size.
+	 * Indicate the size and return an {@code InputStream} object containing
+	 * an icon. The returned icon maybe larger or smaller than the indicated
+	 * size.
 	 * 
 	 * <p>
 	 * The icon may depend on the localization.
 	 * 
-	 * @param size Requested size of an icon, e.g. a 16x16 pixels icon then size
-	 *        = 16
+	 * @param size Requested size of an icon, e.g. a 16x16 pixels icon then size =
+	 *        16
 	 * @return An InputStream representing an icon or {@code null}
 	 * @throws IOException If the {@code InputStream} cannot be returned.
 	 */

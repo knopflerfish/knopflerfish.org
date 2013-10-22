@@ -5,6 +5,6 @@ Bundle-Description: Test bundle for framework, bundleP3_test for test
   permission tests
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-Activator: org.knopflerfish.bundle.bundleP1_test.BundleActivator
-Bundle-Category: testing
+Bundle-Category: test
 Export-Package: org.knopflerfish.service.bundleP1_test;
  specification-version=3.0

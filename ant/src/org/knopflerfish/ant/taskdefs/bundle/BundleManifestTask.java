@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,30 +34,21 @@ package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
-
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Manifest;
 import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.EnumeratedAttribute;
-
-import org.osgi.framework.Constants;
-
-import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
 
 
 /**
@@ -111,7 +102,7 @@ import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
  *  </tr>
  *  <tr>
  *    <td valign="top">templateFile</td>
- *    <td valign="top">the template manifest file to load.</td>
+ *    <td valign="top">the template mainfest file to load.</td>
  *    <td valign="top" align="center">No.</td>
  *  </tr>
  *  <tr>
@@ -158,35 +149,10 @@ import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
  *    <td valign="top" align="center">No.</td>
  *  </tr>
  *  <tr>
- *    <td valign="top">allKinds</td>
- *    <td valign="top">A comma separated list specifying all kinds.
- *                     <p>
- *                     If given all main section attributes starting with
- *                     any of the kinds in <code>allKinds</code> will
- *                     be removed after the specified kind has been used to
- *                     override attributes. E.g., if <code>kind="all"</code>
- *                     and <code>allKinds="api,all"</code> and there is
- *                     an attribute named <code>"api-Export-Package"</code>
- *                     then that attribute will be removed from the
- *                     resulting manifest.
- *    </td>
- *    <td valign="top" align="center">No.</td>
- *  </tr>
- *  <tr>
  *    <td valign="top">mainAttributesToSkip</td>
  *    <td valign="top">Comma separated list with names of main section
  *                     attributes to weed out when writing the
  *                     manifest file.
- *    </td>
- *    <td valign="top" align="center">No.</td>
- *  </tr>
- *  <tr>
- *    <td valign="top">replaceEEmin</td>
- *    <td valign="top">Replace the filter part of any osgi.ee requirement
- *                     for the OSGi/Minimum EE with the given value.
- *                     E.g., <code>replaceEEmin="(&(osgi.ee=JavaSE)(version>=1.7))"</code>
- *                     will replace any filter matching 'OSGi/Minimum'
- *                     in the osgi.ee name space with the given filter expression.
  *    </td>
  *    <td valign="top" align="center">No.</td>
  *  </tr>
@@ -289,7 +255,6 @@ public class BundleManifestTask extends Task {
      *
      * @return a String array of the allowed values.
      */
-    @Override
     public String[] getValues() {
       return new String[] {"update", "replace", "template", "templateOnly"};
     }
@@ -324,12 +289,6 @@ public class BundleManifestTask extends Task {
   private String bundleKind;
 
   /**
-   * All known kinds of bundles. Used to remove unused kind specific main
-   * section manifest attributes.
-   */
-  private final Set<String> allBundleKinds = new HashSet<String>();
-
-  /**
    * Prefix of project properties to add main section attributes for.
    *
    * For each property in the project with a name that starts with this
@@ -353,7 +312,7 @@ public class BundleManifestTask extends Task {
   /**
    * Holds explicit manifest data given in the build file.
    */
-  private final Manifest manifestNested = new Manifest();
+  private Manifest manifestNested = new Manifest();
 
   /**
    * The encoding to use for reading in the manifest template file.
@@ -418,53 +377,6 @@ public class BundleManifestTask extends Task {
 
 
   /**
-   * Comma separated list of known bundle kinds. Any main section attribute
-   * starting with one of the known kind values will be removed from the
-   * resulting manifest after processing of kind specific overrides.
-   *
-   * @param s
-   *          Comma separated list of bundle kinds.
-   */
-  public void setAllKinds(String s)
-  {
-    if (s != null && (s = s.trim()).length() > 0) {
-      final StringTokenizer st = new StringTokenizer(s, ",");
-      while (st.hasMoreTokens()) {
-        final String kind = st.nextToken();
-        allBundleKinds.add(kind.trim());
-      }
-    } else {
-      allBundleKinds.clear();
-    }
-    log("All bundle kinds " + allBundleKinds + ".", Project.MSG_DEBUG);
-  }
-
-  /**
-   * The name of the OSGi/Minimum Execution Environment.
-   */
-  private final String OSGI_MINIMUM_EE_NAME = "OSGi/Minimum";
-
-  /**
-   * Replacement filter for the filter in required capabilities in the
-   * <code>osgi.ee</code> name-space that requires the OSGi/Minimum EE.
-   */
-  private String replaceEEmin;
-
-  /**
-   * Sets the replacement filter expression for required capabilities in the
-   * osgi.ee name-space that requires the OSGi/Minimum EE.
-   *
-   * @param s
-   */
-  public void setReplaceEEmin(String s)
-  {
-    if (s != null && (s = s.trim()).length() > 0) {
-      replaceEEmin = s;
-      log("replaceEEmin: '" + replaceEEmin + "'.", Project.MSG_DEBUG);
-    }
-  }
-
-  /**
    * If set to true the bundle activator, export package and import
    * package list in the written manifest will be printed on the
    * console.
@@ -485,7 +397,7 @@ public class BundleManifestTask extends Task {
   private void doVerbose(Manifest mf)
   {
     if (verbose) {
-      final Manifest.Section   ms = mf.getMainSection();
+      Manifest.Section   ms = mf.getMainSection();
       doVerbose( ms, "Bundle-Activator", "activator");
       doVerbose( ms, "Export-Package", "exports");
       doVerbose( ms, "Import-Package", "imports");
@@ -494,9 +406,9 @@ public class BundleManifestTask extends Task {
 
   private void doVerbose(Manifest.Section ms, String attrName, String heading)
   {
-    final Manifest.Attribute ma = ms.getAttribute(attrName);
+    Manifest.Attribute ma = ms.getAttribute(attrName);
     if (null!=ma) {
-      final String val = ma.getValue();
+      String val = ma.getValue();
       if (!isPropertyValueEmpty(val)) {
         log( heading +" = "+val, Project.MSG_INFO);
       }
@@ -532,16 +444,15 @@ public class BundleManifestTask extends Task {
   private void addAttributesFromProperties(Manifest mf)
   {
     if (null!=attributePropertyPrefix) {
-      final int       prefixLength = attributePropertyPrefix.length();
-      final Project   project      = getProject();
-      final Manifest.Section mainS = mf.getMainSection();
-      @SuppressWarnings("unchecked")
-      final Hashtable<String,?> properties   = project.getProperties();
-      for (final Enumeration<String> pe = properties.keys(); pe.hasMoreElements();) {
-        final String key = pe.nextElement();
+      int       prefixLength = attributePropertyPrefix.length();
+      Project   project      = getProject();
+      Manifest.Section mainS = mf.getMainSection();
+      Hashtable properties   = project.getProperties();
+      for (Enumeration pe = properties.keys(); pe.hasMoreElements();) {
+        String key = (String) pe.nextElement();
         if (key.startsWith(attributePropertyPrefix)) {
-          final String attrName  = key.substring(prefixLength);
-          final String attrValue = (String) properties.get(key);
+          String attrName  = key.substring(prefixLength);
+          String attrValue = (String) properties.get(key);
           if(!BUNDLE_EMPTY_STRING.equals(attrValue)) {
             Manifest.Attribute attr = mainS.getAttribute(attrName);
             if (null!=attr) {
@@ -557,7 +468,7 @@ public class BundleManifestTask extends Task {
               mf.addConfiguredAttribute(attr);
               log("from propety '" +attrName +": "+attrValue+"'.",
                   Project.MSG_VERBOSE);
-            } catch (final ManifestException me) {
+            } catch (ManifestException me) {
               throw new BuildException
                 ( "Failed to add main section attribute for property '"
                   +key+"' with value '"+attrValue+"'.\n"+me.getMessage(),
@@ -617,10 +528,10 @@ public class BundleManifestTask extends Task {
    * Mapping from attribute key, all lower case, to attribute name
    * with case according to the OSGi specification.
    */
-  private static final Hashtable<String,String> osgiAttrNamesMap = new Hashtable<String, String>();
+  private static final Hashtable osgiAttrNamesMap = new Hashtable();
   static {
-    for (final String osgiAttrName : osgiAttrNames) {
-      osgiAttrNamesMap.put(osgiAttrName.toLowerCase(), osgiAttrName);
+    for (int i=0; i<osgiAttrNames.length; i++) {
+      osgiAttrNamesMap.put(osgiAttrNames[i].toLowerCase(), osgiAttrNames[i]);
     }
   }
 
@@ -636,17 +547,16 @@ public class BundleManifestTask extends Task {
   private void updatePropertiesFromMainSectionAttributeValues(Manifest mf)
   {
     if (null!=attributePropertyPrefix) {
-      final Project   project      = getProject();
-      final Manifest.Section mainS = mf.getMainSection();
-      for (@SuppressWarnings("unchecked")
-      final Enumeration<String> ae = mainS.getAttributeKeys(); ae.hasMoreElements();) {
-        final String key = ae.nextElement();
-        final Manifest.Attribute attr = mainS.getAttribute(key);
+      Project   project      = getProject();
+      Manifest.Section mainS = mf.getMainSection();
+      for (Enumeration ae = mainS.getAttributeKeys(); ae.hasMoreElements();) {
+        String key = (String) ae.nextElement();
+        Manifest.Attribute attr = mainS.getAttribute(key);
         // Ensure that the default case is used for OSGi specified attributes
-        final String propKey = attributePropertyPrefix
+        String propKey = attributePropertyPrefix
           + (osgiAttrNamesMap.containsKey(key)
              ? osgiAttrNamesMap.get(key) : attr.getName() );
-        final String propVal = attr.getValue();
+        String propVal = attr.getValue();
         log("setting '" +propKey +"'='"+propVal+"'.", Project.MSG_VERBOSE);
         project.setProperty(propKey,propVal);
       }
@@ -663,124 +573,38 @@ public class BundleManifestTask extends Task {
   private void overrideAttributes(Manifest mf, String prefix)
   {
     if (null!=prefix && 0<prefix.length()) {
-      final int       prefixLength = prefix.length();
-      final Manifest.Section mainS = mf.getMainSection();
-      final Vector<String> attrNames = new Vector<String>();
-      for (@SuppressWarnings("unchecked")
-      final Enumeration<String> ae = mainS.getAttributeKeys(); ae.hasMoreElements();) {
-        final String key = ae.nextElement();
-        final Manifest.Attribute attr = mainS.getAttribute(key);
-        final String attrName = attr.getName();
+      int       prefixLength = prefix.length();
+      Manifest.Section mainS = mf.getMainSection();
+      Vector attrNames = new Vector();
+      for (Enumeration ae = mainS.getAttributeKeys(); ae.hasMoreElements();) {
+        String key = (String) ae.nextElement();
+        Manifest.Attribute attr = mainS.getAttribute(key);
+        String attrName = attr.getName();
         if (attrName.startsWith(prefix)) {
           attrNames.add(attrName);
         }
       }
       /* Must do the modification in a separate loop since it modifies
        * the object that the enumeration above iterates over. */
-      for (final Object element : attrNames) {
-        final String attrName = (String) element;
-        final Manifest.Attribute attr = mainS.getAttribute(attrName);
-        final String attrVal = attr.getValue();
+      for (Enumeration ane = attrNames.elements(); ane.hasMoreElements();) {
+        String attrName = (String) ane.nextElement();
+        Manifest.Attribute attr = mainS.getAttribute(attrName);
+        String attrVal = attr.getValue();
         mainS.removeAttribute(attrName);
-        final String newAttrName = attrName.substring(prefixLength);
+        String newAttrName = attrName.substring(prefixLength);
         mainS.removeAttribute(newAttrName);
         if (!isPropertyValueEmpty(attrVal)) {
           try {
-            final Manifest.Attribute newAttr
+            Manifest.Attribute newAttr
               = new Manifest.Attribute(newAttrName,attrVal);
             mainS.addConfiguredAttribute(newAttr);
             log("Overriding '" +newAttrName +"' with value of '"+attrName+"'.",
                 Project.MSG_VERBOSE);
-          } catch (final ManifestException me) {
+          } catch (ManifestException me) {
             throw new BuildException("overriding of '" +newAttrName
                                      +"' failed: "+me,
                                      me, getLocation());
           }
-        }
-      }
-    }
-  }
-
-  /**
-   * Remove all kind specific main section attributes.
-   *
-   * @param mf     The manifest to remove main section attributes from.
-   */
-  private void removeAttributesForOtherKinds(Manifest mf)
-  {
-    if (allBundleKinds.size() > 0) {
-      final Manifest.Section mainS = mf.getMainSection();
-
-      // Find all attributes to remove.
-      final Vector<String> attrNames = new Vector<String>();
-      for (@SuppressWarnings("unchecked")
-      final Enumeration<String> ae = mainS.getAttributeKeys(); ae
-          .hasMoreElements();) {
-        final String key = ae.nextElement();
-        final Manifest.Attribute attr = mainS.getAttribute(key);
-        final String attrName = attr.getName();
-        final int prefixEnd = attrName.indexOf('-');
-        if (prefixEnd > 0) {
-          final String prefix = attrName.substring(0, prefixEnd);
-          if (allBundleKinds.contains(prefix)) {
-            attrNames.add(attrName);
-          }
-        }
-      }
-      // Remove the attributes; must be done outside the loop above since
-      // removal modifies the collection that the loop iterates over.
-      for (final String attrName : attrNames) {
-        mainS.removeAttribute(attrName);
-        log("Removing kind specific attribute '" + attrName + "'.",
-            Project.MSG_VERBOSE);
-      }
-    }
-  }
-
-  /**
-   * If the manifest contains a capability requirement on osgi.ee for the
-   * OSGi/Minimum EE then replace the filter part of that requirement with the
-   * given replacement value.
-   *
-   * @param mf
-   *          The manifest to replace in.
-   */
-  private void replaceEEminmum(Manifest mf)
-  {
-    if (replaceEEmin != null) {
-      final Manifest.Section mainS = mf.getMainSection();
-      final Manifest.Attribute attr =
-        mainS.getAttribute(Constants.REQUIRE_CAPABILITY);
-      if (attr != null) {
-        final String reqCapValue = attr.getValue();
-        if (reqCapValue.contains(OSGI_MINIMUM_EE_NAME)) {
-          log("Found '" + Constants.REQUIRE_CAPABILITY
-              + "' attribute with requirement on '" + OSGI_MINIMUM_EE_NAME
-              + "'.", Project.MSG_DEBUG);
-
-          // Must replace...
-          final List<HeaderEntry> hes =
-            Util.parseManifestHeader(Constants.REQUIRE_CAPABILITY, reqCapValue,
-                                     true, true, false);
-          for (final HeaderEntry he : hes) {
-            log("Processing header entry '" + he.getKey()
-                    + "' with attributes " + he.getAttributes()
-                    + " and directives " + he.getDirectives() + ".",
-                Project.MSG_DEBUG);
-            for (final Entry<String, String> directiveEntry : he
-                .getDirectives().entrySet()) {
-              if ("osgi.ee".equals(he.getKey())
-                  && "filter".equals(directiveEntry.getKey())
-                  && directiveEntry.getValue().contains(OSGI_MINIMUM_EE_NAME)) {
-                log("Replacing filter '" + directiveEntry.getValue()
-                        + "' with '" + replaceEEmin + "' in '" + reqCapValue
-                        + "'.", Project.MSG_VERBOSE);
-                directiveEntry.setValue(replaceEEmin);
-                break;
-              }
-            }
-          }
-          attr.setValue(Util.toString(hes));
         }
       }
     }
@@ -900,7 +724,7 @@ public class BundleManifestTask extends Task {
       ma = new Manifest.Attribute(attrName,value);
       try {
         mf.getMainSection().addConfiguredAttribute(ma);
-      } catch (final ManifestException me) {
+      } catch (ManifestException me) {
         throw new BuildException("ensureAttrValue("+attrName+","
                                  +value +") failed.",
                                  me, getLocation());
@@ -958,7 +782,7 @@ public class BundleManifestTask extends Task {
         if (null!=svnAttr) {
           final String svnURL = svnAttr.getValue();
           if (svnURL.startsWith(SVN_URL_PREFIX)) {
-            final String newSvnURL
+            String newSvnURL
               = SVN_URL_PREFIX.substring(0,SVN_URL_PREFIX.indexOf("trunk/"))
               +"tags/" +version +svnURL.substring(SVN_URL_PREFIX.length()-1);
             svnAttr.setValue(newSvnURL);
@@ -974,7 +798,6 @@ public class BundleManifestTask extends Task {
    *
    * @throws BuildException if the manifest cannot be written.
    */
-  @Override
   public void execute() throws BuildException {
     if (mode.getValue().equals("update") && manifestTemplateFile==null) {
       throw new BuildException("the template file attribute is required"
@@ -986,12 +809,12 @@ public class BundleManifestTask extends Task {
     }
 
 
-    final Manifest manifestProps = new Manifest();
+    Manifest manifestProps = new Manifest();
     if (!mode.getValue().equals("templateOnly")) {
       addAttributesFromProperties(manifestProps);
     }
 
-    final Manifest manifestToWrite  = Manifest.getDefaultManifest();
+    Manifest manifestToWrite  = Manifest.getDefaultManifest();
     Manifest manifestTemplate = null;
 
     if (null!=manifestTemplateFile && manifestTemplateFile.exists()) {
@@ -1005,18 +828,17 @@ public class BundleManifestTask extends Task {
           ir = new InputStreamReader(is, encoding);
         }
         manifestTemplate = new Manifest(ir);
-      } catch (final ManifestException me) {
+      } catch (ManifestException me) {
         throw new BuildException("Template manifest " + manifestTemplateFile
-                                 + " is invalid. " + me.getMessage(),
-                                 me, getLocation());
-      } catch (final IOException ioe) {
+                                 + " is invalid", me, getLocation());
+      } catch (IOException ioe) {
         throw new BuildException("Failed to read " + manifestTemplateFile,
                                  ioe, getLocation());
       } finally {
         if (ir != null) {
           try {
             ir.close();
-          } catch (final IOException e) {
+          } catch (IOException e) {
             // ignore
           }
         }
@@ -1062,23 +884,23 @@ public class BundleManifestTask extends Task {
               manifestFile==null ? Project.MSG_DEBUG: Project.MSG_VERBOSE);
         }
       }
-    } catch (final ManifestException me) {
+    } catch (ManifestException me) {
       throw new BuildException("Manifest is invalid", me, getLocation());
     }
 
     if (null!=mainAttributesToSkip && 0<mainAttributesToSkip.length()) {
-      final StringTokenizer st = new StringTokenizer(mainAttributesToSkip,",");
+      StringTokenizer st = new StringTokenizer(mainAttributesToSkip,",");
       while(st.hasMoreTokens()) {
-        final String attrName = st.nextToken();
+        String attrName = st.nextToken();
         log("Weeding out '"+attrName+"'.", Project.MSG_VERBOSE);
         manifestToWrite.getMainSection().removeAttribute(attrName);
       }
     }
 
     if (null!=bundleKind && 0<bundleKind.length()) {
-      final String kindUC = bundleKind.toUpperCase();
-      final String kindLC = bundleKind.toLowerCase();
-      final String suffix = "-"+kindUC;
+      String kindUC = bundleKind.toUpperCase();
+      String kindLC = bundleKind.toLowerCase();
+      String suffix = "-"+kindUC;
       ensureAttrEndsWith( manifestToWrite, "Bundle-Name", suffix );
       ensureAttrFirstValueEndsWith( manifestToWrite, "Bundle-SymbolicName",
                                     suffix );
@@ -1091,8 +913,6 @@ public class BundleManifestTask extends Task {
       overrideAttributes(manifestToWrite, bundleKind+"-");
     }
 
-    removeAttributesForOtherKinds(manifestToWrite);
-    replaceEEminmum(manifestToWrite);
     replaceTrunkWithVersion(manifestToWrite);
 
     if (null==manifestFile) {
@@ -1100,12 +920,12 @@ public class BundleManifestTask extends Task {
     } else {
       PrintWriter pw = null;
       try {
-        final FileOutputStream   os = new FileOutputStream(manifestFile);
-        final OutputStreamWriter ow = new OutputStreamWriter(os, "UTF-8");
+        FileOutputStream   os = new FileOutputStream(manifestFile);
+        OutputStreamWriter ow = new OutputStreamWriter(os, "UTF-8");
         pw = new PrintWriter(ow);
         manifestToWrite.write(pw);
         doVerbose(manifestToWrite);
-      } catch (final IOException ioe) {
+      } catch (IOException ioe) {
         throw new BuildException("Failed to write " + manifestFile,
                                  ioe, getLocation());
       } finally {

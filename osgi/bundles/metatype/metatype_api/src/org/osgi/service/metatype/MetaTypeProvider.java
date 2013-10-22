@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.metatype;
 
 /**
@@ -21,11 +20,11 @@ package org.osgi.service.metatype;
  * Service or Managed Service Factory as well as registered as a service. When
  * registered as a service, it must be registered with a
  * {@link #METATYPE_FACTORY_PID} or {@link #METATYPE_PID} service property (or
- * both). Any PID mentioned in either of these factories must be a valid
- * argument to the {@link #getObjectClassDefinition(String, String)} method.
+ * both). Any PID mentioned in either of these factories must be a valid argument
+ * to the {@link #getObjectClassDefinition(String, String)} method.
  * 
  * @ThreadSafe
- * @author $Id: 44778640e90b3772c21a48d64f611730e0f911d1 $
+ * @version $Id: a957b0efc2167c7ab076e15ff3f8170d71cd7b52 $
  */
 public interface MetaTypeProvider {
 
@@ -65,7 +64,8 @@ public interface MetaTypeProvider {
 	 * @throws IllegalArgumentException If the id or locale arguments are not
 	 *         valid
 	 */
-	public ObjectClassDefinition getObjectClassDefinition(String id, String locale);
+	public ObjectClassDefinition getObjectClassDefinition(String id,
+			String locale);
 
 	/**
 	 * Return a list of available locales.

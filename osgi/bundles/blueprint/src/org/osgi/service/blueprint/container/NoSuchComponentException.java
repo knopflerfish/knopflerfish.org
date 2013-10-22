@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.blueprint.container;
 
 /**
@@ -24,7 +23,7 @@ package org.osgi.service.blueprint.container;
  * instance or lookup Component Metadata using a component id that does not
  * exist in the Blueprint Container.
  * 
- * @author $Id: fa3a70ecbd0eba6cdd30229b2f3f57c72c908f29 $
+ * @version $Revision: 8083 $
  */
 public class NoSuchComponentException extends RuntimeException {
 	private static final long	serialVersionUID	= 1L;
@@ -50,7 +49,8 @@ public class NoSuchComponentException extends RuntimeException {
 	 * @param id The id of the non-existent component.
 	 */
 	public NoSuchComponentException(String id) {
-		super("No component with id '" + (id == null ? "<null>" : id) + "' could be found");
+		super("No component with id '" + (id == null ? "<null>" : id)
+				+ "' could be found");
 		this.componentId = id;
 	}
 

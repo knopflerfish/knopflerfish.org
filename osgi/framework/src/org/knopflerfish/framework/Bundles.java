@@ -51,7 +51,6 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
-import org.osgi.framework.VersionRange;
 
 /**
  * Here we handle all the bundles that are installed in the framework.
@@ -160,7 +159,7 @@ public class Bundles {
       } finally {
         bin.close();
       }
-      final BundleImpl res = new BundleImpl(fwCtx, ba, checkContext, caller);
+      final BundleImpl res = new BundleImpl(fwCtx, ba, checkContext);
       bundles.put(location, res);
       fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, res, caller));
       return res;
@@ -236,28 +235,27 @@ public class Bundles {
 
 
   /**
-   * Get all bundles that has specified bundle symbolic name and version.
+   * Get bundle that has specified bundle symbolic name and version.
    *
    * @param name The symbolic name of bundle to get.
    * @param version The bundle version of bundle to get.
-   * @return Collection of BundleImpls.
+   * @return BundleImpl for bundle or null.
    */
-  Collection<Bundle> getBundles(String name, Version version) {
+  BundleImpl getBundle(String name, Version version) {
     checkIllegalState();
-    final ArrayList<Bundle> res = new ArrayList<Bundle>(bundles.size());    
     if (Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(name)
         && version.equals(fwCtx.systemBundle.getVersion())) {
-      res.add(fwCtx.systemBundle);
+      return fwCtx.systemBundle;
     }
     synchronized (bundles) {
       for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
         final BundleImpl b = e.nextElement();
         if (name.equals(b.getSymbolicName()) && version.equals(b.getVersion())) {
-          res.add(b);
+          return b;
         }
       }
     }
-    return res;
+    return null;
   }
 
 
@@ -310,7 +308,7 @@ public class Bundles {
     final List<BundleGeneration> res = getBundleGenerations(name);
     for (int i = 0; i < res.size(); ) {
       final BundleGeneration bg = res.remove(i);
-      if (range == null || range.includes(bg.version)) {
+      if (range.withinRange(bg.version)) {
         int j = i;
         while (--j >= 0) {
           if (bg.version.compareTo(res.get(j).version) <= 0) {
@@ -415,7 +413,7 @@ public class Bundles {
     final BundleArchive [] bas = fwCtx.storage.getAllBundleArchives();
     for (final BundleArchive ba : bas) {
       try {
-        final BundleImpl b = new BundleImpl(fwCtx, ba, null, fwCtx.systemBundle);
+        final BundleImpl b = new BundleImpl(fwCtx, ba, null);
         bundles.put(b.location, b);
       } catch (final Exception e) {
         try {

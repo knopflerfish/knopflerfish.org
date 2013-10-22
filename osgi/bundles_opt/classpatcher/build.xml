@@ -21,6 +21,7 @@
     <pathelement location="resources/asm-3.2.jar"/>
   </path>
 
+  <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
     <copy file="${topdir}/framework/libs/asm-3.2.jar"
           todir="${proj.dir}/resources"/>

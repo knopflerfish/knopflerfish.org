@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,8 +73,7 @@
  * Import-Package: org.osgi.framework.startlevel; version=&quot;[1.0,2.0)&quot;
  * </pre>
  * 
- * @version $Id: 78bab33a230f0d6ee1de30fcac7ff6eaa04f0a52 $
+ * @version $Id: 270a001c55674ef419794fa4574472b09130af9e $
  */
-
 package org.osgi.framework.startlevel;
 

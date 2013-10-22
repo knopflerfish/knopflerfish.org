@@ -35,18 +35,19 @@
 package org.knopflerfish.framework;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.VersionRange;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 
 class RequireBundle
@@ -63,7 +64,6 @@ class RequireBundle
   final VersionRange bundleRange;
   BundlePackages bpkgs = null;
   final Map<String,Object> attributes;
-  final Map<String,String> directives;
 
 
   /**
@@ -81,7 +81,6 @@ class RequireBundle
     this.resolution = parent.resolution;
     this.bundleRange= parent.bundleRange;
     this.attributes = parent.attributes;
-    this.directives = parent.directives;
   }
 
   /**
@@ -97,8 +96,8 @@ class RequireBundle
     this.requestor = requestor;
     this.name = he.getKey();
 
-    final Map<String,String> dirs = he.getDirectives();
-    final String visibility = dirs.get(Constants.VISIBILITY_DIRECTIVE);
+    final String visibility = he.getDirectives()
+        .get(Constants.VISIBILITY_DIRECTIVE);
     if (visibility != null) {
       this.visibility = visibility.intern();
       if (this.visibility!=Constants.VISIBILITY_PRIVATE &&
@@ -118,7 +117,8 @@ class RequireBundle
       this.visibility = Constants.VISIBILITY_PRIVATE;
     }
 
-    final String resolution = dirs.get(Constants.RESOLUTION_DIRECTIVE);
+    final String resolution = he.getDirectives()
+        .get(Constants.RESOLUTION_DIRECTIVE);
     if (resolution != null) {
       this.resolution = resolution.intern();
       if (this.resolution!=Constants.RESOLUTION_MANDATORY &&
@@ -138,18 +138,16 @@ class RequireBundle
       this.resolution = Constants.RESOLUTION_MANDATORY;
     }
 
-    this.attributes = he.getAttributes();
-    final String range = (String) attributes.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+    final String range = (String) he.getAttributes()
+        .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
     if (range != null) {
       this.bundleRange = new VersionRange(range);
     } else {
-      this.bundleRange = null;
+      this.bundleRange = VersionRange.defaultVersionRange;
     }
-    final Filter filter = toFilter();
-    if (null!=filter) {
-      dirs.put(Constants.FILTER_DIRECTIVE, filter.toString());
-    }
-    this.directives = Collections.unmodifiableMap(dirs);
+
+    this.attributes = Collections.unmodifiableMap(he.getAttributes());
+
   }
 
 
@@ -167,25 +165,33 @@ class RequireBundle
         !rb.resolution.equals(Constants.RESOLUTION_MANDATORY)) {
       return false;
     }
-    return  bundleRange == null || !bundleRange.intersection(rb.bundleRange).isEmpty();
+    return bundleRange.withinRange(rb.bundleRange);
   }
 
-
   // BundleRequirement method
-  @Override
   public String getNamespace()
   {
     return BundleRevision.BUNDLE_NAMESPACE;
   }
 
-
   // BundleRequirement method
-  @Override
   public Map<String, String> getDirectives()
   {
-    return directives;
-  }
+    final Map<String,String> res = new HashMap<String, String>(4);
 
+    res.put(Constants.RESOLUTION_DIRECTIVE, resolution);
+    res.put(Constants.VISIBILITY_DIRECTIVE, visibility);
+
+    // For BUNDLE_NAMESPACE effective defaults to resolve and no other value
+    // is allowed so leave it out.
+    // res.put(Constants.EFFECTIVE_DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+
+    final Filter filter = toFilter();
+    if (null!=filter) {
+      res.put(Constants.FILTER_DIRECTIVE, filter.toString());
+    }
+    return res;
+  }
 
   private Filter toFilter()
   {
@@ -199,8 +205,8 @@ class RequireBundle
     sb.append(')');
 
     if (bundleRange != null) {
-      sb.append(bundleRange.toFilterString(Constants.BUNDLE_VERSION_ATTRIBUTE));
-      multipleConditions = true;
+      multipleConditions |= bundleRange
+          .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
     }
 
     for (final Entry<String,Object> entry : attributes.entrySet()) {
@@ -219,36 +225,26 @@ class RequireBundle
     try {
       return FrameworkUtil.createFilter(sb.toString());
     } catch (final InvalidSyntaxException _ise) {
-      throw new RuntimeException("Internal error, createFilter: '" +sb.toString() +"': " +_ise.getMessage());
+      // Should not happen...
+      System.err.println("createFilter: '" +sb.toString() +"': " +_ise.getMessage());
+      return null;
     }
   }
 
-
   // BundleRequirement method
   @SuppressWarnings("unchecked")
-  @Override
   public Map<String, Object> getAttributes()
   {
     return Collections.EMPTY_MAP;
   }
 
-
   // BundleRequirement method
-  @Override
   public BundleRevision getRevision()
   {
     return requestor.bg.bundleRevision;
   }
 
-
-  @Override
-  public BundleRevision getResource() {
-    return requestor.bg.bundleRevision;
-  }
-
-
   // BundleRequirement method
-  @Override
   public boolean matches(BundleCapability capability)
   {
     if (BundleRevision.BUNDLE_NAMESPACE.equals(capability.getNamespace())) {
@@ -257,8 +253,6 @@ class RequireBundle
     return false;
   }
 
-
-  @Override
   public int compareTo(RequireBundle o)
   {
     return this.orderal - o.orderal;

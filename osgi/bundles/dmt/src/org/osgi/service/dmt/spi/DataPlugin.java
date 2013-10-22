@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2011). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package org.osgi.service.dmt.spi;
 
-import org.osgi.service.dmt.DmtException;
-import org.osgi.service.dmt.DmtSession;
+import org.osgi.service.dmt.*;
 
 /**
  * An implementation of this interface takes the responsibility of handling data
@@ -46,7 +45,7 @@ import org.osgi.service.dmt.DmtSession;
  * characters appear escaped in the segments.
  * <p>
  * 
- * @author $Id: 6facb5e24486f6f17a38d1d5e7a01376aa244b0b $
+ * @version $Id: d762872d3defc80b77980bea25a0be952ecb3e71 $
  */
 public interface DataPlugin {
 
@@ -55,6 +54,7 @@ public interface DataPlugin {
 	 * DataPlugin is registered with mount points.
 	 */
 	String	MOUNT_POINTS	= "mountPoints";
+
 
 	/**
 	 * The string to be used as key for the “dataRootURIs” property when an
@@ -81,14 +81,14 @@ public interface DataPlugin {
 	 * @throws DmtException with the following possible error codes:
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code sessionRoot} points to a
-	 *         non-existing node</li><li>{@code COMMAND_FAILED} if some
-	 *         unspecified error is encountered while attempting to complete the
-	 *         command</li>
+	 *         non-existing node <li>{@code COMMAND_FAILED} if some unspecified
+	 *         error is encountered while attempting to complete the command
 	 *         </ul>
 	 * @throws SecurityException if some underlying operation failed because of
 	 *         lack of permissions
 	 */
-	ReadableDataSession openReadOnlySession(String[] sessionRoot, DmtSession session) throws DmtException;
+	ReadableDataSession openReadOnlySession(String[] sessionRoot,
+			DmtSession session) throws DmtException;
 
 	/**
 	 * This method is called to signal the start of a non-atomic read-write
@@ -109,14 +109,14 @@ public interface DataPlugin {
 	 * @throws DmtException with the following possible error codes:
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code sessionRoot} points to a
-	 *         non-existing node</li><li>{@code COMMAND_FAILED} if some
-	 *         unspecified error is encountered while attempting to complete the
-	 *         command</li>
+	 *         non-existing node <li>{@code COMMAND_FAILED} if some unspecified
+	 *         error is encountered while attempting to complete the command
 	 *         </ul>
 	 * @throws SecurityException if some underlying operation failed because of
 	 *         lack of permissions
 	 */
-	ReadWriteDataSession openReadWriteSession(String[] sessionRoot, DmtSession session) throws DmtException;
+	ReadWriteDataSession openReadWriteSession(String[] sessionRoot,
+			DmtSession session) throws DmtException;
 
 	/**
 	 * This method is called to signal the start of an atomic read-write session
@@ -137,12 +137,12 @@ public interface DataPlugin {
 	 * @throws DmtException with the following possible error codes:
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code sessionRoot} points to a
-	 *         non-existing node</li><li>{@code COMMAND_FAILED} if some
-	 *         unspecified error is encountered while attempting to complete the
-	 *         command</li>
+	 *         non-existing node <li>{@code COMMAND_FAILED} if some unspecified
+	 *         error is encountered while attempting to complete the command
 	 *         </ul>
 	 * @throws SecurityException if some underlying operation failed because of
 	 *         lack of permissions
 	 */
-	TransactionalDataSession openAtomicSession(String[] sessionRoot, DmtSession session) throws DmtException;
+	TransactionalDataSession openAtomicSession(String[] sessionRoot,
+			DmtSession session) throws DmtException;
 }

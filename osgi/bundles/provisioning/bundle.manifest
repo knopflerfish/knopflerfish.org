@@ -3,10 +3,9 @@ Bundle-ManifestVersion: 2
 Bundle-Name: provisioning
 Bundle-SymbolicName: org.knopflerfish.bundle.provisioning
 Bundle-Version: 4.0.0
-Bundle-Category: osgi
+Bundle-Category: API
 Bundle-Description: Initial Provisioning
-Bundle-Vendor: Knopflerfish
-Bundle-APIVendor: OSGi
+Bundle-Vendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html

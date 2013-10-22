@@ -22,6 +22,7 @@
   <property name="resources.dir" location="${proj.dir}/resources"/>
   <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
 
+  <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
     <antcall target="bundleSLC_test"/>
     <antcall target="bundleSLA_test"/>

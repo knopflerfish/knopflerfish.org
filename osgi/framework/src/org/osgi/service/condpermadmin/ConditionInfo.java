@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import java.util.List;
  * 
  * <p>
  * This class encapsulates two pieces of information: a Condition <i>type</i>
- * (class name), which must implement {@code Condition}, and the arguments
- * passed to its constructor.
+ * (class name), which must implement {@code Condition}, and the
+ * arguments passed to its constructor.
  * 
  * <p>
  * In order for a Condition represented by a {@code ConditionInfo} to be
@@ -36,16 +36,16 @@ import java.util.List;
  * The Condition class must either:
  * <ul>
  * <li>Declare a public static {@code getCondition} method that takes a
- * {@code Bundle} object and a {@code ConditionInfo} object as arguments. That
- * method must return an object that implements the {@code Condition} interface.
- * </li>
- * <li>Implement the {@code Condition} interface and define a public constructor
- * that takes a {@code Bundle} object and a {@code ConditionInfo} object as
- * arguments.
+ * {@code Bundle} object and a {@code ConditionInfo} object as
+ * arguments. That method must return an object that implements the
+ * {@code Condition} interface.</li>
+ * <li>Implement the {@code Condition} interface and define a public
+ * constructor that takes a {@code Bundle} object and a
+ * {@code ConditionInfo} object as arguments.
  * </ul>
  * 
  * @Immutable
- * @version $Id: c2497fefba5a0011a141f9548c3d383b34d3dc8d $
+ * @version $Id: dd1d84aa3175b2a2dfec879d04c93887f05161be $
  */
 public class ConditionInfo {
 	private final String	type;
@@ -75,7 +75,7 @@ public class ConditionInfo {
 	 * {@code ConditionInfo} string is ignored.
 	 * 
 	 * @param encodedCondition The encoded {@code ConditionInfo}.
-	 * @see #getEncoded()
+	 * @see #getEncoded
 	 * @throws IllegalArgumentException If the specified
 	 *         {@code encodedCondition} is not properly formatted.
 	 */
@@ -109,7 +109,8 @@ public class ConditionInfo {
 
 			/* type is not quoted or encoded */
 			int begin = pos;
-			while (!Character.isWhitespace(encoded[pos]) && (encoded[pos] != ']')) {
+			while (!Character.isWhitespace(encoded[pos])
+					&& (encoded[pos] != ']')) {
 				pos++;
 			}
 			if (pos == begin || encoded[begin] == '"') {
@@ -154,7 +155,8 @@ public class ConditionInfo {
 			if ((c != ']') || (pos != length)) {
 				throw new IllegalArgumentException("expecting close bracket");
 			}
-		} catch (ArrayIndexOutOfBoundsException e) {
+		}
+		catch (ArrayIndexOutOfBoundsException e) {
 			throw new IllegalArgumentException("parsing terminated abruptly");
 		}
 	}
@@ -171,9 +173,9 @@ public class ConditionInfo {
 	 * </pre>
 	 * 
 	 * where <i>argN</i> are strings that must be encoded for proper parsing.
-	 * Specifically, the {@code &quot;}, {@code \}, carriage return, and line
-	 * feed characters must be escaped using {@code \&quot;}, {@code \\},
-	 * {@code \r}, and {@code \n}, respectively.
+	 * Specifically, the {@code &quot;}, {@code \}, carriage return,
+	 * and line feed characters must be escaped using {@code \&quot;},
+	 * {@code \\}, {@code \r}, and {@code \n}, respectively.
 	 * 
 	 * <p>
 	 * The encoded string contains no leading or trailing whitespace characters.
@@ -199,9 +201,9 @@ public class ConditionInfo {
 	}
 
 	/**
-	 * Returns the string representation of this {@code ConditionInfo}. The
-	 * string is created by calling the {@code getEncoded} method on this
-	 * {@code ConditionInfo}.
+	 * Returns the string representation of this {@code ConditionInfo}.
+	 * The string is created by calling the {@code getEncoded} method on
+	 * this {@code ConditionInfo}.
 	 * 
 	 * @return The string representation of this {@code ConditionInfo}.
 	 */
@@ -223,8 +225,9 @@ public class ConditionInfo {
 	/**
 	 * Returns arguments of this {@code ConditionInfo}.
 	 * 
-	 * @return The arguments of this {@code ConditionInfo}. An empty array is
-	 *         returned if the {@code ConditionInfo} has no arguments.
+	 * @return The arguments of this {@code ConditionInfo}. An empty
+	 *         array is returned if the {@code ConditionInfo} has no
+	 *         arguments.
 	 */
 	public final String[] getArgs() {
 		return args.clone();
@@ -238,9 +241,10 @@ public class ConditionInfo {
 	 * 
 	 * @param obj The object to test for equality with this
 	 *        {@code ConditionInfo} object.
-	 * @return {@code true} if {@code obj} is a {@code ConditionInfo}, and has
-	 *         the same type and args as this {@code ConditionInfo} object;
-	 *         {@code false} otherwise.
+	 * @return {@code true} if {@code obj} is a
+	 *         {@code ConditionInfo}, and has the same type and args as
+	 *         this {@code ConditionInfo} object; {@code false}
+	 *         otherwise.
 	 */
 	public boolean equals(Object obj) {
 		if (obj == this) {

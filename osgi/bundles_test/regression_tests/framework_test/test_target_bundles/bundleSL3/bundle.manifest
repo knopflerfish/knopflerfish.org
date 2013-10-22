@@ -7,6 +7,6 @@ Bundle-Description: Test bundle for SF Bugs-tracker issue 2833557.
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.foo.Activator3
-Bundle-Category: testing
+Bundle-Category: test
 Require-Bundle: org.knopflerfish.bundle.foo.bundleSL1
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"

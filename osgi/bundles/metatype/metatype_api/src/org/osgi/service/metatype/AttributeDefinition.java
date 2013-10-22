@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.metatype;
 
 /**
@@ -24,7 +23,7 @@ package org.osgi.service.metatype;
  * of a property/attribute.
  * 
  * @ThreadSafe
- * @author $Id: f2aa9ead0136d63493a5025892bdf80efa2e9019 $
+ * @version $Id: e9054b24f5ec79cd0a77c1067f9dc5f05dddadb5 $
  */
 public interface AttributeDefinition {
 	/**
@@ -35,7 +34,7 @@ public interface AttributeDefinition {
 	 * {@code Vector} with {@code String} or {@code String[]} objects, depending
 	 * on the {@code getCardinality()} value.
 	 */
-	int	STRING		= 1;
+	int STRING = 1;
 	/**
 	 * The {@code LONG} (2) type.
 	 * 
@@ -43,7 +42,7 @@ public interface AttributeDefinition {
 	 * with {@code Long} or {@code long[]} objects, depending on the
 	 * {@code getCardinality()} value.
 	 */
-	int	LONG		= 2;
+	int LONG = 2;
 	/**
 	 * The {@code INTEGER} (3) type.
 	 * 
@@ -51,7 +50,7 @@ public interface AttributeDefinition {
 	 * {@code Vector} with {@code Integer} or {@code int[]} objects, depending
 	 * on the {@code getCardinality()} value.
 	 */
-	int	INTEGER		= 3;
+	int INTEGER = 3;
 	/**
 	 * The {@code SHORT} (4) type.
 	 * 
@@ -59,7 +58,7 @@ public interface AttributeDefinition {
 	 * with {@code Short} or {@code short[]} objects, depending on the
 	 * {@code getCardinality()} value.
 	 */
-	int	SHORT		= 4;
+	int SHORT = 4;
 	/**
 	 * The {@code CHARACTER} (5) type.
 	 * 
@@ -67,7 +66,7 @@ public interface AttributeDefinition {
 	 * {@code Vector} with {@code Character} or {@code char[]} objects,
 	 * depending on the {@code getCardinality()} value.
 	 */
-	int	CHARACTER	= 5;
+	int CHARACTER = 5;
 	/**
 	 * The {@code BYTE} (6) type.
 	 * 
@@ -75,7 +74,7 @@ public interface AttributeDefinition {
 	 * with {@code Byte} or {@code byte[]} objects, depending on the
 	 * {@code getCardinality()} value.
 	 */
-	int	BYTE		= 6;
+	int BYTE = 6;
 	/**
 	 * The {@code DOUBLE} (7) type.
 	 * 
@@ -83,7 +82,7 @@ public interface AttributeDefinition {
 	 * {@code Vector} with {@code Double} or {@code double[]} objects, depending
 	 * on the {@code getCardinality()} value.
 	 */
-	int	DOUBLE		= 7;
+	int DOUBLE = 7;
 	/**
 	 * The {@code FLOAT} (8) type.
 	 * 
@@ -91,7 +90,7 @@ public interface AttributeDefinition {
 	 * with {@code Float} or {@code float[]} objects, depending on the
 	 * {@code getCardinality()} value.
 	 */
-	int	FLOAT		= 8;
+	int FLOAT = 8;
 	/**
 	 * The {@code BIGINTEGER} (9) type.
 	 * 
@@ -101,7 +100,7 @@ public interface AttributeDefinition {
 	 * 
 	 * @deprecated As of 1.1.
 	 */
-	int	BIGINTEGER	= 9;
+	int BIGINTEGER = 9;
 	/**
 	 * The {@code BIGDECIMAL} (10) type.
 	 * 
@@ -111,7 +110,7 @@ public interface AttributeDefinition {
 	 * 
 	 * @deprecated As of 1.1.
 	 */
-	int	BIGDECIMAL	= 10;
+	int BIGDECIMAL = 10;
 	/**
 	 * The {@code BOOLEAN} (11) type.
 	 * 
@@ -119,7 +118,7 @@ public interface AttributeDefinition {
 	 * {@code Vector} with {@code Boolean} or {@code boolean[]} objects
 	 * depending on {@code getCardinality()}.
 	 */
-	int	BOOLEAN		= 11;
+	int BOOLEAN = 11;
 
 	/**
 	 * The {@code PASSWORD} (12) type.
@@ -132,7 +131,7 @@ public interface AttributeDefinition {
 	 * 
 	 * @since 1.2
 	 */
-	int	PASSWORD	= 12;
+	int PASSWORD = 12;
 
 	/**
 	 * Get the name of the attribute. This name may be localized.
@@ -269,18 +268,18 @@ public interface AttributeDefinition {
 	 * 
 	 * If the cardinality of this attribute is multi-valued then this string
 	 * must be interpreted as a comma delimited string. The complete value must
-	 * be trimmed from white space as well as spaces around commas. Commas (
-	 * {@code ','} &#92;u002C) and spaces ({@code ' '} &#92;u0020) and
-	 * backslashes ({@code '\'} &#92;u005C) can be escaped with another
-	 * backslash. Escaped spaces must not be trimmed. For example:
+	 * be trimmed from white space as well as spaces around commas. Commas (','
+	 * \u002C) and spaces (' ' ) and back-slashes ('\' \u005C) can be escaped
+	 * with another back-slash. Escaped spaces must not be trimmed. For example:
 	 * 
 	 * <pre>
-	 * value="  a\,b,b\,c,\ c\\,d   " => [ "a,b", "b,c", " c\", "d" ]
+	 * value="  a\,b,b\,c,\ c\\,d   " =>	[ "a,b", "b,c", " c\", "d" ]
 	 * </pre>
 	 * 
-	 * @param value The value before turning it into the basic data type. If the
-	 *        cardinality indicates a multi-valued attribute then the given
-	 *        string must be escaped.
+	 * @param value
+	 *            The value before turning it into the basic data type. If the
+	 *            cardinality indicates a multi valued attribute then the given
+	 *            string must be escap
 	 * @return {@code null}, "", or another string
 	 */
 	String validate(String value);

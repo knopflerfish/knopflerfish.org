@@ -48,10 +48,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -62,9 +67,6 @@ import org.osgi.service.cm.ConfigurationEvent;
 import org.osgi.service.cm.ConfigurationListener;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.util.tracker.ServiceTracker;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 /**
  * Service Component Runtime
@@ -177,39 +179,33 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   public void configurationEvent(ConfigurationEvent evt) {
     postponeCheckin();
     try {
-      final String factoryPid = evt.getFactoryPid();
+      String name = evt.getFactoryPid();
       final String pid = evt.getPid();
-      final Component [] comps = configSubscriber.get(factoryPid != null ? factoryPid : pid);
+      if (name == null) {
+        name = pid;
+      }
+      final Component [] comps = configSubscriber.get(name);
       if (comps != null) {
         switch (evt.getType()) {
         case ConfigurationEvent.CM_DELETED:
+          Activator.logDebug("ConfigurationEvent deleted, pid=" + pid);
           for (final Component comp : comps) {
-            if (factoryPid != null) {
-              comp.cmConfigDeleted(pid);
-            } else {
-              Configuration c = getConfiguration(comp, null, null);
-              if (c != null) {
-                if (c.getPid().length() <= pid.length()) {
-                  comp.cmConfigUpdated(comp.getCMPid(), c);
-                }
-              } else {
-                comp.cmConfigDeleted(comp.getCMPid());
-              }
-            }
+            comp.cmConfigDeleted(pid);
           }
           break;
         case ConfigurationEvent.CM_UPDATED:
-          for (final Component comp : comps) {
-            Configuration c = getConfiguration(comp, factoryPid, pid);
-            if (c != null) {
-              comp.cmConfigUpdated(factoryPid != null ? pid : comp.getCMPid(), c);
+          final Configuration c = getConfiguration(pid);
+          if (c != null) {
+            Activator.logDebug("ConfigurationEvent updated, pid=" + pid);
+            for (final Component comp : comps) {
+              comp.cmConfigUpdated(pid, getConfiguration(pid));
             }
+          } else {
+            Activator.logWarning("ConfigurationEvent updated, failed to get configuration, pid=" + pid);
           }
           break;
-        case ConfigurationEvent.CM_LOCATION_CHANGED:
-          break;
         default:
-          Activator.logDebug("Unknown ConfigurationEvent type: " + evt.getType());
+          Activator.logWarning("Unknown ConfigurationEvent type: " + evt.getType());
           break;
         }
       }
@@ -453,6 +449,8 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
             if (cs != null) {
               // Loop through all found components
               for (final Component c : cs) {
+                final String [] pids = c.getAllServicePids();
+                // Loop through service property configurations
                 final String res = checkCircularReferences(c, path);
                 if (res != null) {
                   return res;
@@ -573,40 +571,10 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * @param comp Component which config needs to be tracked
    */
   Configuration [] subscribeCMConfig(Component comp) {
-    String[] cs = getTargetedPIDs(comp);
-    Configuration [] conf = null;
-    for (int i = cs.length - 1; i >= 0; i--) {
-      addSubscriberCMConfig(cs[i], comp);
-      if (conf == null) {
-        conf = listConfigurations(ConfigurationAdmin.SERVICE_FACTORYPID, cs[0]);
-      }
-      if (conf == null) {
-        conf = listConfigurations(Constants.SERVICE_PID, cs[0]);
-      }
+    String id = comp.compDesc.getConfigurationPid();
+    if (id == null) {
+      id = comp.compDesc.getName();
     }
-    return conf;
-  }
-
-
-  private String[] getTargetedPIDs(Component comp) {
-    final String id = comp.getCMPid();
-    final Bundle b = comp.getBundle();
-    final StringBuffer sb = new StringBuffer();
-    String [] cs = new String [] { id,
-                                   b.getSymbolicName(),
-                                   b.getVersion().toString(),
-                                   b.getLocation() };
-    for (int i = 0; i < cs.length; i++) {
-      if (i > 0) {
-        sb.append('|');
-      }
-      cs[i] = sb.append(cs[i]).toString();
-    }
-    return cs;
-  }
-
-
-  private void addSubscriberCMConfig(final String id, Component comp) {
     final Component [] old = configSubscriber.get(id);
     if (old != null) {
       final Component [] n = new Component[old.length + 1];
@@ -616,6 +584,12 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
     } else {
       configSubscriber.put(id, new Component [] {comp});
     }
+
+    Configuration [] conf = listConfigurations(ConfigurationAdmin.SERVICE_FACTORYPID, id);
+    if (conf == null) {
+      conf = listConfigurations(Constants.SERVICE_PID, id);
+    }
+    return conf;
   }
 
 
@@ -625,23 +599,24 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * @param comp Component which config doesn't need to be tracked
    */
   void unsubscribeCMConfig(Component comp) {
-    String[] cs = getTargetedPIDs(comp);
-    for (int i = cs.length - 1; i >= 0; i--) {
-      final Component [] old = configSubscriber.remove(cs[i]);
-      if (old != null) {
-        if (old.length > 1) {
-          final Component [] n = new Component[old.length - 1];
-          int j = 0;
-          for (final Component element : old) {
-            if (element != comp) {
-              n[j++] = element;
-            }
+    String id = comp.compDesc.getConfigurationPid();
+    if (id == null) {
+      id = comp.compDesc.getName();
+    }
+    final Component [] old = configSubscriber.remove(id);
+    if (old != null) {
+      if (old.length != 1) {
+        final Component [] n = new Component[old.length - 1];
+        int j = 0;
+        for (final Component element : old) {
+          if (element != comp) {
+            n[j++] = element;
           }
-          configSubscriber.put(cs[i], n);
         }
-      } else {
-        Activator.logError("Removed unknown subscriber: " + comp);
+        configSubscriber.put(id, n);
       }
+    } else {
+      Activator.logError("Removed unknown subscriber: " + comp);
     }
   }
 
@@ -677,29 +652,12 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
 
 
   /**
-   * Get configuration, but if there is a more targeted version available
-   * ignore it and return <code>null</code>.
-   * 
-   * @param comp 
-   * @param name 
-   * @param pid 
    *
    */
-  private Configuration getConfiguration(Component comp, String factoryPid, String pid) {
-    /* Check if it is a factory configuration */
-    if (factoryPid != null) {
-      final Configuration[] conf = listConfigurations(Constants.SERVICE_PID, pid);
-      if (conf != null) {
-        return conf[0];
-      }      
-    } else {
-      final String[] cs = getTargetedPIDs(comp);
-      for (int i = cs.length - 1; i >= 0; i--) {
-        final Configuration[] conf = listConfigurations(Constants.SERVICE_PID, cs[i]);
-        if (conf != null) {
-          return pid == null || cs[i].length() <= pid.length() ? conf[0] : null;
-        }
-      }
+  private Configuration getConfiguration(String pid) {
+    final Configuration[] conf = listConfigurations(Constants.SERVICE_PID, pid);
+    if (conf != null) {
+      return conf[0];
     }
     return null;
   }

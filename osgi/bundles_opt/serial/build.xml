@@ -39,8 +39,6 @@
   
   <!-- Bundles to include on the bundle_doc_overview page -->
   <fileset id="docbuild.jarfiles" dir="${jars.dir}">
-    <exclude name="**/*-source.jar"/>
-    <exclude name="**/*-javadoc.jar"/>
     <include name="serialportdevice/**/*.jar"/>
     <include name="comm-linux/**/*.jar"/>
     <include name="comm-win32/**/*.jar"/>

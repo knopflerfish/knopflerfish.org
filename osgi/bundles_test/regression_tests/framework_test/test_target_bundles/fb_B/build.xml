@@ -11,13 +11,15 @@
   <property name = "bundle.build.impl" value="false"/>
   <property name = "bundle.build.doc"  value="false"/>
 
+  <property name="do.bundle.custom.pre" value="true"/>
+
   <property name  = "api.pattern"
             value = "fragclasses/**"/>
   <property name  = "impl.pattern"
             value = ""/>
 
   <path id = "bundle.compile.path">
-    <pathelement location="../../resources/fb_C_api-1.0.0.jar"/>
+    <pathelement location="${impl.jar}/../fb_C_api-1.0.0.jar"/>
   </path>
 
   <target name="bundle.custom.pre">

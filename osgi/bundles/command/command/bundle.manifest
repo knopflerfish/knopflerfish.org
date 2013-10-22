@@ -5,6 +5,7 @@ Bundle-SymbolicName: org.knopflerfish.bundle.command
 Bundle-Version: 0.2
 Bundle-Description: Command Service
 Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html

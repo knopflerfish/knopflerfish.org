@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Dictionary;
 import java.util.Hashtable;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
@@ -34,7 +35,7 @@ import org.osgi.framework.InvalidSyntaxException;
  * Pattern matching is done according to the filter string matching rules.
  * 
  * @ThreadSafe
- * @version $Id: 43b6af515f7f92b5fe8fde94cc0b03dc7044807b $
+ * @version $Id: 7b466c7103a708833c6ff1fa2a4c5cf21f757179 $
  */
 public class BundleLocationCondition {
 	private static final String	CONDITION_TYPE	= "org.osgi.service.condpermadmin.BundleLocationCondition";
@@ -60,28 +61,34 @@ public class BundleLocationCondition {
 	 *        ignored.
 	 * @return Condition object for the requested condition.
 	 */
-	static public Condition getCondition(final Bundle bundle, final ConditionInfo info) {
+	static public Condition getCondition(final Bundle bundle,
+			final ConditionInfo info) {
 		if (!CONDITION_TYPE.equals(info.getType()))
-			throw new IllegalArgumentException("ConditionInfo must be of type \"" + CONDITION_TYPE + "\"");
+			throw new IllegalArgumentException(
+					"ConditionInfo must be of type \"" + CONDITION_TYPE + "\"");
 		String[] args = info.getArgs();
 		if (args.length != 1 && args.length != 2)
 			throw new IllegalArgumentException("Illegal number of args: " + args.length);
-		String bundleLocation = AccessController.doPrivileged(new PrivilegedAction<String>() {
-			public String run() {
-				return bundle.getLocation();
-			}
-		});
+		String bundleLocation = AccessController
+				.doPrivileged(new PrivilegedAction<String>() {
+					public String run() {
+						return bundle.getLocation();
+					}
+				});
 		Filter filter = null;
 		try {
-			filter = FrameworkUtil.createFilter("(location=" + escapeLocation(args[0]) + ")");
-		} catch (InvalidSyntaxException e) {
+			filter = FrameworkUtil.createFilter("(location="
+					+ escapeLocation(args[0]) + ")");
+		}
+		catch (InvalidSyntaxException e) {
 			// this should never happen, but just in case
 			throw new RuntimeException("Invalid filter: " + e.getFilter(), e);
 		}
 		Dictionary<String, String> matchProps = new Hashtable<String, String>(2);
 		matchProps.put("location", bundleLocation);
 		boolean negate = (args.length == 2) ? "!".equals(args[1]) : false;
-		return (negate ^ filter.match(matchProps)) ? Condition.TRUE : Condition.FALSE;
+		return (negate ^ filter.match(matchProps)) ? Condition.TRUE
+				: Condition.FALSE;
 	}
 
 	private BundleLocationCondition() {

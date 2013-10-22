@@ -34,11 +34,10 @@
 
 package org.knopflerfish.bundle.desktop.cm;
 
-import java.awt.Component;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 
-import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -54,9 +53,7 @@ public class JLabelled
 
   public JLabelled(String text, String tooltip, JComponent main, int labelWidth)
   {
-    // This panel is horizontal box.
-    setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-    setAlignmentX(Component.LEFT_ALIGNMENT);
+    super(new BorderLayout());
 
     // Shorten text to last part after a dot
     // if it's too long
@@ -77,13 +74,7 @@ public class JLabelled
       label.setToolTipText("<html>" + tooltip + "</html>");
     }
 
-    // Since we are in a scroll pane with glue at the bottom we do not want the
-    // components to stretch vertically.
-    main.setMaximumSize(new Dimension(Integer.MAX_VALUE, main
-        .getPreferredSize().height));
-    label.setMaximumSize(label.getPreferredSize());
-
-    add(label);
-    add(main);
+    add(label, BorderLayout.WEST);
+    add(main, BorderLayout.CENTER);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2013, KNOPFLERFISH project
+ * Copyright (c) 2009-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -139,7 +139,7 @@ public class JKSValidator implements Validator {
    *
    * @return true, if validator trusts certificate chain, otherwise false.
    */
-  public boolean validateCertificateChain(List<X509Certificate> chain) {
+  public boolean validateCertificateChain(List /* X509Certificate */ chain) {
     if (keystore == null) {
       return false;
     }
@@ -179,9 +179,9 @@ public class JKSValidator implements Validator {
   private CertPathParameters getCertPathParameters(KeyStore keystore)
     throws GeneralSecurityException
   {
-    HashSet<TrustAnchor> tas = new HashSet<TrustAnchor>();
-    for (Enumeration<String> e = keystore.aliases(); e.hasMoreElements(); ) {
-      String name = e.nextElement();
+    HashSet tas = new HashSet();
+    for (Enumeration e = keystore.aliases(); e.hasMoreElements(); ) {
+      String name = (String)e.nextElement();
       Certificate c = keystore.getCertificate(name);
       if (c != null) {
         if (trustKeys || keystore.isCertificateEntry(name)) {

@@ -10,20 +10,32 @@
   <property name="root.out.dir" location="${topdir}/out"/>
   <property name="outdir"       location="${root.out.dir}/${ant.project.name}"/>
   <property name="classout"     location="${outdir}/classes"/>
-  <property name="classout_compact" location="${outdir}/classes_compact"/>
-  <property name="javadoc.out.dir"  location="${outdir}/javadoc"/>
+  <property name="javadoc.out.dir" location="${outdir}/javadoc"/>
   <property name="docs.dir"     location="${root.out.dir}/doc"/>
   <property name="outdocdir"    location="${docs.dir}/${ant.project.name}"/>
   <!-- Location of templates used by the framework_doc-target. -->
   <property name="frameworkdoc_template"
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.impl.version"   value="7.0.1"/>
+  <property name="fw.impl.version"   value="6.0.4"/>
+  <property name="fw.export-package"
+            value="org.osgi.framework;version=1.6,
+                   org.osgi.framework.launch;version=1.0,
+                   org.osgi.framework.hooks.service;version=1.1,
+                   org.osgi.framework.hooks.bundle;version=1.0,
+                   org.osgi.framework.hooks.weaving;version=1.0,
+                   org.osgi.framework.hooks.resolver;version=1.0,
+                   org.osgi.framework.startlevel;version=1.0,
+                   org.osgi.framework.wiring;version=1.0,
+                   org.osgi.service.packageadmin;version=1.2,
+                   org.osgi.service.permissionadmin;version=1.2,
+                   org.osgi.util.tracker;version=1.5,
+                   org.osgi.service.startlevel;version=1.1,
+                   org.osgi.service.url;version=1.0,
+                   org.osgi.service.condpermadmin;version=1.1"/>
 
   <property name="jarfile"
             location="${topdir}/${ant.project.name}.jar"/>
-  <property name="jarfile_compact"
-            location="${topdir}/${ant.project.name}_compact.jar"/>
   <property name="source.jarfile"
             location="${topdir}/${ant.project.name}-source.jar"/>
   <property name="javadoc.jarfile"
@@ -31,21 +43,9 @@
 
   <import file="${ant.dir}/android.xml"/>
 
-  <available property="jdk1.7+" classname="java.lang.ClassValue"/> 
-  <condition property="javac.source" value="1.5" else="1.5">
-    <isset property="jdk1.7+"/>
-  </condition>
-  <condition property="javac.target" value="1.5" else="jsr14">
-    <isset property="jdk1.7+"/>
-  </condition>
+  <property name="javac.target"       value="jsr14"/>
+  <property name="javac.source"       value="1.5"/>
 
-  <!-- When comipling with Java 7 we must use the Java 7 runtime -->
-  <!-- since ee.minimum does not contain java.lang.Iterable. -->
-  <condition property="javac.includeJavaRuntime" value="true" else="false">
-    <isset property="jdk1.7+"/>
-  </condition>
-
-    
   <property name="src.dir" location="src"/>
 
   <property name="printClasses" location="true"/>
@@ -74,18 +74,6 @@
     <pathelement location="libs/asm-3.2.jar"/>
   </path>
 
-  <path id="empty.path">
-  </path>
-
-  <!-- Use the Java 7 runtime when compiling with Java 7 since -->
-  <!-- ee.minimum does not provide the required Iterable interface. --> 
-  <condition property="boot.class.path.name"
-             value="empty.path"
-             else="ee.minimum.path">
-    <isset property="jdk1.7+"/>
-  </condition>
-
-
   <!-- targets -->
   <target name="all"
           depends="jar, source.jar, save_javadoc_data, javadoc.jar">
@@ -105,12 +93,12 @@
            srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-           includejavaruntime= "${javac.includeJavaRuntime}"
+           includejavaruntime= "false"
            includes          = "**/*.java"
            excludes          = "${nonFoundationSrcs},**/package-info.java"
            target            = "${javac.target}"
            source            = "${javac.source}"
-           bootclasspathref  = "${boot.class.path.name}"
+           bootclasspathref  = "ee.minimum.path"
            classpathref      = "compile.path"
            >
     </javac>
@@ -119,7 +107,7 @@
            srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-           includejavaruntime= "${javac.includeJavaRuntime}"
+           includejavaruntime= "false"
            includes          = "${nonFoundationSrcs}"
            excludes          = "**/package-info.java"
            target            = "${javac.target}"
@@ -132,24 +120,37 @@
   <target name="compile_compact"
           if="compact"
           description="compiles with file storage only">
-    <mkdir dir="${classout_compact}"/>
+    <mkdir dir="${classout}"/>
 
-    <javac destdir           = "${classout_compact}"
+    <javac destdir           = "${classout}"
            srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-           includejavaruntime= "${javac.includeJavaRuntime}"
+           includejavaruntime= "false"
            includes          = "**/*.java"
-           excludes          = "${nonFoundationSrcs},org/knopflerfish/framework/bundlestorage/memory/SelfSignedValidator.java,org/knopflerfish/framework/bundlestorage/memory/*.java,**/package-info.java,org/knopflerfish/framework/SecurePermissionOps.java,org/knopflerfish/framework/permissions/*.java"
+           excludes          = "${nonFoundationSrcs},org/knopflerfish/framework/bundlestorage/memory/*.java,**/package-info.java"
            target            = "${javac.target}"
            source            = "${javac.source}"
-           bootclasspathref  = "${boot.class.path.name}"
+           classpathref      = "compile.path"
+           bootclasspathref  = "ee.minimum.path"
+           >
+    </javac>
+    <!-- Non foundation compliant part (uses java.security.cert) -->
+    <javac destdir           = "${classout}"
+           srcdir            = "${src.dir}"
+           debug             = "on"
+           includeantruntime = "false"
+           includejavaruntime= "false"
+           includes          = "${nonFoundationSrcs}"
+           excludes          = "**/package-info.java"
+           target            = "${javac.target}"
+           source            = "${javac.source}"
            classpathref      = "compile.path"
            >
     </javac>
   </target>
 
-  <target name="jar" depends="compile,genexports" description="build jar">
+  <target name="jar" depends="compile" description="build jar">
     <tstamp>
       <format property="framework.tstamp"
               pattern="'Build' EE MMMM d yyyy, HH:mm:ss"
@@ -170,30 +171,13 @@
 
     <delete file="${classout}/classes.dex"/>
 
-    <loadfile srcfile="${src.dir}/org/osgi/framework/packageinfo"
-              property="fw.spec.version">
-      <filterchain>
-        <striplinebreaks/>
-        <replacestring from="version " to=""/>
-      </filterchain>
-    </loadfile>
-
-    <antcall target="jar_file_full"/>
-    <antcall target="jar_file_compact"/>
-
-    <antcall target="add_dex"/>
-  </target>
-
-  <target name   = "jar_file_full"
-          unless = "compact">
     <jar basedir="${classout}"
-         filesonly="true"
          jarfile="${jarfile}">
       <fileset dir="resources"/>
       <manifest>
-        <attribute name="Main-class"             value="org.knopflerfish.framework.Main"/>
+        <attribute name="Main-class"           value="org.knopflerfish.framework.Main"/>
         <attribute name="Specification-Title"    value="OSGi Framework API"/>
-        <attribute name="Specification-Version"  value="${fw.spec.version}"/>
+        <attribute name="Specification-Version"  value="1.6"/>
         <attribute name="Specification-Vendor"   value="Open Service Gateway initiative"/>
         <attribute name="Implementation-Title"   value="Knopflerfish OSGi Framework"/>
         <attribute name="Implementation-Version" value="${fw.impl.version}" />
@@ -207,108 +191,13 @@
                    value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
         <attribute name="Export-Package"         value="${fw.export-package}"/>
         <attribute name="Bundle-DocURL"          value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html"/>
-        <attribute name="Bundle-SubversionURL"   value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/framework/"/>
+        <attribute name= "Bundle-SubversionURL"   value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/framework/"/>
         <attribute name="Build-Date"             value="${framework.tstamp}"/>
         <attribute name="SplashScreen-Image"     value="kfsplash.gif"/>
       </manifest>
     </jar>
-  </target>
 
-  <target name = "jar_file_compact"
-          if   = "compact">
-    <jar basedir="${classout_compact}"
-         filesonly="true"
-         jarfile="${jarfile_compact}">
-      <fileset dir="resources">
-        <exclude name="kfsplash.gif"/>
-      </fileset>
-      <manifest>
-        <attribute name="Main-class"             value="org.knopflerfish.framework.Main"/>
-        <attribute name="Specification-Title"    value="OSGi Framework API"/>
-        <attribute name="Specification-Version"  value="${fw.spec.version}"/>
-        <attribute name="Specification-Vendor"   value="Open Service Gateway initiative"/>
-        <attribute name="Implementation-Title"   value="Knopflerfish OSGi Framework"/>
-        <attribute name="Implementation-Version" value="${fw.impl.version}" />
-        <attribute name="Implementation-Vendor"  value="Knopflerfish"/>
-        <attribute name="Bundle-Vendor"          value="Knopflerfish"/>
-        <attribute name="Bundle-Version"         value="${fw.impl.version}"/>
-        <attribute name="Bundle-SymbolicName"    value="org.knopflerfish.framework"/>
-        <attribute name="Bundle-Name"            value="frameworkbundle"/>
-        <attribute name="Bundle-Description"     value="Knopflerfish OSGi framework system bundle"/>
-        <attribute name="Bundle-License"
-                   value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
-        <attribute name="Export-Package"         value="${fw.export-package}"/>
-        <attribute name="Bundle-DocURL"          value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html"/>
-        <attribute name="Bundle-SubversionURL"   value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/framework/"/>
-        <attribute name="Build-Date"             value="${framework.tstamp}"/>
-      </manifest>
-    </jar>
-  	<antcall target="proguard_compact"/>
-  </target>
-
-  <target name = "proguard_compact"
-          if   = "proguard.available">
-    <taskdef resource="proguard/ant/task.properties"
-             classpath="${ant.lib}/proguard.jar" />
-    <move file="${jarfile_compact}" tofile="${jarfile_compact}.tmp.jar"/>
-    <proguard note="false">
-      <!-- Specify the input jars, output jars, and library jars. -->
-      <injar  file="${jarfile_compact}.tmp.jar" />
-      <outjar file="${jarfile_compact}" />
-      <libraryjar file="${osgi.dir}/ee/ee.minimum.jar" />
-
-      <!-- Preserve Main. -->
-      <keepclasseswithmembers access="public">
-        <method access    ="public static"
-                type      ="void"
-                name      ="main"
-                parameters="java.lang.String[]" />
-      </keepclasseswithmembers>
-
-      <!-- Keep KF dynamic  -->
-      <keep name="org.knopflerfish.framework.FrameworkFactoryImpl"/>
-      <keep name="org.knopflerfish.framework.bundlestorage.file.BundleStorageImpl">
-      	<constructor/>
-      </keep>
-
-      <!-- Keep OSGi interface -->
-      <keep name="org.osgi.**" access="public">
-      	<field access="public,protected"/>
-      	<method access="public,protected"/>
-      	<constructor access="public,protected"/>
-      </keep>
-
-      <!-- Explicitly preserve all serialization members. The Serializable
-           interface is only a marker interface, so it wouldn't save them.
-           You can comment this out if your library doesn't use serialization.
-           If your code contains serializable classes that have to be backward
-           compatible, please refer to the manual. -->
-
-      <keepclassmembers implements="java.io.Serializable">
-        <field  access    ="static final"
-                type      ="long"
-                name      ="serialVersionUID" />
-        <field  access    ="static final"
-                type      ="java.io.ObjectStreamField[]"
-                name      ="serialPersistentFields" />
-        <method access    ="private"
-                type      ="void"
-                name      ="writeObject"
-                parameters="java.io.ObjectOutputStream" />
-        <method access    ="private"
-                type      ="void"
-                name      ="readObject"
-                parameters="java.io.ObjectInputStream" />
-        <method type      ="java.lang.Object"
-                name      ="writeReplace"
-                parameters="" />
-      	<method type      ="java.lang.Object"
-                name      ="readResolve"
-                parameters="" />
-      </keepclassmembers>
-
-    </proguard>
-  	<delete file="${jarfile_compact}.tmp.jar"/>
+    <antcall target="add_dex"/>
   </target>
 
   <target name="source.jar" if="bundle.build.source.jar">
@@ -320,7 +209,7 @@
     </jar>
   </target>
 
-  <target name="save_javadoc_data" depends="genexports"
+  <target name="save_javadoc_data"
           if="generate.javadoc.data">
     <echo message="save_javadoc: to:${sources.file} src:${src.dir} "/>
     <echo file="${sources.file}" append="true"
@@ -379,7 +268,7 @@
   </target>
 
   <target name="framework_doc"
-          depends="bundle_tasks,genexports">
+          depends="bundle_tasks">
     <property name="bmfa.Bundle-Version" value="${fw.impl.version}"/>
     <property name="bmfa.Export-Package" value="${fw.export-package}"/>
     <makehtml template="${frameworkdoc_template}"
@@ -408,14 +297,6 @@
     <echo message="${version}" file="resources/release"/>
   </target>
 
-  <target name="genexports" depends="bundle_tasks">
-    <delete file="resources/exports"/>
-    <bundleinfo  exports  = "fw.export-package"
-                 addPackageinfoPackages = "true" >
-     <exports dir="src" includes="org/osgi/**"/>
-    </bundleinfo>
-    <echo message="${fw.export-package}" file="resources/exports"/>
-  </target>
 
   <target name="clean" description="removes all generated files">
     <delete dir="${outdir}"/>
@@ -423,8 +304,5 @@
   </target>
 
   <import file="${topdir}/../ant/bundletasks.xml"/>
-
-  <!-- Use proguard if installed in ant.lib dir -->
-  <available property="proguard.available" file="${ant.lib}/proguard.jar"/>
 
 </project>

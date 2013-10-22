@@ -26,12 +26,17 @@
       padding-left: 50px;
     }
 
+    DIV.header_fade {
+      height: 10px;
+      background-image: url('../images/fadeout_15.png');
+      background-repeat: repeat-x;
+    }
+
     BODY  {
       background: #fff;
       margin-top:   5px;
       margin-left:  10px;
       margin-right: 10px;
-      font-size: 0.8125em;
     }
   </style>
     
@@ -42,24 +47,8 @@
     <Div id="header_logo">
       <a href="index.html"><img src="../images/kf300_black.png" border="0" alt="knopflerfish logo"/></a>
     </div>
-	<div id="header_centerbox">
-	  <div class="header_centerinfo_top">
-	    Distribution Documentation
-	  </div>
-	  <div class="header_centerinfo_bottom">
-	    Knopflerfish OSGi @VERSION@
-	  </div>
-	</div>
-	<div id="header_rightinfo">
-	  <div class="header_stylish">
-	    Open Source OSGi Service Platform Maintained by
-	  </div>
-	  <a href="http://www.makewave.com">
-	    <img border="0" alt="Makewave" src="../images/makewave_logo.png" border="0" style="margin-top: 4px;">
-	  </a>
-	</div>
-	<!--<div style="clear:both;"></div> -->
-	<div id="header_fade">
+    <div style="clear:both;"></div>
+    <div class="header_fade">
     </div>
   </div>
 </body>

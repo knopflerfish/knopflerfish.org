@@ -5,7 +5,6 @@ Bundle-SymbolicName: org.knopflerfish.bundle.io
 Bundle-Version: 4.0.0
 Bundle-Description: IO
 Bundle-Vendor: Knopflerfish
-Bundle-Category: service
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html

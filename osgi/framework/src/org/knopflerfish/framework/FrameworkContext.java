@@ -39,15 +39,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkListener;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
+import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
+import org.knopflerfish.framework.permissions.KFSecurityManager;
 
 
 /**
@@ -59,11 +64,35 @@ import org.osgi.framework.FrameworkListener;
  */
 public class FrameworkContext  {
 
-  private static final String CONDITIONAL_PERMISSION_SECURITY_MANAGER = "org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager";
+  /**
+   * Specification version for this framework.
+   */
+  static final String SPEC_VERSION = "1.6";
 
-  private static final String KF_SECURITY_MANAGER = "org.knopflerfish.framework.permissions.KFSecurityManager";
+  /**
+   * Specification version for org.osgi.framework.launch
+   */
+  static final String LAUNCH_VERSION = "1.0";
 
-  private static final String SECURE_PERMISSON_OPS = "org.knopflerfish.framework.SecurePermissionOps";
+  /**
+   * Specification version for org.osgi.framework.hooks.bundle
+   */
+  static final String HOOKS_BUNDLE_VERSION = "1.0";
+
+  /**
+   * Specification version for org.osgi.framework.hooks.resolver
+   */
+  static final String HOOKS_RESOLVER_VERSION = "1.0";
+
+  /**
+   * Specification version for org.osgi.framework.hooks.service
+   */
+  static final String HOOKS_SERVICE_VERSION = "1.1";
+
+  /**
+   * Specification version for org.osgi.framework.hooks.weaving
+   */
+  static final String HOOKS_WEAVING_VERSION = "1.0";
 
   /**
    * Debug handle.
@@ -168,6 +197,14 @@ public class FrameworkContext  {
   boolean firstInit = true;
 
   /**
+   * Cached value of
+   * props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
+   * Used and updated by isValidEE()
+   */
+  private final Set<String>    eeCacheSet = new HashSet<String>();
+  private String eeCache = null;
+
+  /**
    * Framework id.
    */
   final int id;
@@ -198,11 +235,6 @@ public class FrameworkContext  {
   PackageAdminImpl packageAdmin = null;
 
   /**
-   * Mode for BSN collision checks.
-   */
-  String bsnversionMode;
-
-  /**
    * Factory for handling service-based URLs
    */
   volatile static ServiceURLStreamHandlerFactory systemUrlStreamHandlerFactory;
@@ -228,6 +260,9 @@ public class FrameworkContext  {
   static int smUse = 0;
 
 
+  boolean bsnversionSingle;
+
+
   /**
    * Contruct a framework context
    *
@@ -238,7 +273,7 @@ public class FrameworkContext  {
     }
     threadGroup = new ThreadGroup("FW#" + id);
     props = new FWProps(initProps, this);
-    perm = new PermissionOps();
+    perm = new SecurePermissionOps(this);
     systemBundle = new SystemBundle(this);
     log("created");
   }
@@ -285,8 +320,9 @@ public class FrameworkContext  {
     selectBootDelegationParentClassLoader();
 
     if (setSecurityManager()) {
-      perm = (PermissionOps) doNew(SECURE_PERMISSON_OPS);
       systemBundle.secure = perm;
+    } else {
+      perm = new PermissionOps();
     }
     perm.init();
 
@@ -299,7 +335,25 @@ public class FrameworkContext  {
           end = v.length();
         }
         final String vs = "org.knopflerfish.framework.validator." + v.substring(start, end).trim();
-        validator.add((Validator) doNew(vs));
+        try {
+          @SuppressWarnings("unchecked")
+          final
+          Class<? extends Validator> vi = (Class<? extends Validator>) Class.forName(vs);
+          final Constructor<? extends Validator> vc =
+              vi.getConstructor(new Class[] { FrameworkContext.class });
+          validator.add(vc.newInstance(new Object[] { this }));
+        } catch (final InvocationTargetException ite) {
+          // NYI, log error from validator
+          System.err.println("Construct of " + vs + " failed: " + ite.getTargetException());
+        } catch (final NoSuchMethodException e) {
+          // If no validator, probably stripped framework
+          throw new RuntimeException(vs + ", found no such Validator", e);
+        } catch (final NoClassDefFoundError ncdfe) {
+          // Validator uses class not supported by JVM ignore
+          throw new RuntimeException(vs + ", Validator not supported by JVM", ncdfe);
+        } catch (final Exception e) {
+          throw new RuntimeException(vs + ", failed to construct Validator", e);
+        }
         start = end + 1;
       }
     }
@@ -335,16 +389,8 @@ public class FrameworkContext  {
 
     props.props.put(Constants.FRAMEWORK_UUID, getUUID());
 
-    String bsnProp = props.getProperty(Constants.FRAMEWORK_BSNVERSION).trim().toLowerCase();
-
-    if (bsnProp.equals(Constants.FRAMEWORK_BSNVERSION_MANAGED) ||
-        bsnProp.equals(Constants.FRAMEWORK_BSNVERSION_MULTIPLE) ||
-        bsnProp.equals(Constants.FRAMEWORK_BSNVERSION_SINGLE)) {
-      bsnversionMode = bsnProp;
-    } else {
-      bsnversionMode = Constants.FRAMEWORK_BSNVERSION_MANAGED;
-      debug.println("Unknown property value: " + Constants.FRAMEWORK_BSNVERSION + " = " + bsnProp);
-    }
+    bsnversionSingle = Constants.FRAMEWORK_BSNVERSION_SINGLE
+        .equals(props.getProperty(Constants.FRAMEWORK_BSNVERSION));
 
     final String storageClass = "org.knopflerfish.framework.bundlestorage." +
       props.getProperty(FWProps.BUNDLESTORAGE_PROP) + ".BundleStorageImpl";
@@ -419,25 +465,6 @@ public class FrameworkContext  {
   }
 
 
-  private Object doNew(final String clazz) {
-    try {
-      final Class<?> n = (Class<?>) Class.forName(clazz);
-      final Constructor<?> nc = n.getConstructor(new Class[] { FrameworkContext.class });
-      return nc.newInstance(new Object[] { this });
-    } catch (final InvocationTargetException ite) {
-      throw new RuntimeException(clazz + ", constructor failed with, " + ite.getTargetException(), ite);
-    } catch (final NoSuchMethodException e) {
-      // If no validator, probably stripped framework
-      throw new RuntimeException(clazz + ", found no such class", e);
-    } catch (final NoClassDefFoundError ncdfe) {
-      // Validator uses class not supported by JVM ignore
-      throw new RuntimeException(clazz + ", class not supported by JVM", ncdfe);
-    } catch (final Exception e) {
-      throw new RuntimeException(clazz + ", constructor failed", e);
-    }
-  }
-
-
   /**
    * Undo as much as possible of what init() does.
    *
@@ -484,7 +511,7 @@ public class FrameworkContext  {
     storage.close();
     storage = null;
 
-    perm = new PermissionOps();
+    perm = new SecurePermissionOps(this);
 
     synchronized (globalFwLock) {
       if (--smUse == 0) {
@@ -521,25 +548,17 @@ public class FrameworkContext  {
           System.setProperty(POLICY_PROPERTY, policy);
           // Make sure policy is updated, required for some JVMs.
           java.security.Policy.getPolicy().refresh();
-          current = (SecurityManager) doNew(KF_SECURITY_MANAGER);
+          current = new KFSecurityManager(debug);
           System.setSecurityManager(current);
           smUse = 1;
-        } else {
-          Class<?> cpsmc;
-          try {
-            cpsmc = Class.forName(CONDITIONAL_PERMISSION_SECURITY_MANAGER);
-          } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Missing class", e); 
-          }
-          if (cpsmc.isInstance(current)) {
-            if (smUse == 0) {
-              smUse = 2;
-            } else {
-              smUse++;
-            }
+        } else if (current instanceof ConditionalPermissionSecurityManager) {
+          if (smUse == 0) {
+            smUse = 2;
           } else {
-            throw new SecurityException("Incompatible security manager installed");
+            smUse++;
           }
+        } else if (!(current instanceof ConditionalPermissionSecurityManager)) {
+          throw new SecurityException("Incompatible security manager installed");
         }
       }
       return current != null;
@@ -623,6 +642,42 @@ public class FrameworkContext  {
     if (b == null || !(b instanceof BundleImpl) || this != ((BundleImpl)b).fwCtx) {
       throw new IllegalArgumentException("Bundle does not belong to this framework: " + b);
     }
+  }
+
+
+  /**
+   * Check if an execution environment string is accepted
+   *
+   */
+  boolean isValidEE(String ee) {
+    ee = ee.trim();
+    if(ee == null || "".equals(ee)) {
+      return true;
+    }
+
+    @SuppressWarnings("deprecation")
+    final String fwEE = props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+
+    if(fwEE == null) {
+      // If EE is not set, allow everything
+      return true;
+    } else if (!fwEE.equals(eeCache)) {
+      eeCacheSet.clear();
+
+      final String[] l = Util.splitwords(fwEE, ",");
+      for (final String element : l) {
+        eeCacheSet.add(element);
+      }
+      eeCache = fwEE;
+    }
+
+    final String[] eel   = Util.splitwords(ee, ",");
+    for (final String element : eel) {
+      if(eeCacheSet.contains(element)) {
+        return true;
+      }
+    }
+    return false;
   }
 
 

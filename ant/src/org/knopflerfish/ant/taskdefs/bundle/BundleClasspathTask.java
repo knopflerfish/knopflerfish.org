@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ import org.apache.tools.ant.types.ZipFileSet;
  * info task. In that case it will be used to generate a list of file
  * sets, one for each entry in the given bundle classpath. If the
  * excludes attribute is given the file sets will use that as exclude
- * pattern otherwise the includes attribute is used as includes
+ * pattern otherwise the includes attriubte is used as includes
  * pattern. If the bundle classpath entry is a jar-file then a
  * ZipFileSet will be created for it with the jar-file as source and
  * the excludes (or includes) attribute as excludes (includes)
@@ -217,9 +217,9 @@ public class BundleClasspathTask extends Task {
    *         bundle class path. If the entry is for a Jar/Zip file
    *         then its list item will be a zip file set.
    */
-  public List<FileSet> getFileSets(boolean failOnClassPath)
+  public List getFileSets(boolean failOnClassPath)
   {
-    final List<FileSet> res = new ArrayList<FileSet>();
+    final List res = new ArrayList();
     final Project proj = getProject();
 
     if (dir==null) {
@@ -247,7 +247,7 @@ public class BundleClasspathTask extends Task {
       }
 
       FileSet fileSet = null;
-      final File src= new File(dir, entry);
+      File src= new File(dir, entry);
 
       // Bundle class path entries are either directories or jar/zip-files!
       if (src.isDirectory()) {
@@ -290,7 +290,6 @@ public class BundleClasspathTask extends Task {
 
   // Implements Task
   //
-  @Override
   public void execute() throws BuildException {
     if (   (null==propertyName || 0==propertyName.length())
            && (null==filesetId    || 0==filesetId.length()) ) {
@@ -302,9 +301,8 @@ public class BundleClasspathTask extends Task {
         ("dir is required when filesetId is given.");
     }
 
-    if (null==bundleClasspath || 0==bundleClasspath.length() ) {
+    if (null==bundleClasspath || 0==bundleClasspath.length() )
       bundleClasspath = ".";
-    }
 
     final StringBuffer sb = new StringBuffer(100);
 
@@ -324,9 +322,8 @@ public class BundleClasspathTask extends Task {
       } else {
         sb.append(entry + "/**/*.class");
       }
-      if (st.hasMoreTokens()) {
+      if (st.hasMoreTokens())
         sb.append(",");
-      }
     }
 
     final Project proj = getProject();

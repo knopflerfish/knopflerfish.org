@@ -18,6 +18,8 @@
 	    value="org/kxml2/**,
 		   org/xmlpull/v1/**"/>
 
+  <property name="do.bundle.custom.pre" value="true"/>
+
   <target name="bundle.custom.pre">
     <copy todir="${classes.out.dir}">
       <zipfileset src="${proj.dir}/lib/xmlpull_1_1_3_1.jar">

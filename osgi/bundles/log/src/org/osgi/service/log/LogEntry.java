@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2000, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.log;
 
 import org.osgi.framework.Bundle;
@@ -24,44 +23,43 @@ import org.osgi.framework.ServiceReference;
  * Service log entry.
  * 
  * <p>
- * A {@code LogEntry} object may be acquired from the
- * {@code LogReaderService.getLog} method or by registering a
- * {@code LogListener} object.
+ * A <code>LogEntry</code> object may be acquired from the
+ * <code>LogReaderService.getLog</code> method or by registering a
+ * <code>LogListener</code> object.
  * 
  * @ThreadSafe
- * @noimplement
- * @author $Id: 1a6c322e64ee1470fb1b2d6b57b610b4df962089 $
+ * @version $Revision: 5654 $
  * @see LogReaderService#getLog
  * @see LogListener
  */
 public interface LogEntry {
 	/**
-	 * Returns the bundle that created this {@code LogEntry} object.
+	 * Returns the bundle that created this <code>LogEntry</code> object.
 	 * 
-	 * @return The bundle that created this {@code LogEntry} object;
-	 *         {@code null} if no bundle is associated with this
-	 *         {@code LogEntry} object.
+	 * @return The bundle that created this <code>LogEntry</code> object;
+	 *         <code>null</code> if no bundle is associated with this
+	 *         <code>LogEntry</code> object.
 	 */
 	public Bundle getBundle();
 
 	/**
-	 * Returns the {@code ServiceReference} object for the service associated
-	 * with this {@code LogEntry} object.
+	 * Returns the <code>ServiceReference</code> object for the service associated
+	 * with this <code>LogEntry</code> object.
 	 * 
-	 * @return {@code ServiceReference} object for the service associated with
-	 *         this {@code LogEntry} object; {@code null} if no
-	 *         {@code ServiceReference} object was provided.
+	 * @return <code>ServiceReference</code> object for the service associated
+	 *         with this <code>LogEntry</code> object; <code>null</code> if no
+	 *         <code>ServiceReference</code> object was provided.
 	 */
 	public ServiceReference getServiceReference();
 
 	/**
-	 * Returns the severity level of this {@code LogEntry} object.
+	 * Returns the severity level of this <code>LogEntry</code> object.
 	 * 
 	 * <p>
-	 * This is one of the severity levels defined by the {@code LogService}
+	 * This is one of the severity levels defined by the <code>LogService</code>
 	 * interface.
 	 * 
-	 * @return Severity level of this {@code LogEntry} object.
+	 * @return Severity level of this <code>LogEntry</code> object.
 	 * 
 	 * @see LogService#LOG_ERROR
 	 * @see LogService#LOG_WARNING
@@ -71,16 +69,16 @@ public interface LogEntry {
 	public int getLevel();
 
 	/**
-	 * Returns the human readable message associated with this {@code LogEntry}
+	 * Returns the human readable message associated with this <code>LogEntry</code>
 	 * object.
 	 * 
-	 * @return {@code String} containing the message associated with this
-	 *         {@code LogEntry} object.
+	 * @return <code>String</code> containing the message associated with this
+	 *         <code>LogEntry</code> object.
 	 */
 	public String getMessage();
 
 	/**
-	 * Returns the exception object associated with this {@code LogEntry}
+	 * Returns the exception object associated with this <code>LogEntry</code>
 	 * object.
 	 * 
 	 * <p>
@@ -92,18 +90,18 @@ public interface LogEntry {
 	 * information as possible from the original exception object such as the
 	 * message and stack trace.
 	 * 
-	 * @return {@code Throwable} object of the exception associated with this
-	 *         {@code LogEntry};{@code null} if no exception is associated with
-	 *         this {@code LogEntry} object.
+	 * @return <code>Throwable</code> object of the exception associated with this
+	 *         <code>LogEntry</code>;<code>null</code> if no exception is
+	 *         associated with this <code>LogEntry</code> object.
 	 */
 	public Throwable getException();
 
 	/**
-	 * Returns the value of {@code currentTimeMillis()} at the time this
-	 * {@code LogEntry} object was created.
+	 * Returns the value of <code>currentTimeMillis()</code> at the time this
+	 * <code>LogEntry</code> object was created.
 	 * 
-	 * @return The system time in milliseconds when this {@code LogEntry} object
-	 *         was created.
+	 * @return The system time in milliseconds when this <code>LogEntry</code>
+	 *         object was created.
 	 * @see "System.currentTimeMillis()"
 	 */
 	public long getTime();

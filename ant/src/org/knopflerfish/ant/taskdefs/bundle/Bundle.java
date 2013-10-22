@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.jar.JarInputStream;
@@ -55,106 +54,111 @@ import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ZipFileSet;
-
 import org.osgi.framework.Version;
 
 /**
  * <p>
- * An extension of the <a href="http://ant.apache.org/manual/CoreTasks/jar.html"
- * target="_top">Jar</a> task that builds an OSGi bundle. It can generate the
- * Bundle-Activator, Bundle-ClassPath and Import-Package manifest headers based
- * on the content specified in the task.
+ * An extension of the
+ * <a href="http://ant.apache.org/manual/CoreTasks/jar.html" target="_top">Jar</a> task that
+ * builds an OSGi bundle. It can generate the Bundle-Activator,
+ * Bundle-ClassPath and Import-Package manifest headers based on the content
+ * specified in the task.
  * </p>
  *
  * <h3>Parameters</h3>
  * <table border="1px">
- * <tr>
- * <th align="left">Attribute</th>
- * <th align="left">Description</th>
- * <th align="left">Required</th>
- * </tr>
- * <tr>
- * <td valign="top">file</td>
- * <td valign="top">The bundle file to create.</td>
- * <td valign="top">Yes</td>
- * </tr>
- * <tr>
- * <td valign="top">activator</td>
- * <td valign="top">
- * The bundle activator class name. If set to "none" no Bundle-Activator
- * manifest header will be generated. If set to "auto" the bundle task will try
- * to find an activator in the included class files.</td>
- * <td valign="top">No, default is "auto"</td>
- * </tr>
- * <tr>
- * <td valign="top">packageanalysis</td>
- * <td valign="top">
- * Analyzes the class files of the bundle and the contents of the
- * <tt>exportpackage</tt> and <tt>importpackage</tt> nested elements.
- * <ul>
- * <li>none &ndash; no analysis is performed.</li>
- * <li>warn &ndash; a warning will be displayed for each referenced package not
- * found in the bundle or the <tt>importpackage</tt> nested elements.</li>
- * <li>auto &ndash; each referenced package not found in the bundle or the
- * <tt>importpackage</tt> nested elements will be added to the Import-Package
- * manifest header. Packages exported by the bundle will be added to the
- * Import-Package manifest header with a version range following the OSGi
- * versioning recommendation (if a package is incompatible with previous version
- * then the major number of the version must be incremented). E.g., if the
- * bundles exports version 1.0.2 the version range in the import will be
- * "[1.0.2,2)".</li>
- * </ul>
- * </td>
- * <td valign="top">No, default is "warn"</td>
- * </tr>
+ *   <tr>
+ *     <th align="left">Attribute</th>
+ *     <th align="left">Description</th>
+ *     <th align="left">Required</th>
+ *   </tr>
+ *   <tr>
+ *     <td valign="top">file</td>
+ *     <td valign="top">The bundle file to create.</td>
+ *     <td valign="top">Yes</td>
+ *   </tr>
+ *   <tr>
+ *     <td valign="top">activator</td>
+ *     <td valign="top">
+ *       The bundle activator class name. If set to "none" no Bundle-Activator
+ *       manifest header will be generated. If set to "auto" the bundle task
+ *       will try to find an activator in the included class files.
+ *     </td>
+ *     <td valign="top">No, default is "auto"</td>
+ *   </tr>
+ *   <tr>
+ *     <td valign="top">packageanalysis</td>
+ *     <td valign="top">
+ *       Analyzes the class files of the bundle and the contents of the
+ *       <tt>exportpackage</tt> and <tt>importpackage</tt> nested elements.
+ *       <ul>
+ *         <li>none &ndash; no analysis is performed.</li>
+ *         <li>warn &ndash; a warning will be displayed for each
+ *         referenced package not found in the bundle or the
+ *         <tt>importpackage</tt> nested elements.</li>
+ *         <li>auto &ndash; each referenced package not found in the
+ *         bundle or the <tt>importpackage</tt> nested elements will
+ *         be added to the Import-Package manifest header. Packages
+ *         exported by the bundle will be added to the Import-Package
+ *         manifest header with a version range following the OSGi
+ *         versioning recommendation (if a package is incompatible
+ *         with previous version then the major number of the version
+ *         must be incremented). E.g., if the bundles exports version
+ *         1.0.2 the version range in the import will be
+ *         "[1.0.2,2)".</li>
+ *       </ul>
+ *     </td>
+ *     <td valign="top">No, default is "warn"</td>
+ *   </tr>
  * </table>
  *
  * <h3>Nested elements</h3>
  *
  * <h4>classes</h4>
  * <p>
- * The nested <tt>classes</tt> element specifies a <a
- * href="http://ant.apache.org/manual/CoreTypes/zipfileset.html"
- * target="_top">ZipFileSet</a>. The <tt>prefix</tt> attribute will be added to
- * the Bundle-ClassPath manifest header. The classes specified by the file set
- * will be included in the class analysis.
+ * The nested <tt>classes</tt> element specifies a
+ * <a href="http://ant.apache.org/manual/CoreTypes/zipfileset.html" target="_top">ZipFileSet</a>.
+ * The <tt>prefix</tt> attribute will be added to the Bundle-ClassPath manifest
+ * header. The classes specified by the file set will be included in the class
+ * analysis.
  * </p>
  *
  * <h4>lib</h4>
  * <p>
- * The nested <tt>lib</tt> element specifies a <a
- * href="http://ant.apache.org/manual/CoreTypes/zipfileset.html"
- * target="_top">ZipFileSet</a>. The locations of all files in the file set will
- * be added to the Bundle-ClassPath manifest header. All files of this file set
- * must be either zip or jar files. The classes available in the zip or jar
- * files will be included in the class analysis.
+ * The nested <tt>lib</tt> element specifies a
+ * <a href="http://ant.apache.org/manual/CoreTypes/zipfileset.html" target="_top">ZipFileSet</a>.
+ * The locations of all files in the file set will be added to the
+ * Bundle-ClassPath manifest header. All files of this file set must be either
+ * zip or jar files. The classes available in the zip or jar files will be
+ * included in the class analysis.
  * </p>
  *
  * <h4>exportpackage</h4>
  * <p>
- * The nested <tt>exportpackage</tt> element specifies the name and version of a
- * package to add to the Export-Package manifest header. If package analysis is
- * not turned off, a warning will be issued if the specified package cannot be
- * found in the bundle. When package analysis is turned on the version from the
- * <tt>packageinfo</tt>-file in the directory of the package is read and used as
- * the version of the exported package. In this case, if a version is specified
- * in the <tt>exportpackage</tt> element that version is compared with the one
- * from the <tt>packageinfo</tt>-file and if there is a mismatch a build error
- * will be issued.
+ * The nested <tt>exportpackage</tt> element specifies the name and
+ * version of a package to add to the Export-Package manifest
+ * header. If package analysis is not turned off, a warning will be
+ * issued if the specified package cannot be found in the bundle.
+ * When package analysis is turned on the version from the
+ * <tt>packageinfo</tt>-file in the directory of the package is read
+ * and used as the version of the exported package. In this case, if a
+ * version is specified in the <tt>exportpackage</tt> element that
+ * version is compared with the one from the <tt>packageinfo</tt>-file
+ * and if there is a mismatch a build error will be issued.
  * </p>
  *
  * <h4>importpackage</h4>
  * <p>
- * The nested <tt>importpackage</tt> element specifies the name and version of a
- * package to add to the Import-Package manifest header.
+ * The nested <tt>importpackage</tt> element specifies the name and
+ * version of a package to add to the Import-Package manifest header.
  * </p>
  *
  * <h4>standardpackage</h4>
  * <p>
- * The nested <tt>standardpackage</tt> element specifies the name or prefix of a
- * package that should be excluded from the package analysis. It can be used to
- * avoid importing packages that are available in the underlying runtime
- * environment (i.e., via boot delegation).
+ * The nested <tt>standardpackage</tt> element specifies the name or prefix
+ * of a package that should be excluded from the package analysis. It can
+ * be used to avoid importing packages that are available in the underlying
+ * runtime environment (i.e., via boot delegation).
  * </p>
  *
  * <h3>Implicit file set</h3>
@@ -168,7 +172,6 @@ import org.osgi.framework.Version;
  * </p>
  *
  * <h3>Examples</h3>
- *
  * <pre>
  * &lt;bundle activator="auto"
  *         packageanalysis="auto"
@@ -199,10 +202,7 @@ import org.osgi.framework.Version;
  *
  * &lt;/bundle&gt;
  * </pre>
- * <p>
- * Creates a bundle with the following manifest:
- * <p>
- *
+ * <p>Creates a bundle with the following manifest:<p>
  * <pre>
  * Manifest-Version: 1.0
  * Ant-Version: Apache Ant 1.6.2
@@ -220,9 +220,7 @@ import org.osgi.framework.Version;
  *
  * @author <a href="mailto:kaspar@weilenmann.se">Kaspar Weilenmann</a>
  */
-public class Bundle
-  extends Jar
-{
+public class Bundle extends Jar {
 
   // private fields
 
@@ -240,80 +238,79 @@ public class Bundle
 
   private String activator = ACTIVATOR_AUTO;
   private String packageAnalysis = PACKAGE_ANALYSIS_WARN;
-  private final Map<String, String> importPackage =
-    new HashMap<String, String>();
-  private final Map<String, String> exportPackage =
-    new HashMap<String, String>();
-  private final List<ZipFileSet> libs = new ArrayList<ZipFileSet>();
-  private final List<ZipFileSet> classes = new ArrayList<ZipFileSet>();
+  private Map importPackage = new HashMap();
+  private Map exportPackage = new HashMap();
+  private List libs = new ArrayList();
+  private List classes = new ArrayList();
 
   private File baseDir = null;
-  private final List<FileSet> zipgroups = new ArrayList<FileSet>();
-  private final List<FileSet> srcFilesets = new ArrayList<FileSet>();
+  private List zipgroups = new ArrayList();
+  private List srcFilesets = new ArrayList();
 
-  private final Manifest generatedManifest = new Manifest();
+  private Manifest generatedManifest = new Manifest();
 
-  private final Set<String> standardPackagePrefixes = new HashSet<String>();
-  {
+  private Set standardPackagePrefixes = new HashSet(); {
     standardPackagePrefixes.add("java.");
   }
 
   private final BundlePackagesInfo bpInfo = new BundlePackagesInfo(this);
-  private final ClassAnalyserASM asmAnalyser = new ClassAnalyserASM(bpInfo,
-                                                                    this);
+  private final ClassAnalyserASM   asmAnalyser
+    = new ClassAnalyserASM(bpInfo, this);
 
-  private void analyze()
-  {
-    if (activator == ACTIVATOR_AUTO || packageAnalysis != PACKAGE_ANALYSIS_NONE) {
+
+  private void analyze() {
+    if (activator == ACTIVATOR_AUTO ||
+        packageAnalysis != PACKAGE_ANALYSIS_NONE) {
       addZipGroups();
       addImplicitFileset();
 
-      for (final FileSet fileset : srcFilesets) {
-        for (@SuppressWarnings("unchecked")
-        final Iterator<Resource> fsIt = fileset.iterator(); fsIt.hasNext();) {
-          final Resource res = fsIt.next();
+      for (Iterator i = srcFilesets.iterator(); i.hasNext();) {
+        FileSet fileset = (FileSet) i.next();
+
+        for (Iterator fsIt = fileset.iterator(); fsIt.hasNext();) {
+          final Resource res = (Resource) fsIt.next();
           analyze(res);
         }
       }
       // Scan done
       bpInfo.toJavaNames();
 
-      final Set<String> publicPackages = exportPackage.keySet();
+      final Set publicPackages = exportPackage.keySet();
 
       if (packageAnalysis != PACKAGE_ANALYSIS_NONE) {
-        for (final String packageName : publicPackages) {
+        for (Iterator i = publicPackages.iterator(); i.hasNext();) {
+          final String packageName = (String) i.next();
           if (!bpInfo.providesPackage(packageName)) {
-            log("Exported package not provided by bundle: " + packageName,
+            log("Exported package not provided by bundle: " +packageName,
                 Project.MSG_WARN);
           }
           // The Version from the packageinfo-file or null
           final Version piVersion =
             bpInfo.getProvidedPackageVersion(packageName);
-          if (null != piVersion) {
-            final String epVersionS = exportPackage.get(packageName);
-            if (null == epVersionS) {
+          if (null!=piVersion) {
+            final String epVersionS = (String) exportPackage.get(packageName);
+            if (null==epVersionS) {
               // Use the version form the packageinfo-file
               exportPackage.put(packageName, piVersion.toString());
             } else {
               // Check that the versions match, if not trigger a build error
               try {
                 final Version epVersion = Version.parseVersion(epVersionS);
-                if (0 != epVersion.compareTo(piVersion)) {
-                  final String msg =
-                    "Multiple versions found for export of " + "the package '"
-                        + packageName + "'. The packageinfo file ("
-                        + bpInfo.getProvidedPackageVersionSource(packageName)
-                        + ") states '" + piVersion.toString()
-                        + "' but the <exportpackage> element says '"
-                        + epVersion.toString() + "'.";
+                if (0!=epVersion.compareTo(piVersion)) {
+                  final String msg = "Multiple versions found for export of "
+                    +"the package '" +packageName
+                    +"'. The packageinfo file ("
+                    +bpInfo.getProvidedPackageVersionSource(packageName)
+                    +") states '" +piVersion.toString()
+                    +"' but the <exportpackage> element says '"
+                    +epVersion.toString() +"'.";
                   log(msg, Project.MSG_ERR);
                   throw new BuildException(msg);
                 }
-              } catch (final IllegalArgumentException iae) {
-                final String msg =
-                  "Invalid version '" + epVersionS
-                      + "' in <exportpackage name=\"" + packageName
-                      + "\" ...>: " + iae.getMessage();
+              } catch (IllegalArgumentException iae) {
+                final String msg = "Invalid version '" +epVersionS
+                  +"' in <exportpackage name=\""+packageName +"\" ...>: "
+                  +iae.getMessage();
                 log(msg, Project.MSG_ERR);
                 throw new BuildException(msg, iae);
               }
@@ -322,32 +319,32 @@ public class Bundle
         }
       }
 
-      final SortedSet<String> privatePackages = bpInfo.getProvidedPackages();
+      final SortedSet privatePackages = bpInfo.getProvidedPackages();
       privatePackages.removeAll(publicPackages);
 
-      final SortedSet<String> referencedPackages =
-        bpInfo.getReferencedPackages();
+      final SortedSet referencedPackages = bpInfo.getReferencedPackages();
       referencedPackages.removeAll(privatePackages);
-      for (final Object element : referencedPackages) {
-        final String packageName = (String) element;
-        if (!isStandardPackage(packageName)
-            && !importPackage.containsKey(packageName)) {
+      for (Iterator iterator = referencedPackages.iterator();
+           iterator.hasNext();) {
+        final String packageName = (String) iterator.next();
+        if (!isStandardPackage(packageName) &&
+            !importPackage.containsKey(packageName)) {
           if (packageAnalysis == PACKAGE_ANALYSIS_AUTO) {
-            final String version = exportPackage.get(packageName);
+            final String version = (String) exportPackage.get(packageName);
             try {
               importPackage.put(packageName, toImportRange(version));
-            } catch (final IllegalArgumentException iae) {
-              final String msg =
-                "Invalid version value, '" + version
-                    + "' for exported package \"" + packageName
-                    + "\" can not derive version range for auto-import. "
-                    + iae.getMessage();
+            } catch (IllegalArgumentException iae) {
+              final String msg = "Invalid version value, '" +version
+                +"' for exported package \""+packageName
+                +"\" can not derive version range for auto-import. "
+                +iae.getMessage();
               log(msg, Project.MSG_ERR);
               throw new BuildException(msg, iae);
             }
           } else if (packageAnalysis == PACKAGE_ANALYSIS_WARN) {
             log("Referenced package not found in bundle or imports: "
-                + packageName, Project.MSG_WARN);
+                +packageName,
+                Project.MSG_WARN);
           }
         }
       }
@@ -355,36 +352,31 @@ public class Bundle
   }
 
   /**
-   * Analyze a resource by checking its suffix and delegate to
-   * {@link #analyzeClass(Resource)}, {@link #analyzeJar(Resource)}, etc.
+   * Analyze a resource by checking its suffix and delegate to {@link
+   * #analyzeClass(Resource)}, {@link #analyzeJar(Resource)}, etc.
    *
-   * @param res
-   *          The resource to be analyzed.
+   * @param res The resource to be analyzed.
    */
-  protected void analyze(Resource res)
-      throws BuildException
-  {
-    if (res.getName().endsWith(".class")) {
+  protected void analyze(Resource res) throws BuildException {
+    if(res.getName().endsWith(".class")) {
       analyzeClass(res);
-    } else if (res.getName().endsWith(".jar")) {
+    } else if(res.getName().endsWith(".jar")) {
       analyzeJar(res);
-    } else if (res.getName().endsWith("/packageinfo")) {
+    } else if(res.getName().endsWith("/packageinfo")) {
       analyzePackageinfo(res);
     } else {
       // Just ignore all other files
     }
   }
 
-  protected void analyzeJar(Resource res)
-      throws BuildException
-  {
+  protected void analyzeJar(Resource res) throws BuildException {
     log("Analyze jar file " + res, Project.MSG_VERBOSE);
 
     try {
       final JarInputStream jarStream = new JarInputStream(res.getInputStream());
 
       ZipEntry ze = jarStream.getNextEntry();
-      while (null != ze) {
+      while(null!=ze) {
         final String fileName = ze.getName();
         if (fileName.endsWith(".class")) {
           log("Analyze jar class file " + fileName, Project.MSG_VERBOSE);
@@ -392,64 +384,60 @@ public class Bundle
         }
         ze = jarStream.getNextEntry();
       }
-    } catch (final Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
-      throw new BuildException("Failed to analyze class-file " + res
-                               + ", exception=" + e, getLocation());
+      throw new BuildException("Failed to analyze class-file " +
+                               res + ", exception=" + e, getLocation());
     }
   }
 
-  protected void analyzeClass(Resource res)
-      throws BuildException
-  {
+  protected void analyzeClass(Resource res) throws BuildException {
     log("Analyze class file " + res, Project.MSG_VERBOSE);
 
     try {
       asmAnalyser.analyseClass(res.getInputStream(), res.toString());
-    } catch (final BuildException be) {
+    } catch (BuildException be) {
       throw be;
-    } catch (final Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
-      throw new BuildException("Failed to analyze class-file " + res
-                               + ", exception=" + e, getLocation());
+      throw new BuildException("Failed to analyze class-file "
+                               +res + ", exception=" + e,
+                               getLocation());
     }
   }
 
-  protected void analyzePackageinfo(Resource res)
-      throws BuildException
-  {
+  protected void analyzePackageinfo(Resource res) throws BuildException {
     log("Analyze packageinfo file " + res, Project.MSG_VERBOSE);
 
     bpInfo.setPackageVersion(res);
   }
 
-  private void addZipGroups()
-  {
+
+  private void addZipGroups() {
     for (int i = 0; i < zipgroups.size(); i++) {
-      final FileSet fileset = zipgroups.get(i);
-      final FileScanner fs = fileset.getDirectoryScanner(getProject());
-      final String[] files = fs.getIncludedFiles();
-      final File basedir = fs.getBasedir();
-      for (final String file : files) {
-        final ZipFileSet zipfileset = new ZipFileSet();
-        zipfileset.setSrc(new File(basedir, file));
+      FileSet fileset = (FileSet) zipgroups.get(i);
+      FileScanner fs = fileset.getDirectoryScanner(getProject());
+      String[] files = fs.getIncludedFiles();
+      File basedir = fs.getBasedir();
+      for (int j = 0; j < files.length; j++) {
+        ZipFileSet zipfileset = new ZipFileSet();
+        zipfileset.setSrc(new File(basedir, files[j]));
         srcFilesets.add(zipfileset);
       }
     }
   }
 
-  private void addImplicitFileset()
-  {
+  private void addImplicitFileset() {
     if (baseDir != null) {
-      final FileSet fileset = (FileSet) getImplicitFileSet().clone();
+      FileSet fileset = (FileSet) getImplicitFileSet().clone();
       fileset.setDir(baseDir);
       srcFilesets.add(fileset);
     }
   }
 
-  private boolean isStandardPackage(String packageName)
-  {
-    for (final String prefix : standardPackagePrefixes) {
+  private boolean isStandardPackage(String packageName) {
+    for (Iterator i = standardPackagePrefixes.iterator(); i.hasNext();) {
+      final String prefix = (String) i.next();
       if (packageName.startsWith(prefix)) {
         return true;
       }
@@ -457,39 +445,34 @@ public class Bundle
     return false;
   }
 
-  private void handleActivator()
-      throws ManifestException
-  {
+  private void handleActivator() throws ManifestException {
     if (activator == ACTIVATOR_NONE) {
       log("No BundleActivator set", Project.MSG_DEBUG);
     } else if (activator == ACTIVATOR_AUTO) {
       switch (bpInfo.countProvidedActivatorClasses()) {
-      case 0: {
-        log("No class implementing BundleActivator found", Project.MSG_INFO);
-        break;
-      }
-      case 1: {
-        activator = bpInfo.getActivatorClass();
-        break;
-      }
-      default: {
-        log("More than one class implementing BundleActivator found: "
-                + bpInfo.providedActivatorClassesAsString(), Project.MSG_WARN);
-        break;
-      }
+        case 0: {
+          log("No class implementing BundleActivator found", Project.MSG_INFO);
+          break;
+        }
+        case 1: {
+          activator = bpInfo.getActivatorClass();
+          break;
+        }
+        default: {
+          log("More than one class implementing BundleActivator found: "
+              +bpInfo.providedActivatorClassesAsString(),
+              Project.MSG_WARN);
+          break;
+        }
       }
     }
     if (activator != ACTIVATOR_NONE && activator != ACTIVATOR_AUTO) {
       log("Bundle-Activator: " + activator, Project.MSG_INFO);
-      generatedManifest
-          .addConfiguredAttribute(createAttribute(BUNDLE_ACTIVATOR_KEY,
-                                                  activator));
+      generatedManifest.addConfiguredAttribute(createAttribute(BUNDLE_ACTIVATOR_KEY, activator));
     }
   }
 
-  private void handleClassPath()
-      throws ManifestException
-  {
+  private void handleClassPath() throws ManifestException {
     final StringBuffer value = new StringBuffer();
 
     boolean rootIncluded = false;
@@ -498,9 +481,9 @@ public class Bundle
       rootIncluded = true;
     }
 
-    Iterator<ZipFileSet> i = classes.iterator();
+    Iterator i = classes.iterator();
     while (i.hasNext()) {
-      final ZipFileSet zipFileSet = i.next();
+      final ZipFileSet zipFileSet = (ZipFileSet) i.next();
       final String prefix = zipFileSet.getPrefix(getProject());
       if (prefix.length() > 0) {
         value.append(prefix);
@@ -513,16 +496,16 @@ public class Bundle
 
     i = libs.iterator();
     while (i.hasNext()) {
-      final ZipFileSet fileset = i.next();
+      final ZipFileSet fileset = (ZipFileSet) i.next();
       if (fileset.getSrc(getProject()) == null) {
         final DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
         final String[] files = ds.getIncludedFiles();
         if (files.length != 0) {
           zipgroups.add(fileset);
           final String prefix = fixPrefix(fileset.getPrefix(getProject()));
-          for (final String file : files) {
+          for (int j = 0; j < files.length; j++) {
             value.append(prefix.replace('\\', '/'));
-            value.append(file.replace('\\', '/'));
+            value.append(files[j].replace('\\', '/'));
             value.append(',');
           }
         }
@@ -530,14 +513,11 @@ public class Bundle
     }
 
     if (value.length() > 2) {
-      generatedManifest
-          .addConfiguredAttribute(createAttribute(BUNDLE_CLASS_PATH_KEY, value
-              .substring(0, value.length() - 1)));
+      generatedManifest.addConfiguredAttribute(createAttribute(BUNDLE_CLASS_PATH_KEY, value.substring(0, value.length() - 1)));
     }
   }
 
-  private static String fixPrefix(String prefix)
-  {
+  private static String fixPrefix(String prefix) {
     if (prefix.length() > 0) {
       final char c = prefix.charAt(prefix.length() - 1);
       if (c != '/' && c != '\\') {
@@ -547,31 +527,26 @@ public class Bundle
     return prefix;
   }
 
-  private void addPackageHeader(String headerName,
-                                Map<String, String> packageMap)
-      throws ManifestException
+  private void addPackageHeader(String headerName, Map packageMap)
+    throws ManifestException
   {
-    final Iterator<Entry<String,String>> i = packageMap.entrySet().iterator();
+    final Iterator i = packageMap.entrySet().iterator();
     if (i.hasNext()) {
       final StringBuffer valueBuffer = new StringBuffer();
       while (i.hasNext()) {
-        final Entry<String, String> entry = i.next();
-        final String name = entry.getKey();
-        String version = entry.getValue();
+        Map.Entry entry = (Map.Entry) i.next();
+        final String name = (String) entry.getKey();
+        String version = (String) entry.getValue();
         valueBuffer.append(name);
         if (version != null) {
           version = version.trim();
-          if (0 < version.length()) {
+          if (0<version.length()) {
             valueBuffer.append(";version=");
-            final boolean quotingNeeded =
-              -1 != version.indexOf(',') && '"' != version.charAt(0);
-            if (quotingNeeded) {
-              valueBuffer.append('"');
-            }
+            final boolean quotingNeeded = -1!=version.indexOf(',')
+              && '"'!=version.charAt(0);
+            if (quotingNeeded) valueBuffer.append('"');
             valueBuffer.append(version);
-            if (quotingNeeded) {
-              valueBuffer.append('"');
-            }
+            if (quotingNeeded) valueBuffer.append('"');
           }
         }
         valueBuffer.append(',');
@@ -584,8 +559,7 @@ public class Bundle
     }
   }
 
-  private static Manifest.Attribute createAttribute(String name, String value)
-  {
+  private static Manifest.Attribute createAttribute(String name, String value) {
     final Manifest.Attribute attribute = new Manifest.Attribute();
     attribute.setName(name);
     attribute.setValue(value);
@@ -593,35 +567,34 @@ public class Bundle
   }
 
   /**
-   * Given a precise version create a version range suitable for an import
-   * package specification. Currently an input version of M.N.U.Q will result in
-   * an output range "[M.N.U.Q, M+1)" following the version usage recommended by
-   * OSGi (a package that is not backwards compatible must increment the major
-   * number in its version number).
+   * Given a precise version create a version range suitable for an
+   * import package specification. Currently an input version of
+   * M.N.U.Q will result in an output range "[M.N.U.Q, M+1)" following
+   * the version usage recommended by OSGi (a package that is not
+   * backwards compatible must increment the major number in its
+   * version number).
    *
-   * @param version
-   *          an OSGi compatibel version on string form.
-   * @return a quoted version range starting with the given version (inclusive)
-   *         ending with the next major version (exclusive). If the specified
-   *         version is <code>null</code> or an empty string a <code>null</code>
+   * @param version an OSGi compatibel version on string form.
+   * @return a quoted version range starting with the given version
+   *         (inclusive) ending with the next major version
+   *         (exclusive). If the specified version is
+   *         <code>null</code> or an empty string a <code>null</code>
    *         is returned.
    */
   private static String toImportRange(final String version)
-      throws IllegalArgumentException
+    throws IllegalArgumentException
   {
-    if (null == version || 0 == version.length()) {
-      return null;
-    }
+    if (null==version || 0==version.length()) return null;
 
     final Version vStart = Version.parseVersion(version);
-    final Version vEnd = new Version(vStart.getMajor() + 1, 0, 0, null);
-    return "\"[" + vStart.toString() + "," + vEnd.toString() + ")\"";
+    final Version vEnd = new Version(vStart.getMajor()+1, 0, 0, null);
+    return "\"[" +vStart.toString() +"," +vEnd.toString() +")\"";
   }
+
 
   // public methods
 
-  public void setActivator(String activator)
-  {
+  public void setActivator(String activator) {
     if (ACTIVATOR_NONE.equalsIgnoreCase(activator)) {
       this.activator = ACTIVATOR_NONE;
     } else if (ACTIVATOR_AUTO.equalsIgnoreCase(activator)) {
@@ -631,8 +604,7 @@ public class Bundle
     }
   }
 
-  public void setPackageAnalysis(String packageAnalysis)
-  {
+  public void setPackageAnalysis(String packageAnalysis) {
     packageAnalysis = packageAnalysis.trim().toLowerCase();
     if (PACKAGE_ANALYSIS_NONE.equals(packageAnalysis)) {
       this.packageAnalysis = PACKAGE_ANALYSIS_NONE;
@@ -645,8 +617,7 @@ public class Bundle
     }
   }
 
-  public void addConfiguredStandardPackage(OSGiPackage osgiPackage)
-  {
+  public void addConfiguredStandardPackage(OSGiPackage osgiPackage) {
     final String name = osgiPackage.getName();
     final String prefix = osgiPackage.getPrefix();
     if (name != null && prefix == null) {
@@ -654,13 +625,11 @@ public class Bundle
     } else if (prefix != null && name == null) {
       standardPackagePrefixes.add(prefix);
     } else {
-      throw new BuildException(
-                               "StandardPackage must have exactly one of the name and prefix attributes defined");
+      throw new BuildException("StandardPackage must have exactly one of the name and prefix attributes defined");
     }
   }
 
-  public void addConfiguredImportPackage(OSGiPackage osgiPackage)
-  {
+  public void addConfiguredImportPackage(OSGiPackage osgiPackage) {
     final String name = osgiPackage.getName();
     if (name == null) {
       throw new BuildException("ImportPackage must have a name");
@@ -671,8 +640,7 @@ public class Bundle
     }
   }
 
-  public void addConfiguredExportPackage(OSGiPackage osgiPackage)
-  {
+  public void addConfiguredExportPackage(OSGiPackage osgiPackage) {
     final String name = osgiPackage.getName();
     if (name == null) {
       throw new BuildException("ExportPackage must have a name");
@@ -683,8 +651,7 @@ public class Bundle
     }
   }
 
-  public void addConfiguredLib(ZipFileSet fileset)
-  {
+  public void addConfiguredLib(ZipFileSet fileset) {
     // TODO: handle refid
     if (fileset.getSrc(getProject()) == null) {
       addFileset(fileset);
@@ -694,18 +661,16 @@ public class Bundle
     }
   }
 
-  public void addClasses(ZipFileSet fileset)
-  {
+  public void addClasses(ZipFileSet fileset) {
     super.addZipfileset(fileset);
     srcFilesets.add(fileset);
     classes.add(fileset);
   }
 
+
   // extends Jar
 
-  @Override
-  public void execute()
-  {
+  public void execute() {
     try {
       handleClassPath();
 
@@ -719,29 +684,23 @@ public class Bundle
       // TODO: better merge may be needed, currently overwrites
       // pre-existing headers
       addConfiguredManifest(generatedManifest);
-    } catch (final ManifestException me) {
+    } catch (ManifestException me) {
       throw new BuildException("Error merging manifest headers", me);
     }
     super.execute();
   }
 
-  @Override
-  public void setBasedir(File baseDir)
-  {
+  public void setBasedir(File baseDir) {
     super.setBasedir(baseDir);
     this.baseDir = baseDir;
   }
 
-  @Override
-  public void addZipGroupFileset(FileSet fileset)
-  {
+  public void addZipGroupFileset(FileSet fileset) {
     super.addZipGroupFileset(fileset);
     zipgroups.add(fileset);
   }
 
-  @Override
-  public void addZipfileset(ZipFileSet fileset)
-  {
+  public void addZipfileset(ZipFileSet fileset) {
     super.addZipfileset(fileset);
   }
 

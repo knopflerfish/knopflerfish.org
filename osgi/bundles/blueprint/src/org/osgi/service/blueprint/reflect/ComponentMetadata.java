@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.blueprint.reflect;
 
 import java.util.List;
@@ -24,7 +23,7 @@ import java.util.List;
  * {@link ServiceReferenceMetadata}.
  * 
  * @ThreadSafe
- * @author $Id: 5c09016d7b238d1a3bc94216dd58d2e3d5909288 $
+ * @version $Revision: 8083 $
  */
 public interface ComponentMetadata extends NonNullMetadata {
 
@@ -45,18 +44,19 @@ public interface ComponentMetadata extends NonNullMetadata {
 	/**
 	 * Return the id of the component.
 	 * 
-	 * @return The id of the component. The component id can be {@code null} if
-	 *         this is an anonymously defined and/or inlined component.
+	 * @return The id of the component. The component id can be
+	 *         <code>null</code> if this is an anonymously defined and/or
+	 *         inlined component.
 	 */
 	String getId();
 
 	/**
 	 * Return the activation strategy for the component.
 	 * 
-	 * This is specified by the {@code activation} attribute of a component
-	 * definition. If this is not set, then the {@code default-activation} in
-	 * the {@code blueprint} element is used. If that is also not set, then the
-	 * activation strategy is {@link #ACTIVATION_EAGER}.
+	 * This is specified by the <code>activation</code> attribute of a component
+	 * definition. If this is not set, then the <code>default-activation</code>
+	 * in the <code>blueprint</code> element is used. If that is also not set,
+	 * then the activation strategy is {@link #ACTIVATION_EAGER}.
 	 * 
 	 * @return The activation strategy for the component.
 	 * @see #ACTIVATION_EAGER
@@ -65,11 +65,11 @@ public interface ComponentMetadata extends NonNullMetadata {
 	int getActivation();
 
 	/**
-	 * Return the ids of any components listed in a {@code depends-on} attribute
-	 * for the component.
+	 * Return the ids of any components listed in a <code>depends-on</code>
+	 * attribute for the component.
 	 * 
 	 * @return An immutable List of component ids that are explicitly declared
 	 *         as a dependency, or an empty List if none.
 	 */
-	List<String> getDependsOn();
+	List/* <String> */getDependsOn();
 }

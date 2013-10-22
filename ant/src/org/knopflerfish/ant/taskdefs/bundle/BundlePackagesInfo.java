@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -47,7 +46,6 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.Resource;
-
 import org.osgi.framework.Version;
 
 /**
@@ -104,7 +102,7 @@ public class BundlePackagesInfo {
    * The set of classes provided by the bundle.
    * The elements of the set are the fully qualified class name.
    */
-  private final SortedSet/*<String>*/<String> providedClasses = new TreeSet<String>();
+  private final SortedSet/*<String>*/ providedClasses = new TreeSet();
 
 
   /**
@@ -148,7 +146,7 @@ public class BundlePackagesInfo {
    * The sub set of the provided classes that implements the interface
    * {@link org.osgi.framework.BundleActivator}.
    */
-  private final SortedSet/*<String>*/<String> activatorClasses = new TreeSet<String>();
+  private final SortedSet/*<String>*/ activatorClasses = new TreeSet();
 
   /**
    * Adds a named class to the set of classes that implements the
@@ -208,7 +206,7 @@ public class BundlePackagesInfo {
   public String getActivatorClass()
   {
     return 1== activatorClasses.size()
-      ? activatorClasses.iterator().next()
+      ? (String) activatorClasses.iterator().next()
       : (String) null;
   }
 
@@ -217,7 +215,7 @@ public class BundlePackagesInfo {
    * The set of packages that are provided by the classes in the
    * bundle.
    */
-  private final SortedSet/*<String>*/<String> providedPackages = new TreeSet<String>();
+  private final SortedSet/*<String>*/ providedPackages = new TreeSet();
 
   /**
    * Adds a named package to the set of packages provided by this
@@ -253,9 +251,9 @@ public class BundlePackagesInfo {
    *
    * @return A copy of the set of provided Java packages.
    */
-  public SortedSet<String> getProvidedPackages()
+  public SortedSet/*<String>*/ getProvidedPackages()
   {
-    final TreeSet<String> res = new TreeSet<String>(providedPackages);
+    SortedSet res = new TreeSet(providedPackages);
     toJavaNames(res); // Ensure that '.' is used as package separator
     return res;
   }
@@ -270,8 +268,8 @@ public class BundlePackagesInfo {
   {
     final StringBuffer res = new StringBuffer(255);
 
-    for (final Iterator<String> ppIt = providedPackages.iterator(); ppIt.hasNext();) {
-      final String pPkg = ppIt.next();
+    for (Iterator ppIt = providedPackages.iterator(); ppIt.hasNext();) {
+      final String pPkg = (String) ppIt.next();
       res.append(pPkg);
       final Version pPkgVersion = getProvidedPackageVersion(pPkg);
       if (null!=pPkgVersion) {
@@ -299,7 +297,7 @@ public class BundlePackagesInfo {
    * Mapping from the package name of a provided package to its
    * version as given by the packageinfo-file if present.
    */
-  private final Map<String,Version> packageToVersion = new HashMap<String, Version>();
+  private final Map/*<String,Version>*/ packageToVersion = new HashMap();
 
   /**
    * Get the version of a provided package as defined by the
@@ -311,7 +309,7 @@ public class BundlePackagesInfo {
    */
   public Version getProvidedPackageVersion(final String pkgName)
   {
-    return packageToVersion.get(pkgName);
+    return (Version) packageToVersion.get(pkgName);
   }
 
 
@@ -320,7 +318,7 @@ public class BundlePackagesInfo {
    * absolute path of the <code>packageinfo</code>-file that was used
    * to determine the package version.
    */
-  private final Map<String,String> packageToInfofile = new HashMap<String, String>();
+  private final Map/*<String,String>*/ packageToInfofile = new HashMap();
 
 
   /**
@@ -334,7 +332,7 @@ public class BundlePackagesInfo {
    */
   public String getProvidedPackageVersionSource(final String pkgName)
   {
-    return packageToInfofile.get(pkgName);
+    return (String) packageToInfofile.get(pkgName);
   }
 
 
@@ -360,7 +358,7 @@ public class BundlePackagesInfo {
         }
         line = br.readLine();
       }
-    } catch (final Throwable t) {
+    } catch (Throwable t) {
       final String msg = "Failed to get version from '" +res.toString()
         +"'; " +t.getMessage();
       throw new BuildException(msg, t);
@@ -379,10 +377,8 @@ public class BundlePackagesInfo {
    * <code>packageinfo</code>-file provides data for.
    *
    * @param res Resource encapsulating a <code>packageinfo</code>-file.
-   * @return The package name or <code>null</code> if no valid version was
-   *         found.
    */
-  public String setPackageVersion(final Resource res)
+  public void setPackageVersion(final Resource res)
   {
     // The relative path to packageinfo-file starting from the root of
     // its classpath. Allways using forward slash as separator char.
@@ -392,7 +388,7 @@ public class BundlePackagesInfo {
 
     // Currently registered path for version providing packageinfo
     // file, if any.
-    final String curPkgInfoPath = packageToInfofile.get(pkgName);
+    final String curPkgInfoPath = (String) packageToInfofile.get(pkgName);
 
     if (null==curPkgInfoPath || !curPkgInfoPath.equals(pkgInfoPath)) {
       final Version newVersion = getVersion(res);
@@ -405,7 +401,6 @@ public class BundlePackagesInfo {
           task.log("Package version for '" +pkgName +"' set to "
                    +newVersion +" based on data from '" +pkgInfoPath +"'.",
                    Project.MSG_VERBOSE);
-          return pkgName;
         } else if (!newVersion.equals(curVersion)) {
           // May happen when the classes of a package are in two
           // different directories on the class path.
@@ -418,7 +413,6 @@ public class BundlePackagesInfo {
         }
       }
     }
-    return null;
   }
 
 
@@ -426,22 +420,22 @@ public class BundlePackagesInfo {
    * The set of classes that are referenced from the provided classes.
    * I.e., classes that are used somehow by the provided classes.
    */
-  private final SortedSet<String> referencedClasses = new TreeSet<String>();
+  private final SortedSet/*<String>*/ referencedClasses = new TreeSet();
 
   /**
    * The set of Java packages that are referenced from the provided
    * classes.
    */
-  private final SortedSet<String> referencedPackages = new TreeSet<String>();
+  private final SortedSet/*<String>*/ referencedPackages = new TreeSet();
 
   /**
    * Get a copy of the set of referenced Java classes.
    *
    * @return A copy of the set of referenced Java packages.
    */
-  public SortedSet<String> getReferencedClasses()
+  public SortedSet/*<String>*/ getReferencedClasses()
   {
-    return new TreeSet<String>(referencedClasses);
+    return new TreeSet(referencedClasses);
   }
 
 
@@ -451,9 +445,9 @@ public class BundlePackagesInfo {
    *
    * @return The set of un-provided referenced Java packages.
    */
-  public SortedSet/*<String>*/<String> getUnprovidedReferencedPackages()
+  public SortedSet/*<String>*/ getUnprovidedReferencedPackages()
   {
-    final SortedSet<String> res = new TreeSet<String>(referencedPackages);
+    SortedSet res = new TreeSet(referencedPackages);
     res.removeAll(providedPackages);
 
     return res;
@@ -466,9 +460,9 @@ public class BundlePackagesInfo {
    *
    * @return The set of referenced Java packages.
    */
-  public SortedSet<String> getReferencedPackages()
+  public SortedSet/*<String>*/ getReferencedPackages()
   {
-    return new TreeSet<String>(referencedPackages);
+    return new TreeSet(referencedPackages);
   }
 
 
@@ -476,8 +470,8 @@ public class BundlePackagesInfo {
    * A mapping from a provided Java package name to the set of Java
    * package names referenced by the classes in that provided package.
    */
-  private final Map<String,Set<String>>
-    packageToReferencedPackages = new HashMap<String, Set<String>>();
+  private final Map/*<String,Set<String>>*/
+    packageToReferencedPackages = new HashMap();
 
 
   /**
@@ -515,10 +509,10 @@ public class BundlePackagesInfo {
     }
     referencedPackages.add(referencedPackage);
     if (null!=referencingPackage && 0<referencingPackage.length()) {
-      SortedSet<String> using = (SortedSet<String>)
+      SortedSet using = (SortedSet)
         packageToReferencedPackages.get(referencingPackage);
       if (null==using) {
-        using = new TreeSet<String>();
+        using = new TreeSet();
         packageToReferencedPackages.put(referencingPackage, using);
       }
       using.add(referencedPackage);
@@ -532,25 +526,26 @@ public class BundlePackagesInfo {
    * Post process the package to referenced packages map.
    *
    * <ol>
-   * <li>Remove all self references.
-   * <li>Remove all references to "java.*".
-   * <li>Remove all packages in the remove from referenced set are removed from
-   * all referenced sets.
-   * <li>Retain all packages in the retain in referenced set. I.e., the
-   * referenced sets will only contain packages present in this set.
+   *   <li> Remove all self references.
+   *   <li> Remove all references to "java.*".
+   *   <li> Remove all packages in the remove from referenced set are
+   *        removed from all referenced sets.
+   *   <li> Retain all packages in the retain in referenced set. I.e.,
+   *        the referenced sets will only contain packages present in
+   *        this set.
    * </ol>
    *
-   * @param removeFromReferencedSets
-   *          Packages to remove
-   * @param retainInReferencedSets
-   *          Packages to retain.
+   * @param removeFromReferencedSets Packages to remove
+   * @param retainInReferencedSets Packages to retain.
    */
-  public void postProcessUsingMap(Set<String> removeFromReferencedSets,
-                                  Set<String> retainInReferencedSets)
+  public void postProcessUsingMap(Set removeFromReferencedSets,
+                                  Set retainInReferencedSets)
   {
-    for (final Entry<String,Set<String>> entry : packageToReferencedPackages.entrySet()) {
-      final Set<String> using = entry.getValue();
-      using.remove(entry.getKey());
+    for (Iterator it = packageToReferencedPackages.entrySet().iterator();
+         it.hasNext(); ) {
+      final Map.Entry entry = (Map.Entry) it.next();
+      final SortedSet using = (SortedSet) entry.getValue();
+      using.remove((String) entry.getKey());
       using.removeAll(removeFromReferencedSets);
       using.retainAll(retainInReferencedSets);
     }
@@ -564,10 +559,10 @@ public class BundlePackagesInfo {
    *                     referenced Java packages for.
    * @return The set of referenced Java packages.
    */
-  public SortedSet<String>
+  public SortedSet/*<String>*/
     getPackagesReferencedFromPackage(final String packageName)
   {
-    return (SortedSet<String>) packageToReferencedPackages.get(packageName);
+    return (SortedSet) packageToReferencedPackages.get(packageName);
   }
 
 
@@ -593,10 +588,11 @@ public class BundlePackagesInfo {
    *
    * @param set the set of names to process.
    */
-  private void toJavaNames(SortedSet<String> set)
+  private void toJavaNames(SortedSet set)
   {
-    final TreeSet<String> tmpSet = new TreeSet<String>();
-    for (final String item : set) {
+    final TreeSet tmpSet = new TreeSet();
+    for (Iterator it = set.iterator(); it.hasNext();) {
+      String item = (String) it.next();
       tmpSet.add(item.replace('/', '.'));
     }
     set.clear();
@@ -605,24 +601,22 @@ public class BundlePackagesInfo {
   }
 
   /**
-   * Replaces all '/' in class and package names with '.' in the keys of the
-   * given map. If the value is a sorted set of strings call
-   * {@link #toJavaNames(SortedSet)} on it.
+   * Replaces all '/' in class and package names with '.' in the
+   * keys of the given map. If the value is a sorted set of strings
+   * call {@link #toJavaNames(SortedSet)} on it.
    *
-   * @param map
-   *          the map of with keys to process.
+   * @param map the map of with keys to process.
    */
-  private <V> void toJavaNames(Map<String, V> map)
+  private void toJavaNames(Map map)
   {
-    final HashMap<String, V> tmpMap = new HashMap<String, V>();
+    final HashMap tmpMap = new HashMap();
 
-    for (final Entry<String, V> entry : map.entrySet()) {
-      final String key = entry.getKey();
-      final V value = entry.getValue();
+    for (Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
+      final Map.Entry entry = (Map.Entry) it.next();
+      final String    key   = (String) entry.getKey();
+      final Object    value = entry.getValue();
       if (value instanceof SortedSet) {
-        @SuppressWarnings("unchecked")
-        final SortedSet<String> set = (SortedSet<String>) value;
-        toJavaNames(set);
+        toJavaNames((SortedSet) value);
       }
       tmpMap.put(key.replace('/', '.'), value);
     }
@@ -631,13 +625,11 @@ public class BundlePackagesInfo {
     tmpMap.clear();
   }
 
-  @Override
+
   public boolean equals(Object other)
   {
-    if (!(other instanceof BundlePackagesInfo)) {
-      return false;
-    }
-    final BundlePackagesInfo otherBpInfo = (BundlePackagesInfo) other;
+    if (!(other instanceof BundlePackagesInfo)) return false;
+    BundlePackagesInfo otherBpInfo = (BundlePackagesInfo) other;
 
     if (!providedPackages.equals(otherBpInfo.providedPackages)) {
       System.out.println("Diff for provided packages: mine="
@@ -664,9 +656,9 @@ public class BundlePackagesInfo {
       System.out.println("Diff for referenced packages: mine="
                          +referencedPackages
                          +", other=" +otherBpInfo.referencedPackages);
-      final SortedSet<String> all = new TreeSet<String>(referencedPackages);
+      final SortedSet all = new TreeSet(referencedPackages);
       all.addAll(otherBpInfo.referencedPackages);
-      final SortedSet<String> tmp = new TreeSet<String>(all);
+      final SortedSet tmp = new TreeSet(all);
       tmp.removeAll(referencedPackages);
       System.out.println(" Other extra referenced packages: " +tmp);
 
@@ -682,9 +674,9 @@ public class BundlePackagesInfo {
                          +referencedClasses
                          +", other=" +otherBpInfo.referencedClasses);
 
-      final SortedSet<String> all = new TreeSet<String>(referencedClasses);
+      final SortedSet all = new TreeSet(referencedClasses);
       all.addAll(otherBpInfo.referencedClasses);
-      final SortedSet<String> tmp = new TreeSet<String>(all);
+      final SortedSet tmp = new TreeSet(all);
       tmp.removeAll(referencedClasses);
       System.out.println(" Other extra referenced classes: " +tmp);
 
@@ -699,14 +691,13 @@ public class BundlePackagesInfo {
   }
 
 
-  @Override
   public String toString()
   {
-    final StringBuffer res = new StringBuffer(200);
+    StringBuffer res = new StringBuffer(200);
     res.append("BundlePackagesInfo:\n\t");
     res.append("Provided packages: [");
-    for (final Iterator<String> ppIt = providedPackages.iterator(); ppIt.hasNext();) {
-      final String pPkg = ppIt.next();
+    for (Iterator ppIt = providedPackages.iterator(); ppIt.hasNext();) {
+      final String pPkg = (String) ppIt.next();
       res.append(pPkg);
       final Version pPkgVersion = getProvidedPackageVersion(pPkg);
       if (null!=pPkgVersion) {

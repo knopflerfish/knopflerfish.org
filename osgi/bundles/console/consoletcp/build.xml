@@ -5,8 +5,6 @@
   <dirname  property="proj.dir" file="${ant.file.consoletcp}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
-  <property name="bundle.build.doc"   value="true"/>
-
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.minimum"/>
 

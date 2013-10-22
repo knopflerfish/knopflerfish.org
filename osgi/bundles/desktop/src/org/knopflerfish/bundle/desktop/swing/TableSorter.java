@@ -104,7 +104,6 @@ public class TableSorter
 
   public TableSorter(TableModel model)
   {
-    this();
     setModel(model);
   }
 
@@ -226,16 +225,14 @@ public class TableSorter
   public void reallocateIndexes()
   {
     final int rowCount = model.getRowCount();
-    if (indexes.length != rowCount) {
-      // Set up a new array of indexes with the right number of elements
-      // for the new data model.
-      indexes = new int[rowCount];
 
-      // Initialize with the identity mapping.
-      for (int row = 0; row < rowCount; row++) {
-        indexes[row] = row;
-      }
-      sort(this);
+    // Set up a new array of indexes with the right number of elements
+    // for the new data model.
+    indexes = new int[rowCount];
+
+    // Initialise with the identity mapping.
+    for (int row = 0; row < rowCount; row++) {
+      indexes[row] = row;
     }
   }
 
@@ -250,9 +247,7 @@ public class TableSorter
   public void checkModel()
   {
     if (indexes.length != model.getRowCount()) {
-      // May happen since we are informed by asynchronous events about changes
-      // in the mode.
-      reallocateIndexes();
+      System.err.println("Sorter not informed of a change in model.");
     }
   }
 
@@ -280,7 +275,7 @@ public class TableSorter
   // This is a home-grown implementation which we have not had time
   // to research - it may perform poorly in some circumstances. It
   // requires twice the space of an in-place algorithm and makes
-  // NlogN assignments shuttling the values between the two
+  // NlogN assigments shuttling the values between the two
   // arrays. The number of compares appears to vary between N-1 and
   // NlogN depending on the initial order but the main reason for
   // using it here is that, unlike qsort, it is stable.

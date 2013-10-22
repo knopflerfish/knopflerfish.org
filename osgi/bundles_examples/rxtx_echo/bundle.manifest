@@ -8,11 +8,5 @@ Import-Package: org.osgi.framework,
  org.osgi.util.tracker ; specification-version=1.2.0,
  org.osgi.service.log ; specification-version=1.2.0,
  gnu.io ; specification-version=2.1
-Bundle-Description: RXTX serial port line echo
-Bundle-Category: example
 Bundle-Vendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
- /index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles_examples/rxtx_echo/
+Bundle-Description: RXTX serial port line echo

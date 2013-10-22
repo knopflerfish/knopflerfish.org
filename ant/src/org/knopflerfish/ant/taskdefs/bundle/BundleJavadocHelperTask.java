@@ -37,8 +37,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import org.apache.tools.ant.BuildException;
@@ -46,12 +48,10 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.resources.FileResource;
 import org.apache.tools.ant.types.selectors.FilenameSelector;
 import org.apache.tools.ant.types.selectors.OrSelector;
-
-import org.osgi.framework.Constants;
-
-import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
 
 /**
  * Task that helps building arguments to javadoc.
@@ -291,12 +291,11 @@ public class BundleJavadocHelperTask extends Task {
   /**
    * The set of java package names for exported packages.
    */
-  final TreeSet<String> ePkgs = new TreeSet<String>();
+  final Set ePkgs = new TreeSet();
 
 
   // Implements Task
   //
-  @Override
   public void execute() throws BuildException {
     if ((null==exportPkgsFile&&null==exportPkgsValue)
         && null!=pkgPropertyName ) {
@@ -327,7 +326,7 @@ public class BundleJavadocHelperTask extends Task {
       processSrcRootsFile();
       processExportPkgs();
       processPkgSrcsAvailable();
-    } catch (final Exception e) {
+    } catch (Exception e) {
       throw new BuildException(e);
     }
   }
@@ -335,52 +334,38 @@ public class BundleJavadocHelperTask extends Task {
   private void processSrcRootsFile()
     throws FileNotFoundException, IOException
   {
-    if (null==srcRootsFile) {
-      return;
-    }
+    if (null==srcRootsFile) return;
 
-    final Set<String> srcRoots = new TreeSet<String>();
-    BufferedReader in = null;
-    try {
-      in = new BufferedReader(new FileReader(srcRootsFile));
+    BufferedReader in = new BufferedReader(new FileReader(srcRootsFile));
+    Set srcRoots = new TreeSet();
 
-      String line = in.readLine();
-      while (null != line) {
-        srcRoots.add(line.trim());
-        line = in.readLine();
-      }
-    } finally {
-      if (in != null) {
-        in.close();
-        in = null;
-      }
+    String line = in.readLine();
+    while (null!=line) {
+      srcRoots.add(line.trim());
+      line = in.readLine();
     }
-    final Project proj = getProject();
+    Project proj = getProject();
     if (null!=srcPropertyName) {
       String sourcepath = proj.getProperty(srcPropertyName);
-      if (null==sourcepath) {
-        sourcepath = "";
-      }
+      if (null==sourcepath) sourcepath = "";
 
-      final StringBuffer sb
+      StringBuffer sb
         = new StringBuffer(sourcepath.length() +50*srcRoots.size());
       sb.append(sourcepath);
 
-      for (final Object element : srcRoots) {
-        if (sb.length()>0) {
-          sb.append(",");
-        }
-        sb.append(element);
+      for (Iterator it = srcRoots.iterator(); it.hasNext(); ) {
+        if (sb.length()>0) sb.append(",");
+        sb.append(it.next());
       }
       proj.setProperty(srcPropertyName, sb.toString());
     }
     if (null!=srcPathId) {
-      final Path path = new Path(proj);
-      for (final Object element : srcRoots) {
-        path.setLocation(new File( (String) element ));
+      Path path = new Path(proj);
+      for (Iterator it = srcRoots.iterator(); it.hasNext(); ) {
+        path.setLocation(new File( (String) it.next() ));
       }
       log("Created path: "+path,Project.MSG_DEBUG);
-      final Path oldPath = (Path) proj.getReference(srcPathId);
+      Path oldPath = (Path) proj.getReference(srcPathId);
       if (null!=oldPath) {
         oldPath.add(path);
         log(srcPathId +" after extension: "+oldPath, Project.MSG_VERBOSE);
@@ -397,21 +382,12 @@ public class BundleJavadocHelperTask extends Task {
     // Unconditional process of exportPkgsFile / exportPkgsValue since
     // result is used by other process-methods.
     if (exportPkgsFile != null) {
-      BufferedReader in= null;
+      BufferedReader in = new BufferedReader(new FileReader(exportPkgsFile));
 
-      try {
-        in = new BufferedReader(new FileReader(exportPkgsFile));
-
-        String line = in.readLine();
-        while (null!=line) {
-          handleOneExportPackageLine(line);
-          line = in.readLine();
-        }
-      } finally {
-        if (in != null) {
-          in.close();
-          in = null;
-        }
+      String line = in.readLine();
+      while (null!=line) {
+        handleOneExportPackageLine(line);
+        line = in.readLine();
       }
     }
 
@@ -421,21 +397,17 @@ public class BundleJavadocHelperTask extends Task {
 
 
     if (null!=pkgPropertyName) {
-      final Project proj = getProject();
+      Project proj = getProject();
       String packagenames = proj.getProperty(pkgPropertyName);
-      if (null==packagenames) {
-        packagenames = "";
-      }
+      if (null==packagenames) packagenames = "";
 
-      final StringBuffer sb
+      StringBuffer sb
         = new StringBuffer(packagenames.length() +50*ePkgs.size());
       sb.append(packagenames);
 
-      for (final Object element : ePkgs) {
-        if (sb.length()>0) {
-          sb.append(",");
-        }
-        sb.append(element);
+      for (Iterator it =ePkgs.iterator(); it.hasNext(); ) {
+        if (sb.length()>0) sb.append(",");
+        sb.append(it.next());
       }
       proj.setProperty(pkgPropertyName, sb.toString());
       log("Setting property '" +pkgPropertyName +"' -> " +sb.toString(),
@@ -445,33 +417,29 @@ public class BundleJavadocHelperTask extends Task {
 
   private void handleOneExportPackageLine(final String line)
   {
-    if (!BundleManifestTask.BUNDLE_EMPTY_STRING.equals(line)) {
-      final List<HeaderEntry> entries =
-        Util.parseManifestHeader(Constants.EXPORT_PACKAGE, line.trim(), false,
-                                 true, false);
-
-      for (final HeaderEntry entry : entries) {
-        for (final String pkg : entry.getKeys()) {
-          ePkgs.add(pkg);
+      if (!BundleManifestTask.BUNDLE_EMPTY_STRING.equals(line)) {
+        Iterator expIt = Util.parseEntries
+          ("export.package", line.trim(), true, true, false );
+        while (expIt.hasNext()) {
+          Map expEntry = (Map) expIt.next();
+          String exPkg = (String) expEntry.get("$key");
+          ePkgs.add(exPkg);
         }
       }
-    }
   }
 
   private void processPkgSrcsAvailable()
   {
     // If no srcDir then there are no source files in it.
-    if (srcDir==null || !srcDir.exists()) {
-      return;
-    }
+    if (srcDir==null || !srcDir.exists()) return;
 
     final Project proj = getProject();
 
-    final TreeSet<String> pkgNamesWithSource = new TreeSet<String>();
+    final TreeSet pkgNamesWithSource = new TreeSet();
     boolean pkgSrcAvailable = false;
 
-    for (final Object element : ePkgs) {
-      final String pkg = (String) element;
+    for (Iterator it = ePkgs.iterator(); it.hasNext(); ) {
+      final String pkg = (String) it.next();
 
       final FileSet fileSet = new FileSet();
       fileSet.setProject(proj);
@@ -509,11 +477,9 @@ public class BundleJavadocHelperTask extends Task {
       final StringBuffer sb
         = new StringBuffer(50*pkgNamesWithSource.size());
 
-      for (final Object element : pkgNamesWithSource) {
-        if (sb.length()>0) {
-          sb.append(",");
-        }
-        sb.append(element);
+      for (Iterator it =pkgNamesWithSource.iterator(); it.hasNext(); ) {
+        if (sb.length()>0) sb.append(",");
+        sb.append(it.next());
       }
 
       proj.setProperty(pkgWithSourcePropertyName, sb.toString());

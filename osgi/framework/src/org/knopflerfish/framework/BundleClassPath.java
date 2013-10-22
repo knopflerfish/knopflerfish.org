@@ -49,7 +49,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
-import org.osgi.framework.VersionRange;
 
 /**
  * Bundle Class Path handler.
@@ -206,41 +205,33 @@ public class BundleClassPath {
       debug.println(this + "getNativeLibrary: lib=" + libName);
     }
     if (nativeLibs != null) {
-      String [] keys = new String [] { System.mapLibraryName(libName), libName };
-      FileArchive fa = null;
-      String key = null;
-      for (String k : keys) {
-        key = k;
-        if (debug.classLoader) {
-          debug.println(this + "getNativeLibrary: try, " + key);
-        }
-        fa = nativeLibs.get(key);
-        if (fa == null) {
-          // Try other non-default lib-extensions
-          final String libExtensions = fwCtx.props
-              .getProperty(Constants.FRAMEWORK_LIBRARY_EXTENSIONS);
-          final int pos = key.lastIndexOf(".");
-          if (libExtensions.length() > 0 && pos > -1) {
-            final String baseKey = key.substring(0, pos + 1);
-            final String[] exts = Util.splitwords(libExtensions, ", \t");
-            for (final String ext : exts) {
-              key = baseKey + ext;
-              if (debug.classLoader) {
-                debug.println(this + "getNativeLibrary: try, " + key);
-              }
-              fa = nativeLibs.get(key);
-              if (fa != null) {
-                break;
-              }
+      String key = System.mapLibraryName(libName);
+      if (debug.classLoader) {
+        debug.println(this + "getNativeLibrary: try, " + key);
+      }
+      FileArchive fa = nativeLibs.get(key);
+      if (fa == null) {
+        // Try other non-default lib-extensions
+        final String libExtensions = fwCtx.props
+            .getProperty(Constants.FRAMEWORK_LIBRARY_EXTENSIONS);
+        final int pos = key.lastIndexOf(".");
+        if (libExtensions.length() > 0 && pos > -1) {
+          final String baseKey = key.substring(0, pos + 1);
+          final String[] exts = Util.splitwords(libExtensions, ", \t");
+          for (final String ext : exts) {
+            key = baseKey + ext;
+            if (debug.classLoader) {
+              debug.println(this + "getNativeLibrary: try, " + key);
+            }
+            fa = nativeLibs.get(key);
+            if (fa != null) {
+              break;
             }
           }
         }
-        if (fa != null) {
-          break;
+        if (fa == null) {
+          return null;
         }
-      }
-      if (fa == null) {
-        return null;
       }
       if (debug.classLoader) {
         debug.println(this + "getNativeLibrary: got, " + fa);
@@ -312,8 +303,8 @@ public class BundleClassPath {
     final String bnc = ba.getAttribute(Constants.BUNDLE_NATIVECODE);
     if (bnc != null) {
       final ArrayList<String> proc = new ArrayList<String>(3);
-      final String procP = fwCtx.props.getProperty(Constants.FRAMEWORK_PROCESSOR).toLowerCase();
-      proc.add(procP);
+      final String procP = fwCtx.props.getProperty(Constants.FRAMEWORK_PROCESSOR);
+      proc.add(fwCtx.props.getProperty(Constants.FRAMEWORK_PROCESSOR).toLowerCase());
       final String procS = System.getProperty("os.arch").toLowerCase();
       if (!procP.equals(procS)) {
         proc.add(procS);
@@ -322,28 +313,22 @@ public class BundleClassPath {
       if (procP.startsWith("arm_")) {
         proc.add("arm");
       }
-      for (int i = 0; i < Alias.processorAliases.length; i++) {
-        if (procP.equalsIgnoreCase(Alias.processorAliases[i][0])) {
-          for (int j = 1; j < Alias.processorAliases[i].length; j++) {
-            if (!procS.equals(Alias.processorAliases[i][j])) {
-              proc.add(Alias.processorAliases[i][j]);
-            }
-          }
-          break;
-        }
-      }
       final ArrayList<String> os = new ArrayList<String>();
       final String osP = fwCtx.props.getProperty(Constants.FRAMEWORK_OS_NAME).toLowerCase();
       os.add(osP);
-      final String osS = System.getProperty("os.name").toLowerCase();
+      String osS = System.getProperty("os.name").toLowerCase();
       if (!osS.equals(osP)) {
         os.add(osS);
+      } else {
+        osS = null;
       }
       for (int i = 0; i < Alias.osNameAliases.length; i++) {
         if (osP.equalsIgnoreCase(Alias.osNameAliases[i][0])) {
           for (int j = 1; j < Alias.osNameAliases[i].length; j++) {
-            if (!osS.equals(Alias.osNameAliases[i][j])) {
+            if (osS == null || !osS.equals(Alias.osNameAliases[i][j])) {
               os.add(Alias.osNameAliases[i][j]);
+            } else {
+              osS = null;
             }
           }
           break;
@@ -401,9 +386,9 @@ public class BundleClassPath {
         if (ver != null) {
           boolean okVer = false;
           for (final String string : ver) {
-            // TODO! Handle format Exception
+            // NYI! Handle format Exception
             matchVer = new VersionRange(string);
-            if (matchVer.includes(osVer)) {
+            if (matchVer.withinRange(osVer)) {
               okVer = true;
               break;
             }
@@ -458,7 +443,7 @@ public class BundleClassPath {
             if (matchVer == null) {
               continue;
             }
-            final int d = bestVer.getLeft().compareTo(matchVer.getLeft());
+            final int d = bestVer.compareTo(matchVer);
             if (d == 0) {
               verEqual = true;
             } else if (d > 0) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2011). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.osgi.framework.Filter;
 
 /**
@@ -37,7 +38,7 @@ import org.osgi.framework.Filter;
  * Configuration Admin.
  * 
  * @ThreadSafe
- * @author $Id: 8d063b34f0b7e467b8bf7ecd8b8e6d42384fdcb7 $
+ * @version $Id: fd5efb5f4db6eb95e02296e4afe86a9698936edd $
  * @since 1.2
  */
 
@@ -59,7 +60,8 @@ public final class ConfigurationPermission extends BasicPermission {
 
 	private final static int		ACTION_CONFIGURE	= 0x00000001;
 	private final static int		ACTION_TARGET		= 0x00000002;
-	private final static int		ACTION_ALL			= ACTION_CONFIGURE | ACTION_TARGET;
+	private final static int		ACTION_ALL			= ACTION_CONFIGURE
+																| ACTION_TARGET;
 	final static int				ACTION_NONE			= 0;
 
 	/**
@@ -143,7 +145,9 @@ public final class ConfigurationPermission extends BasicPermission {
 			char c;
 
 			// skip whitespace
-			while ((i != -1) && ((c = a[i]) == ' ' || c == '\r' || c == '\n' || c == '\f' || c == '\t'))
+			while ((i != -1)
+					&& ((c = a[i]) == ' ' || c == '\r' || c == '\n'
+							|| c == '\f' || c == '\t'))
 				i--;
 
 			// check for the known strings
@@ -158,7 +162,8 @@ public final class ConfigurationPermission extends BasicPermission {
 				matchlen = 6;
 				mask |= ACTION_TARGET;
 
-			} else
+			}
+			else
 				if (i >= 8 && (a[i - 8] == 'c' || a[i - 8] == 'C')
 						&& (a[i - 7] == 'o' || a[i - 7] == 'O')
 						&& (a[i - 6] == 'n' || a[i - 6] == 'N')
@@ -171,9 +176,11 @@ public final class ConfigurationPermission extends BasicPermission {
 					matchlen = 9;
 					mask |= ACTION_CONFIGURE;
 
-				} else {
+				}
+				else {
 					// parse error
-					throw new IllegalArgumentException("invalid actions: " + actions);
+					throw new IllegalArgumentException("invalid actions: "
+							+ actions);
 				}
 
 			// make sure we didn't just match the tail of a word
@@ -191,7 +198,8 @@ public final class ConfigurationPermission extends BasicPermission {
 					case '\t' :
 						break;
 					default :
-						throw new IllegalArgumentException("invalid permission: " + actions);
+						throw new IllegalArgumentException(
+								"invalid permission: " + actions);
 				}
 				i--;
 			}
@@ -330,15 +338,18 @@ public final class ConfigurationPermission extends BasicPermission {
 						// to do the last substr
 						// check
 						i++;
-				} else /* xxx */{
+				}
+				else /* xxx */{
 					int len = substr.length();
 					if (requestedName.regionMatches(pos, substr, 0, len)) {
 						pos += len;
-					} else {
+					}
+					else {
 						return false;
 					}
 				}
-			} else /* last substr */{
+			}
+			else /* last substr */{
 				if (substr == null) /* * */{
 					return true;
 				}
@@ -370,7 +381,8 @@ public final class ConfigurationPermission extends BasicPermission {
 
 		ConfigurationPermission cp = (ConfigurationPermission) obj;
 
-		return (action_mask == cp.action_mask) && getName().equals(cp.getName());
+		return (action_mask == cp.action_mask)
+				&& getName().equals(cp.getName());
 	}
 
 	/**
@@ -435,7 +447,8 @@ public final class ConfigurationPermission extends BasicPermission {
 	 * stream. The actions are serialized, and the superclass takes care of the
 	 * name.
 	 */
-	private synchronized void writeObject(java.io.ObjectOutputStream s) throws IOException {
+	private synchronized void writeObject(java.io.ObjectOutputStream s)
+			throws IOException {
 		// Write out the actions. The superclass takes care of the name
 		// call getActions to make sure actions field is initialized
 		if (actions == null)
@@ -447,7 +460,8 @@ public final class ConfigurationPermission extends BasicPermission {
 	 * readObject is called to restore the state of this permission from a
 	 * stream.
 	 */
-	private synchronized void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
+	private synchronized void readObject(java.io.ObjectInputStream s)
+			throws IOException, ClassNotFoundException {
 		// Read in the data, then initialize the transients
 		s.defaultReadObject();
 		setTransients(parseActions(actions));
@@ -504,11 +518,13 @@ final class ConfigurationPermissionCollection extends PermissionCollection {
 
 	public void add(Permission permission) {
 		if (!(permission instanceof ConfigurationPermission)) {
-			throw new IllegalArgumentException("invalid permission: " + permission);
+			throw new IllegalArgumentException("invalid permission: "
+					+ permission);
 		}
 
 		if (isReadOnly())
-			throw new SecurityException("attempt to add a Permission to a " + "readonly PermissionCollection");
+			throw new SecurityException("attempt to add a Permission to a "
+					+ "readonly PermissionCollection");
 
 		final ConfigurationPermission cp = (ConfigurationPermission) permission;
 		final String name = cp.getName();
@@ -519,9 +535,11 @@ final class ConfigurationPermissionCollection extends PermissionCollection {
 				final int oldMask = existing.action_mask;
 				final int newMask = cp.action_mask;
 				if (oldMask != newMask) {
-					pc.put(name, new ConfigurationPermission(name, oldMask | newMask));
+					pc.put(name, new ConfigurationPermission(name, oldMask
+							| newMask));
 				}
-			} else {
+			}
+			else {
 				pc.put(name, cp);
 			}
 
@@ -586,10 +604,13 @@ final class ConfigurationPermissionCollection extends PermissionCollection {
 	}
 
 	/* serialization logic */
-	private static final ObjectStreamField[]	serialPersistentFields	= {new ObjectStreamField("hasElement", Boolean.TYPE), new ObjectStreamField("permissions", HashMap.class),
+	private static final ObjectStreamField[]	serialPersistentFields	= {
+			new ObjectStreamField("hasElement", Boolean.TYPE),
+			new ObjectStreamField("permissions", HashMap.class),
 			new ObjectStreamField("all_allowed", Boolean.TYPE)			};
 
-	private synchronized void writeObject(ObjectOutputStream out) throws IOException {
+	private synchronized void writeObject(ObjectOutputStream out)
+			throws IOException {
 		ObjectOutputStream.PutField pfields = out.putFields();
 		pfields.put("hasElement", false);
 		pfields.put("permissions", permissions);
@@ -597,15 +618,20 @@ final class ConfigurationPermissionCollection extends PermissionCollection {
 		out.writeFields();
 	}
 
-	private synchronized void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+	private synchronized void readObject(java.io.ObjectInputStream in)
+			throws IOException, ClassNotFoundException {
 		ObjectInputStream.GetField gfields = in.readFields();
 		boolean hasElement = gfields.get("hasElement", false);
 		if (hasElement) { // old format
 			permissions = new HashMap<String, ConfigurationPermission>();
-			permissions.put("*", new ConfigurationPermission("*", ConfigurationPermission.CONFIGURE));
+			permissions.put("*", new ConfigurationPermission("*",
+					ConfigurationPermission.CONFIGURE));
 			all_allowed = true;
-		} else {
-			permissions = (HashMap<String, ConfigurationPermission>) gfields.get("permissions", new HashMap<String, ConfigurationPermission>());
+		}
+		else {
+			permissions = (HashMap<String, ConfigurationPermission>) gfields
+					.get("permissions",
+							new HashMap<String, ConfigurationPermission>());
 			all_allowed = gfields.get("all_allowed", false);
 		}
 	}

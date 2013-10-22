@@ -13,7 +13,6 @@
     <li><a href="#startup">Knopflerfish framework.jar startup</a></li>
     <li><a href="#init_restart">Initial start vs restart</a></li>
     <li><a href="#framework">Starting the framework</a></li>
-    <li><a href="#framework_compact">Starting the compact framework</a></li>
     <li><a href="#xargs">Default selection of .xargs</a></li>
     <li><a href="#proxy">Using a HTTP proxy</a></li>
     <li><a href="#props">Framework and System Properties</a></li>
@@ -146,20 +145,6 @@ count as options in this case) an implicit
 <p>
 is added to the options. "default" means that the default .xargs (see
 below) is selected.
-</p>
-
-<a name="framework_compact"></a>
-<h2>Starting the compact framework</h2>
-<p>
-There is a compact version of the framework available for system that
-has limited amount of resources (memory and storage). This version
-doesn't contain any support for security and certificates. The internal
-classes has also been name mangled to save resources.
-</p>
-<p>
-The compact framework is started and controlled in the same way as the
-full version. The only difference is that the jar file is called
-<code>framework_compact.jar</code>.
 </p>
 
 <a name="xargs"></a>

@@ -53,8 +53,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.Version;
-import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
-import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -71,22 +69,6 @@ public class WiringHTMLDisplayer
   implements FrameworkListener, JHTMLBundleLinkHandler
 {
 
-  /**
-   * Create a HTML-link for the given string if it starts with something that
-   * looks like a URL protocol.
-   *
-   * @param value
-   *          the text to make a link of
-   * @return the text or the text wrapped in a HTML link.
-   */
-  static String makeLink(String value)
-  {
-    if (value.startsWith("http:") || value.startsWith("https:")
-        || value.startsWith("ftp:") || value.startsWith("file:")) {
-      value = "<a href=\"" + value + "\">" + value + "</a>";
-    }
-    return value;
-  }
   public WiringHTMLDisplayer(BundleContext bc) {
     super(bc, "Wiring", "Shows wiring between bundle revisions.", true);
 
@@ -113,20 +95,17 @@ public class WiringHTMLDisplayer
     }
   }
 
-  @Override
   public void frameworkEvent(FrameworkEvent event)
   {
     // Refresh is done, update displayer.
     valueChanged(event.getBundle().getBundleId());
   }
 
-  @Override
   public boolean canRenderUrl(URL url)
   {
     return WiringUrl.isWiringLink(url);
   }
 
-  @Override
   public boolean renderUrl(URL url, StringBuffer sb)
   {
     final WiringUrl wiringUrl = new WiringUrl(url);
@@ -430,6 +409,8 @@ public class WiringHTMLDisplayer
 
   class JHTML extends JHTMLBundle {
     private static final long serialVersionUID = 1L;
+    protected static final String OSGI_EE = "osgi.ee";
+    protected static final String OSGI_IDENTITY = "osgi.identity";
 
     JHTML(DefaultSwingBundleDisplayer displayer)
     {
@@ -553,13 +534,13 @@ public class WiringHTMLDisplayer
 
       if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterPackage(nameSpace, wiring);
-      } else if (ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE.equals(nameSpace)) {
+      } else if (JHTML.OSGI_EE.equals(nameSpace)) {
         wf = new WireFormatterEE(nameSpace, wiring);
       } else if (BundleRevision.HOST_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterHost(nameSpace, wiring);
       } else if (BundleRevision.BUNDLE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterBundle(nameSpace, wiring);
-      } else if (IdentityNamespace.IDENTITY_NAMESPACE.equals(nameSpace)) {
+      } else if (JHTML.OSGI_IDENTITY.equals(nameSpace)) {
         wf = new WireFormatterID(nameSpace, wiring);
       } else {
         wf = new WireFormatter(nameSpace, wiring);
@@ -587,13 +568,13 @@ public class WiringHTMLDisplayer
 
       if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterPackage(nameSpace, wiring);
-      } else if (ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE.equals(nameSpace)) {
+      } else if (JHTML.OSGI_EE.equals(nameSpace)) {
         wf = new WireFormatterEE(nameSpace, wiring);
       } else if (BundleRevision.HOST_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterHost(nameSpace, wiring);
       } else if (BundleRevision.BUNDLE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterBundle(nameSpace, wiring);
-      } else if (IdentityNamespace.IDENTITY_NAMESPACE.equals(nameSpace)) {
+      } else if (JHTML.OSGI_IDENTITY.equals(nameSpace)) {
         wf = new WireFormatterID(nameSpace, wiring);
       } else {
         wf = new WireFormatter(nameSpace, wiring);
@@ -976,7 +957,7 @@ public class WiringHTMLDisplayer
         = new HashMap<String, Object>(capability.getAttributes());
 
       final StringBuffer sb = new StringBuffer(50);
-      sb.append(attrs.remove(ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE));
+      sb.append(attrs.remove(JHTML.OSGI_EE));
 
       @SuppressWarnings("unchecked")
       final List<Version> versions = (List<Version>) attrs
@@ -1002,7 +983,7 @@ public class WiringHTMLDisplayer
     {
       final StringBuffer sb = new StringBuffer(50);
       final String filter = requirement.getDirectives().get("filter");
-      final String eeName = getFilterValue(filter, ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE);
+      final String eeName = getFilterValue(filter, JHTML.OSGI_EE);
 
       if (eeName != null) {
         sb.append(eeName);
@@ -1141,10 +1122,10 @@ public class WiringHTMLDisplayer
     {
       // Make a modifiable clone of the attributes.
       final Map<String, Object> attrs
-        = new TreeMap<String, Object>(capability.getAttributes());
+        = new HashMap<String, Object>(capability.getAttributes());
 
       final StringBuffer sb = new StringBuffer(50);
-      sb.append(attrs.remove(IdentityNamespace.IDENTITY_NAMESPACE));
+      sb.append(attrs.remove(JHTML.OSGI_IDENTITY));
 
       final Version version =
           (Version) attrs.remove(Constants.VERSION_ATTRIBUTE);
@@ -1160,23 +1141,8 @@ public class WiringHTMLDisplayer
       }
 
       if (!attrs.isEmpty()) {
-        sb.append("&nbsp;{");
-        boolean first = true;
-        for (final Entry<String,Object> entry :attrs.entrySet()) {
-          if (first) {
-            first = false;
-          } else {
-            sb.append(",&nbsp;");
-          }
-          sb.append(entry.getKey());
-          sb.append('=');
-          String value = entry.getValue().toString();
-          value = Strings.replace(value, "<", "&lt;");
-          value = Strings.replace(value, ">", "&gt;");
-          value = WiringHTMLDisplayer.makeLink(value);
-          sb.append(value);
-        }
-        sb.append('}');
+        sb.append("&nbsp;");
+        sb.append(attrs);
       }
 
       final BundleWiring capWiring = capability.getRevision().getWiring();
@@ -1190,7 +1156,7 @@ public class WiringHTMLDisplayer
     {
       final StringBuffer sb = new StringBuffer(50);
       final String filter = requirement.getDirectives().get("filter");
-      final String idName = getFilterValue(filter, IdentityNamespace.IDENTITY_NAMESPACE);
+      final String idName = getFilterValue(filter, JHTML.OSGI_IDENTITY);
       if (idName != null) {
         sb.append(idName);
         appendVersionAndType(sb, requirement);

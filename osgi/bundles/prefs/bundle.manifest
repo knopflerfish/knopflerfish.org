@@ -12,7 +12,7 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/prefs
 Bundle-Activator: org.knopflerfish.bundle.prefs.Activator
-Bundle-Category: osgi
+Bundle-Category: service
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Import-Package: org.osgi.framework; version="[1.6,2)",
  org.osgi.service.prefs; version="[1.1,1.2)",

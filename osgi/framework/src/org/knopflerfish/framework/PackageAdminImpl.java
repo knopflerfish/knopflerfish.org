@@ -44,7 +44,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkListener;
-import org.osgi.framework.VersionRange;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
@@ -347,18 +346,13 @@ public class PackageAdminImpl implements PackageAdmin {
     for (final BundleImpl rb : slist) {
       rb.getUpdatedState(triggers);
     }
-    try {
-      fwCtx.resolverHooks.endResolve(triggers);
-    } catch (final BundleException be) {
-      // TODO Fix correct bundle
-      fwCtx.frameworkError(fwCtx.systemBundle, be);
-    }
+    fwCtx.resolverHooks.endResolve(triggers);
     for (final BundleImpl rb : slist) {
       if (rb.getState() == Bundle.RESOLVED) {
         try {
           rb.start();
         } catch (final BundleException be) {
-          fwCtx.frameworkError(rb, be);
+          rb.fwCtx.frameworkError(rb, be);
         }
       }
     }
@@ -399,12 +393,7 @@ public class PackageAdminImpl implements PackageAdmin {
             res = false;
           }
         }
-        try {
-          fwCtx.resolverHooks.endResolve(triggers);
-        } catch (BundleException be) {
-          // TODO Fix correct bundle
-          fwCtx.frameworkError(fwCtx.systemBundle, be);
-        }
+        fwCtx.resolverHooks.endResolve(triggers);
       }
       return res;
     }
@@ -429,7 +418,7 @@ public class PackageAdminImpl implements PackageAdmin {
 
   public Bundle[] getBundles(String symbolicName, String versionRange) {
     final VersionRange vr = versionRange != null ? new VersionRange(versionRange.trim()) :
-        null;
+        VersionRange.defaultVersionRange;
     final List<BundleGeneration> bgs = fwCtx.bundles.getBundles(symbolicName, vr);
     final int size = bgs.size();
     if (size > 0) {

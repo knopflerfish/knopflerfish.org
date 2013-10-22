@@ -6,4 +6,4 @@ Bundle-Vendor: Knopflerfish
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.test.memtest.lifecycle.Activator
-Bundle-Category: testing
+Bundle-Category: test

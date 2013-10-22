@@ -60,6 +60,7 @@ public class CMDisplayer
   public CMDisplayer(BundleContext bc)
   {
     super(bc, "CM", "Config Admin", true);
+    bUseListeners = true;
 
     if (infoIcon == null) {
       infoIcon = new ImageIcon(getClass().getResource("/info16x16.png"));
@@ -69,6 +70,7 @@ public class CMDisplayer
                                                                  bc,
                                                                  ConfigurationAdmin.class,
                                                                  null);
+    cmTracker.open();
   }
 
   static ConfigurationAdmin getCA()
@@ -76,81 +78,32 @@ public class CMDisplayer
     return CMDisplayer.cmTracker.getService();
   }
 
-  /**
-   * Get the configuration object for the given PID.
-   *
-   * @param pid
-   *          The PID to get the configuration for.
-   * @return The specified configuration or {@code null} if no such
-   *         configuration exists.
-   */
   static Configuration getConfig(String pid)
   {
-    if (pid != null) {
-      try {
-        final Configuration[] configs =
-          getCA().listConfigurations("(service.pid=" + pid + ")");
-        return configs[0];
-      } catch (final Exception e) {
-      }
-    }
-    return null;
-  }
-
-  static boolean isCmBundle(final Bundle bundle) {
-    final Bundle cmBundle = cmTracker.getServiceReference().getBundle();
-    return cmBundle != null ? cmBundle.equals(bundle)  : false;
-  }
-
-  static boolean isSystemBundle(final Bundle bundle) {
-    return bundle != null && bundle.getBundleId() == 0L;
-  }
-
-  @Override
-  public void setTargetBundleContext(BundleContext bc)
-  {
-    if (getTargetBundleContext() != bc) {
-      super.setTargetBundleContext(bc);
-
-      if (bAlive) {
-        try {
-          cmTracker.close();
-        } catch (final Exception _e) {
-          // Ignore
-        }
-      }
-      cmTracker =
-        new ServiceTracker<ConfigurationAdmin, ConfigurationAdmin>(
-                                                                   bc,
-                                                                   ConfigurationAdmin.class,
-                                                                   null);
-      if (bAlive) {
-        cmTracker.open();
-      }
+    try {
+      final Configuration[] configs =
+        getCA().listConfigurations("(service.pid=" + pid + ")");
+      return configs[0];
+    } catch (final Exception e) {
+      // e.printStackTrace();
+      throw new IllegalArgumentException("No pid=" + pid);
     }
   }
 
-  @Override
-  public void open()
+  static boolean configExists(String pid)
   {
-    super.open();
-    cmTracker.open();
-  }
-
-  @Override
-  public void close()
-  {
-    cmTracker.close();
-    super.close();
+    try {
+      getConfig(pid);
+      return true;
+    } catch (final Exception e) {
+      return false;
+    }
   }
 
   @Override
   public JComponent newJComponent()
   {
-    final JComponent newJComponent = new JCMAdmin();
-    // Trigger update of the new JCMAdmin component with the current selection.
-    valueChanged(0);
-    return newJComponent;
+    return new JCMAdmin();
   }
 
   @Override
@@ -163,42 +116,46 @@ public class CMDisplayer
   }
 
   @Override
+  void closeComponent(JComponent comp)
+  {
+    final JCMAdmin cmAdmin = (JCMAdmin) comp;
+    cmAdmin.stop();
+  }
+
   public void showBundle(Bundle b)
   {
-    // Nothing to do here since this displayer reacts to bundle selection
-    // events.
+    // NYI
   }
 
   @Override
-  public void valueChangedLazy(final long bid)
+  public void valueChanged(final long bid)
   {
+    super.valueChanged(bid);
+
     SwingUtilities.invokeLater(new Runnable() {
-      @Override
       public void run()
       {
-        synchronized (components) {
-          try {
-            for (final JComponent jComponent : components) {
-              final JCMAdmin cmAdmin = (JCMAdmin) jComponent;
-              if (bundleSelModel.getSelectionCount() == 0) {
-                cmAdmin.setBundle(null);
-              } else {
-                // This displayer can only handle singleton selections, if
-                // multiple bundles are selected, present one of them.
-                final Bundle oldSelection = cmAdmin.getBundle();
-                if (oldSelection == null
-                    || !bundleSelModel.isSelected(oldSelection.getBundleId())) {
-                  // Currently displayed bundle is no longer selected, display
-                  // another selected bundle.
-                  final long newBundleId = bundleSelModel.getSelected();
-                  cmAdmin.setBundle(-1 == newBundleId ? (Bundle) null : bc
-                      .getBundle(newBundleId));
-                }
+        try {
+          for (final JComponent jComponent : components) {
+            final JCMAdmin cmAdmin = (JCMAdmin) jComponent;
+            if (bundleSelModel.getSelectionCount() == 0) {
+              cmAdmin.setBundle(null);
+            } else {
+              // This displayer can only handle single selections, if multiple
+              // bundles are selected, present one of them.
+              final Bundle oldSelection = cmAdmin.getBundle();
+              if (oldSelection == null
+                  || !bundleSelModel.isSelected(oldSelection.getBundleId())) {
+                // Currently displayed bundle is no longer selected, display
+                // another selected bundle.
+                final long newBundleId = bundleSelModel.getSelected();
+                cmAdmin.setBundle(-1 == newBundleId ? (Bundle) null : bc
+                    .getBundle(newBundleId));
               }
             }
-          } catch (final Exception e) {
-            Activator.log.error("Selection change handling failed: " + e, e);
           }
+        } catch (final Exception e) {
+          e.printStackTrace();
         }
       }
     });
@@ -231,7 +188,7 @@ public class CMDisplayer
 
     public void setBundle(Bundle b)
     {
-      if ((bundle != null && bundle.equals(b)) || (bundle == null && b == null)) {
+      if ((bundle !=null && bundle.equals(b)) || (bundle==null && b==null)) {
         // No change of selection!
         return;
       }
@@ -240,23 +197,11 @@ public class CMDisplayer
         jcmInfo.setProvider(null, null);
       } else {
         try {
-          MetaTypeInformation mti = Activator.getMTI(bundle);
-          if (mti == null) {
-            if (0L == bundle.getBundleId()) {
-              // The system bundle, return MTI that is a union of all MTIs.
-              mti = new SystemMetaTypeInformation();
-            } else {
-              // If the MetaTypeService is a Knopflerfish SystemMetatypeProvider
-              // then we may get a special MetaTypeInformation-object by calling
-              // getMTP(bundle). Currently this is only used to get all
-              // Configurations in CM.
-              mti = Activator.getMTP(bundle);
-            }
-          }
+          final MetaTypeInformation mti = Activator.getMTP(bundle);
           jcmInfo.setProvider(mti, bundle);
         } catch (final Exception e) {
-          Activator.log.error("Failed to get MetaTypeInformation for bundle "
-                              + b.getBundleId() + ": " + e.getMessage(), e);
+          Activator.log.error("Failed to get MetaTypeInformation from bundle "
+                              + b.getBundleId() +": " +e.getMessage(), e);
         }
       }
     }

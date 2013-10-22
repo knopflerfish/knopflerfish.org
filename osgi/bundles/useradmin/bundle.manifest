@@ -12,7 +12,7 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/useradmin/
 Bundle-Activator: org.knopflerfish.service.um.useradmin.impl.Activator
-Bundle-Category: osgi
+Bundle-Category: service
 Application-Icon: icon.png
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Import-Package: org.osgi.framework; version="[1.6,2)",

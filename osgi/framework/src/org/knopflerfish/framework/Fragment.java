@@ -35,6 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.VersionRange;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -62,7 +62,6 @@ class Fragment
   final String extension;
   final VersionRange versionRange;
   final Map<String,Object> attributes;
-  final Map<String,String> directives;
 
   private final Vector<BundleGeneration> hosts = new Vector<BundleGeneration>(2);
 
@@ -81,8 +80,8 @@ class Fragment
       throw new IllegalArgumentException("A fragment bundle can not have a Bundle-Activator.");
     }
 
-    final Map<String,String>dirs = headerEntry.getDirectives();
-    final String extension = dirs.get(Constants.EXTENSION_DIRECTIVE);
+    final String extension = headerEntry.getDirectives()
+        .remove(Constants.EXTENSION_DIRECTIVE);
     if (Constants.EXTENSION_FRAMEWORK.equals(extension)
         || Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
       // an extension bundle must target the system bundle.
@@ -126,14 +125,10 @@ class Fragment
 
     final String range = (String) headerEntry.getAttributes()
         .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
-    this.versionRange = range == null ? null : new VersionRange(range);
+    this.versionRange = range == null ? VersionRange.defaultVersionRange
+        : new VersionRange(range);
 
     this.attributes = headerEntry.getAttributes();
-    final Filter filter = toFilter();
-    if (null!=filter) {
-      dirs.put(Constants.FILTER_DIRECTIVE, filter.toString());
-    }
-    this.directives = Collections.unmodifiableMap(dirs);
   }
 
 
@@ -170,7 +165,7 @@ class Fragment
   boolean isTarget(BundleGeneration bg)
   {
     return hostName.equals(bg.symbolicName)
-           && (versionRange == null || versionRange.includes(bg.version))
+           && versionRange.withinRange(bg.version)
            && bg.bsnAttrMatch(attributes);
   }
 
@@ -188,15 +183,27 @@ class Fragment
     return lbg;
   }
 
-  @Override
   public String getNamespace() {
     return BundleRevision.HOST_NAMESPACE;
   }
 
 
-  @Override
   public Map<String, String> getDirectives() {
-    return directives;
+    final Map<String,String> res = new HashMap<String, String>(4);
+
+    if (extension!=null) {
+      res.put(Constants.EXTENSION_DIRECTIVE, extension);
+    }
+
+    // For HOST_NAMESPACE effective defaults to resolve and no other value
+    // is allowed so leave it out.
+    // res.put(Constants.EFFECTIVE_DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+
+    final Filter filter = toFilter();
+    if (null!=filter) {
+      res.put(Constants.FILTER_DIRECTIVE, filter.toString());
+    }
+    return res;
   }
 
 
@@ -216,8 +223,8 @@ class Fragment
     sb.append(')');
 
     if (versionRange != null) {
-      sb.append(versionRange.toFilterString(Constants.BUNDLE_VERSION_ATTRIBUTE));
-      multipleConditions = true;
+      multipleConditions |= versionRange
+          .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
     }
 
     for (final Entry<String,Object> entry : attributes.entrySet()) {
@@ -244,25 +251,16 @@ class Fragment
 
 
   @SuppressWarnings("unchecked")
-  @Override
   public Map<String, Object> getAttributes() {
     return Collections.EMPTY_MAP;
   }
 
 
-  @Override
   public BundleRevision getRevision() {
     return gen.bundleRevision;
   }
 
 
-  @Override
-  public BundleRevision getResource() {
-    return gen.bundleRevision;
-  }
-
-
-  @Override
   public boolean matches(BundleCapability capability) {
     if (BundleRevision.HOST_NAMESPACE.equals(capability.getNamespace())) {
       return toFilter().matches(capability.getAttributes());

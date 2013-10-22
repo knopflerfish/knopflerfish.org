@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2011). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.dmt;
 
 import java.io.UnsupportedEncodingException;
@@ -31,66 +30,70 @@ import java.util.List;
  * Slashes used in node name must therefore be escaped using a backslash slash (
  * {@code "\/"}). The backslash must be escaped with a double backslash
  * sequence. A backslash found must be ignored when it is not followed by a
- * slash or backslash.</li>
+ * slash or backslash.
  * <li>The node name can be constructed using full Unicode character set (except
  * the Supplementary code, not being supported by CLDC/CDC). However, using the
  * full Unicode character set for node names is discouraged because the encoding
  * in the underlying storage as well as the encoding needed in communications
  * can create significant performance and memory usage overhead. Names that are
- * restricted to the URI set {@code [-a-zA-Z0-9_.!~*'()]} are most efficient.</li>
- * <li>URIs used in the DMT must be treated and interpreted as case sensitive.</li>
+ * restricted to the URI set {@code [-a-zA-Z0-9_.!~*'()]} are most efficient.
+ * <li>URIs used in the DMT must be treated and interpreted as case sensitive.
  * <li>No End Slash: URI must not end with the delimiter slash ({@code '/'}
  * &#92;u002F). This implies that the root node must be denoted as {@code "."}
- * and not {@code "./"}.</li>
+ * and not {@code "./"}.
  * <li>No parent denotation: URI must not be constructed using the character
- * sequence {@code "../"} to traverse the tree upwards.</li>
+ * sequence {@code "../"} to traverse the tree upwards.
  * <li>Single Root: The character sequence {@code "./"} must not be used
- * anywhere else but in the beginning of a URI.</li>
+ * anywhere else but in the beginning of a URI.
  * </ul>
- * 
- * @author $Id: 6cc99c9a05cf3d1aa6735bac6e9f1b78cba761ed $
+ *
+ * @version $Id: 7e9381120a81c14e450b4571cc30ca5aed5b082e $
  */
 public final class Uri {
 
 	/**
 	 * This constant stands for a string identifying the root of the DmTree
 	 * (".").
-	 * 
+	 *
 	 * @since 2.0
 	 */
-	public static final String	ROOT_NODE			= ".";
+	public static final String ROOT_NODE = ".";
 
 	/**
 	 * This constant stands for a char identifying the root of the DmTree ('.').
-	 * 
+	 *
 	 * @since 2.0
 	 */
-	public static final char	ROOT_NODE_CHAR		= '.';
+	public static final char ROOT_NODE_CHAR = '.';
 
 	/**
 	 * This constant stands for a string identifying the path separator in the
 	 * DmTree ("/").
-	 * 
+	 *
 	 * @since 2.0
 	 */
-	public static final String	PATH_SEPARATOR		= "/";
+	public static final String PATH_SEPARATOR = "/";
 
 	/**
 	 * This constant stands for a char identifying the path separator in the
 	 * DmTree ('/').
-	 * 
+	 *
 	 * @since 2.0
 	 */
-	public static final char	PATH_SEPARATOR_CHAR	= '/';
+	public static final char PATH_SEPARATOR_CHAR = '/';
+
 
 	// base64 encoding table, modified for use in node name mangling
-	private static final char	BASE_64_TABLE[]		= {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c',
-			'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '_', // !!!
-																																															// this
-																																															// differs
-																																															// from
-																																															// base64
-													};
+	private static final char BASE_64_TABLE[] = { 'A', 'B', 'C', 'D', 'E', 'F',
+			'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
+			'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+			'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
+			't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5',
+			'6', '7', '8', '9', '+', '_', // !!! this
+											// differs
+											// from
+											// base64
+	};
 
 	/**
 	 * A private constructor to suppress the default public constructor.
@@ -107,7 +110,7 @@ public final class Uri {
 	 * <p>
 	 * Node name mangling is needed in the following cases:
 	 * <ul>
-	 * <li>if the name contains '/' or '\' characters</li>
+	 * <li>if the name contains '/' or '\' characters
 	 * </ul>
 	 * <p>
 	 * A node name that does not suffer from either of these problems is
@@ -119,20 +122,23 @@ public final class Uri {
 	 * Invalid node names are normalized in different ways, depending on the
 	 * cause. If the name contains '/' or '\' characters, then these are simply
 	 * escaped by inserting an additional '\' before each occurrence. If the
-	 * length of the name does exceed the limit, the following mechanism is used
-	 * to normalize it:
+	 * length of the name does exceed the limit, the following mechanism is
+	 * used to normalize it:
 	 * <ul>
-	 * <li>the SHA 1 digest of the name is calculated</li>
-	 * <li>the digest is encoded with the base 64 algorithm</li>
-	 * <li>all '/' characters in the encoded digest are replaced with '_'</li>
-	 * <li>trailing '=' signs are removed</li>
+	 * <li>the SHA 1 digest of the name is calculated
+	 * <li>the digest is encoded with the base 64 algorithm
+	 * <li>all '/' characters in the encoded digest are replaced with '_'
+	 * <li>trailing '=' signs are removed
 	 * </ul>
-	 * 
-	 * @param nodeName the node name to be mangled (if necessary), must not be
-	 *        {@code null} or empty
+	 *
+	 * @param nodeName
+	 *            the node name to be mangled (if necessary), must not be
+	 *            {@code null} or empty
 	 * @return the normalized node name that is valid for tree operations
-	 * @throws NullPointerException if {@code nodeName} is {@code null}
-	 * @throws IllegalArgumentException if {@code nodeName} is empty
+	 * @throws NullPointerException
+	 *             if {@code nodeName} is {@code null}
+	 * @throws IllegalArgumentException
+	 *             if {@code nodeName} is empty
 	 */
 	public static String mangle(String nodeName) {
 		return nodeName;
@@ -144,31 +150,34 @@ public final class Uri {
 	 * <p>
 	 * If the specified path is an empty array then an empty URI ({@code ""}) is
 	 * returned.
-	 * 
-	 * @param path a possibly empty array of URI segments, must not be
-	 *        {@code null}
+	 *
+	 * @param path
+	 *            a possibly empty array of URI segments, must not be
+	 *            {@code null}
 	 * @return the URI created from the specified segments
-	 * @throws NullPointerException if the specified path or any of its segments
-	 *         are {@code null}
-	 * @throws IllegalArgumentException if the specified path contains too many
-	 *         or malformed segments or the resulting URI is too long
+	 * @throws NullPointerException
+	 *             if the specified path or any of its segments are {@code null}
+	 * @throws IllegalArgumentException
+	 *             if the specified path contains too many or malformed segments
+	 *             or the resulting URI is too long
 	 */
 	public static String toUri(String[] path) {
 		if (0 == path.length) {
 			return "";
 		}
 
+
 		StringBuffer uri = new StringBuffer();
 		for (int i = 0; i < path.length; ++i) {
 			if (i > 0) {
 				uri.append('/');
 			}
-
+			
 			// checks if it's not null; otherwise throw NullPointerException.
 			if (path[i] == null) {
 				throw new NullPointerException("One of its segments is null.");
 			}
-
+			
 			uri.append(path[i]);
 		}
 		return uri.toString();
@@ -180,12 +189,14 @@ public final class Uri {
 	 * representation of the segment.
 	 * <p>
 	 * The method verifies that the URI segment is well-formed.
-	 * 
-	 * @param segment the URI segment
+	 *
+	 * @param segment
+	 *            the URI segment
 	 * @return URI segment length
-	 * @throws NullPointerException if the specified segment is {@code null}
-	 * @throws IllegalArgumentException if the specified URI segment is
-	 *         malformed
+	 * @throws NullPointerException
+	 *             if the specified segment is {@code null}
+	 * @throws IllegalArgumentException
+	 *             if the specified URI segment is malformed
 	 */
 	private static int getSegmentLength(String segment) {
 		if (segment.length() == 0)
@@ -198,18 +209,20 @@ public final class Uri {
 			if (newsegment.charAt(i) == '\\') {
 				if (i == newsegment.length() - 1) // last character cannot be a
 													// '\'
-					throw new IllegalArgumentException("URI segment ends with the escape character.");
+					throw new IllegalArgumentException(
+							"URI segment ends with the escape character.");
 
 				newsegment.deleteCharAt(i); // remove the extra '\'
-			} else
-				if (newsegment.charAt(i) == '/')
-					throw new IllegalArgumentException("URI segment contains an unescaped '/' character.");
+			} else if (newsegment.charAt(i) == '/')
+				throw new IllegalArgumentException(
+						"URI segment contains an unescaped '/' character.");
 
 			i++;
 		}
 
 		if (newsegment.toString().equals(".."))
-			throw new IllegalArgumentException("URI segment must not be \"..\".");
+			throw new IllegalArgumentException(
+					"URI segment must not be \"..\".");
 
 		try {
 			return newsegment.toString().getBytes("UTF-8").length;
@@ -225,11 +238,14 @@ public final class Uri {
 	 * return an array of URI segments. Special characters in the returned
 	 * segments are escaped. The returned array may be empty if the specified
 	 * URI was empty.
-	 * 
-	 * @param uri the URI to be split, must not be {@code null}
+	 *
+	 * @param uri
+	 *            the URI to be split, must not be {@code null}
 	 * @return an array of URI segments created by splitting the specified URI
-	 * @throws NullPointerException if the specified URI is {@code null}
-	 * @throws IllegalArgumentException if the specified URI is malformed
+	 * @throws NullPointerException
+	 *             if the specified URI is {@code null}
+	 * @throws IllegalArgumentException
+	 *             if the specified URI is malformed
 	 */
 	public static String[] toPath(String uri) {
 		if (uri == null)
@@ -253,15 +269,13 @@ public final class Uri {
 					segment.append('\\');
 				segment.append(ch);
 				escape = false;
+			} else if (ch == '/') {
+				segments.add(segment.toString());
+				segment = new StringBuffer();
+			} else if (ch == '\\') {
+				escape = true;
 			} else
-				if (ch == '/') {
-					segments.add(segment.toString());
-					segment = new StringBuffer();
-				} else
-					if (ch == '\\') {
-						escape = true;
-					} else
-						segment.append(ch);
+				segment.append(ch);
 		}
 		if (segment.length() > 0) {
 			segments.add(segment.toString());
@@ -270,16 +284,20 @@ public final class Uri {
 		return (String[]) segments.toArray(new String[segments.size()]);
 	}
 
+
 	/**
 	 * Checks whether the specified URI is an absolute URI. An absolute URI
 	 * contains the complete path to a node in the DMT starting from the DMT
 	 * root (".").
-	 * 
-	 * @param uri the URI to be checked, must not be {@code null} and must
-	 *        contain a valid URI
+	 *
+	 * @param uri
+	 *            the URI to be checked, must not be {@code null} and must
+	 *            contain a valid URI
 	 * @return whether the specified URI is absolute
-	 * @throws NullPointerException if the specified URI is {@code null}
-	 * @throws IllegalArgumentException if the specified URI is malformed
+	 * @throws NullPointerException
+	 *             if the specified URI is {@code null}
+	 * @throws IllegalArgumentException
+	 *             if the specified URI is malformed
 	 */
 	public static boolean isAbsoluteUri(String uri) {
 		if (null == uri) {
@@ -287,13 +305,14 @@ public final class Uri {
 		}
 		if (!isValidUri(uri))
 			throw new IllegalArgumentException("Malformed URI: " + uri);
-		return uri.equals(".") || uri.equals("\\.") || uri.startsWith("./") || uri.startsWith("\\./");
+		return uri.equals(".") || uri.equals("\\.") || uri.startsWith("./")
+				|| uri.startsWith("\\./");
 	}
 
 	/**
 	 * Encode the node name so that back slash and forward slash are escaped
 	 * with a back slash. This method is the reverse of {@link #decode(String)}.
-	 * 
+	 *
 	 * @param nodeName the node name to be encoded
 	 * @return the encoded node name
 	 * @since 2.0
@@ -304,8 +323,7 @@ public final class Uri {
 		for (int i = 0; i < nodeName.length(); i++) {
 			char c = nodeName.charAt(i);
 			if (c == '\\' || c == '/') {
-				// We've got an to be escaped character, so now create the
-				// string buffer
+				// We've got an to be escaped character, so now create the string buffer
 				StringBuffer sb = new StringBuffer(nodeName);
 				for (; i < sb.length(); i++) {
 					c = sb.charAt(i);
@@ -321,7 +339,7 @@ public final class Uri {
 	/**
 	 * Decode the node name so that back slash and forward slash are un-escaped
 	 * from a back slash.
-	 * 
+	 *
 	 * @param nodeName the node name to be decoded
 	 * @return the decoded node name
 	 * @since 2.0
@@ -347,14 +365,15 @@ public final class Uri {
 	 * Checks whether the specified URI is valid. A URI is considered valid if
 	 * it meets the following constraints:
 	 * <ul>
-	 * <li>the URI is not {@code null};</li>
-	 * <li>the URI follows the syntax defined for valid DMT URIs;</li>
+	 * <li>the URI is not {@code null};
+	 * <li>the URI follows the syntax defined for valid DMT URIs;
 	 * </ul>
 	 * The exact definition of the length of a URI and its segments is given in
 	 * the descriptions of the {@code getMaxUriLength()} and
 	 * {@code getMaxSegmentNameLength()} methods.
-	 * 
-	 * @param uri the URI to be validated
+	 *
+	 * @param uri
+	 *            the URI to be validated
 	 * @return whether the specified URI is valid
 	 */
 	public static boolean isValidUri(String uri) {
@@ -406,10 +425,12 @@ public final class Uri {
 	// package private method for testing purposes
 	static String mangle(String nodeName, int limit) {
 		if (nodeName == null)
-			throw new NullPointerException("The 'nodeName' parameter must not be null.");
+			throw new NullPointerException(
+					"The 'nodeName' parameter must not be null.");
 
 		if (nodeName.equals(""))
-			throw new IllegalArgumentException("The 'nodeName' parameter must not be empty.");
+			throw new IllegalArgumentException(
+					"The 'nodeName' parameter must not be empty.");
 
 		if (nodeName.length() > limit)
 			// create node name hash
@@ -437,7 +458,8 @@ public final class Uri {
 		try {
 			md = MessageDigest.getInstance("SHA");
 		} catch (NoSuchAlgorithmException e) {
-			throw new IllegalStateException("Can't get an instance of a SHA MessageDigest provider!");
+			throw new IllegalStateException(
+					"Can't get an instance of a SHA MessageDigest provider!");
 		}
 		byte[] digest = md.digest(bytes);
 
@@ -462,5 +484,7 @@ public final class Uri {
 
 		return sb.toString();
 	}
+
+
 
 }

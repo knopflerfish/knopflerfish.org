@@ -9,6 +9,7 @@
     <ant target="${the.target}" dir="junit"/>
     <ant target="${the.target}" dir="serial"/>
     <ant target="${the.target}" dir="desktop_displayers"/>
+    <ant target="${the.target}" dir="oscar-shell"/>
     <ant target="${the.target}" dir="jini"/>
     <ant target="${the.target}" dir="dirdeployer"/>
     <ant target="${the.target}" dir="desktop_displayers"/>

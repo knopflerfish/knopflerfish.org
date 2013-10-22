@@ -40,7 +40,6 @@ import java.security.Permission;
 import java.util.List;
 
 import org.knopflerfish.framework.Debug;
-import org.knopflerfish.framework.FrameworkContext;
 
 
 public class KFSecurityManager extends SecurityManager
@@ -52,8 +51,8 @@ public class KFSecurityManager extends SecurityManager
   @SuppressWarnings("unused")
   private final Debug debug;
 
-  public KFSecurityManager(FrameworkContext fwCtx) {
-    this.debug = fwCtx.debug;
+  public KFSecurityManager(Debug debug) {
+    this.debug = debug;
   }
 
   /**

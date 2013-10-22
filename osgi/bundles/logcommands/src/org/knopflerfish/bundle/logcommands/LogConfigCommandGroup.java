@@ -297,12 +297,6 @@ public class LogConfigCommandGroup
         level = filters.get(l);
       }
     }
-
-    // Finally try with the bundle id as key.
-    if (level == null) {
-      level = filters.get(String.valueOf(bundle.getBundleId()));
-    }
-
     return (level != null) ? level.intValue() : -1;
   }
 

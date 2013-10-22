@@ -9,7 +9,7 @@
 	  content    = "NO-CACHE"/>
 
     <meta name       = "description"
-	  content    = "Knopflerfish OSGi @VERSION@ - is an Open Source OSGi Service Platform designed to be compliant with OSGi R5"/>
+	  content    = "Knopflerfish OSGi @VERSION@ - is an Open Source OSGi Service Platform designed to be compliant with OSGi R4 v4.3"/>
     
     <meta name       = "title"
 	  content    = "Knopflerfish OSGi @VERSION@ - Release Overview Page"/>
@@ -32,7 +32,7 @@
 	    Distribution Overview
 	  </div>
 	  <div class="header_centerinfo_bottom">
-	    Knopferfish OSGi @VERSION@
+	    Knopflerfish OSGi @VERSION@
 	  </div>
 	</div>
 	<div id="header_rightinfo">
@@ -59,7 +59,7 @@
 	  <dt class="leftmenu2"><a class="navigation_enabled" href="http://www.knopflerfish.org/">www.knopflerfish.org</a></dt>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="https://sourceforge.net/forum/forum.php?forum_id=328005">KF Forum</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://sourceforge.net/tracker/?atid=567241&group_id=82798&func=browse">Bug tracker</a></dd>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="osgi/jars/index.xml">Bundle repository</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="repository.html">Bundle repository</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="@REPO_URL@/@TAG@">Source (subversion)</a></dd>
 	</dl>
 

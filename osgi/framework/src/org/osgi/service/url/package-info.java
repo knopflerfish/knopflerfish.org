@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@
  * <p>
  * {@code  Import-Package: org.osgi.service.url; version="[1.0,2.0)"}
  * 
- * @version $Id: 4dd6b685a79b76ce57708f69487533abe4828943 $
+ * @version $Id: 5eaeb551c53ee18d53480e5c03d2b7771f3e6aea $
  */
 
 package org.osgi.service.url;
-

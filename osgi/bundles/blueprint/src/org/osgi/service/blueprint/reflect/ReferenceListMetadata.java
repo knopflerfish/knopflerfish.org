@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.blueprint.reflect;
 
 /**
  * Metadata for a list of service references.
  * 
  * <p>
- * This is specified by the {@code reference-list} element.
+ * This is specified by the <code>reference-list</code> element.
  * 
  * @ThreadSafe
- * @author $Id: 00698e01d2281bdcabfc7f1cf9f7ede1900b7b97 $
+ * @version $Revision: 8083 $
  */
 public interface ReferenceListMetadata extends ServiceReferenceMetadata {
 
@@ -32,24 +31,24 @@ public interface ReferenceListMetadata extends ServiceReferenceMetadata {
 	 * 
 	 * @see #getMemberType()
 	 */
-	static final int	USE_SERVICE_OBJECT		= 1;
+	 static final int	USE_SERVICE_OBJECT		= 1;
 
 	/**
-	 * Reference list values must be {@code ServiceReference} objects.
+	 * Reference list values must be <code>ServiceReference</code> objects.
 	 * 
 	 * @see #getMemberType()
 	 */
-	static final int	USE_SERVICE_REFERENCE	= 2;
+	 static final int	USE_SERVICE_REFERENCE	= 2;
 
 	/**
 	 * Return whether the List will contain service object proxies or
-	 * {@code ServiceReference} objects.
+	 * <code>ServiceReference</code> objects.
 	 * 
-	 * This is specified by the {@code member-type} attribute of the reference
-	 * list.
+	 * This is specified by the <code>member-type</code> attribute of the
+	 * reference list.
 	 * 
 	 * @return Whether the List will contain service object proxies or
-	 *         {@code ServiceReference} objects.
+	 *         <code>ServiceReference</code> objects.
 	 * @see #USE_SERVICE_OBJECT
 	 * @see #USE_SERVICE_REFERENCE
 	 */

@@ -22,6 +22,7 @@
             value="org/knopflerfish/service/log/*,
                    org/osgi/service/log/*"/>
 
+  <property name="do.bundle.custom.pre" value="true"/>
   <!-- Embedd the KF log API. -->
   <target name="bundle.custom.pre">
     <bundle_locator bundleNames="log_api">

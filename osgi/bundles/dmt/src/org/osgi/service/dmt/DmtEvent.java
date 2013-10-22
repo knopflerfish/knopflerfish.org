@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2011). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.dmt;
 
 /**
@@ -31,46 +30,46 @@ package org.osgi.service.dmt;
  * nodes. In case of {@link #COPIED} or {@link #RENAMED} events, the event
  * carries the list of new nodes as well.
  * 
- * @author $Id: 6ca0dc54a7e040668d4f97d158cd6799adbe3571 $
+ * @version $Id: e95bdb774ba0b549391397e591c9ae592882c7dd $
  */
 public interface DmtEvent {
 
 	/**
 	 * Event type indicating nodes that were added.
 	 */
-	int	ADDED			= 0x01;
+	int ADDED = 0x01;
 
 	/**
 	 * Event type indicating nodes that were copied.
 	 */
-	int	COPIED			= 0x02;
+	int COPIED = 0x02;
 
 	/**
 	 * Event type indicating nodes that were deleted.
 	 */
-	int	DELETED			= 0x04;
+	int DELETED = 0x04;
 
 	/**
 	 * Event type indicating nodes that were renamed.
 	 */
-	int	RENAMED			= 0x08;
+	int RENAMED = 0x08;
 
 	/**
 	 * Event type indicating nodes that were replaced.
 	 */
-	int	REPLACED		= 0x10;
+	int REPLACED = 0x10;
 
 	/**
 	 * Event type indicating that a new session was opened.
 	 */
-	int	SESSION_OPENED	= 0x20;
+	int SESSION_OPENED = 0x20;
 
 	/**
 	 * Event type indicating that a session was closed. This type of event is
 	 * sent when the session is closed by the client or becomes inactive for any
 	 * other reason (session timeout, fatal errors in business methods, etc.).
 	 */
-	int	SESSION_CLOSED	= 0x40;
+	int SESSION_CLOSED = 0x40;
 
 	/**
 	 * This method returns the type of this event.
@@ -143,7 +142,8 @@ public interface DmtEvent {
 	/**
 	 * This method can be used to get the value of a single event property.
 	 * 
-	 * @param key the name of the requested property
+	 * @param key
+	 *            the name of the requested property
 	 * @return the requested property value or null, if the key is not contained
 	 *         in the properties
 	 * @see #getPropertyNames()

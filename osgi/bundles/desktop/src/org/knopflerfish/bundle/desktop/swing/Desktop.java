@@ -125,7 +125,6 @@ import javax.swing.JToolBar;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.WindowConstants;
@@ -156,7 +155,6 @@ import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
 import org.knopflerfish.service.desktop.BundleSelectionListener;
 import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
-import org.knopflerfish.service.desktop.SelectionAware;
 import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 
 /**
@@ -295,7 +293,6 @@ public class Desktop
    */
   private final Comparator<ServiceReference<?>> referenceComparator =
     new Comparator<ServiceReference<?>>() {
-      @Override
       public int compare(ServiceReference<?> ref1, ServiceReference<?> ref2)
       {
         final Long l1 = (Long) ref1.getProperty(Constants.SERVICE_ID);
@@ -304,12 +301,12 @@ public class Desktop
       }
     };
 
-  Map<ServiceReference<SwingBundleDisplayer>, SwingBundleDisplayer> displayMap =
-    new TreeMap<ServiceReference<SwingBundleDisplayer>, SwingBundleDisplayer>(referenceComparator);
+  Map<ServiceReference<?>, SwingBundleDisplayer> displayMap =
+    new TreeMap<ServiceReference<?>, SwingBundleDisplayer>(referenceComparator);
   Map<ServiceReference<?>, JMenuItem> menuMap =
     new HashMap<ServiceReference<?>, JMenuItem>();
-  Map<ServiceReference<SwingBundleDisplayer>, SwingBundleDisplayer> detailMap =
-    new HashMap<ServiceReference<SwingBundleDisplayer>, SwingBundleDisplayer>();
+  Map<ServiceReference<?>, SwingBundleDisplayer> detailMap =
+    new HashMap<ServiceReference<?>, SwingBundleDisplayer>();
 
   public void start()
   {
@@ -383,19 +380,19 @@ public class Desktop
     detailPanel = new JTabbedPane();
     // detailPanel.setPreferredSize(new Dimension(400, 300));
 
-    detailPanel.setTabPlacement(SwingConstants.BOTTOM);
+    detailPanel.setTabPlacement(JTabbedPane.BOTTOM);
 
     detailPanel.setBorder(null);
 
     detailPanel.addChangeListener(new ChangeListener() {
-      @Override
       public void stateChanged(ChangeEvent e)
       {
-        for (final ServiceReference<SwingBundleDisplayer> sr : detailMap.keySet()) {
+        for (final ServiceReference<?> sr : detailMap.keySet()) {
           final Object obj = detailMap.get(sr);
 
-          if (obj instanceof SelectionAware) {
-            ((SelectionAware) obj).displayerSelected();;
+          if (obj instanceof DefaultSwingBundleDisplayer) {
+
+            ((DefaultSwingBundleDisplayer) obj).setTabSelected();
           }
         }
       }
@@ -479,7 +476,6 @@ public class Desktop
             final SwingBundleDisplayer disp = super.addingService(sr);
 
             SwingUtilities.invokeLater(new Runnable() {
-              @Override
               public void run()
               {
 
@@ -505,12 +501,6 @@ public class Desktop
                 wrapper.setAutoClose(false);
 
                 disp.setBundleSelectionModel(bundleSelModel);
-
-                if (Activator.getTargetBC() != Activator.getBC()) {
-                  // External displayers must be given the target bundle
-                  // context when it is remote.
-                  disp.setTargetBundleContext(Activator.getTargetBC());
-                }
 
                 if (bDetail) {
                   detailMap.put(sr, disp);
@@ -539,7 +529,6 @@ public class Desktop
                                      final SwingBundleDisplayer disp)
           {
             SwingUtilities.invokeLater(new Runnable() {
-              @Override
               public void run()
               {
                 final String name =
@@ -668,7 +657,7 @@ public class Desktop
             }
           }
 
-          // Look for the release version, i.e., "Knopflerfish .* <VERSION> ".
+          // Look for the release version, i.e., "Knopflerfish <VERSION> ".
           final String keyWord = "Knopflerfish ";
           Version version = null;
           int start = 0;
@@ -677,18 +666,15 @@ public class Desktop
             end = end == -1 ? notes.length() : end;
             final String orgLine = notes.substring(start, end);
             String line = orgLine;
-            final int ix = line.lastIndexOf(keyWord);
+            int ix = line.lastIndexOf(keyWord);
             if (ix != -1) {
               line = line.substring(ix + keyWord.length()).trim();
-              final String[] words = line.split("\\s");
-              for (final String word : words) {
-                try {
-                  version = new Version(word);
-                  break;
-                } catch (final Exception e) {
-                }
+              ix = line.indexOf(" ");
+              if (ix != -1) {
+                line = line.substring(0, ix);
               }
-              if (version != null) {
+              try {
+                version = new Version(line);
                 Activator.log.debug("Update check: Found valid version: "
                                     + version + ", in line '" + orgLine + "'.");
 
@@ -696,11 +682,11 @@ public class Desktop
                   showUpdate(releaseVersion, version, notes);
                 }
                 break;
-              } else {
+              } catch (final Exception e) {
                 final String msg =
-                  "Update check: No valid version found on '" + line
-                      + "' in line '" + orgLine + "'.";
-                Activator.log.debug(msg);
+                  "Update check: Invalid version '" + line + "' in line '"
+                      + orgLine + "' " + e;
+                Activator.log.debug(msg, e);
               }
             }
             start = end + 1;
@@ -722,7 +708,6 @@ public class Desktop
       Strings.get("item_startbundles"), startIcon) {
     private static final long serialVersionUID = 1L;
 
-    @Override
     public void actionPerformed(ActionEvent ev)
     {
       startBundles(getSelectedBundles());
@@ -732,7 +717,6 @@ public class Desktop
       Strings.get("item_stopbundles"), stopIcon) {
     private static final long serialVersionUID = 1L;
 
-    @Override
     public void actionPerformed(ActionEvent ev)
     {
       stopBundles(getSelectedBundles());
@@ -742,7 +726,6 @@ public class Desktop
       Strings.get("item_updatebundles"), updateIcon) {
     private static final long serialVersionUID = 1L;
 
-    @Override
     public void actionPerformed(ActionEvent ev)
     {
       updateBundles(getSelectedBundles());
@@ -753,7 +736,6 @@ public class Desktop
       Strings.get("item_uninstallbundles"), uninstallIcon) {
     private static final long serialVersionUID = 1L;
 
-    @Override
     public void actionPerformed(ActionEvent ev)
     {
       uninstallBundles(getSelectedBundles());
@@ -768,7 +750,6 @@ public class Desktop
       putValue(SHORT_DESCRIPTION, Strings.get("item_refreshbundles.descr"));
     }
 
-    @Override
     public void actionPerformed(ActionEvent ev)
     {
       refreshBundles(getSelectedBundles());
@@ -782,7 +763,6 @@ public class Desktop
       putValue(SHORT_DESCRIPTION, Strings.get("item_resolvebundles.descr"));
     }
 
-    @Override
     public void actionPerformed(ActionEvent ev)
     {
       resolveBundles(getSelectedBundles());
@@ -806,7 +786,6 @@ public class Desktop
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 addBundle();
@@ -820,7 +799,6 @@ public class Desktop
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 addBundleURL();
@@ -834,7 +812,6 @@ public class Desktop
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 save();
@@ -848,7 +825,6 @@ public class Desktop
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 doConnect();
@@ -908,7 +884,6 @@ public class Desktop
 
     levelBox.addActionListener(new ActionListener() {
 
-      @Override
       public void actionPerformed(ActionEvent ev)
       {
 
@@ -918,7 +893,6 @@ public class Desktop
 
         // Delay actual setting to avoid flipping through levels quickly.
         SwingUtilities.invokeLater(new Runnable() {
-          @Override
           public void run()
           {
             final Thread t = new Thread() {
@@ -946,12 +920,10 @@ public class Desktop
     // level has been changed.
     levelBox.addFocusListener(new FocusListener() {
 
-      @Override
       public void focusLost(FocusEvent e)
       {
       }
 
-      @Override
       public void focusGained(FocusEvent e)
       {
         updateStartLevel();
@@ -1055,7 +1027,6 @@ public class Desktop
 
       final JMenuItem item = new JMenuItem(key);
       item.addActionListener(new ActionListener() {
-        @Override
         public void actionPerformed(ActionEvent ev)
         {
           bundlePanelShowTab(sr);
@@ -1352,7 +1323,6 @@ public class Desktop
             setMnemonic(KeyEvent.VK_O);
 
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 addBundle();
@@ -1368,7 +1338,6 @@ public class Desktop
             setMnemonic(KeyEvent.VK_U);
 
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 addBundleURL();
@@ -1384,7 +1353,6 @@ public class Desktop
             setMnemonic(KeyEvent.VK_S);
 
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 save();
@@ -1402,7 +1370,6 @@ public class Desktop
               setMnemonic(KeyEvent.VK_F);
 
               addActionListener(new ActionListener() {
-                @Override
                 public void actionPerformed(ActionEvent ev)
                 {
                   doConnect();
@@ -1419,7 +1386,6 @@ public class Desktop
               setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, mask));
               setMnemonic(KeyEvent.VK_Q);
               addActionListener(new ActionListener() {
-                @Override
                 public void actionPerformed(ActionEvent ev)
                 {
                   stopFramework();
@@ -1489,7 +1455,6 @@ public class Desktop
           group.add(jrb);
           add(jrb);
           jrb.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent ev)
             {
               final Bundle[] bl = getSelectedBundles();
@@ -1522,7 +1487,6 @@ public class Desktop
         setToolTipText(Strings.get("menu_stopOptions.descr"));
 
         final ItemListener itemListener = new ItemListener() {
-          @Override
           public void itemStateChanged(ItemEvent e)
           {
             updateNameOfActionStopBundles();
@@ -1574,7 +1538,6 @@ public class Desktop
         setToolTipText(Strings.get("menu_startOptions.descr"));
 
         final ItemListener itemListener = new ItemListener() {
-          @Override
           public void itemStateChanged(ItemEvent e)
           {
             updateNameOfActionStartBundles();
@@ -1687,7 +1650,6 @@ public class Desktop
         setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_4,
                                               ActionEvent.ALT_MASK));
         addActionListener(new ActionListener() {
-          @Override
           public void actionPerformed(ActionEvent ev)
           {
             toolBar.setVisible(getState());
@@ -1703,7 +1665,6 @@ public class Desktop
         setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_5,
                                               ActionEvent.ALT_MASK));
         addActionListener(new ActionListener() {
-          @Override
           public void actionPerformed(ActionEvent ev)
           {
             statusBar.setVisible(getState());
@@ -1731,7 +1692,6 @@ public class Desktop
           setMnemonic(KeyEvent.VK_1 + c2);
           menuMap.put(sr, this);
           addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent ev)
             {
               bundlePanelShowTab(sr);
@@ -1766,7 +1726,6 @@ public class Desktop
 
           {
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 System
@@ -1793,7 +1752,6 @@ public class Desktop
             group.add(jrbn);
             add(jrbn);
             jrbn.addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 System
@@ -1809,7 +1767,6 @@ public class Desktop
             group.add(jrbm);
             add(jrbm);
             jrbm.addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 System
@@ -1825,7 +1782,6 @@ public class Desktop
             group.add(jrba);
             add(jrba);
             jrba.addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 System
@@ -1867,7 +1823,6 @@ public class Desktop
 
           {
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 showVersion();
@@ -1881,7 +1836,6 @@ public class Desktop
 
           {
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 showTips();
@@ -1897,7 +1851,6 @@ public class Desktop
 
           {
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 showInfo();
@@ -1911,7 +1864,6 @@ public class Desktop
 
           {
             addActionListener(new ActionListener() {
-              @Override
               public void actionPerformed(ActionEvent ev)
               {
                 checkUpdate(true);
@@ -1978,7 +1930,6 @@ public class Desktop
 
       {
         addActionListener(new ActionListener() {
-          @Override
           public void actionPerformed(ActionEvent ev)
           {
             bundleSelModel.clearSelection();
@@ -1992,7 +1943,6 @@ public class Desktop
 
       {
         addActionListener(new ActionListener() {
-          @Override
           public void actionPerformed(ActionEvent ev)
           {
             consoleSwing.clearConsole();
@@ -2041,7 +1991,6 @@ public class Desktop
     final JMenuItem item = new JMenuItem(txt);
 
     item.addActionListener(new ActionListener() {
-      @Override
       public void actionPerformed(ActionEvent ev)
       {
         bundleSelModel.clearSelection();
@@ -2067,7 +2016,6 @@ public class Desktop
       this.target = target;
     }
 
-    @Override
     public void actionPerformed(ActionEvent ev)
     {
       final boolean b = target.isVisible();
@@ -2091,7 +2039,6 @@ public class Desktop
       stopFramework0();
     } else {
       SwingUtilities.invokeLater(new Runnable() {
-        @Override
         public void run()
         {
           stopFramework0();
@@ -2855,7 +2802,6 @@ public class Desktop
 
       final FrameworkListener refreshListener = new FrameworkListener() {
 
-        @Override
         public void frameworkEvent(FrameworkEvent event)
         {
           Activator.log.info(sb.toString() + " DONE.");
@@ -2998,7 +2944,6 @@ public class Desktop
   }
 
   // DropTargetListener
-  @Override
   public void drop(DropTargetDropEvent e)
   {
 
@@ -3034,28 +2979,24 @@ public class Desktop
   }
 
   // DropTargetListener
-  @Override
   public void dragEnter(DropTargetDragEvent e)
   {
     // System.out.println("dragEnter " + e);
   }
 
   // DropTargetListener
-  @Override
   public void dragExit(DropTargetEvent e)
   {
     // System.out.println("dragExit " + e);
   }
 
   // DropTargetListener
-  @Override
   public void dragOver(DropTargetDragEvent e)
   {
     // System.out.println("dragOver " + e);
   }
 
   // DropTargetListener
-  @Override
   public void dropActionChanged(DropTargetDragEvent e)
   {
     // System.out.println("dropActionChanged " + e);
@@ -3143,7 +3084,6 @@ public class Desktop
 
   }
 
-  @Override
   public void valueChanged(long bid)
   {
     if (!alive) {
@@ -3153,7 +3093,6 @@ public class Desktop
     updateBundleViewSelections();
   }
 
-  @Override
   public void frameworkEvent(FrameworkEvent ev)
   {
     if (!alive) {
@@ -3168,7 +3107,6 @@ public class Desktop
 
   volatile Bundle[] bundleCache;
 
-  @Override
   public void bundleChanged(final BundleEvent ev)
   {
     if (!alive) {
@@ -3193,13 +3131,19 @@ public class Desktop
       @Override
       public void run()
       {
+        if (null != ev) {
+          if (BundleEvent.UPDATED == ev.getType()) {
+            // An updated bundle may have changed icon...
+            Util.clearBundleIcon(ev.getBundle());
+          }
+        }
+
         if (pm != null) {
           pm.refresh();
         }
         bundleCache = Activator.getBundles();
 
         SwingUtilities.invokeLater(new Runnable() {
-          @Override
           public void run()
           {
             if (ev != null && BundleEvent.INSTALLED == ev.getType()) {
@@ -3316,7 +3260,6 @@ public class Desktop
     final JScrollPane scroll = new JScrollPane(html);
     scroll.setPreferredSize(new Dimension(500, 300));
     SwingUtilities.invokeLater(new Runnable() {
-      @Override
       public void run()
       {
         final JViewport vp = scroll.getViewport();
@@ -3352,7 +3295,6 @@ public class Desktop
     final JScrollPane scroll = new JScrollPane(html);
     scroll.setPreferredSize(new Dimension(420, 300));
     SwingUtilities.invokeLater(new Runnable() {
-      @Override
       public void run()
       {
         final JViewport vp = scroll.getViewport();

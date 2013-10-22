@@ -51,12 +51,10 @@ public class BundleNameVersionCapability implements BundleCapability {
     this.namespace = namespace;
   }
 
-  @Override
   public String getNamespace() {
     return namespace;
   }
 
-  @Override
   public Map<String, String> getDirectives() {
     if (gen.symbolicNameParameters != null) {
       return Collections.unmodifiableMap(gen.symbolicNameParameters.getDirectives());
@@ -66,7 +64,6 @@ public class BundleNameVersionCapability implements BundleCapability {
     return res;
   }
 
-  @Override
   public Map<String, Object> getAttributes() {
     final Map<String,Object> res = new HashMap<String, Object>();
     if (gen.symbolicNameParameters != null) {
@@ -79,17 +76,10 @@ public class BundleNameVersionCapability implements BundleCapability {
     return Collections.unmodifiableMap(res);
   }
 
-  @Override
   public BundleRevision getRevision() {
     return gen.bundleRevision;
   }
 
-  @Override
-  public BundleRevision getResource() {
-	return gen.bundleRevision;
-  }
-
-  @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -98,7 +88,6 @@ public class BundleNameVersionCapability implements BundleCapability {
     return result;
   }
 
-  @Override
   public boolean equals(Object obj) {
     if (this == obj)
       return true;
@@ -114,7 +103,6 @@ public class BundleNameVersionCapability implements BundleCapability {
     return true;
   }
 
-  @Override
   public String toString() {
     return "BundleNameVersionCapability[nameSpace=" + namespace + ", attributes=" +
         getAttributes() + ", directives=" + getDirectives() + ", revision=" +

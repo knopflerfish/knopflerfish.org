@@ -50,9 +50,6 @@ import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
-import org.osgi.resource.Capability;
-import org.osgi.resource.Requirement;
-import org.osgi.resource.Wire;
 
 public class BundleWiringImpl implements BundleWiring {
 
@@ -86,12 +83,6 @@ public class BundleWiringImpl implements BundleWiring {
     BundleGeneration gen = bundleRevision.getBundleGeneration();
     final int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     final ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
-    if ((ns & BundleRevisionImpl.NS_IDENTITY) != 0) {
-      final BundleCapability bc = gen.getIdentityCapability();
-      if (bc != null) {
-        res.add(bc);
-      }
-    }
     if (!gen.isFragment()) {
       if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
         final BundleCapability bc = gen.getBundleCapability();
@@ -161,7 +152,7 @@ public class BundleWiringImpl implements BundleWiring {
       if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
         res.addAll(gen.bpkgs.getPackageRequirements());
       }
-      if ((ns & (BundleRevisionImpl.NS_IDENTITY|BundleRevisionImpl.NS_OTHER)) != 0) {
+      if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
         final Map<String, List<BundleRequirementImpl>> reqs = gen.getOtherRequirements();
         Collection<List<BundleRequirementImpl>> clbr = null;
         if (null != namespace) {
@@ -231,7 +222,7 @@ public class BundleWiringImpl implements BundleWiring {
         }
       }
     }
-    if ((ns & (BundleRevisionImpl.NS_IDENTITY|BundleRevisionImpl.NS_OTHER)) != 0) {
+    if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
       List<BundleWireImpl> other = gen.getCapabilityWires();
       if (other != null) {
         for (BundleWireImpl bw : other) {
@@ -294,7 +285,7 @@ public class BundleWiringImpl implements BundleWiring {
         res.add(new BundleWireImpl(cip.provider, cip.provider.bpkgs.bg, cip.parent, gen));
       }
     }
-    if ((ns & (BundleRevisionImpl.NS_IDENTITY|BundleRevisionImpl.NS_OTHER)) != 0) {
+    if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
       List<BundleWireImpl> other = gen.getRequirementWires();
       if (other != null) {
         for (BundleWireImpl bw : other) {
@@ -339,40 +330,6 @@ public class BundleWiringImpl implements BundleWiring {
       res = bcl.listResources(path, filePattern, options);
     }
     return res;
-  }
-
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public List<Capability> getResourceCapabilities(String namespace) {
-    return (List<Capability>)(List<?>)getCapabilities(namespace);
-  }
-
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public List<Requirement> getResourceRequirements(String namespace) {
-    return (List<Requirement>)(List<?>)getRequirements(namespace);
-  }
-
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public List<Wire> getProvidedResourceWires(String namespace) {
-    return (List<Wire>)(List<?>)getProvidedWires(namespace);
-  }
-
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public List<Wire> getRequiredResourceWires(String namespace) {
-    return (List<Wire>)(List<?>)getRequiredWires(namespace);
-  }
-
-
-  @Override
-  public BundleRevision getResource() {
-    return bundleRevision;
   }
 
 }

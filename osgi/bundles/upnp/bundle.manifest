@@ -3,9 +3,9 @@ Bundle-ManifestVersion: 2
 Bundle-Name: upnp
 Bundle-SymbolicName: org.knopflerfish.bundle.upnp
 Bundle-Version: 4.0.0
-Bundle-Category: osgi
+Bundle-Category: API
 Bundle-Description: UPnP
-Bundle-Vendor: Knopflerfish
+Bundle-Vendor: OSGi
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc

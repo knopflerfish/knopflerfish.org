@@ -18,6 +18,7 @@
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
   <property name="api.pattern"  value="org/knopflerfish/service/**"/>
 
+  <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
     <antcall target="bundleP1_test"/>
     <antcall target="bundleP2_test"/>

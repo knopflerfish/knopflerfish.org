@@ -3,9 +3,9 @@ Bundle-ManifestVersion: 2
 Bundle-Name: monitor
 Bundle-SymbolicName: org.knopflerfish.bundle.monitor
 Bundle-Version: 4.0.0
-Bundle-Category: osgi
+Bundle-Category: API
 Bundle-Description: Monitor Admin API
-Bundle-Vendor: Knopflerfish
+Bundle-Vendor: OSGi
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc

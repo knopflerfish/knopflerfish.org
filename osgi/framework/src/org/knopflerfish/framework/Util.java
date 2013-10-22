@@ -197,7 +197,7 @@ public class Util {
     if (s != null) {
       final AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-        final String key = at.getKey(true);
+        final String key = at.getKey();
         if (key == null) {
           throw new IllegalArgumentException("Directive " + d
                                              + ", unexpected character at: "
@@ -263,17 +263,17 @@ public class Util {
       final AttributeTokenizer at = new AttributeTokenizer(s);
       do {
         final HeaderEntry he = new HeaderEntry(a, single);
-        String key = at.getKey(single);
+        String key = at.getKey();
         if (key == null) {
           final String msg = "Definition, " + a + ", expected key at: "
-              + at.getRest() + ". Key values are terminated "
-              + "by a ';' or a ',' and may not "
-              + "contain unquoted ':', '=' if multiple keys are allowed.";
+                             + at.getRest() + ". Key values are terminated "
+                             +"by a ';' or a ',' and may not "
+                             + "contain ':', '='.";
           throw new IllegalArgumentException(msg);
         }
         he.keys.add(key);
         if (!single) {
-          while ((key = at.getKey(false)) != null) {
+          while ((key = at.getKey()) != null) {
             he.keys.add(key);
           }
         }
@@ -1076,7 +1076,7 @@ public class Util {
     }
 
     // get word (non-whitespace chars) up to the next non-quoted
-    // ',', ';' or ':', '=' if not valueWord is set
+    // ',', ':', ';', '='
     String getWord(boolean keepEscapse, boolean valueWord) {
       skipWhite();
       boolean backslash = false;
@@ -1101,11 +1101,11 @@ public class Util {
           case '\\':
             backslash = true;
             break;
-          case ':':
           case ',':
+          case ':':
           case ';':
           case '=':
-            if (!quote && !(valueWord && (c==':' || c=='='))) {
+            if (!quote && !(valueWord && c=='=')) {
               break loop;
             }
             // Fall through
@@ -1126,7 +1126,7 @@ public class Util {
     }
 
 
-    String getKey(boolean singleKey) {
+    String getKey() {
       if (pos >= length) {
         return null;
       }
@@ -1134,7 +1134,7 @@ public class Util {
       if (s.charAt(pos) == ';') {
         pos++;
       }
-      final String res = getWord(false, singleKey);
+      final String res = getWord(false, false);
       if (res != null) {
         if (pos == length) {
           return res;

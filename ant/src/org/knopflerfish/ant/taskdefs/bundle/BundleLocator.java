@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,11 +53,7 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.PatternSet;
 import org.apache.tools.ant.types.Reference;
-import org.apache.tools.ant.types.ResourceCollection;
-
 import org.osgi.framework.Version;
-
-import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
 
 /**
  * Determines a sub-set of bundles from a given file set. The resulting set of
@@ -385,7 +381,7 @@ public class BundleLocator extends Task {
 
   private final static String PROPS_PREFIX = "bap.";
 
-  private final List<ResourceCollection>    filesets = new ArrayList<ResourceCollection>();
+  private final Vector    filesets = new Vector();
 
   private BundleArchives bas;
 
@@ -418,7 +414,7 @@ public class BundleLocator extends Task {
   }
 
   public void addFileset(FileSet set) {
-    filesets.add(set);
+    filesets.addElement(set);
   }
 
   public void setClassPathRef(Reference r) {
@@ -459,7 +455,7 @@ public class BundleLocator extends Task {
   {
     try {
       return baseDir.toURI().toURL();
-    } catch (final MalformedURLException e) {
+    } catch (MalformedURLException e) {
       throw new BuildException("Invalid baseDir, '" + baseDir + "'.", e);
     }
   }
@@ -469,27 +465,26 @@ public class BundleLocator extends Task {
     if (null!=bundlePath && 0<bundlePath.length()) {
       final URL baseUrl = getBaseURL();
       // Create a file set for each entry in the bundle path.
-      final String[] urls = Util.splitwords(this.bundlePath, ";", '"');
-      for (final String url2 : urls) {
-        log("Processing URL '" + url2 + "' from bundlePath '"
+      String[] urls = Util.splitwords(this.bundlePath, ";", '"');
+      for (int i = 0; i < urls.length; i++) {
+        log("Processing URL '" + urls[i] + "' from bundlePath '"
             + this.bundlePath + "'.", Project.MSG_DEBUG);
         try {
-          final URL url = new URL(baseUrl, url2.trim());
+          final URL url = new URL(baseUrl, urls[i].trim());
           if ("file".equals(url.getProtocol())) {
             final String path = url.getPath();
             final File dir = new File(path.replace('/', File.separatorChar));
             log("Adding file set with dir '" + dir
                 + "' for bundlePath file URL with path '" + path + "'.",
                 Project.MSG_VERBOSE);
-            final FileSet fs = new FileSet();
+            FileSet fs = new FileSet();
             fs.setDir(dir);
-            fs.setExcludes("**/*-source.jar,**/*-javadoc.jar");
             fs.setIncludes("**/*.jar");
             fs.setProject(getProject());
             filesets.add(fs);
           }
-        } catch (final MalformedURLException e) {
-          throw new BuildException("Invalid URL, '" + url2
+        } catch (MalformedURLException e) {
+          throw new BuildException("Invalid URL, '" + urls[i]
                                    + "' found in bundlePath: '"
                                    + bundlePath + "'.", e);
         }
@@ -498,7 +493,6 @@ public class BundleLocator extends Task {
   }
 
   // Implements Task
-  @Override
   public void execute() throws BuildException {
     processBundlePath();
 
@@ -546,9 +540,7 @@ public class BundleLocator extends Task {
     if (matcher.matches()) {
       for (int i=2; i<6; i++) {
         final String s = matcher.group(i);
-        if ("N".equals(s)) {
-          return true;
-        }
+        if ("N".equals(s)) return true;
       }
     }
     return false;
@@ -575,27 +567,20 @@ public class BundleLocator extends Task {
   private BundleArchives.BundleArchive getBundleArchive(String name)
   {
     log("getBundleArchive("+name +")", Project.MSG_DEBUG);
-    if (null==name || 0==name.length()) {
-      return null;
-    }
+    if (null==name || 0==name.length()) return null;
 
-    if (name.endsWith(".jar")) {
-      name = name.substring(0, name.length()-4);
-    }
-    if (name.endsWith(".zip")) {
-      name = name.substring(0, name.length()-4);
-    }
-    if (name.endsWith("-N.N.N")) {
-      name = name.substring(0, name.length()-6);
-    }
+    if (name.endsWith(".jar"))   name = name.substring(0, name.length()-4);
+    if (name.endsWith(".zip"))   name = name.substring(0, name.length()-4);
+    if (name.endsWith("-N.N.N")) name = name.substring(0, name.length()-6);
 
-    SortedSet<BundleArchive> baSet = bas.bnToBundleArchives.get(name);
+    SortedSet baSet = (SortedSet) bas.bnToBundleArchives.get(name);
     if (null==baSet) {
-      baSet = bas.bsnToBundleArchives.get(BundleArchives.encodeBundleName(name));
+      baSet = (SortedSet)
+        bas.bsnToBundleArchives.get(BundleArchives.encodeBundleName(name));
     }
     if (null!=baSet) {
       final BundleArchives.BundleArchive ba
-        = baSet.last();
+        = (BundleArchives.BundleArchive) baSet.last();
       log("getBundleArchive("+name +")->"+ba, Project.MSG_VERBOSE);
       return ba;
     }
@@ -614,15 +599,13 @@ public class BundleLocator extends Task {
           break;
         }
         level++;
-        if (version.length()>0) {
-          version += ".";
-        }
+        if (version.length()>0) version += ".";
         version += s;
       }
       if (level<0) {
         return getBundleArchive(name, null, null);
       } else {
-        final Version min = new Version(version);
+        Version min = new Version(version);
         Version max = null;
 
         switch(level) {
@@ -666,28 +649,23 @@ public class BundleLocator extends Task {
                                                         Version min,
                                                         final Version max)
   {
-    SortedSet<BundleArchive> baSet = bas.bnToBundleArchives.get(name);
+    SortedSet baSet = (SortedSet) bas.bnToBundleArchives.get(name);
     if (null==baSet) {
-      baSet = bas.bsnToBundleArchives.get(BundleArchives.encodeBundleName(name));
+      baSet = (SortedSet)
+        bas.bsnToBundleArchives.get(BundleArchives.encodeBundleName(name));
     }
     BundleArchives.BundleArchive ba = null;
 
     if (null!=baSet) {
       if (null==max) { // Select highest available version
-        ba = baSet.last();
+        ba = (BundleArchives.BundleArchive) baSet.last();
       } else {
-        if (null==min) {
-          min = Version.emptyVersion;
-        }
-        for (final Object element : baSet) {
+        if (null==min) min = Version.emptyVersion;
+        for (Iterator it = baSet.iterator(); it.hasNext(); ) {
           final BundleArchives.BundleArchive candBa
-            = (BundleArchives.BundleArchive) element;
-          if (candBa.version.compareTo(min)<0) {
-            continue;
-          }
-          if (candBa.version.compareTo(max)>=0) {
-            break;
-          }
+            = (BundleArchives.BundleArchive) it.next();
+          if (candBa.version.compareTo(min)<0) continue;
+          if (candBa.version.compareTo(max)>=0) break;
           ba = candBa;
         }
       }
@@ -713,7 +691,7 @@ public class BundleLocator extends Task {
                            final String propName)
   {
     log("Searching for a bundle with name '" +bn +"'.", Project.MSG_DEBUG);
-    final BundleArchives.BundleArchive ba = getBundleArchive(bn);
+    BundleArchives.BundleArchive ba = getBundleArchive(bn);
 
     if (ba!=null) {
       getProject().setProperty(propName, ba.file.getAbsolutePath());
@@ -752,7 +730,7 @@ public class BundleLocator extends Task {
     try {
       final Path path = (Path) classPathRef.getReferencedObject();
       pathElements = path.list();
-    } catch (final BuildException e) {
+    } catch (BuildException e) {
       // Unsatisfied ref in the given path; can not expand.
       // Make the new path a reference to the old one.
       log("Unresolvable reference in '" +classPathRef.getRefId()
@@ -761,8 +739,8 @@ public class BundleLocator extends Task {
     }
 
     if (null!=pathElements) {
-      for (final String pathElement2 : pathElements) {
-        final File pathElement = new File(pathElement2);
+      for (int i=0; i<pathElements.length; i++) {
+        final File pathElement = new File(pathElements[i]);
         boolean added = false;
         log("path element: "+pathElement, Project.MSG_DEBUG);
         if (!pathElement.exists()) {
@@ -807,9 +785,9 @@ public class BundleLocator extends Task {
     log("Creating a patternset for the bundles with id='" +patternSetId +"'.",
         Project.MSG_DEBUG);
 
-    for (final Object element : bas.allBundleArchives) {
-      final BundleArchives.BundleArchive ba
-        = (BundleArchives.BundleArchive) element;
+    for (Iterator it=bas.allBundleArchives.iterator(); it.hasNext();) {
+      BundleArchives.BundleArchive ba
+        = (BundleArchives.BundleArchive) it.next();
 
       patternSet.setIncludes(ba.relPath);
       log("Adding includes '" +ba.relPath +"'.", Project.MSG_DEBUG);
@@ -850,9 +828,9 @@ public class BundleLocator extends Task {
   private void writeReplaceFilterFile()
   {
     final Properties props = new Properties();
-    for (final Object element : bas.allBundleArchives) {
+    for (Iterator it = bas.allBundleArchives.iterator(); it.hasNext();) {
       final BundleArchives.BundleArchive ba
-        = (BundleArchives.BundleArchive) element;
+        = (BundleArchives.BundleArchive) it.next();
       //Note: since the path is an URL we must ensure that '/' is used.
       final String relPath = ba.relPath.replace('\\','/');
       final String[] versPatterns = getVersionPatterns(ba.version);
@@ -864,8 +842,8 @@ public class BundleLocator extends Task {
           props.put("@" +ba.bsn +".name@", ba.bsn);
           props.put("@" +ba.bsn +".version@", ba.version.toString());
         }
-        for (final String versPattern : versPatterns) {
-          final String prefix = "@" +ba.bsn +versPattern;
+        for (int i=0; i<versPatterns.length; i++) {
+          final String prefix = "@" +ba.bsn +versPatterns[i];
           props.put(prefix +".jar@", relPath);
           if (extendedReplaceFilter) {
             props.put(prefix +".location@", ba.file.getAbsolutePath());
@@ -876,8 +854,8 @@ public class BundleLocator extends Task {
       }
 
       if (null!=ba.bundleName) {
-        for (final String versPattern : versPatterns) {
-          final String prefix = "@" +ba.bundleName +versPattern;
+        for (int i=0; i<versPatterns.length; i++) {
+          final String prefix = "@" +ba.bundleName +versPatterns[i];
           props.put(prefix +".jar@", relPath);
           if (extendedReplaceFilter) {
             props.put(prefix +".location@", ba.file.getAbsolutePath());
@@ -893,14 +871,14 @@ public class BundleLocator extends Task {
     try {
       out= new FileOutputStream(replacefilterfile);
       props.store(out, "Bundle Version Expansion Mapping");
-    } catch (final IOException ioe) {
+    } catch (IOException ioe) {
       log("Failed to write replacefilterfile, "+replacefilterfile
           +", reason: "+ioe,
           Project.MSG_ERR);
       throw new BuildException("Failed to write replacefilterfile",ioe);
     } finally {
       if (null!=out) {
-        try { out.close(); } catch (final IOException _ioe) {}
+        try { out.close(); } catch (IOException _ioe) {}
         log("Created: "+replacefilterfile, Project.MSG_VERBOSE);
       }
     }

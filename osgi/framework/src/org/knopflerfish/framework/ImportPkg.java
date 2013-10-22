@@ -45,7 +45,6 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
-import org.osgi.framework.VersionRange;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -79,7 +78,6 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   final VersionRange packageRange;
   final VersionRange bundleRange;
   final Map<String,Object> attributes;
-  final Map<String,String> directives;
   final ImportPkg parent;
 
   // Link to pkg entry
@@ -110,8 +108,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not import a java.* package");
     }
-    final Map<String, String> dirs = he.getDirectives();
-    final String res = dirs.get(Constants.RESOLUTION_DIRECTIVE);
+    final String res = he.getDirectives().get(Constants.RESOLUTION_DIRECTIVE);
     if (dynamic) {
       if (res != null) {
         throw new IllegalArgumentException("Directives not supported for "
@@ -150,21 +147,16 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     } else if (versionStr != null) {
       this.packageRange = new VersionRange(versionStr);
     } else {
-      this.packageRange = null;
+      this.packageRange = VersionRange.defaultVersionRange;
     }
     final String rangeStr = (String) he.getAttributes()
         .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
     if (rangeStr != null) {
       this.bundleRange = new VersionRange(rangeStr);
     } else {
-      this.bundleRange = null;
+      this.bundleRange = VersionRange.defaultVersionRange;
     }
     this.attributes = Collections.unmodifiableMap(he.getAttributes());
-    final Filter filter = toFilter();
-    if (null!=filter) {
-      dirs.put(Constants.FILTER_DIRECTIVE, filter.toString());
-    }
-    this.directives = Collections.unmodifiableMap(dirs);
     this.parent = null;
   }
 
@@ -180,7 +172,6 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     this.packageRange = ip.packageRange;
     this.bundleRange = ip.bundleRange;
     this.attributes = ip.attributes;
-    this.directives = ip.directives;
     this.parent = ip;
   }
 
@@ -196,7 +187,6 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     this.packageRange = ip.packageRange;
     this.bundleRange = ip.bundleRange;
     this.attributes = ip.attributes;
-    this.directives = ip.directives;
     this.parent = ip.parent;
   }
 
@@ -210,19 +200,12 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     this.resolution = Constants.RESOLUTION_MANDATORY;
     this.bundleSymbolicName = null;
     if (p.version == Version.emptyVersion) {
-      this.packageRange = null;
+      this.packageRange = VersionRange.defaultVersionRange;
     } else {
       this.packageRange = new VersionRange(p.version.toString());
     }
-    this.bundleRange = null;
+    this.bundleRange = VersionRange.defaultVersionRange;
     this.attributes = p.attributes;
-    // TODO, should we import unknown directives?
-    final Map<String,String> dirs = new HashMap<String, String>();
-    final Filter filter = toFilter();
-    if (null!=filter) {
-      dirs.put(Constants.FILTER_DIRECTIVE, filter.toString());
-    }
-    this.directives = Collections.unmodifiableMap(dirs);
     this.parent = null;
   }
 
@@ -252,7 +235,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
    *         positive if this object is larger then obj.
    */
   public boolean okPackageVersion(Version ver) {
-    return packageRange == null || packageRange.includes(ver);
+    return packageRange.withinRange(ver);
   }
 
 
@@ -271,8 +254,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     if (!okPackageVersion(ep.version) ||
         (bundleSymbolicName != null &&
          !bundleSymbolicName.equals(ep.bpkgs.bg.symbolicName)) ||
-         (bundleRange != null &&
-         !bundleRange.includes(ep.bpkgs.bg.version))) {
+        !bundleRange.withinRange(ep.bpkgs.bg.version)) {
       return false;
     }
     /* Other attributes */
@@ -331,10 +313,10 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     // This is handle when resolving package.
     // If one import is mandatory then all must match.
 
-    if (packageRange != null && packageRange.intersection(ip.packageRange).isEmpty()) {
+    if (!packageRange.intersectRange(ip.packageRange)) {
       return false;
     }
-    return bundleRange == null || !bundleRange.intersection(ip.bundleRange).isEmpty();
+    return bundleRange.intersectRange(ip.bundleRange);
   }
 
 
@@ -345,7 +327,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
    */
   public String pkgString() {
     // NYI! More info?
-    if (packageRange != null) {
+    if (packageRange.isSpecified()) {
       return name + ";" + Constants.VERSION_ATTRIBUTE + "=" + packageRange;
     } else {
       return name;
@@ -379,7 +361,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     if (mandatory != null) {
       for (final String a : mandatory) {
         if (Constants.VERSION_ATTRIBUTE.equals(a)) {
-          if (packageRange == null) {
+          if (!packageRange.isSpecified()) {
             return false;
           }
         } else if (Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE.equals(a)) {
@@ -387,7 +369,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
             return false;
           }
         } else if (Constants.BUNDLE_VERSION_ATTRIBUTE.equals(a)) {
-          if (bundleRange == null) {
+          if (!bundleRange.isSpecified()) {
             return false;
           }
         } else if (!attributes.containsKey(a)) {
@@ -400,16 +382,26 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
 
   // BundleRequirement method
-  @Override
   public String getNamespace() {
     return BundleRevision.PACKAGE_NAMESPACE;
   }
 
 
   // BundleRequirement method
-  @Override
   public Map<String, String> getDirectives() {
-    return directives;
+    final Map<String,String> res = new HashMap<String, String>(4);
+
+    res.put(Constants.RESOLUTION_DIRECTIVE, resolution);
+
+    // For PACKAGE_NAMESPACE effective defaults to resolve and no other value
+    // is allowed so leave it out.
+    // res.put(Constants.EFFECTIVE_DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+
+    final Filter filter = toFilter();
+    if (null!=filter) {
+      res.put(Constants.FILTER_DIRECTIVE, filter.toString());
+    }
+    return res;
   }
 
 
@@ -429,8 +421,8 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     sb.append(')');
 
     if (packageRange != null) {
-      sb.append(packageRange.toFilterString(Constants.VERSION_ATTRIBUTE));
-      multipleConditions = true;
+      multipleConditions |= packageRange
+          .appendFilterString(sb, Constants.VERSION_ATTRIBUTE);
     }
 
     if (bundleSymbolicName != null) {
@@ -443,8 +435,8 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     }
 
     if (bundleRange != null) {
-      sb.append(bundleRange.toFilterString(Constants.BUNDLE_VERSION_ATTRIBUTE));
-      multipleConditions = true;
+      multipleConditions |= bundleRange
+          .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
     }
 
     for (final Entry<String,Object> entry : attributes.entrySet()) {
@@ -470,8 +462,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   }
 
   // BundleRequirement method
-  @Override
- public Map<String, Object> getAttributes() {
+  public Map<String, Object> getAttributes() {
     @SuppressWarnings("unchecked")
     final
     Map<String, Object> res = Collections.EMPTY_MAP;
@@ -480,20 +471,12 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
 
   // BundleRequirement method
-  @Override
   public BundleRevision getRevision() {
     return bpkgs.bg.bundleRevision;
   }
 
 
-  @Override
-  public BundleRevision getResource() {
-    return bpkgs.bg.bundleRevision;
-  }
-
-
   // BundleRequirement method
-  @Override
   public boolean matches(BundleCapability capability) {
     if (BundleRevision.PACKAGE_NAMESPACE.equals(capability.getNamespace())) {
       return toFilter().matches(capability.getAttributes());
@@ -511,7 +494,6 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
    * @return Less than zero, zero or greater than zero of this object is smaller
    *  than, equals to or greater than {@code o}.
    */
-  @Override
   public int compareTo(ImportPkg o)
   {
     return this.orderal - o.orderal;

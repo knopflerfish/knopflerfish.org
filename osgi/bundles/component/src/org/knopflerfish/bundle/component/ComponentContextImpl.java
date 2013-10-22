@@ -226,7 +226,13 @@ class ComponentContextImpl implements ComponentContext
     try {
       ComponentException ce = null;
       final ComponentMethod m = rl.ref.getBindMethod();
-      if (m != null && !m.isMissing(true)) {
+      if (m != null) {
+        if (m.isMissing(true)) {
+          // Should we fail when method is missing?
+          // The specification doesn't say, but the
+          // CT requires it.
+          return false;
+        }
         final ComponentMethod.Operation bindOp = m.prepare(this, s, rl);
         // Mark service as bound even if isn't fetched in bind method.
         rl.bound(s, null, this);

@@ -6,5 +6,5 @@ Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-Description: %description
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-Category: testing
+Bundle-Category: test
 Test-Header: %docurl

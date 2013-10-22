@@ -44,7 +44,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
-import org.osgi.framework.hooks.bundle.CollisionHook;
 import org.osgi.framework.hooks.bundle.EventHook;
 import org.osgi.framework.hooks.bundle.FindHook;
 
@@ -87,7 +86,7 @@ class BundleHooks {
             fh.find(bc, filtered);
           } catch (final Exception e) {
             fwCtx.frameworkError(bc,
-                new BundleException("Failed to call Bundle FindHook  #" +
+                new BundleException("Failed to call find Bundle FindHook  #" +
                                     sr.getProperty(Constants.SERVICE_ID), e));
           }
         }
@@ -134,9 +133,8 @@ class BundleHooks {
           try {
             eh.event(evt, filtered);
           } catch (final Exception e) {
-            fwCtx.frameworkError(fwCtx.systemBundle,
-                                 new BundleException("Failed to call Bundle EventHook #" +
-                                     sr.getProperty(Constants.SERVICE_ID), e));
+            fwCtx.debug.printStackTrace("Failed to call Bundle EventHook  #" +
+                                        sr.getProperty(Constants.SERVICE_ID), e);
           }
         }
       }
@@ -157,29 +155,4 @@ class BundleHooks {
       }
     }
   }
-  
-  void filterCollisions(int mode,
-                        Bundle b,
-                        Collection<Bundle> bundles) {
-    final List<ServiceRegistrationImpl<?>> srl = fwCtx.services.get(CollisionHook.class.getName());
-    if (srl != null) {
-      final RemoveOnlyCollection<Bundle> filtered
-        = new RemoveOnlyCollection<Bundle>(bundles);
-
-      for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : srl) {
-        final ServiceReferenceImpl<?> sr = serviceRegistrationImpl.reference;
-        final CollisionHook ch = (CollisionHook) sr.getService(fwCtx.systemBundle);
-        if (ch != null) {
-          try {
-            ch.filterCollisions(mode, b, filtered);
-          } catch (final Exception e) {
-            fwCtx.frameworkError(b,
-                new BundleException("Failed to call Bundle CollisionHook #" +
-                                    sr.getProperty(Constants.SERVICE_ID), e));
-          }
-        }
-      }
-    }
-  }
-
 }

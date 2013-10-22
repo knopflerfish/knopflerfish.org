@@ -19,6 +19,7 @@
   <path id="bundle.compile.path">
   </path>
 
+  <property name="do.bundle.custom.post" value="true"/>
   <target name="bundle.custom.post"
 	  depends="check_openssl"
 	  if="openssl_exist">

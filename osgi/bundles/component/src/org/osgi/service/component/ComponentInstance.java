@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ package org.osgi.service.component;
  * 
  * @ThreadSafe
  * @noimplement
- * @author $Id: ea48ee21ed7e44d2a4c30a7fa9dba327139827bf $
+ * @version $Id: 153a0cbf3bc5bd82afeceea35cfd6dcd8498083e $
  */
 public interface ComponentInstance {
 	/**

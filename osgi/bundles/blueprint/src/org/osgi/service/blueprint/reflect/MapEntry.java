@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,26 +23,26 @@ package org.osgi.service.blueprint.reflect;
  * {@link ServiceMetadata}.
  * 
  * @ThreadSafe
- * @author $Id: 0148e116bfa36331c0a9a309509e80fd4f8635a4 $
+ * @version $Revision: 8083 $
  */
 public interface MapEntry {
 	/**
 	 * Return the Metadata for the key of the map entry.
 	 * 
-	 * This is specified by the {@code key} attribute or element.
+	 * This is specified by the <code>key</code> attribute or element.
 	 * 
 	 * @return The Metadata for the key of the map entry. This must not be
-	 *         {@code null}.
+	 *         <code>null</code>.
 	 */
 	NonNullMetadata getKey();
 
 	/**
 	 * Return the Metadata for the value of the map entry.
 	 * 
-	 * This is specified by the {@code value} attribute or element.
+	 * This is specified by the <code>value</code> attribute or element.
 	 * 
 	 * @return The Metadata for the value of the map entry. This must not be
-	 *         {@code null}.
+	 *         <code>null</code>.
 	 */
 	Metadata getValue();
 }

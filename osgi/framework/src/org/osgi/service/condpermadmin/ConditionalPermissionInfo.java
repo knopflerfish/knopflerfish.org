@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.osgi.service.permissionadmin.PermissionInfo;
  * 
  * @Immutable
  * @noimplement
- * @version $Id: c4222b04d7ab4f8ccdb5def2bf5423c2e1d31f20 $
+ * @version $Id: ca51e4dd6dfa350959bb2a2e420bdb2c996323e9 $
  */
 public interface ConditionalPermissionInfo {
 	/**
@@ -75,9 +75,7 @@ public interface ConditionalPermissionInfo {
 	 * this method can no longer be committed.
 	 * 
 	 * @throws UnsupportedOperationException If this object was created by
-	 *         {@link ConditionalPermissionAdmin#newConditionalPermissionInfo(String)}
-	 *         or
-	 *         {@link ConditionalPermissionAdmin#newConditionalPermissionInfo(String, ConditionInfo[] , PermissionInfo[] , String)}
+	 *         {@link ConditionalPermissionAdmin#newConditionalPermissionInfo}
 	 *         or obtained from a {@link ConditionalPermissionUpdate}. This
 	 *         method only functions if this object was obtained from one of the
 	 *         {@link ConditionalPermissionAdmin} methods deprecated in version
@@ -152,8 +150,9 @@ public interface ConditionalPermissionInfo {
 
 	/**
 	 * Returns the string representation of this
-	 * {@code ConditionalPermissionInfo}. The string is created by calling the
-	 * {@code getEncoded} method on this {@code ConditionalPermissionInfo}.
+	 * {@code ConditionalPermissionInfo}. The string is created by calling
+	 * the {@code getEncoded} method on this
+	 * {@code ConditionalPermissionInfo}.
 	 * 
 	 * @return The string representation of this
 	 *         {@code ConditionalPermissionInfo}.
@@ -162,7 +161,8 @@ public interface ConditionalPermissionInfo {
 	String toString();
 
 	/**
-	 * Determines the equality of two {@code ConditionalPermissionInfo} objects.
+	 * Determines the equality of two {@code ConditionalPermissionInfo}
+	 * objects.
 	 * 
 	 * This method checks that specified object has the same access decision,
 	 * conditions, permissions and name as this
@@ -177,8 +177,8 @@ public interface ConditionalPermissionInfo {
 	 *         otherwise.
 	 * @since 1.1
 	 */
-	boolean equals(Object obj);
-
+	 boolean equals(Object obj);
+ 
 	/**
 	 * Returns the hash code value for this object.
 	 * 

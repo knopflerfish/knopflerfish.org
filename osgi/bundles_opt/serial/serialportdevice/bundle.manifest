@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: serialportdevice
 Bundle-SymbolicName: org.knopflerfish.bundle.serialportdevice
 Bundle-Version: 4.0.0
-Bundle-Category: device
+Bundle-Category: service
 Bundle-Description: Serial port device
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish

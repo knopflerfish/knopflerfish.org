@@ -66,7 +66,7 @@ public class LogUtil {
    * @return left justified string representation of a numeric log level.
    */
   static public String fromLevel(int level, int length) {
-    final StringBuffer sb = new StringBuffer(length > 7 ? length : 7);
+    StringBuffer sb = new StringBuffer(length > 7 ? length : 7);
     switch (level) {
     case LogService.LOG_INFO:
       sb.append("info");
@@ -106,11 +106,6 @@ public class LogUtil {
    *         be recognized.
    */
   static public int toLevel(String level, int def) {
-    if (level==null) {
-      return def;
-    }
-
-    level = level.trim();
     if (level.equalsIgnoreCase("INFO")) {
       return LogService.LOG_INFO;
     } else if (level.equalsIgnoreCase("DEBUG")) {

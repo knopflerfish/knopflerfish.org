@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2000, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.log;
 
 import java.util.EventListener;
 
 /**
- * Subscribes to {@code LogEntry} objects from the {@code LogReaderService}.
+ * Subscribes to <code>LogEntry</code> objects from the <code>LogReaderService</code>.
  * 
  * <p>
- * A {@code LogListener} object may be registered with the Log Reader Service
- * using the {@code LogReaderService.addLogListener} method. After the listener
- * is registered, the {@code logged} method will be called for each
- * {@code LogEntry} object created. The {@code LogListener} object may be
- * unregistered by calling the {@code LogReaderService.removeLogListener}
+ * A <code>LogListener</code> object may be registered with the Log Reader Service
+ * using the <code>LogReaderService.addLogListener</code> method. After the
+ * listener is registered, the <code>logged</code> method will be called for each
+ * <code>LogEntry</code> object created. The <code>LogListener</code> object may be
+ * unregistered by calling the <code>LogReaderService.removeLogListener</code>
  * method.
  * 
  * @ThreadSafe
- * @author $Id: 4e27a9415d892fa96a214e28a9b8843df78284c6 $
+ * @version $Revision: 5654 $
  * @see LogReaderService
  * @see LogEntry
  * @see LogReaderService#addLogListener(LogListener)
@@ -44,7 +43,7 @@ public interface LogListener extends EventListener {
 	 * As with all event listeners, this method should return to its caller as
 	 * soon as possible.
 	 * 
-	 * @param entry A {@code LogEntry} object containing log information.
+	 * @param entry A <code>LogEntry</code> object containing log information.
 	 * @see LogEntry
 	 */
 	public void logged(LogEntry entry);

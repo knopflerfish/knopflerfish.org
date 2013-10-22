@@ -52,19 +52,19 @@ final class ConfigurationDispatcher {
      * * The PluginManager to use.
      */
 
-    private final PluginManager pm;
+    private PluginManager pm;
 
-  private final boolean useSharedQueue = true;
-  private final UpdateQueue sharedQueue;
+  private boolean useSharedQueue = true;
+  private UpdateQueue sharedQueue;
 
     /**
      * * One queue per target service.
      */
 
-    private final Hashtable<ServiceReference<?>, Object> serviceReferenceToTargetService
+    private Hashtable<ServiceReference<?>, Object> serviceReferenceToTargetService
       = new Hashtable<ServiceReference<?>, Object>();
 
-    private final Hashtable<Object, UpdateQueue> targetServiceToQueue
+    private Hashtable<Object, UpdateQueue> targetServiceToQueue
       = new Hashtable<Object, UpdateQueue>();
 
     /**
@@ -134,18 +134,15 @@ final class ConfigurationDispatcher {
         }
     }
 
-    public void dispatchUpdateFor(ServiceReference<?> sr,
-                                  String pid,
-                                  String factoryPid,
-                                  ConfigurationDictionary cd)
-    {
-      UpdateQueue uq = getQueueFor(sr);
-      if (uq == null) {
-        Activator.log.error("Missing UpdateQueue for " + pid + "/" + factoryPid);
-        return;
-      }
-      Update u = new Update(sr, pid, factoryPid, cd);
+    public void dispatchUpdateFor(ServiceReference<?> sr, String pid,
+            String factoryPid, ConfigurationDictionary cd) {
+        UpdateQueue uq = getQueueFor(sr);
+        if (uq == null) {
+            Activator.log.error("Missing UpdateQueue for " + pid + "/" + factoryPid);
+            return;
+        }
+        Update u = new Update(sr, pid, factoryPid, cd);
 
-      uq.enqueue(u);
+        uq.enqueue(u);
     }
 }

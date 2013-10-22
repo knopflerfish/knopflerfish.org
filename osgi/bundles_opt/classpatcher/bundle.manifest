@@ -2,21 +2,15 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Class Patcher
 Bundle-SymbolicName: org.knopflerfish.bundle.classpatcher
-Bundle-Version: 5.0.0
-Bundle-Category: framework
+Bundle-Version: 1.0.1
+Bundle-Category: utility
 Bundle-Description: Implements a WeavingHook to allow patching of classes at load time using ASM
 Bundle-Vendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
- description="BSD 3-clause";
- link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles_opt/classpatcher/
 Bundle-Activator: org.knopflerfish.bundle.classpatcher.Activator
 Bundle-Classpath: .,asm-3.2.jar
-api-Provide-Capability: [bundle.emptystring]
-Provide-Capability: osgi.service;
- objectClass:List<String>="org.osgi.framework.hooks.weaving.WeavingHook"
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Import-Package: org.osgi.framework; version="[1.6,2)",
  org.osgi.framework.hooks.weaving; version="[1.0,2)",

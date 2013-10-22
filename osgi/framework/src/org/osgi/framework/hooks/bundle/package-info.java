@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /**
- * Framework Bundle Hooks Package Version 1.1.
+ * Framework Bundle Hooks Package Version 1.0.
  * 
  * <p>
  * Bundles wishing to use this package must list the package in the
@@ -24,10 +24,9 @@
  * <p>
  * Example import for consumers using the API in this package:
  * <p>
- * {@code  Import-Package: org.osgi.framework.hooks.bundle; version="[1.1,2.0)"}
+ * {@code  Import-Package: org.osgi.framework.hooks.bundle; version="[1.0,2.0)"}
  * 
- * @version $Id: 0f53749f486ffe21404f4601fcc67c956f25ca6f $
+ * @version $Id: a609772e6106eb5b93ec337740e48696417fc082 $
  */
 
 package org.osgi.framework.hooks.bundle;
-

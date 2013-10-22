@@ -17,56 +17,55 @@
   <property name="bundle.extraimports"   value="sun.io"/>
 
   <property name="api.pattern"
-            value="javax/xml/*,
-                   javax/xml/datatype/*,
-                   javax/xml/namespace/*,
-                   javax/xml/parsers/*,
-                   javax/xml/transform/*,
-                   javax/xml/transform/dom/*,
-                   javax/xml/transform/sax/*,
-                   javax/xml/transform/stream/*,
-                   javax/xml/validation/*,
-                   javax/xml/xpath/*,
-                   org/apache/html/dom/*,
-                   org/apache/wml/*,
-                   org/apache/wml/dom/*,
-                   org/apache/xerces/dom/*,
-                   org/apache/xerces/dom/events/*,
-                   org/apache/xerces/dom3/as/*,
-                   org/apache/xerces/jaxp/*,
-                   org/apache/xerces/jaxp/datatype/*,
-                   org/apache/xerces/jaxp/validation/*,
-                   org/apache/xerces/parsers/*,
-                   org/apache/xerces/util/*,
-                   org/apache/xerces/xinclude/*,
-                   org/apache/xerces/xni/*,
-                   org/apache/xerces/xni/grammars/*,
-                   org/apache/xerces/xni/parser/*,
-                   org/apache/xerces/xpointer/*,
-                   org/apache/xerces/xs/*,
-                   org/apache/xerces/xs/datatypes/*,
-                   org/apache/xml/resolver/*,
-                   org/apache/xml/resolver/apps/*,
-                   org/apache/xml/resolver/helpers/*,
-                   org/apache/xml/resolver/readers/*,
-                   org/apache/xml/resolver/tools/*,
-                   org/apache/xml/serialize/*,
-                   org/apache/xml/serializer/*,
-                   org/osgi/util/xml/*,
-                   org/w3c/dom/*,
-                   org/w3c/dom/bootstrap/*,
-                   org/w3c/dom/css/*,
-                   org/w3c/dom/events/*,
-                   org/w3c/dom/html/*,
-                   org/w3c/dom/ls/*,
-                   org/w3c/dom/ranges/*,
-                   org/w3c/dom/stylesheets/*,
-                   org/w3c/dom/traversal/*,
-                   org/w3c/dom/views/*,
-                   org/w3c/dom/xpath/*,
-                   org/xml/sax/*,
-                   org/xml/sax/ext/*,
-                   org/xml/sax/helpers/*" />
+	    value="javax/xml/*,
+		   javax/xml/datatype/*,
+		   javax/xml/namespace/*,
+		   javax/xml/parsers/*,
+		   javax/xml/transform/*,
+		   javax/xml/transform/dom/*,
+		   javax/xml/transform/sax/*,
+		   javax/xml/transform/stream/*,
+		   javax/xml/validation/*,
+		   javax/xml/xpath/*,
+		   org/apache/html/dom/*,
+		   org/apache/wml/*,
+		   org/apache/wml/dom/*,
+		   org/apache/xerces/dom/*,
+		   org/apache/xerces/dom/events/*,
+		   org/apache/xerces/dom3/as/*,
+		   org/apache/xerces/jaxp/*,
+		   org/apache/xerces/jaxp/datatype/*,
+		   org/apache/xerces/jaxp/validation/*,
+		   org/apache/xerces/parsers/*,
+		   org/apache/xerces/util/*,
+		   org/apache/xerces/xinclude/*,
+		   org/apache/xerces/xni/*,
+		   org/apache/xerces/xni/grammars/*,
+		   org/apache/xerces/xni/parser/*,
+		   org/apache/xerces/xpointer/*,
+		   org/apache/xerces/xs/*,
+		   org/apache/xerces/xs/datatypes/*,
+		   org/apache/xml/resolver/*,
+		   org/apache/xml/resolver/apps/*,
+		   org/apache/xml/resolver/helpers/*,
+		   org/apache/xml/resolver/readers/*,
+		   org/apache/xml/resolver/tools/*,
+		   org/apache/xml/serialize/*,
+		   org/apache/xml/serializer/*,
+		   org/w3c/dom/*,
+		   org/w3c/dom/bootstrap/*,
+		   org/w3c/dom/css/*,
+		   org/w3c/dom/events/*,
+		   org/w3c/dom/html/*,
+		   org/w3c/dom/ls/*,
+		   org/w3c/dom/ranges/*,
+		   org/w3c/dom/stylesheets/*,
+		   org/w3c/dom/traversal/*,
+		   org/w3c/dom/views/*,
+		   org/w3c/dom/xpath/*,
+		   org/xml/sax/*,
+		   org/xml/sax/ext/*,
+		   org/xml/sax/helpers/*" />
 
   <property name="impl.pattern" value="**" />
 
@@ -79,27 +78,6 @@
   </path>
 
   <property name="all.suffix.name" value=""/>
-
-
-  <!-- Embedd APIs for OSGi services that xerces depends on -->
-  <target name="bundle.custom.pre">
-    <bundle_locator bundleNames="xml">
-      <fileset dir="${jars.dir}">
-        <exclude name="**/*-source.jar"/>
-        <exclude name="**/*-javadoc.jar"/>
-        <include name="**/*.jar"/>
-      </fileset>
-    </bundle_locator>
-    <copy todir="${classes.out.dir}">
-      <zipfileset src="${bap.xml}">
-        <patternset>
-          <exclude name="META-INF/**/*"/>
-          <exclude name="**/*.dex"/>
-        </patternset>
-      </zipfileset>
-      
-    </copy>
-  </target>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 

@@ -5,7 +5,6 @@ Bundle-SymbolicName: org.knopflerfish.bundle.connectors
 Bundle-Version: 3.0.0
 Bundle-Description: OSGi IO http, socket and datagram-receive Connectors
 Bundle-Vendor: Knopflerfish
-Bundle-Category: service
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html

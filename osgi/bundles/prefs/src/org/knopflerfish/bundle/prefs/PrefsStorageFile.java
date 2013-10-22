@@ -167,7 +167,6 @@ public class  PrefsStorageFile implements PrefsStorage {
    **/
   boolean bStale = false;
 
-  @Override
   public boolean isStale()
   {
     return bStale;
@@ -177,9 +176,8 @@ public class  PrefsStorageFile implements PrefsStorage {
   boolean bDebug = false;
 
   private PrefsStorageFile(final File baseDir) {
-    this.baseDir = AccessController.doPrivileged(new PrivilegedAction<File>() {
-      @Override
-      public File run() {
+    this.baseDir = (File) AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
         baseDir.mkdirs();
 
         if(!baseDir.exists() || !baseDir.isDirectory()) {
@@ -206,8 +204,7 @@ public class  PrefsStorageFile implements PrefsStorage {
       final File file = new File(baseDir, encode(path));
       final String path2 = path;
       if(bCreate) {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-          @Override
+        AccessController.doPrivileged(new PrivilegedAction() {
           public Object run() {
             file.mkdirs();
             if(!file.exists() || !file.isDirectory()) {
@@ -231,9 +228,8 @@ public class  PrefsStorageFile implements PrefsStorage {
       }
 
       try {
-        return AccessController.doPrivileged(new PrivilegedExceptionAction<Dictionary<String, String>>() {
-          @Override
-          public Dictionary<String, String> run() throws IOException {
+        return (Dictionary) AccessController.doPrivileged(new PrivilegedExceptionAction() {
+          public Object run() throws IOException {
             final Properties props = new Properties();
             InputStream in = null;
             try {
@@ -278,8 +274,7 @@ public class  PrefsStorageFile implements PrefsStorage {
       }
 
       try {
-        AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-          @Override
+        AccessController.doPrivileged(new PrivilegedExceptionAction() {
           public Object run() throws IOException {
             OutputStream out = null;
             try {
@@ -302,7 +297,6 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  @Override
   public void put(final String path, final String key, final String val) {
     try {
       dirtySet.add(path);
@@ -320,7 +314,6 @@ public class  PrefsStorageFile implements PrefsStorage {
 
 
 
-  @Override
   public String[] getChildrenNames(final String path) {
     synchronized(lock) {
       try {
@@ -345,7 +338,6 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  @Override
   public String[] getKeys(final String path) {
     try {
       final Dictionary<String, String> props = loadProps(path);
@@ -361,7 +353,6 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  @Override
   public String get(final String path, final String key, final String def) {
     synchronized(lock) {
       try {
@@ -378,7 +369,6 @@ public class  PrefsStorageFile implements PrefsStorage {
   }
 
 
-  @Override
   public void removeAllKeys(final String path) {
     synchronized(lock) {
       try {
@@ -392,7 +382,6 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  @Override
   public void removeKey(final String path, final String key) {
     synchronized(lock) {
       try {
@@ -407,7 +396,6 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  @Override
   public void removeNode(final String path) {
     synchronized(lock) {
       try {
@@ -443,7 +431,6 @@ public class  PrefsStorageFile implements PrefsStorage {
   final Map<String, Dictionary<String,String>> propsMap
     = new HashMap<String, Dictionary<String,String>>();
 
-  @Override
   public Preferences getNode(final String path, boolean bCreate) {
     try {
       PreferencesImpl pi = prefs.get(path);
@@ -454,8 +441,7 @@ public class  PrefsStorageFile implements PrefsStorage {
       getNodeDir(path, bCreate);
       final File keyFile = getKeyFile(path);
 
-      AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-        @Override
+      AccessController.doPrivileged(new PrivilegedExceptionAction() {
         public Object run() throws Exception {
           if(!keyFile.exists()) {
             final Dictionary<String, String> props = new Hashtable<String, String>();
@@ -477,15 +463,13 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  @Override
   public boolean nodeExists(final String path) {
     synchronized(lock) {
       final File f = getNodeDir(path, false);
       final int ix = path.lastIndexOf('/');
 
-      return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-        @Override
-        public Boolean run() {
+      return ((Boolean) AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
           boolean b = false;
           if(ix != -1 && path.length() > 0) {
             final String last  = decode(path.substring(ix + 1));
@@ -506,11 +490,10 @@ public class  PrefsStorageFile implements PrefsStorage {
           }
           return new Boolean(b);
         }
-      }).booleanValue();
+      })).booleanValue();
     }
   }
 
-  @Override
   public void flush(final String path)
     throws BackingStoreException
   {
@@ -536,7 +519,6 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  @Override
   public void sync(final String path)
     throws BackingStoreException
   {
@@ -545,7 +527,6 @@ public class  PrefsStorageFile implements PrefsStorage {
     // Fetch changes from backing store.
   }
 
-  @Override
   public void logWarn(final String msg, final Throwable t)
   {
     Activator.log.warn(msg, t);
@@ -559,8 +540,7 @@ public class  PrefsStorageFile implements PrefsStorage {
   }
 
   static void deleteTree(final File f) {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-      @Override
+    AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
         PrefsStorageFile.deleteTree0(f);
         return null;

@@ -6,7 +6,7 @@ Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.preferences_test.Activator
-Bundle-Category: testing
+Bundle-Category: test
 Import-Package: org.osgi.framework,
  junit.framework,
  org.osgi.service.prefs

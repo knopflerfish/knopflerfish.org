@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,29 +20,30 @@ package org.osgi.service.component;
  * Defines standard names for Service Component constants.
  * 
  * @noimplement
- * @author $Id: 1ddceb7233809be3141c5d3fa9efc027e68b1fdf $
+ * @version $Id: b2e509f16a23384cc6c90697b0fd8a70c8f9eae7 $
  */
 public interface ComponentConstants {
 	/**
 	 * Manifest header specifying the XML documents within a bundle that contain
 	 * the bundle's Service Component descriptions.
 	 * <p>
-	 * The attribute value may be retrieved from the {@code Dictionary} object
-	 * returned by the {@code Bundle.getHeaders} method.
+	 * The attribute value may be retrieved from the {@code Dictionary}
+	 * object returned by the {@code Bundle.getHeaders} method.
 	 */
-	public static final String	SERVICE_COMPONENT							= "Service-Component";
+	public static final String	SERVICE_COMPONENT		= "Service-Component";
 
 	/**
 	 * A component property for a component configuration that contains the name
 	 * of the component as specified in the {@code name} attribute of the
-	 * {@code component} element. The value of this property must be of type
-	 * {@code String}.
+	 * {@code component} element. The value of this property must be of
+	 * type {@code String}.
 	 */
-	public final static String	COMPONENT_NAME								= "component.name";
+	public final static String	COMPONENT_NAME			= "component.name";
 
 	/**
 	 * A component property that contains the generated id for a component
-	 * configuration. The value of this property must be of type {@code Long}.
+	 * configuration. The value of this property must be of type
+	 * {@code Long}.
 	 * 
 	 * <p>
 	 * The value of this property is assigned by the Service Component Runtime
@@ -51,74 +52,68 @@ public interface ComponentConstants {
 	 * since the Service Component Runtime was started. These values are NOT
 	 * persistent across restarts of the Service Component Runtime.
 	 */
-	public final static String	COMPONENT_ID								= "component.id";
+	public final static String	COMPONENT_ID			= "component.id";
 
 	/**
 	 * A service registration property for a Component Factory that contains the
-	 * value of the {@code factory} attribute. The value of this property must
-	 * be of type {@code String}.
+	 * value of the {@code factory} attribute. The value of this property
+	 * must be of type {@code String}.
 	 */
-	public final static String	COMPONENT_FACTORY							= "component.factory";
+	public final static String	COMPONENT_FACTORY		= "component.factory";
 
 	/**
 	 * The suffix for reference target properties. These properties contain the
 	 * filter to select the target services for a reference. The value of this
 	 * property must be of type {@code String}.
 	 */
-	public final static String	REFERENCE_TARGET_SUFFIX						= ".target";
-
+	public final static String	REFERENCE_TARGET_SUFFIX	= ".target";
+	
 	/**
 	 * The reason the component configuration was deactivated is unspecified.
-	 * 
+	 *  
 	 * @since 1.1
 	 */
-	public static final int		DEACTIVATION_REASON_UNSPECIFIED				= 0;
+	public static final int DEACTIVATION_REASON_UNSPECIFIED = 0;
+	
+	/**
+	 * The component configuration was deactivated because the component was disabled.
+	 *  
+	 * @since 1.1
+	 */
+	public static final int DEACTIVATION_REASON_DISABLED = 1;
+	
+	/**
+	 * The component configuration was deactivated because a reference became unsatisfied.
+	 *  
+	 * @since 1.1
+	 */
+	public static final int DEACTIVATION_REASON_REFERENCE = 2;
+	
+	/**
+	 * The component configuration was deactivated because its configuration was changed.
+	 *  
+	 * @since 1.1
+	 */
+	public static final int DEACTIVATION_REASON_CONFIGURATION_MODIFIED = 3;
+	
+	/**
+	 * The component configuration was deactivated because its configuration was deleted.
+	 *  
+	 * @since 1.1
+	 */
+	public static final int DEACTIVATION_REASON_CONFIGURATION_DELETED = 4;
+	
+	/**
+	 * The component configuration was deactivated because the component was disposed.
+	 *  
+	 * @since 1.1
+	 */
+	public static final int DEACTIVATION_REASON_DISPOSED = 5;
 
 	/**
-	 * The component configuration was deactivated because the component was
-	 * disabled.
-	 * 
+	 * The component configuration was deactivated because the bundle was stopped.
+	 *  
 	 * @since 1.1
 	 */
-	public static final int		DEACTIVATION_REASON_DISABLED				= 1;
-
-	/**
-	 * The component configuration was deactivated because a reference became
-	 * unsatisfied.
-	 * 
-	 * @since 1.1
-	 */
-	public static final int		DEACTIVATION_REASON_REFERENCE				= 2;
-
-	/**
-	 * The component configuration was deactivated because its configuration was
-	 * changed.
-	 * 
-	 * @since 1.1
-	 */
-	public static final int		DEACTIVATION_REASON_CONFIGURATION_MODIFIED	= 3;
-
-	/**
-	 * The component configuration was deactivated because its configuration was
-	 * deleted.
-	 * 
-	 * @since 1.1
-	 */
-	public static final int		DEACTIVATION_REASON_CONFIGURATION_DELETED	= 4;
-
-	/**
-	 * The component configuration was deactivated because the component was
-	 * disposed.
-	 * 
-	 * @since 1.1
-	 */
-	public static final int		DEACTIVATION_REASON_DISPOSED				= 5;
-
-	/**
-	 * The component configuration was deactivated because the bundle was
-	 * stopped.
-	 * 
-	 * @since 1.1
-	 */
-	public static final int		DEACTIVATION_REASON_BUNDLE_STOPPED			= 6;
+	public static final int DEACTIVATION_REASON_BUNDLE_STOPPED = 6;
 }

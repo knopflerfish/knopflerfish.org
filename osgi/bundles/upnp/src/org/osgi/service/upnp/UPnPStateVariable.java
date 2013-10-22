@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2010). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.upnp;
 
 /**
@@ -28,7 +27,7 @@ package org.osgi.service.upnp;
  * types from UPnP data types to Java data types is described with the field
  * definitions.
  * 
- * @author $Id: 1ebafb56d9eead28c2c879c2aa1c77702fec6f1c $
+ * @version $Id: de92e943072f4ffa08a18f6cb5dd2562b0f0f257 $
  */
 public interface UPnPStateVariable {
 	/**
@@ -368,8 +367,8 @@ public interface UPnPStateVariable {
 	 * registered to be notified when changes to the variable appear.
 	 * 
 	 * <p>
-	 * This method must continue to return the correct value after the UPnP
-	 * state variable has been removed from the network.
+	 * This method must continue to return the correct value after the UPnP state
+	 * variable has been removed from the network.
 	 * 
 	 * @return {@code true} if the {@code StateVariable} generates events,
 	 *         {@code false} otherwise.

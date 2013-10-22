@@ -3,7 +3,7 @@
 <project name="KFtoMaven" default="all">
 
   <!-- The KF- version to use in the update-target. -->
-  <property name="kf.version" value="5.0.0"/>
+  <property name="kf.version" value="3.4.0"/>
 
   <dirname property="projdir"   file="${ant.file.KFtoMaven}"/>
   <property name="topdir"       location="${projdir}/../.."/>
@@ -75,8 +75,6 @@
           depends="clean,bundle_tasks"
           description="Creates a new maven2-repository with a temporary name.">
 
-    <toMavenRepo version="5.0.0" repo="${tmp.mvn2.repo.dir}"/>
-    <toMavenRepo version="4.0.1" repo="${tmp.mvn2.repo.dir}"/>
     <toMavenRepo version="4.0.0" repo="${tmp.mvn2.repo.dir}"/>
     <toMavenRepo version="3.6.0" repo="${tmp.mvn2.repo.dir}"/>
     <toMavenRepo version="3.5.0" repo="${tmp.mvn2.repo.dir}"/>

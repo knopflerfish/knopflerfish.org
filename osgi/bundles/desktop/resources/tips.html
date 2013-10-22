@@ -209,8 +209,18 @@ again.
 </p>
 
 <p>----</p>
-25 The OSGi Bundle Repository can be used from the Desktop
+25 The Bundle Repository can be used from the Desktop
 
-The Knopflerfish repository_desktop.jar bundle includes a Desktop
-plugin which allows access to bundles availabe from any OSGi R5
-Repository service.
+The Knopflerfish bundlerepository.jar bundle includes a Desktop plugin which allows access to bundles in OBR format.
+
+<p>
+OBR is a bundle repository format introduced by the Oscar OSGi project.
+The format consists of an XML file describing all available bundles and an OSGi OBR bundle which should be installed on an OSGi framework. When started, 
+the OBR bundle can read the XML file, list bundles, and install bundles 
+and their dependencies.
+</p>
+
+
+
+
+</p>

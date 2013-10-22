@@ -1,6 +1,6 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
- *
+ * Copyright (c) OSGi Alliance (2010). All Rights Reserved.
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,18 @@
  */
 
 /**
- * Framework Launch Package Version 1.1.
- *
+ * Framework Launch Package Version 1.0.
+ * 
  * <p>
  * Bundles wishing to use this package must list the package in the
  * Import-Package header of the bundle's manifest.
- *
+ * 
  * <p>
  * Example import for consumers using the API in this package:
  * <p>
- * {@code  Import-Package: org.osgi.framework.launch; version="[1.1,2.0)"}
- *
- * @version $Id: f1e5d25386dfcda77fb66659963a62209c4f6d60 $
+ * {@code  Import-Package: org.osgi.framework.launch; version="[1.0,2.0)"}
+ * 
+ * @version $Id: 4911f653268fd76aa6318f37f09f58e7ec43a733 $
  */
 
 package org.osgi.framework.launch;
-

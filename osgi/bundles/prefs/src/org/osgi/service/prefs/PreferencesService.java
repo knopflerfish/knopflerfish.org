@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2008). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.prefs;
 
 /**
@@ -24,13 +23,11 @@ package org.osgi.service.prefs;
  * system preferences, and one for each user.
  * 
  * <p>
- * A {@code PreferencesService} object is specific to the bundle which obtained
- * it from the service registry. If a bundle wishes to allow another bundle to
- * access its preferences, it should pass its {@code PreferencesService} object
- * to that bundle.
- * 
- * @noimplement
- * @author $Id: 7e62b82dfccea407569d82ecbe8bed11d30e6a76 $
+ * A <code>PreferencesService</code> object is specific to the bundle which
+ * obtained it from the service registry. If a bundle wishes to allow another
+ * bundle to access its preferences, it should pass its
+ * <code>PreferencesService</code> object to that bundle.
+ *  
  */
 public interface PreferencesService {
 	/**
@@ -43,7 +40,7 @@ public interface PreferencesService {
 	/**
 	 * Returns the root node for the specified user and the calling bundle.
 	 * 
-	 * @param name The user for which to return the preference root node.
+	 * @param name The user for which to return the preference root node. 
 	 * @return The root node for the specified user and the calling bundle.
 	 */
 	public Preferences getUserPreferences(String name);

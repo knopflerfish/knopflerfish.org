@@ -36,333 +36,128 @@ package org.knopflerfish.bundle.desktop.swing;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.osgi.framework.Bundle;
 
-import org.knopflerfish.framework.Util.HeaderEntry;
-
-/**
- * Image icon for a bundle that paints different overlays based on the bundles
- * state.
- */
-public class BundleImageIcon
-  extends ImageIcon
-{
+public class BundleImageIcon extends ImageIcon {
   private static final long serialVersionUID = 1L;
 
-  /**
-   * The name of the bundle icon manifest header.
-   *
-   * This constant should be in {@link org.osgi.framework.Constants} but is
-   * not...
-   */
-  final static String BUNDLE_ICON = "Bundle-Icon";
+  static ImageIcon activeIcon       = null;
+  static ImageIcon installedIcon    = null;
+  static ImageIcon resolvedIcon     = null;
+  static ImageIcon startingIcon     = null;
+  static ImageIcon stoppingIcon     = null;
+  static ImageIcon uninstalledIcon  = null;
 
-  // Image icons for the bundle state overlays:
-  static final ImageIcon OVERLAY_ACTIVE =
-    new ImageIcon(BundleImageIcon.class.getResource("/overlay_active.png"));
-  static final ImageIcon OVERLAY_INSTALLED = null; // No overlay for installed
-  static final ImageIcon OVERLAY_RESOLVED =
-    new ImageIcon(BundleImageIcon.class.getResource("/overlay_resolved.png"));
-  static final ImageIcon OVERLAY_STARTING =
-    new ImageIcon(BundleImageIcon.class.getResource("/overlay_starting.png"));
-  static final ImageIcon OVERLAY_STOPPING =
-    new ImageIcon(BundleImageIcon.class.getResource("/overlay_stopping.png"));
-  static final ImageIcon OVERLAY_UNINSTALLED = null; // No overlay for
-                                                     // uninstalled
-
-  /**
-   * Get the bundle icon URL for icon with size 32 from the manifest header
-   * "Bundle-Icon".
-   *
-   * <p>
-   * Care must be taken to not trigger a resolve of the bundle when reading the
-   * icon image from inside it.
-   * </p>
-   *
-   * @param bundle
-   *          The bundle to get icon URL for.
-   *
-   * @return
-   */
-  private static URL getBundleIconURL(final Bundle bundle)
-  {
-    URL res = null;
-
-    final String bih = bundle.getHeaders().get(BUNDLE_ICON);
-    if (null != bih && 0 < bih.length()) {
-      // Re-uses the manifest entry parser from the KF-framework
-      try {
-        String iconName = null;
-        int iconSize = -1;
-        // We prefer a 32x32 size icon.
-        for (final HeaderEntry he : org.knopflerfish.framework.Util
-            .parseManifestHeader(BUNDLE_ICON, bih, false, true, false)) {
-          final List<String> icns = he.getKeys();
-          final String sizeS = (String) he.getAttributes().get("size");
-
-          if (null == sizeS) {
-            // Icon with unspecified size; use it if no other icon
-            // has been found.
-            if (null == iconName) {
-              iconName = icns.get(0);
-            }
-          } else {
-            int size = -1;
-            try {
-              size = Integer.parseInt(sizeS);
-            } catch (final NumberFormatException nfe) {
-            }
-            if (-1 < size) {
-              if (-1 == iconSize) {
-                // First icon with a valid size; start with it.
-                iconName = icns.get(0);
-                iconSize = size;
-              } else if (Math.abs(size - 32) < Math.abs(iconSize - 32)) {
-                // Icon is closer in size to 32 than old icon; use it
-                iconName = icns.get(0);
-                iconSize = size;
-              }
-            }
-          }
-        }
-        if (null != iconName) {
-          try {
-            try {
-              res = new URL(iconName);
-            } catch (final MalformedURLException mfe) {
-              // iconName is not a valid URL; assume it is a resource path
-              // Use bundle.getEntry() to avoid resolving the bundle.
-              res = bundle.getEntry(iconName);
-              if (null == res) {
-                Activator.log.warn("Failed to load icon with name '" + iconName
-                                   + "' from bundle #" + bundle.getBundleId()
-                                   + " (" + Util.getBundleName(bundle)
-                                   + "): No such entry.");
-              }
-            }
-          } catch (final Exception e) {
-            Activator.log.error("Failed to load icon with name '" + iconName
-                                    + "' from bundle #" + bundle.getBundleId()
-                                    + " (" + Util.getBundleName(bundle) + "): "
-                                    + e.getMessage(), e);
-          }
-        }
-      } catch (final IllegalArgumentException iae) {
-        Activator.log.error("Failed to parse Bundle-Icon header for #"
-                                + bundle.getBundleId() + " ("
-                                + Util.getBundleName(bundle) + "): "
-                                + iae.getMessage(), iae);
-      }
-    }
-    return res;
-  }
-
-  /**
-   * Get the bundle icon URL for icon with size 32 from the Knopflerfish defined
-   * manifest header "Application-Icon".
-   *
-   * @param bundle
-   *          the bundle to get an application icon for.
-   * @return
-   */
-  private static URL getApplicationIconURL(final Bundle bundle)
-  {
-    URL res = null;
-
-    String iconName = bundle.getHeaders().get("Application-Icon");
-    if (iconName != null) {
-      iconName = iconName.trim();
-    }
-
-    if (iconName != null && 0 < iconName.length()) {
-      try {
-        res = bundle.getEntry(iconName);
-        if (null == res) {
-          Activator.log.warn("Failed to load icon with name '" + iconName
-                             + "' from bundle #" + bundle.getBundleId() + " ("
-                             + Util.getBundleName(bundle) + "): No such resource.");
-        }
-      } catch (final Exception e) {
-        Activator.log.error("Failed to load icon with name '" + iconName
-                            + "' from bundle #" + bundle.getBundleId() + " ("
-                            + Util.getBundleName(bundle) + "): " + e.getMessage(), e);
-      }
-    }
-    return res;
-  }
-
-  /**
-   * Get the URL of the icon to use for the given bundle.
-   *
-   * @param bundle
-   *          the bundle to create a bundle image icon for.
-   * @return URL to the icon for for the given bundle.
-   */
-  private static URL getIconUrl(Bundle bundle)
-  {
-    URL appURL = getBundleIconURL(bundle);
-    if (null == appURL) {
-      appURL = getApplicationIconURL(bundle);
-    }
-
-    if (appURL == null) {
-      if (Util.hasMainClass(bundle)) {
-        appURL = Util.class.getResource("/jarexec.png");
-      } else if (Util.hasFragment(bundle)) {
-        appURL = Util.class.getResource("/frag.png");
-      } else if (Util.hasComponent(bundle)) {
-        appURL = Util.class.getResource("/component.png");
-      } else if (Util.hasActivator(bundle)) {
-        appURL = Util.class.getResource("/bundle.png");
-      } else {
-        appURL = Util.class.getResource("/bundle-lib.png");
-      }
-    }
-    return appURL;
-  }
-
-  /**
-   * The bundle that this icon image belongs to.
-   */
   Bundle bundle;
 
   /**
-   * The last modified time stamp for the bundle. Used to detect when image
-   * needs to be updated.
-   */
-  long lastModified;
-
-  /**
-   * Create a 32 by 32 image icon for a bundle using the icon specified in the
-   * bundles manifest.
+   * Image icon for a bundle. The paint method will draw different
+   * overlays based on the bundles state.
    *
-   * <p>
-   * If the bundles has not specified an icon image then the default images
-   * defined by the desktop bundle will be used.
-   * </p>
-   *
-   * @param bundle
-   *          The bundle that this icon represents.
+   * @param bundle The bundle that this icon represents.
+   * @param url URL to icon image, should be 32x32. If the icon image
+   *            has another size it will be scaled to 32x32.
    */
-  public BundleImageIcon(Bundle bundle)
-  {
-    this(bundle, getIconUrl(bundle));
-  }
-
-  /**
-   * Image icon for a bundle. The paint method will draw different overlays
-   * based on the bundles state.
-   *
-   * @param bundle
-   *          The bundle that this icon represents.
-   * @param url
-   *          URL to icon image, should be 32x32. If the icon image has another
-   *          size it will be scaled to 32x32.
-   */
-  public BundleImageIcon(Bundle bundle, URL url)
+  public BundleImageIcon(Bundle bundle,
+                         URL url)
   {
     super(url);
 
     this.bundle = bundle;
-    this.lastModified = Long.MIN_VALUE;
 
-    // Load the icon and ensure size.
-    updateIcon();
+
+    // Force image to load;  so that we can check the size
+    loadImage(getImage());
+    if (32<getIconWidth() || 32<getIconHeight()) {
+      // Image too large; scale it down to 32x32.
+      setImage(getScaledImage(getImage(), 32, 32));
+    }
+
+    if(activeIcon == null) {
+      activeIcon      =
+	new ImageIcon(getClass().getResource("/overlay_active.png"));
+
+      // No overlay for bundles in installed state
+      installedIcon   = null;
+
+      resolvedIcon = 
+        new ImageIcon(getClass().getResource("/overlay_resolved.png"));
+
+      startingIcon    = 
+        new ImageIcon(getClass().getResource("/overlay_starting.png"));
+
+      stoppingIcon    =
+        new ImageIcon(getClass().getResource("/overlay_stopping.png"));
+
+      uninstalledIcon = null;
+    }
   }
 
-  @Override
-  public void paintIcon(Component c, Graphics g, int x, int y)
-  {
-    updateIcon();
-
+  public void paintIcon(Component c,
+                        Graphics g,
+                        int x,
+                        int y) {
     super.paintIcon(c, g, x, y);
 
     Icon overlay = null;
 
-    switch (bundle.getState()) {
+    switch(bundle.getState()) {
     case Bundle.ACTIVE:
-      overlay = OVERLAY_ACTIVE;
+      overlay = activeIcon;
       break;
     case Bundle.INSTALLED:
-      overlay = OVERLAY_INSTALLED;
+      overlay = installedIcon;
       break;
     case Bundle.RESOLVED:
-      overlay = OVERLAY_RESOLVED;
+      overlay = resolvedIcon;
       break;
     case Bundle.STARTING:
-      overlay = OVERLAY_STARTING;
+      overlay = startingIcon;
       break;
     case Bundle.STOPPING:
-      overlay = OVERLAY_STOPPING;
-      break;
+      overlay = stoppingIcon;
+     break;
     case Bundle.UNINSTALLED:
-      overlay = OVERLAY_UNINSTALLED;
+      overlay = uninstalledIcon;
       break;
     default:
     }
 
-    if (overlay != null) {
-      final int x1 = x + (getIconWidth() - overlay.getIconWidth());
-      final int y1 = y + (getIconHeight() - overlay.getIconHeight());
+    if(overlay != null) {
+      int x1 = x + (getIconWidth() - overlay.getIconWidth());
+      int y1 = y + (getIconHeight() - overlay.getIconHeight());
 
-      final int w = overlay.getIconWidth();
-      final int h = overlay.getIconHeight();
+      int w = overlay.getIconWidth();
+      int h = overlay.getIconHeight();
 
       g.setColor(Color.white);
-      g.fill3DRect(x1 - 1, y1 - 1, w + 2, h + 2, true);
+      g.fill3DRect(x1-1, y1-1, w+2, h+2, true);
       overlay.paintIcon(c, g, x1, y1);
-    }
-  }
-
-  /**
-   * If the bundle has been updated since the last call to this method we must
-   * reload the icon image to ensure that the current image is used.
-   */
-  private void updateIcon()
-  {
-    if (lastModified < bundle.getLastModified()) {
-      // Load new icon
-      final URL iconUrl = getIconUrl(bundle);
-      final ImageIcon ii = new ImageIcon(iconUrl);
-      // Force image to load; so that we can check the size
-      setImage(ii.getImage());
-      lastModified = bundle.getLastModified();
-      loadImage(getImage());
-      if (32 < getIconWidth() || 32 < getIconHeight()) {
-        // Image too large; scale it down to 32x32.
-        setImage(getScaledImage(getImage(), 32, 32));
-      }
     }
   }
 
   /**
    * Resizes an image using a Graphics2D object backed by a BufferedImage.
    *
-   * @param srcImg
-   *          - source image to scale
-   * @param w
-   *          - desired width
-   * @param h
-   *          - desired height
+   * @param srcImg - source image to scale
+   * @param w - desired width
+   * @param h - desired height
    * @return - the new resized image
    */
-  private static Image getScaledImage(Image srcImg, int w, int h)
-  {
-    final BufferedImage resizedImg =
-      new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-    final Graphics2D g2 = resizedImg.createGraphics();
+  private static Image getScaledImage(Image srcImg, int w, int h) {
+    BufferedImage resizedImg = new BufferedImage(w, h,
+                                                 BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2 = resizedImg.createGraphics();
     g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                         RenderingHints.VALUE_INTERPOLATION_BILINEAR);
     g2.drawImage(srcImg, 0, 0, w, h, null);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.osgi.service.blueprint.reflect;
 
 /**
@@ -25,7 +24,7 @@ package org.osgi.service.blueprint.reflect;
  * when the registration listener is actuated.
  * 
  * @ThreadSafe
- * @author $Id: 37201a5d7a1bf70ed4c3a7430cc619a41efc0458 $
+ * @version $Revision: 8083 $
  */
 public interface RegistrationListener {
 
@@ -33,7 +32,7 @@ public interface RegistrationListener {
 	 * Return the Metadata for the component that will receive registration and
 	 * unregistration events.
 	 * 
-	 * This is specified by the {@code ref} attribute or via an inlined
+	 * This is specified by the <code>ref</code> attribute or via an inlined
 	 * component.
 	 * 
 	 * @return The Metadata for the component that will receive registration and
@@ -46,8 +45,8 @@ public interface RegistrationListener {
 	 * be invoked when the associated service is registered with the service
 	 * registry.
 	 * 
-	 * This is specified by the {@code registration-method} attribute of the
-	 * registration listener.
+	 * This is specified by the <code>registration-method</code> attribute of
+	 * the registration listener.
 	 * 
 	 * @return The name of the registration method.
 	 */
@@ -58,8 +57,8 @@ public interface RegistrationListener {
 	 * will be invoked when the associated service is unregistered from the
 	 * service registry.
 	 * 
-	 * This is specified by the {@code unregistration-method} attribute of the
-	 * registration listener.
+	 * This is specified by the <code>unregistration-method</code> attribute of
+	 * the registration listener.
 	 * 
 	 * @return The name of the unregistration method.
 	 */

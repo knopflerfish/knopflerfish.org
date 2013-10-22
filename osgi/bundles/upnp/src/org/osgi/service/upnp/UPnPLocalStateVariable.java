@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2010). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
  * 
  * @since 1.1
  **/
-
 package org.osgi.service.upnp;
 
 /**
@@ -29,7 +28,7 @@ package org.osgi.service.upnp;
  * 
  * @since 1.1
  * 
- * @author $Id: 351a0315baedfbfacb2f6ba18676df8fcb7ea9c2 $
+ * @version $Id: df05ffb31ea37d55096e5c6c9a6e1acfa4407e06 $
  */
 public interface UPnPLocalStateVariable extends UPnPStateVariable {
 	/**

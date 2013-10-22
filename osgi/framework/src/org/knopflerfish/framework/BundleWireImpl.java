@@ -35,7 +35,6 @@ package org.knopflerfish.framework;
 
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
-import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 
@@ -54,46 +53,30 @@ public class BundleWireImpl implements BundleWire {
     this.requirerGen = requirer;
   }
 
-
-  @Override
   public BundleCapability getCapability() {
     return capability;
   }
 
-
-  @Override
   public BundleRequirement getRequirement() {
     return requirement;
   }
 
-
-  @Override
   public BundleWiring getProviderWiring() {
     return providerGen.bundleRevision.getWiring();
   }
 
-
-  @Override
   public BundleWiring getRequirerWiring() {
     return requirerGen.bundleRevision.getWiring();
   }
 
-
-  @Override
-  public BundleRevision getProvider() {
-    // TODO What should we return if getWiring() is null
-    return providerGen.bundleRevision;
+  BundleGeneration getProvider() {
+    return providerGen;
   }
 
-
-  @Override
-  public BundleRevision getRequirer() {
-    // TODO What should we return if getWiring() is null
-    return requirerGen.bundleRevision;
+  BundleGeneration getRequirer() {
+    return requirerGen;
   }
 
-
-  @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -104,8 +87,6 @@ public class BundleWireImpl implements BundleWire {
     return result;
   }
 
-
-  @Override
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;
@@ -146,16 +127,6 @@ public class BundleWireImpl implements BundleWire {
       return false;
     }
     return true;
-  }
-
- 
-  BundleGeneration getProviderGeneration() {
-    return providerGen;
-  }
-
-
-  BundleGeneration getRequirerGeneration() {
-    return requirerGen;
   }
 
 }

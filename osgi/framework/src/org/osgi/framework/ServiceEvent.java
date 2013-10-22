@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2000, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,10 @@ import java.util.EventObject;
 /**
  * An event from the Framework describing a service lifecycle change.
  * <p>
- * {@code ServiceEvent} objects are delivered to {@code ServiceListener}s and
- * {@code AllServiceListener}s when a change occurs in this service's lifecycle.
- * A type code is used to identify the event type for future extendability.
+ * {@code ServiceEvent} objects are delivered to
+ * {@code ServiceListener}s and {@code AllServiceListener}s when a
+ * change occurs in this service's lifecycle. A type code is used to identify
+ * the event type for future extendability.
  * 
  * <p>
  * OSGi Alliance reserves the right to extend the set of types.
@@ -32,20 +33,20 @@ import java.util.EventObject;
  * @Immutable
  * @see ServiceListener
  * @see AllServiceListener
- * @version $Id: 49e34e0ad5564d6f4ca0ab0053b272c22b9fb917 $
+ * @version $Id: 2b9458d90004411b6ca0cb4b361bc282b04c85eb $
  */
 
 public class ServiceEvent extends EventObject {
-	static final long					serialVersionUID	= 8792901483909409299L;
+	static final long				serialVersionUID	= 8792901483909409299L;
 	/**
 	 * Reference to the service that had a change occur in its lifecycle.
 	 */
-	private final ServiceReference<?>	reference;
+	private final ServiceReference< ? >	reference;
 
 	/**
 	 * Type of service lifecycle change.
 	 */
-	private final int					type;
+	private final int				type;
 
 	/**
 	 * This service has been registered.
@@ -55,7 +56,7 @@ public class ServiceEvent extends EventObject {
 	 * 
 	 * @see BundleContext#registerService(String[],Object,Dictionary)
 	 */
-	public final static int				REGISTERED			= 0x00000001;
+	public final static int			REGISTERED			= 0x00000001;
 
 	/**
 	 * The properties of a registered service have been modified.
@@ -63,9 +64,9 @@ public class ServiceEvent extends EventObject {
 	 * This event is synchronously delivered <strong>after</strong> the service
 	 * properties have been modified.
 	 * 
-	 * @see ServiceRegistration#setProperties(Dictionary)
+	 * @see ServiceRegistration#setProperties
 	 */
-	public final static int				MODIFIED			= 0x00000002;
+	public final static int			MODIFIED			= 0x00000002;
 
 	/**
 	 * This service is in the process of being unregistered.
@@ -74,16 +75,16 @@ public class ServiceEvent extends EventObject {
 	 * has completed unregistering.
 	 * 
 	 * <p>
-	 * If a bundle is using a service that is {@code UNREGISTERING}, the bundle
-	 * should release its use of the service when it receives this event. If the
-	 * bundle does not release its use of the service when it receives this
-	 * event, the Framework will automatically release the bundle's use of the
-	 * service while completing the service unregistration operation.
+	 * If a bundle is using a service that is {@code UNREGISTERING}, the
+	 * bundle should release its use of the service when it receives this event.
+	 * If the bundle does not release its use of the service when it receives
+	 * this event, the Framework will automatically release the bundle's use of
+	 * the service while completing the service unregistration operation.
 	 * 
-	 * @see ServiceRegistration#unregister()
-	 * @see BundleContext#ungetService(ServiceReference)
+	 * @see ServiceRegistration#unregister
+	 * @see BundleContext#ungetService
 	 */
-	public final static int				UNREGISTERING		= 0x00000004;
+	public final static int			UNREGISTERING		= 0x00000004;
 
 	/**
 	 * The properties of a registered service have been modified and the new
@@ -91,23 +92,23 @@ public class ServiceEvent extends EventObject {
 	 * <p>
 	 * This event is synchronously delivered <strong>after</strong> the service
 	 * properties have been modified. This event is only delivered to listeners
-	 * which were added with a non-{@code null} filter where the filter matched
-	 * the service properties prior to the modification but the filter does not
-	 * match the modified service properties.
+	 * which were added with a non-{@code null} filter where the filter
+	 * matched the service properties prior to the modification but the filter
+	 * does not match the modified service properties.
 	 * 
-	 * @see ServiceRegistration#setProperties(Dictionary)
+	 * @see ServiceRegistration#setProperties
 	 * @since 1.5
 	 */
-	public final static int				MODIFIED_ENDMATCH	= 0x00000008;
+	public final static int			MODIFIED_ENDMATCH	= 0x00000008;
 
 	/**
 	 * Creates a new service event object.
 	 * 
 	 * @param type The event type.
-	 * @param reference A {@code ServiceReference} object to the service that
-	 *        had a lifecycle change.
+	 * @param reference A {@code ServiceReference} object to the service
+	 * 	that had a lifecycle change.
 	 */
-	public ServiceEvent(int type, ServiceReference<?> reference) {
+	public ServiceEvent(int type, ServiceReference< ? > reference) {
 		super(reference);
 		this.reference = reference;
 		this.type = type;
@@ -121,17 +122,17 @@ public class ServiceEvent extends EventObject {
 	 * 
 	 * @return Reference to the service that had a lifecycle change.
 	 */
-	public ServiceReference<?> getServiceReference() {
+	public ServiceReference< ? > getServiceReference() {
 		return reference;
 	}
 
 	/**
 	 * Returns the type of event. The event type values are:
 	 * <ul>
-	 * <li>{@link #REGISTERED}</li>
-	 * <li>{@link #MODIFIED}</li>
-	 * <li>{@link #MODIFIED_ENDMATCH}</li>
-	 * <li>{@link #UNREGISTERING}</li>
+	 * <li>{@link #REGISTERED} </li> 
+	 * <li>{@link #MODIFIED} </li> 
+	 * <li>{@link #MODIFIED_ENDMATCH} </li> 
+	 * <li>{@link #UNREGISTERING} </li>
 	 * </ul>
 	 * 
 	 * @return Type of service lifecycle change.
