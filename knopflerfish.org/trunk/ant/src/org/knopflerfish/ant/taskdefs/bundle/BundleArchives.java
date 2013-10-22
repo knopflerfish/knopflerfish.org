@@ -66,11 +66,9 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.FileResource;
-
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
-
 import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
 
 /**
@@ -483,7 +481,8 @@ public class BundleArchives {
      *          pkgImportMap, pkgImportOptional set with data parsed from the
      *          import / export package manifest attributes.
      */
-    public BundleArchive(final Task task, final FileResource resource,
+    @SuppressWarnings("deprecation")
+	public BundleArchive(final Task task, final FileResource resource,
                          final boolean parseExportImport) throws IOException {
       this.task = task;
       this.file = resource.getFile();
@@ -724,7 +723,8 @@ public class BundleArchives {
      *
      * @return Mapping from package/service name to version/version range.
      */
-    private <V> Map<String, V> parseNames(String s,
+    @SuppressWarnings("deprecation")
+	private <V> Map<String, V> parseNames(String s,
                                           boolean range,
                                           Set<String> optionals,
                                           Class<V> valueType)
