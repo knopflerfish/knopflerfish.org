@@ -243,11 +243,11 @@
         <attribute name="Build-Date"             value="${framework.tstamp}"/>
       </manifest>
     </jar>
-  	<antcall target="proguard_compact"/>
+    <antcall target="proguard_compact"/>
   </target>
 
   <target name = "proguard_compact"
-          if   = "proguard.available">
+	  depends="install_proguard">
     <taskdef resource="proguard/ant/task.properties"
              classpath="${ant.lib}/proguard.jar" />
     <move file="${jarfile_compact}" tofile="${jarfile_compact}.tmp.jar"/>
@@ -423,8 +423,5 @@
   </target>
 
   <import file="${topdir}/../ant/bundletasks.xml"/>
-
-  <!-- Use proguard if installed in ant.lib dir -->
-  <available property="proguard.available" file="${ant.lib}/proguard.jar"/>
 
 </project>

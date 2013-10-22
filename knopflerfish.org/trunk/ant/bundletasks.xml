@@ -149,6 +149,16 @@
     </sequential>
   </macrodef>
 
+  <property name="proguard.download.url"
+            value="http://repo1.maven.org/maven2/net/sf/proguard/proguard/4.4/proguard-4.4.jar"/>
+
+  <target name="install_proguard">
+    <get src="${proguard.download.url}"
+         dest="${ant.lib}/proguard.jar"
+         verbose="false"
+         skipexisting="true"/>
+  </target>
+
 
   <!-- Compile and pack the Knopflerfish bundle tasks.  -->
   <property name="bundle_tasks.jar" location="${ant.lib}/bundle_tasks.jar"/>
