@@ -52,10 +52,8 @@ import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.Restrict;
 import org.apache.tools.ant.types.resources.selectors.ResourceSelector;
 import org.apache.tools.ant.util.StringUtils;
-
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
-
 import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
 
 /**
@@ -992,7 +990,8 @@ public class BundleInfoTask extends Task {
           for (String pkg : entry.getKeys()) {
           if (!importSet.contains(pkg)) {
             final String ver = (String) entry.getAttributes().get(Constants.VERSION_ATTRIBUTE);
-            final String sver = (String) entry.getAttributes().get(Constants.PACKAGE_SPECIFICATION_VERSION);
+            @SuppressWarnings("deprecation")
+			final String sver = (String) entry.getAttributes().get(Constants.PACKAGE_SPECIFICATION_VERSION);
             if (null!=ver) {
               pkg += ";version=" +toDefaultVersionRange(ver);
             } else if (null!=sver) {
