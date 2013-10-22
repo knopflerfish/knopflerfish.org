@@ -1,0 +1,10 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleEnd151_test
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleEnd151_test
+Bundle-Version: 1.0.0
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-Description: %description
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Test-Header: %docurl

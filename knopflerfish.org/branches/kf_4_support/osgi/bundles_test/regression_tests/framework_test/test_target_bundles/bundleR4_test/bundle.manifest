@@ -1,0 +1,14 @@
+Bundle-Name: bundleR4_test
+Bundle-SymbolicName: bundleR4_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleR4_test, access t
+ o resources on top level / in bundle. Also imports a non existent pac
+ kage.
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Import-Package: org.osgi.gruntwork
+Bundle-UUID: org.knopflerfish:bundleR4_test:1.0.0:all
+
+

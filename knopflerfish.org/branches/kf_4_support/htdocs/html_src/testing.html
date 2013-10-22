@@ -1,0 +1,43 @@
+<h1 class="kf">Testing Knopflerfish</h1>
+
+<p>
+  Knopflerfish includes a Junit based test suite that tests the
+  framework and bundles. Developers can use this test suite to test and
+  verify Knopflerfish on specific target environments, e.g. some
+  combination of processor, operating system, and JVM. 
+</p>
+
+<p>
+  The easiest way to run the test suite is to run one of the two
+  test suite targets from the top level ant build file located in
+  the <tt>osgi</tt> directory. E.g.
+  <pre class="shell">
+> cd osgi
+> ant run-kf-tests
+  </pre>
+</p>
+
+The two test targets available are:
+<div class="kf">
+  <dl>
+    <dt> run-kf-tests</dt>
+    <dd>Builds then executes the KF test suite.</dd>
+    <dt>run-kf-tests-secure</dt>
+    <dd>Builds then executes the KF test suite with security enabled.</dd>
+  </dl>
+</div>
+
+<p>
+A developer may add new test bundles to the test suite, or defined
+their own stand-alone test suites. The bundle documentation for the 
+<a href="bundledoc/index.html?docpage=junit/index.html">
+  JUnit bundle
+</a>
+describes this in detail.
+</p>
+
+<p>
+  Please note that passing the Knopflerfish test suite is no claim for
+  OSGi compliance. It is a Knopflerfish specific test suite only.
+</p>
+  

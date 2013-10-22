@@ -1,0 +1,336 @@
+<h1>Console</h1>
+<div class="abstract">
+  The Knopflerfish console bundle
+</div>
+
+<h2>Description</h2>
+<h3>Introduction</h3>
+   The user's guide contains information about the console interfaces,
+   the command group concept and reference documentation for the
+   console's built in commands.
+
+<h3> Terminology </h3>
+
+   Terms, acronyms and syntax of console commands.
+
+<dl>
+<dt>   command group
+<dd>          A set of commands exported to the console from some bundle.
+
+<dt>   EOF
+<dd>          End Of File, close of console input.
+
+<dt>   session
+<dd>          What you are in when communicating with the console
+
+<dt>   session group
+<dd>          The command group for the console built in commands.
+</dl>
+
+<h3> Syntax Elements </h3>
+
+<dl>
+<dt>   []
+<dd>          Delimiters for optional parts of a command and optional
+          parameters.
+
+<dt>   |
+<dd>          To indicate alternate parameters.
+
+<dt>   ...
+<dd>          More parameters, same type as the previous one.
+
+<dt>   #value#
+<dd>          Parameter to a flag.
+
+<dt>   " "
+<dd>          Double quotes. Used to contain parameters that have blanks in
+          them.
+
+<dt>   <parameter>
+<dd>          Command parameter to be replaced with data.
+</dl>
+
+<h3> Console Interfaces</h3>
+
+   The console bundle is not very useful on its own; it needs other
+   bundles to supply the commands and also at least one bundle supplying
+   a user interface. The console uses the CommandGroup service of the
+   command supplying bundles to access commands. A console user interface
+   bundle uses the ConsoleService service of the console bundle to
+   execute commands ordered by the user.
+<p>
+   The console bundle actually has some built in commands that can be
+   used for administrative tasks, that is, managing the user session.
+   These are the commands in the command group session.
+<p>
+   The following bundles implement user interfaces:
+
+   consoletty
+          Basic tty console, available in the terminal window where the
+          platform is started.
+
+   consoletelnet
+          Basic telnet console, listens on a port using the telnet protocol.
+
+<h3> General Command Structure and Behavior</h3>
+
+   The general command format is built of:
+<pre>
+<command group> <command> [<flag [#parameter#]> ...] [<parameter> ...]
+</pre>
+   First is the command group (all commands must belong to a command
+   group), then the command. After the command is zero, one or more flags
+   with possible additional parameters and finally zero, one or more
+   parameters. See chapter [2]Terminology on page 1 for explanations of
+   delimiters.
+<p>
+   Note: To avoid having negative numbers interpreted as flags, negative
+   numbers are to be written with double hyphens (as --n).
+<p>
+   At start-up, the console is in the initial state. When entering a
+   command the command line must begin with the command group's name, as
+   described above. However, the session can enter a group with the
+   session enter command. After entering a command group, commands of
+   that group are executed without the group name as prefix. The session
+   leave command leaves the current group and the session is back in its
+   initial state.
+<p>
+   Commands from other groups than the current group can be executed by
+   prefixing the command with a slash ("/"). For example, the following
+   would execute the shutdown command from the framework command group,
+   regardless of the session's current group.
+  /framework shutdown
+<p>
+   Normally, command groups and commands may be shortened as long as they
+   are unambiguously identifiable. As an example, in command group
+   session, the command alias may be shortened to a as it is the only
+   command that starts with the letter a.
+<p>
+
+<h3> Session Commands</h3>
+
+   This is the command group for the console's built in administrative
+   commands. It contains commands for managing a session.
+<p>
+   All of the session commands have aliases to make them quick to enter
+   regardless of the current command group. For example, /session help
+   has the alias help. In all the examples below, the alias versions of
+   the session commands are used.
+<p>
+   The commands in the session command group are:
+<pre>
+     * alias [<alias>] [<val>] ...
+     * enter <command group>
+     * help
+     * leave
+     * prompt <prompt>
+     * quit
+     * save
+     * unalias <alias name>
+</pre>
+
+<h3>Command Details</h3>
+
+   Detailed description of all session commands in alphabetical order.
+
+<h4>alias</h4>
+
+   To set or show aliases.
+<pre>
+  alias [<alias>] [<value>] ...
+
+   The command without any parameters prints a list of all existing
+   aliases:
+  > alias
+  start = /framework start
+  install = /framework install
+  prompt = /session prompt
+  lsb = /framework bundles
+  fw = /session enter framework
+  log = /log show
+  help = /session help
+  quit = /session quit
+  lss = /framework services
+  alias = /session alias
+  unalias = /session unalias
+  enter = /session enter
+  stop = /framework stop
+  bundles = /framework bundles
+  leave = /session leave
+  >
+</pre>
+   With parameters it sets an alias to the specified value. If the alias
+   exists, the old value is replaced with the new. With one parameter the
+   value of that alias is shown.
+
+<h4>enter </h4>
+
+   Enter a command group, in effect automatically prefix all commands
+   with the name of the command group. This makes it possible to use the
+   short names of the group's commands.
+<pre>
+  enter <command group>
+</pre>
+
+   The result is that the prompter is prefixed with the command group and
+   all the commands in the command group are available in short form.
+   Example: Entering a command group
+<pre>
+  > enter framework
+  framework> help
+  Available framework commands:
+    bundles [-help] [-1] [-i] [-l] [<bundle>] ... - List bundles
+    call [-help] <interface> <method> [<args>] ...
+      - Call a method in a registered service
+    headers [-help] <bundle> ... - Show bundle header values
+    package [-help] <package> ... - Show java package information
+    install [-help] [-s] <location> ... - Install one or more bundles
+    services [-help] [-i] [-l] [-r] [-s] [-u] [<bundle>] ...
+      - List registered services
+    start [-help] <bundle> ... - Start one or more bundles
+    stop [-help] <bundle> ... - Stop one or more bundles
+    shutdown [-help] [<exit code>] - Shutdown framework
+    uninstall [-help] >bundle> ... - Uninstall one or more bundles
+    update [-help] [-r] <bundle> ... - Update one or more bundles
+</pre>
+
+   It is only possible to be in one command group at a given moment. By
+   adding a slash ("/") to the group name, commands in other gruops can
+   be accessed.
+
+<h4>help</h4>
+
+   Show help information about commands and command groups.
+<pre>
+  help [<command group> | all]
+</pre>
+   Lists the commands available in the specified command group, each with
+   a short description. If no command group is specified, help for the
+   current group is displayed.
+
+   In the initial state, or if the parameter all is supplied, help shows
+   the available command groups.
+   Example: Display available command groups
+<pre>
+  > help
+  Available command groups:
+  session - Session commands built into the console
+  logconfig - Configuration commands for the log.
+  log - Log commands
+  framework - Framework commands
+  >
+</pre>
+   Note that this list can be longer as any installed bundle can export
+   its own commands.
+
+<h4>leave</h4>
+
+   Leave a command group, that is, go back to the initial state (no
+   current command group).
+<pre>
+  leave
+</pre>
+   Example: Leave the current command group
+<pre>
+  framework> leave
+  >
+</pre>
+   Note that leave only goes to the initial state, it does not go to the
+   previous command group, if any.
+
+<h4>prompt</h4>
+
+   Set the command prompter.
+<pre>
+  prompt <command prompt>
+</pre>
+   If the command group is to be visible in the prompt, a percent
+   character ("%") should be included in the prompt string. At printout,
+   the % character will be replaced by the command group name.
+   Example: Changing the prompter
+<pre>
+  > prompt "%test >"
+  test >
+  enter framework
+  frameworktest >
+</pre>
+
+<h4>quit</h4>
+
+   Exit the session.
+<pre>
+  quit
+</pre>
+   The console exits and loses contact with standard in.
+
+<h4> save</h4>
+
+   This command saves the current aliases to persistent memory. The
+   aliases are read next time the platform is started.
+  save
+
+<h4> unalias</h4>
+
+   This command removes an alias.
+<pre>
+  unalias
+</pre>
+   Example: Creating and removing an alias
+<pre>
+  > alias more less
+  > unalias more
+</pre>
+
+<h3> Interface consoletty</h3>
+
+   The consoletty bundle allows local console access to the platform
+   without the use of the http server.
+<p>
+   If the platform starts the consoletty, it will use the text window the
+   platform was started from.
+
+<h3> Interface consoletcp</h3>
+
+   To allow remote console access to the platform without the use of the
+   http server, the consoletcp bundle listens to a port on the platform.
+   See [[3]1] information regarding the port number.
+
+   Depending on configuration, the TCP console will require that the user
+   logs in before creating a console session. See [[4]1] for more
+   information.
+
+   The user name/password authentication method is used for
+   authentication. The Input Path is set to "tcp" and the Auhtentication
+   Method is set to "passwd".
+
+   The commands and their formats are the same as for the consoletty. To
+   access it in a simple way, use telnet.
+   Example: Using telnet and consoletcp
+<pre>
+> telnet demo.gatespace.se 8999
+Trying 127.0.0.1...
+Connected to localhost.localdomain.
+Escape character is '^]'.
+> help
+Available command groups:
+session - Session commands built into the console
+osgilog - Log commands
+messenger - Messenger route configuration commands.
+logconfig - Configuration commands for the log.
+framework - Framework commands
+
+>
+</pre>
+
+<h3> Environmental influences</h3>
+
+   Due to the fact that console windows may be opened in many different
+   environments that have different capabilities, the console may seem to
+   behave different.
+
+   One example is the occurence of a "command history" in some
+   environments. This capability is however supplied by the window
+   manager "locally", the console does not have any command history
+   capability.
+

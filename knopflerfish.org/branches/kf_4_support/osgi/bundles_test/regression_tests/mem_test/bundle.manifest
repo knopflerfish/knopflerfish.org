@@ -1,0 +1,9 @@
+Bundle-Name: mem_test
+Bundle-SymbolicName: mem_test
+Bundle-Version: 1.0.0
+Bundle-Description: memory test bundle
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.test.memtest.Activator
+Bundle-Category: test

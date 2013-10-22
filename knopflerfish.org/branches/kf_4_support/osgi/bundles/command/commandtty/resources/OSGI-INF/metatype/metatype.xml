@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0">
+
+    <OCD id="org.knopflerfish.bundle.commandtty.ocd.CommandTty"
+	 name="OCD for the CommandTty bundle">
+      <AD name="nonblocking" id="nonblocking"
+	  type="Boolean"
+	  default="false"
+	  description="Use non-blocking tty access. Some JVM-OS combinations cannot handle blocking access to standard input." />
+    </OCD>
+
+    <Designate pid="org.knopflerfish.bundle.commandtty.CommandTty">
+      <Object ocdref="org.knopflerfish.bundle.commandtty.ocd.CommandTty"/>
+    </Designate>
+
+</metatype:MetaData>

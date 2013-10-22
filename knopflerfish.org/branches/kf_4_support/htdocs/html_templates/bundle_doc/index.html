@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <title>Knopflerfish - Framework and Bundle User Documentation</title>
+    <script type="text/javascript" language="JavaScript">
+      <!--
+	  targetPage = "" + getPageId(window.location.search);
+
+	  function getPageId ( searchStr ) {
+	    var idStartPos = searchStr.indexOf('docpage=');
+	    if (-1==idStartPos) {
+	      return "bundledoc_main.html";
+	    }
+	    idStartPos += 8;
+	    var idEndPos = searchStr.indexOf('&',idStartPos);
+	    if (-1==idEndPos) {
+	      return searchStr.substr(idStartPos);
+	    } 
+	    return searchStr.substring(idStartPos,idEndPos);
+	  }
+
+	  function loadFrame() {
+	    top.bundledoc_main.location = top.targetPage;
+	  }
+
+          //-->
+    </script> 
+  </head>
+  <frameset rows="90px,*" onLoad="top.loadFrame()">
+    <frame name="bundledoc_hdr" src="bundledoc_hdr.html"
+           frameborder="0"      scrolling="no"
+           marginwidth="0"      marginheight="0">
+    <frameset cols="240,*">
+      <frame name="bundledoc_list" src="bundledoc_list.html"
+	     frameborder="0"             scrolling="auto"
+	     marginwidth="0"             marginheight="0">
+    
+      <frame name="bundledoc_main"	src="bundledoc_main.html"
+	     frameborder="0"             scrolling="auto">
+    </frameset>
+  </frameset>
+</html>
