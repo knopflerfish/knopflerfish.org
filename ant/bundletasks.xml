@@ -149,14 +149,33 @@
     </sequential>
   </macrodef>
 
-  <property name="proguard.download.url"
-            value="http://repo1.maven.org/maven2/net/sf/proguard/proguard/4.4/proguard-4.4.jar"/>
+  <property name="proguard.version" value="4.10"/>
+  <property name="proguard-anttask.jar"
+            value="proguard-anttask-${proguard.version}.jar"/>
+  <property name="proguard-base.jar"
+            value="proguard-base-${proguard.version}.jar"/>
+  <property name="maven.url" value="http://repo1.maven.org/maven2"/>
+  <property name="proguard.url" value="${maven.url}/net/sf/proguard"/>
+  <property name="proguard-anttask.url"
+            value="${proguard.url}/proguard-anttask/${proguard.version}/${proguard-anttask.jar}"/>
+  <property name="proguard-base.url"
+            value="${proguard.url}/proguard-base/${proguard.version}/${proguard-base.jar}"/>
 
   <target name="install_proguard">
-    <get src="${proguard.download.url}"
-         dest="${ant.lib}/proguard.jar"
+    <get src="${proguard-base.url}"
+         dest="${ant.lib}/${proguard-base.jar}"
          verbose="false"
          skipexisting="true"/>
+    <get src="${proguard-anttask.url}"
+         dest="${ant.lib}/${proguard-anttask.jar}"
+         verbose="false"
+         skipexisting="true"/>
+    <taskdef resource="proguard/ant/task.properties">
+      <classpath>
+        <pathelement location="${ant.lib}/${proguard-base.jar}"/>
+        <pathelement location="${ant.lib}/${proguard-anttask.jar}"/>
+      </classpath>
+    </taskdef>
   </target>
 
 

@@ -248,8 +248,6 @@
 
   <target name = "proguard_compact"
 	  depends="install_proguard">
-    <taskdef resource="proguard/ant/task.properties"
-             classpath="${ant.lib}/proguard.jar" />
     <move file="${jarfile_compact}" tofile="${jarfile_compact}.tmp.jar"/>
     <proguard note="false">
       <!-- Specify the input jars, output jars, and library jars. -->
