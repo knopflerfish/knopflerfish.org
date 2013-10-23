@@ -1,5 +1,6 @@
  Usage:  java [properties] org.knopflerfish.framework.Main [options]
       or java [properties] -jar framework.jar [options]
+      or java [properties] -jar framework_compact.jar [options]
       or ./kf2 [options] [-- [properties]]  [--- [extra]] (*)
 
  Options:
@@ -42,7 +43,8 @@
 
  The default directory used for storing bundle data is  "fwdir".
 
- (*) Fully R4 compatible, enables support for bootclasspath extension bundles.
+ (*) Fully R5 compatible, enables support for bootclasspath extension bundles.
+     Uses framwork.jar if available, otherwise framework_compact.jar.
 
  For extended help and list of all available system properties, see online
  documentation or visit:

@@ -317,10 +317,32 @@ OSGi Framework properties should be specified using "-F".
 	<td>
 	  Allow installation of multiple bundles with the same bundle symbolic
 	  name or restrict this. The property can have the following values:
-	  single or multiple.
+      <table class="man_inner">
+      <tr>
+	    <td class="man_inner"><b>single</b></td>
+        <td class="man_inner">
+          A combination of equal bundle symbolic name and equal version is
+          unique in the framework. Installing a second bundle with the same
+          bundle symbolic name and version is an error.
+        </td>
+      </tr>
+      <tr>
+        <td class="man_inner"><b>multiple</b></td>
+        <td class="man_inner">
+          The combination of bundle symbolic name and version is not unique
+          in the framework.
+        </td>
+      </tr>
+      <tr>
+	    <td class="man_inner"><b>managed</b></td>
+        <td class="man_inner">
+          Using a Bundle Collision Hook to filter any non-colliding bundles.
+        </td>
+      </tr>
+      </table>
 	</td>
     <td>String</td>
-    <td>single</td>	
+    <td>managed</td>	
   <tr>
     <td>org.osgi.framework.bundle.parent</td>
     <td>
