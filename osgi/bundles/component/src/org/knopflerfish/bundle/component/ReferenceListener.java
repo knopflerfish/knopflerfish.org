@@ -430,7 +430,6 @@ class ReferenceListener implements ServiceListener
         boolean wasSelected = false;
         ServiceReference<?> s;
         int op = NO_OP;
-        int sr_size = 0;
         synchronized (serviceRefs) {
           if (sEventQueue.isEmpty()) {
             if (se == null) {
@@ -446,12 +445,7 @@ class ReferenceListener implements ServiceListener
           switch (se.getType()) {
           case ServiceEvent.MODIFIED:
           case ServiceEvent.REGISTERED:
-            if (serviceRefs.add(s)) {
-              op = ADD_OP;
-              sr_size = serviceRefs.size();
-            } else {
-              op = UPDATE_OP;
-            }
+            op = serviceRefs.add(s) ? ADD_OP : UPDATE_OP;
             break;
           case ServiceEvent.MODIFIED_ENDMATCH:
           case ServiceEvent.UNREGISTERING:
@@ -461,7 +455,6 @@ class ReferenceListener implements ServiceListener
             }
             unbinding.add(s);
             op = DELETE_OP;
-            sr_size = serviceRefs.size();
             break;
           default:
             // To keep compiler happy
@@ -470,14 +463,13 @@ class ReferenceListener implements ServiceListener
         }
         switch (op) {
         case ADD_OP:
-          // TODO check should we always call when != 1?
-          if (sr_size != 1 || !ref.refAvailable()) {
+          if (!ref.refAvailable()) {
             refAdded(s);
           }
           break;
         case DELETE_OP:
           boolean deleted = false;
-          if (sr_size != 0 || !ref.refUnavailable()) {
+          if (!ref.refUnavailable()) {
             if (ref.isMultiple() || wasSelected) {
               refDeleted(s);
               deleted = true;
