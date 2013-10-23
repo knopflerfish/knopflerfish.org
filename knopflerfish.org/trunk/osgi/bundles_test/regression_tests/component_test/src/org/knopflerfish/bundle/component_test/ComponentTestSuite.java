@@ -88,6 +88,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new Test8());
     addTest(new Test9());
     addTest(new Test10());
+    addTest(new Test11());
   }
 
   public void bump(int count) {
@@ -1511,6 +1512,89 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
           } catch (Exception be) {
             be.printStackTrace();
             fail("Test10: got uninstall exception " + be);
+          }
+        }
+        if (cmt != null) {
+          cmt.close();
+        }
+      }
+    }
+  }
+
+  private class Test11 extends FWTestCase  {
+
+    /**
+     * Test that SCR handles factory CM pids with target filters.
+     * 
+     */
+
+    public void runTest() {
+      Bundle b1 = null;
+      ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> cmt = null;
+      try {
+        b1 = Util.installBundle(bc, "componentC_test-1.0.0.jar");
+        b1.start();
+
+        cmt = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class.getName(), null);
+        cmt.open();
+        
+        Thread.sleep(SLEEP_TIME);
+
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentU");
+        assertNull("Should not get serviceRef U", ref);
+
+        ConfigurationAdmin ca = cmt.getService();
+        Configuration c = ca.createFactoryConfiguration("componentC_test.U", "?");
+
+        Dictionary<String, Object> props = new Hashtable<String, Object>();
+        props.put("vRef.target", "(vnum=v0)");
+        c.update(props);
+        
+        Thread.sleep(SLEEP_TIME);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentU");
+        assertNull("Should not get serviceRef U", ref);
+
+        props.put("vRef.target", "(vnum=v1)");
+        c.update(props);
+        
+        Thread.sleep(SLEEP_TIME);
+
+        ServiceReference<?> [] refs = bc.getServiceReferences("org.knopflerfish.service.componentC_test.ComponentU", null);
+        assertTrue("Should get one serviceRef to ComponentU", refs != null && refs.length == 1);
+
+        Configuration c2 = ca.createFactoryConfiguration("componentC_test.U", "?");
+        props = new Hashtable<String, Object>();
+        props.put("vRef.target", "(vnum=v2)");
+        c2.update(props);
+        
+        Thread.sleep(SLEEP_TIME);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentC_test.ComponentU", null);
+        assertTrue("Should get two serviceRef to ComponentU", refs != null && refs.length == 2);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentC_test.ComponentU", "(vRef.target=\\(vnum=v1\\))");
+        assertTrue("Should get one serviceRef to ComponentU with ref v1", refs != null && refs.length == 1);
+        org.knopflerfish.service.componentC_test.ComponentU u =
+            (org.knopflerfish.service.componentC_test.ComponentU)bc.getService(refs[0]);
+        assertEquals("Should get v1 version", "v1", u.getV());
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentC_test.ComponentU", "(vRef.target=\\(vnum=v2\\))");
+        assertTrue("Should get one serviceRef to ComponentU with ref v2", refs != null && refs.length == 1);
+        org.knopflerfish.service.componentC_test.ComponentU u2 =
+            (org.knopflerfish.service.componentC_test.ComponentU)bc.getService(refs[0]);
+        assertNotSame("Services should differ", u, u2);
+        assertEquals("Should get v2 version", "v2", u2.getV());
+      } catch (Exception e) {
+        e.printStackTrace();
+        fail("Test11: got unexpected exception " + e);
+      } finally {
+        if (b1 != null) {
+          try {
+            b1.uninstall();
+          } catch (Exception be) {
+            be.printStackTrace();
+            fail("Test11: got uninstall exception " + be);
           }
         }
         if (cmt != null) {
