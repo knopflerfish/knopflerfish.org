@@ -115,9 +115,6 @@ public class Activator implements BundleActivator, BundleTrackerCustomizer {
           ts.addTestSuite(clazz);
         }
       }
-      if (ts == null) {
-        return null;
-      }
       Hashtable h = new Hashtable();
       h.put("service.pid", ts.getName());
       h.put("test.name", testNames);
