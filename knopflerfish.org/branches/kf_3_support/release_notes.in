@@ -10,7 +10,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Services (Compendium) ===
 
-* SCR(component) 3.1.19
+* SCR(component) 3.1.20
+
+  - Fixed a bug that caused problems when adding a CM configuration with
+    a target filter to an unsatisfied component.
+ 
+  SCR(component) 3.1.19
 
   - Fixed bug that caused the instance properties to be ignored
     for certain factory components.
