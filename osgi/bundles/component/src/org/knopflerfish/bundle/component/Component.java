@@ -483,15 +483,17 @@ public abstract class Component implements org.apache.felix.scr.Component {
     Activator.logDebug("cmConfigUpdate for pid = " + pid +
                        " is first = " + cmDicts.isEmpty());
     // First mandatory config, remove constraint
-    boolean first = cmDicts.isEmpty() && !cmConfigOptional;
+    boolean first = cmDicts.isEmpty();
     cmDicts.put(pid, c.getProperties());
-    ComponentConfiguration [] cc;
+    ComponentConfiguration [] cc = null;
     synchronized (lock) {
-      cc = (ComponentConfiguration [])compConfigs.remove(NO_PID);
+      if (first) {
+        cc = (ComponentConfiguration [])compConfigs.remove(NO_PID);
+      }
       if (refs != null) {
         for (int i = 0; i < refs.length; i++) {
           // TODO do we need to move this outside synchronized
-          refs[i].update(c, cc != null);
+          refs[i].update(c, first);
         }
       }
       if (cc != null) {
@@ -506,7 +508,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
     if (cc != null) {
       // We have an updated config, check it
       cc[0].cmConfigUpdated(pid, c.getProperties());
-    } else if (first) {
+    } else if (first && !cmConfigOptional) {
       resolvedConstraint();
     } else if (unresolvedConstraints == 0) {
       // New factory pid
