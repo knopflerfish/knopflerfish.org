@@ -50,7 +50,7 @@ import org.osgi.framework.ServiceRegistration;
 public class Activator
   implements BundleActivator,  ServiceFactory<RepositoryManager>, RepositoryListener
 {
-
+  private BundleContext bc;
   private Repositories repos = null;
   private ServiceRegistration<?> rms = null;
 
@@ -63,6 +63,7 @@ public class Activator
   @Override
   public void start(BundleContext bc)
   {
+	this.bc = bc;
     repos = new Repositories(bc);
     repos.addListener(this);
     synchronized (repos) {
@@ -87,7 +88,7 @@ public class Activator
   @Override
   public RepositoryManager getService(Bundle bundle,
                                       ServiceRegistration<RepositoryManager> registration) {
-    return new RepositoryManagerImpl(repos);
+    return new RepositoryManagerImpl(bc, repos);
   }
 
   @Override

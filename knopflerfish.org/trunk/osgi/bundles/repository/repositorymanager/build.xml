@@ -15,7 +15,8 @@
 
   <path id="bundle.compile.path">
    <pathelement location="repository_api-N.N.N.jar"/>
-    <pathelement location="repository_xml_api-N.N.N.jar"/>
+   <pathelement location="repository_xml_api-N.N.N.jar"/>
+   <pathelement location="resolver_api-N.N.N.jar"/>
   </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>

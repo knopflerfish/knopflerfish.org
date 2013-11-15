@@ -45,6 +45,7 @@ import org.osgi.framework.BundleContext;
  * Bundle activator implementation.
  *
  * @author Jan Stein
+ * @author Per Gustafson
  */
 public class Activator
   implements BundleActivator

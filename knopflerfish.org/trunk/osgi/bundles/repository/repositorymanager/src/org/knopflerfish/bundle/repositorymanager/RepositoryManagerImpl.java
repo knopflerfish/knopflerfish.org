@@ -39,16 +39,25 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.knopflerfish.service.repositorymanager.RepositoryInfo;
 import org.knopflerfish.service.repositorymanager.RepositoryManager;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
+import org.osgi.resource.Resource;
+import org.osgi.resource.Wire;
+import org.osgi.service.repository.ContentNamespace;
 import org.osgi.service.repository.Repository;
+import org.osgi.service.resolver.Resolver;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
  *
@@ -59,13 +68,19 @@ public class RepositoryManagerImpl
 {
 
   final private Repositories repos;
+  final private BundleContext bc;
+  private ServiceTracker<Resolver, Resolver> resolverTracker;
   private TreeMap<RepositoryInfo,RepositoryInfo> myRepos;
   private boolean autoEnable;
 
-  public RepositoryManagerImpl(Repositories repos) {
+  public RepositoryManagerImpl(BundleContext bc, Repositories repos) {
     this.repos = repos;
+    this.bc = bc;
     autoEnable = true;
     repos.addListener(this);
+    resolverTracker = new ServiceTracker<Resolver, Resolver>(bc,
+    		Resolver.class.getName(), null);
+    resolverTracker.open();
   }
 
   public List<Capability> findProviders(Requirement requirement) {
@@ -181,5 +196,17 @@ public class RepositoryManagerImpl
       myRepos.values().remove(ri);
     }
   }
+
+@Override
+public Set<Resource> findResolution(List<Resource> resources) throws Exception {
+	Resolver resolver = resolverTracker.getService();
+	if(resolver == null) {
+		throw new Exception("Unable to find resolution: No Resolver service available!");
+	}
+	
+    ResolveContextImpl rc = new ResolveContextImpl(bc, resources, new ArrayList<Resource>());
+    Map<Resource, List<Wire>> resolution = resolver.resolve(rc);
+    return resolution.keySet();
+}
 
 }

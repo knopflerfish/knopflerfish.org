@@ -36,10 +36,12 @@ package org.knopflerfish.service.repositorymanager;
 
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
+import org.osgi.resource.Resource;
 
 
 
@@ -78,6 +80,16 @@ public interface RepositoryManager
    * @return
    */
   List<Capability> findProviders(Requirement requirement);
+  
+  /**
+   * Find a set of resources given the current state of the framework and
+   * using the currently enabled Repositories that will allow a given 
+   * list of resources to resolve.
+   * 
+   * @param resources List of {@link Resource} to find a resolution for.
+   * @return
+   */
+  Set<Resource> findResolution(List<Resource> resources) throws Exception;
 
   /**
    * Add a repository based on a repository XML file.
