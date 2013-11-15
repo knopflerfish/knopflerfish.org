@@ -81,6 +81,7 @@ public class CapabilityImpl implements Capability {
         getNamespace().equals(c.getNamespace()) &&
         getDirectives().equals(c.getDirectives()) &&
         getAttributes().equals(c.getAttributes())  &&
-        getResource().equals(c.getResource());
+        getResource() == c.getResource();
+        // getResource().equals(c.getResource());
   }
 }
