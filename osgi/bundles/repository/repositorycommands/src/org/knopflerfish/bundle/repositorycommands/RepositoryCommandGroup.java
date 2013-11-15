@@ -45,6 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedSet;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
@@ -81,7 +82,6 @@ public class RepositoryCommandGroup
   final BundleContext bc;
 
   final private ServiceTracker<RepositoryManager, RepositoryManager> repoMgrTracker;
-
 
   RepositoryCommandGroup(BundleContext bc) {
     super("repository", "Repository commands");
@@ -245,13 +245,14 @@ public class RepositoryCommandGroup
   //
 
   public final static String USAGE_INSTALL
-    = "[-s] <symbolicname> [<versionRange>]";
+    = "[-s] [-r] <symbolicname> [<versionRange>]";
 
   public final static String[] HELP_INSTALL = new String[] {
     "Install bundle resource.",
     "Installs first bundle resource that matches <symbolicname>",
     "and optional <versionRange>.",
-    "-s             Persistently start bundle according to activation policy",
+    "-s             Persistently start bundles according to activation policy",
+    "-r             Recursively install additional bundles needed to resolve",
     "<symbolicname> Bundle symbolic name to match",
     "<versionRange> Optional bundle version range"
   };
@@ -271,23 +272,50 @@ public class RepositoryCommandGroup
       out.println("No matching bundle found!");
       return 1;
     }
-    Bundle b = null;
+    ArrayList<Bundle> installedBundles = new ArrayList<Bundle>();
+    Bundle currentBundle = null;
     try {
-      Resource r = cs.get(0).getResource();
+      Resource resource = cs.get(0).getResource();
+      
+      if (opts.get("-r") != null) {
+    	  Set<Resource> resolution = getRepositoryManager().findResolution(Collections.singletonList(resource));
+	      for(Resource r : resolution) {
+	    	  // Just install dependencies now
+	    	  if(r == resource) {
+	    		  continue;
+	    	  }
+	    	  String l = null;
+	          try {
+		    	  l = (String)r.getCapabilities(ContentNamespace.CONTENT_NAMESPACE).get(0).getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
+	              currentBundle = bc.installBundle(l);
+	            } catch (Exception be) {
+	  	    	  out.println("Failed to install dependency: " + showBundle(currentBundle));
+	  	    	  return 1;
+	            }
+	    	  out.println("Installed dependency: " + showBundle(currentBundle));
+	    	  installedBundles.add(currentBundle);
+	      }
+      }      
       String loc = null;
+      
       try {
-        loc = (String) r.getCapabilities(ContentNamespace.CONTENT_NAMESPACE).get(0).getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
-        b = bc.installBundle(loc);
+        loc = (String) resource.getCapabilities(ContentNamespace.CONTENT_NAMESPACE).get(0).getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
+        currentBundle = bc.installBundle(loc);
+        installedBundles.add(currentBundle);
       } catch (Exception be) {
         if (loc == null) {
           loc = bsn;
         }
-        b = bc.installBundle(loc, ((RepositoryContent)r).getContent());
+        currentBundle = bc.installBundle(loc, ((RepositoryContent)resource).getContent());
+        installedBundles.add(currentBundle);
       }
-      out.println("Installed: " + showBundle(b));
+      out.println("Installed: " + showBundle(currentBundle));
       if (opts.get("-s") != null) {
-        b.start(Bundle.START_ACTIVATION_POLICY);
-        out.println("Started: " + showBundle(b));
+          for(Bundle ib : installedBundles) {
+        	currentBundle = ib;
+          	ib.start(Bundle.START_ACTIVATION_POLICY);
+            out.println("Started: " + showBundle(ib));
+          }
       }
     } catch (final BundleException e) {
       Throwable t = e;
@@ -295,15 +323,19 @@ public class RepositoryCommandGroup
              && ((BundleException) t).getNestedException() != null) {
         t = ((BundleException) t).getNestedException();
       }
-      if (b != null) {
-        out.println("Couldn't start bundle: " + showBundle(b)
+      if (currentBundle != null) {
+        out.println("Couldn't start bundle: " + showBundle(currentBundle)
                     + " (due to: " + t + ")");
       } else {
         out.println("Couldn't install bundle (due to: " + t + ")");
         t.printStackTrace(out);
       }
       return 1;
-    }
+	} catch (Exception e) {
+		out.println(e.getMessage());
+		e.printStackTrace(out);
+		return 1;
+	}
 
     return 0;
   }
