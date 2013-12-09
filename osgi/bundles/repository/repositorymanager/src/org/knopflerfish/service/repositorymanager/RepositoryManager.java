@@ -34,7 +34,9 @@
 
 package org.knopflerfish.service.repositorymanager;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
@@ -59,7 +61,22 @@ import org.osgi.resource.Resource;
 
 public interface RepositoryManager
 {
-  
+  /**
+   * Return value from the install operation.
+   */
+  public class InstallationResult {
+    /**
+     * A set of resources that provide a resolution for the requested
+     * operation.
+     */
+    public final Set<Resource> resources = new HashSet<Resource>();
+
+    /**
+     * A list of messages suitable for user feedback.
+     */
+    public final List<String> userFeedback = new ArrayList<String>();
+  }
+
   /**
    * Service property that is incremented whenever the
    * configuration changes. Value type is {@link Integer}.
@@ -80,16 +97,35 @@ public interface RepositoryManager
    * @return
    */
   List<Capability> findProviders(Requirement requirement);
-  
+
   /**
    * Find a set of resources given the current state of the framework and
-   * using the currently enabled Repositories that will allow a given 
-   * list of resources to resolve.
+   * using the currently enabled Repositories that will allow the given list of
+   * resources to resolve.
    * 
-   * @param resources List of {@link Resource} to find a resolution for.
-   * @return
+   * @param resources
+   *            List of {@link Resource} to find a resolution for.
+   * @return A Set of {@link Resource} that will allow the given list
+   *         of resources to resolve.
+   * @throws Exception
+   *             If we failed to find a resolution.
    */
   Set<Resource> findResolution(List<Resource> resources) throws Exception;
+
+  /**
+   * Install, and optionally start, a list of {@link Resource}, and optionally try to find, install and start any 
+   * {@link Resource} needed for them to resolve.
+   * 
+   * @param resources
+   *            List of {@link Resource} to install and optionally start and/or find a resolution for.
+   * @param resolve If true try to find a resolution for the given resources.
+   * @param start   If true start all resources and any dependencies found during resolution.        
+   * @return An InstallationResult containing a set of resources installed and a list of messages suitable for user feedback.
+   * @throws Exception
+   *             If we failed to find a resolution or if install or start
+   *             operations failed.
+   */
+  InstallationResult install(List<Resource> resources, boolean resolve, boolean start) throws Exception;
 
   /**
    * Add a repository based on a repository XML file.
@@ -153,5 +189,13 @@ public interface RepositoryManager
    *         found.
    */
   boolean setRepositoryRank(RepositoryInfo ri, int rank);
+
+  /**
+   * Check if the Repository Manager has access to a Resolver service.
+   * 
+   * @return <code>True</code> if repository has access to a Resolver service,
+   * 		 <code>false</code> otherwise.
+   */
+  boolean resolverAvailable();
 
 }

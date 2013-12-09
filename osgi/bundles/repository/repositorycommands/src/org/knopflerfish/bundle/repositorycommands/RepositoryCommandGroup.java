@@ -45,7 +45,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedSet;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
@@ -54,6 +53,7 @@ import org.knopflerfish.service.console.Util;
 import org.knopflerfish.service.repositorymanager.BasicRequirement;
 import org.knopflerfish.service.repositorymanager.RepositoryInfo;
 import org.knopflerfish.service.repositorymanager.RepositoryManager;
+import org.knopflerfish.service.repositorymanager.RepositoryManager.InstallationResult;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -77,7 +77,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 
 public class RepositoryCommandGroup
-  extends CommandGroupAdapter
+extends CommandGroupAdapter
 {
   final BundleContext bc;
 
@@ -97,7 +97,7 @@ public class RepositoryCommandGroup
   //
 
   public final static String USAGE_ADD
-    = "[-r #rank#] <url>";
+  = "[-r #rank#] <url>";
 
   public final static String[] HELP_ADD = new String[] {
     "Add a XML based repository.",
@@ -106,7 +106,7 @@ public class RepositoryCommandGroup
   };
 
   public int cmdAdd(Dictionary<String,?> opts, Reader in, PrintWriter out,
-                    Session session) {
+      Session session) {
     final String url = (String) opts.get("url");
     final String rank = (String) opts.get("-r");
     Hashtable<String, Object> p = new Hashtable<String, Object>();
@@ -134,7 +134,7 @@ public class RepositoryCommandGroup
   //
 
   public final static String USAGE_BUNDLE
-    = "[-l] [<symbolicname> [<versionRange>]]";
+  = "[-l] [<symbolicname> [<versionRange>]]";
 
   public final static String[] HELP_BUNDLE = new String[] {
     "List bundle resources.",
@@ -147,7 +147,7 @@ public class RepositoryCommandGroup
   };
 
   public int cmdBundle(Dictionary<String,?> opts, Reader in, PrintWriter out,
-                       Session session) {
+      Session session) {
     final boolean verbose = (opts.get("-l") != null);
     final String bsn = (String) opts.get("symbolicname");
     final String ver = (String) opts.get("versionRange");
@@ -179,7 +179,7 @@ public class RepositoryCommandGroup
   //
 
   public final static String USAGE_DISABLE
-    = "<repository> ...";
+  = "<repository> ...";
 
   public final static String[] HELP_DISABLE = new String[] {
     "Disable selected repository.",
@@ -189,7 +189,7 @@ public class RepositoryCommandGroup
   };
 
   public int cmdDisable(Dictionary<String,?> opts, Reader in, PrintWriter out,
-                        Session session) {
+      Session session) {
     final String [] selection = (String[]) opts.get("repository");
     final SortedSet<RepositoryInfo> repos = getRepoSelection(selection);
 
@@ -212,7 +212,7 @@ public class RepositoryCommandGroup
   //
 
   public final static String USAGE_ENABLE
-    = "<repository> ...";
+  = "<repository> ...";
 
   public final static String[] HELP_ENABLE = new String[] {
     "Enable selected repository.",
@@ -222,7 +222,7 @@ public class RepositoryCommandGroup
   };
 
   public int cmdEnable(Dictionary<String,?> opts, Reader in, PrintWriter out,
-                       Session session) {
+      Session session) {
     final String [] selection = (String[]) opts.get("repository");
     final SortedSet<RepositoryInfo> repos = getRepoSelection(selection);
 
@@ -245,7 +245,7 @@ public class RepositoryCommandGroup
   //
 
   public final static String USAGE_INSTALL
-    = "[-s] [-r] <symbolicname> [<versionRange>]";
+  = "[-s] [-r] <symbolicname> [<versionRange>]";
 
   public final static String[] HELP_INSTALL = new String[] {
     "Install bundle resource.",
@@ -258,7 +258,7 @@ public class RepositoryCommandGroup
   };
 
   public int cmdInstall(Dictionary<String,?> opts, Reader in, PrintWriter out,
-                        Session session) {
+      Session session) {
     final String bsn = (String) opts.get("symbolicname");
     final String ver = (String) opts.get("versionRange");
     BasicRequirement requirement;
@@ -272,70 +272,32 @@ public class RepositoryCommandGroup
       out.println("No matching bundle found!");
       return 1;
     }
-    ArrayList<Bundle> installedBundles = new ArrayList<Bundle>();
-    Bundle currentBundle = null;
+
     try {
       Resource resource = cs.get(0).getResource();
-      
-      if (opts.get("-r") != null) {
-    	  Set<Resource> resolution = getRepositoryManager().findResolution(Collections.singletonList(resource));
-	      for(Resource r : resolution) {
-	    	  // Just install dependencies now
-	    	  if(r == resource) {
-	    		  continue;
-	    	  }
-	    	  String l = null;
-	          try {
-		    	  l = (String)r.getCapabilities(ContentNamespace.CONTENT_NAMESPACE).get(0).getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
-	              currentBundle = bc.installBundle(l);
-	            } catch (Exception be) {
-	  	    	  out.println("Failed to install dependency: " + showBundle(currentBundle));
-	  	    	  return 1;
-	            }
-	    	  out.println("Installed dependency: " + showBundle(currentBundle));
-	    	  installedBundles.add(currentBundle);
-	      }
-      }      
-      String loc = null;
-      
-      try {
-        loc = (String) resource.getCapabilities(ContentNamespace.CONTENT_NAMESPACE).get(0).getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
-        currentBundle = bc.installBundle(loc);
-        installedBundles.add(currentBundle);
-      } catch (Exception be) {
-        if (loc == null) {
-          loc = bsn;
-        }
-        currentBundle = bc.installBundle(loc, ((RepositoryContent)resource).getContent());
-        installedBundles.add(currentBundle);
-      }
-      out.println("Installed: " + showBundle(currentBundle));
-      if (opts.get("-s") != null) {
-          for(Bundle ib : installedBundles) {
-        	currentBundle = ib;
-          	ib.start(Bundle.START_ACTIVATION_POLICY);
-            out.println("Started: " + showBundle(ib));
-          }
+      boolean bResolve = opts.get("-r") != null;
+      boolean bStart = opts.get("-s") != null;
+
+      InstallationResult ir = getRepositoryManager().install(Collections.singletonList(resource), bResolve, bStart);
+
+      for(String s : ir.userFeedback) {
+        out.println(s);
       }
     } catch (final BundleException e) {
       Throwable t = e;
       while (t instanceof BundleException
-             && ((BundleException) t).getNestedException() != null) {
+          && ((BundleException) t).getNestedException() != null) {
         t = ((BundleException) t).getNestedException();
       }
-      if (currentBundle != null) {
-        out.println("Couldn't start bundle: " + showBundle(currentBundle)
-                    + " (due to: " + t + ")");
-      } else {
-        out.println("Couldn't install bundle (due to: " + t + ")");
-        t.printStackTrace(out);
-      }
+      out.println("Couldn't install bundle (due to: " + t + ")");
+      t.printStackTrace(out);
       return 1;
-	} catch (Exception e) {
-		out.println(e.getMessage());
-		e.printStackTrace(out);
-		return 1;
-	}
+
+    } catch (Exception e) {
+      out.println(e.getMessage());
+      e.printStackTrace(out);
+      return 1;
+    }
 
     return 0;
   }
@@ -345,7 +307,7 @@ public class RepositoryCommandGroup
   //
 
   public final static String USAGE_LIST
-    = "[-l] [<repository>]";
+  = "[-l] [<repository>]";
 
   public final static String[] HELP_LIST = new String[] {
     "List repositories. Mark with a '*' in the first",
@@ -355,7 +317,7 @@ public class RepositoryCommandGroup
   };
 
   public int cmdList(Dictionary<String,?> opts, Reader in, PrintWriter out,
-                        Session session) {
+      Session session) {
     final String [] selection = (String[]) opts.get("repository");
     final SortedSet<RepositoryInfo> repos = getRepoSelection(selection);
     final boolean verbose = (opts.get("-l") != null);
@@ -378,7 +340,7 @@ public class RepositoryCommandGroup
   //
 
   public final static String USAGE_RANK
-    = "<rank> <repository> ...";
+  = "<rank> <repository> ...";
 
   public final static String[] HELP_RANK = new String[] {
     "Change repository ranking.",
@@ -389,7 +351,7 @@ public class RepositoryCommandGroup
   };
 
   public int cmdRank(Dictionary<String,?> opts, Reader in, PrintWriter out,
-                     Session session) {
+      Session session) {
     final String rankStr = (String) opts.get("rank");
     final String [] selection = (String[]) opts.get("repository");
     final SortedSet<RepositoryInfo> repos = getRepoSelection(selection);
@@ -420,7 +382,7 @@ public class RepositoryCommandGroup
   //
 
   public final static String USAGE_SHOW
-    = "[-t] <namespace> [<filter>]";
+  = "[-t] <namespace> [<filter>]";
 
   public final static String[] HELP_SHOW = new String[] {
     "Show all capabilities and requirements for selected resources.",
@@ -430,7 +392,7 @@ public class RepositoryCommandGroup
   };
 
   public int cmdShow(Dictionary<String,?> opts, Reader in, PrintWriter out,
-                     Session session) {
+      Session session) {
     final String namespace = (String) opts.get("namespace");
     final String filterStr = (String) opts.get("filter");
 

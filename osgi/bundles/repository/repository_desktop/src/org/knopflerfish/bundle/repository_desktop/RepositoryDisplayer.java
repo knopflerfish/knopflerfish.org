@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -108,14 +109,15 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import org.knopflerfish.service.repositorymanager.RepositoryInfo;
 import org.knopflerfish.service.repositorymanager.RepositoryManager;
+import org.knopflerfish.service.repositorymanager.RepositoryManager.InstallationResult;
 
 /**
  * Desktop plugin for the visualizing Repository services and their offerings.
  * With functionality for install/start and detail information.
  */
 public class RepositoryDisplayer
-  extends DefaultSwingBundleDisplayer
-  implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
+extends DefaultSwingBundleDisplayer
+implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
 {
   // Repository manager services tracker
   private final ServiceTracker<RepositoryManager, RepositoryManager> repoManagerTracker;
@@ -143,25 +145,25 @@ public class RepositoryDisplayer
 
   // Icons shared by all instances of JRepositoryAdmin
   static ImageIcon startIcon =
-    new ImageIcon(
-                  RepositoryDisplayer.class
-                      .getResource("/bundle-install-start.png"));
+      new ImageIcon(
+          RepositoryDisplayer.class
+          .getResource("/bundle-install-start.png"));
   static ImageIcon sortIcon =
-    new ImageIcon(RepositoryDisplayer.class.getResource("/view-select.png"));
+      new ImageIcon(RepositoryDisplayer.class.getResource("/view-select.png"));
   static ImageIcon installIcon =
-    new ImageIcon(RepositoryDisplayer.class.getResource("/bundle-install.png"));
+      new ImageIcon(RepositoryDisplayer.class.getResource("/bundle-install.png"));
   // static ImageIcon updateIcon = new
   // ImageIcon(RepositoryDisplayer.class.getResource("/update.png"));
   static ImageIcon bundleIcon =
-    new ImageIcon(RepositoryDisplayer.class.getResource("/osgi-bundle.png"));
+      new ImageIcon(RepositoryDisplayer.class.getResource("/osgi-bundle.png"));
   static ImageIcon bundleJarIcon =
-    new ImageIcon(RepositoryDisplayer.class.getResource("/osgi-bundle-jar.png"));
+      new ImageIcon(RepositoryDisplayer.class.getResource("/osgi-bundle-jar.png"));
   static ImageIcon reloadIcon =
-    new ImageIcon(RepositoryDisplayer.class.getResource("/view-refresh.png"));
+      new ImageIcon(RepositoryDisplayer.class.getResource("/view-refresh.png"));
   static ImageIcon settingsIcon =
-    new ImageIcon(
-                  RepositoryDisplayer.class
-                      .getResource("/preferences-system.png"));
+      new ImageIcon(
+          RepositoryDisplayer.class
+          .getResource("/preferences-system.png"));
 
   static final int SORT_NONE = 0;
   static final int SORT_HOST = 1;
@@ -171,10 +173,10 @@ public class RepositoryDisplayer
   static final int SORT_STATUS = 5;
 
   static int[] SORT_ARRAY = new int[] { SORT_NONE, SORT_HOST, SORT_CATEGORY,
-                                       SORT_VENDOR, SORT_STATUS, };
+    SORT_VENDOR, SORT_STATUS, };
 
   static String[] SORT_NAMES = new String[] { "All", "Host", "Category",
-                                             "Vendor", "Install status", };
+    "Vendor", "Install status", };
 
   // Message while loading repo URLs
   static String STR_LOADING = "Loading...";
@@ -188,13 +190,13 @@ public class RepositoryDisplayer
   public RepositoryDisplayer(BundleContext bc)
   {
     super(bc, "Repository", "View and install bundles from OSGi Repositories",
-          true);
+        true);
 
     repoManagerTracker =
-      new ServiceTracker<RepositoryManager, RepositoryManager>(
-                                                               bc,
-                                                               RepositoryManager.class,
-                                                               this);
+        new ServiceTracker<RepositoryManager, RepositoryManager>(
+            bc,
+            RepositoryManager.class,
+            this);
     repoManagerTracker.open();
   }
 
@@ -258,14 +260,14 @@ public class RepositoryDisplayer
 
   @Override
   public void modifiedService(ServiceReference<RepositoryManager> sr,
-                              RepositoryManager repoManager)
+      RepositoryManager repoManager)
   {
     refreshRepositoryDisplayers();
   }
 
   @Override
   public void removedService(ServiceReference<RepositoryManager> sr,
-                             RepositoryManager repoManager)
+      RepositoryManager repoManager)
   {
     refreshRepositoryDisplayers();
   }
@@ -361,14 +363,14 @@ public class RepositoryDisplayer
    * The actual repository displayer component returned by newJComponent.
    */
   class JRepositoryAdmin
-    extends JPanel
+  extends JPanel
   {
     /**
      * TreeNode to top of repository tree.
      */
     class TopNode
-      extends DefaultMutableTreeNode
-      implements HTMLAble
+    extends DefaultMutableTreeNode
+    implements HTMLAble
     {
       private static final long serialVersionUID = 4L;
       JRepositoryAdmin repositoryAdmin;
@@ -429,14 +431,14 @@ public class RepositoryDisplayer
 
             sb.append("<p>");
             sb.append("Total number of bundles: "
-                      + JRepositoryAdmin.this.locationMap.size());
+                + JRepositoryAdmin.this.locationMap.size());
             sb.append("</p>");
 
             appendHelp(sb);
           } else {
             sb.append("<p><em>No</em> repositories available.</p>");
             sb.append("<p>Press the settings button (rightmost button under "
-                      + "the repository tree) to add repositories.</p>");
+                + "the repository tree) to add repositories.</p>");
           }
 
           sb.append("</font>");
@@ -445,9 +447,9 @@ public class RepositoryDisplayer
       }
 
       private void toHTML(final StringBuffer sb,
-                          final ServiceReference<Repository> sr,
-                          final String key,
-                          final String label)
+          final ServiceReference<Repository> sr,
+          final String key,
+          final String label)
       {
         final String val = (String) sr.getProperty(key);
         if (val != null && val.length() > 0) {
@@ -464,8 +466,8 @@ public class RepositoryDisplayer
      * tree
      */
     class CategoryNode
-      extends DefaultMutableTreeNode
-      implements HTMLAble
+    extends DefaultMutableTreeNode
+    implements HTMLAble
     {
       private static final long serialVersionUID = 5L;
       String category;
@@ -516,8 +518,8 @@ public class RepositoryDisplayer
      * Tree Node for wrapping a repository resource in the repository tree.
      */
     class RepositoryNode
-      extends DefaultMutableTreeNode
-      implements HTMLAble
+    extends DefaultMutableTreeNode
+    implements HTMLAble
     {
       private static final long serialVersionUID = 3L;
 
@@ -529,13 +531,13 @@ public class RepositoryDisplayer
       Resource resource;
       // Sorted cache of capabilities provided by the given resource
       SortedMap<String, Set<Capability>> ns2caps =
-        new TreeMap<String, Set<Capability>>();
+          new TreeMap<String, Set<Capability>>();
       final Set<Capability> idCaps;
       final Set<Capability> kfExtraCaps;
 
       // Sorted cache of requirements required by the given resource
       SortedMap<String, Set<Requirement>> ns2reqs =
-        new TreeMap<String, Set<Requirement>>();
+          new TreeMap<String, Set<Requirement>>();
 
       public RepositoryNode(Resource resource)
       {
@@ -543,9 +545,9 @@ public class RepositoryDisplayer
         this.resource = resource;
 
         name =
-          Util.getResourceName(resource) + " "
-              + Util.getResourceVersion(resource) + " "
-              + Util.getResourceType(resource);
+            Util.getResourceName(resource) + " "
+                + Util.getResourceVersion(resource) + " "
+                + Util.getResourceType(resource);
 
         for (final Capability capability : resource.getCapabilities(null)) {
           final String ns = capability.getNamespace();
@@ -654,14 +656,14 @@ public class RepositoryDisplayer
         // osgi.identity name space is handled specially
         if (idCaps.size() == 0) {
           Util.toHTMLtrError_2(sb,
-                               "No osgi.identity capabilities in this node!");
+              "No osgi.identity capabilities in this node!");
         } else {
           Util.toHTMLtrHeading_2(sb,
-                                 getIdAttribute(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE));
+              getIdAttribute(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE));
           for (final Capability idCap : idCaps) {
             // Make a copy of the map so that we can remove processed entries.
             final SortedMap<String, Object> attrs =
-              new TreeMap<String, Object>(idCap.getAttributes());
+                new TreeMap<String, Object>(idCap.getAttributes());
 
             // These attributes are presented in the title.
             attrs.remove(IdentityNamespace.IDENTITY_NAMESPACE);
@@ -671,18 +673,18 @@ public class RepositoryDisplayer
             attrs.remove(IdentityNamespace.CAPABILITY_DESCRIPTION_ATTRIBUTE);
 
             Util.toHTMLtr_2(sb,
-                            "Copyright",
-                            getIdAttribute(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE));
+                "Copyright",
+                getIdAttribute(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE));
             attrs.remove(IdentityNamespace.CAPABILITY_COPYRIGHT_ATTRIBUTE);
 
             Util.toHTMLtr_2(sb,
-                            "Documentation",
-                            getIdAttribute(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE));
+                "Documentation",
+                getIdAttribute(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE));
             attrs.remove(IdentityNamespace.CAPABILITY_DOCUMENTATION_ATTRIBUTE);
 
             Util.toHTMLtr_2(sb,
-                            "License",
-                            getIdAttribute(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE));
+                "License",
+                getIdAttribute(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE));
             attrs.remove(IdentityNamespace.CAPABILITY_LICENSE_ATTRIBUTE);
 
             // Any other attribute
@@ -804,7 +806,7 @@ public class RepositoryDisplayer
     // value of the mandatory attribute osgi.content in the osgi.content
     // name-space.
     Map<String, RepositoryNode> locationMap =
-      new HashMap<String, RepositoryNode>();
+        new HashMap<String, RepositoryNode>();
 
     public JRepositoryAdmin()
     {
@@ -822,15 +824,15 @@ public class RepositoryDisplayer
 
         @Override
         public Component getTreeCellRendererComponent(JTree tree,
-                                                      Object value,
-                                                      boolean sel,
-                                                      boolean expanded,
-                                                      boolean leaf,
-                                                      int row,
-                                                      boolean hasFocus)
+            Object value,
+            boolean sel,
+            boolean expanded,
+            boolean leaf,
+            int row,
+            boolean hasFocus)
         {
           super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf,
-                                             row, hasFocus);
+              row, hasFocus);
 
           final TreePath tp = tree.getPathForRow(row);
 
@@ -842,8 +844,8 @@ public class RepositoryDisplayer
 
               final URL url = Util.getResourceUrl(repoNode.resource);
               tt =
-                repoNode.bBusy ? "busy..." : (url == null ? "?" : url
-                    .toString());
+                  repoNode.bBusy ? "busy..." : (url == null ? "?" : url
+                      .toString());
 
               final Bundle bundle = repoNode.getBundle();
               if (repoNode.bBusy) {
@@ -926,22 +928,22 @@ public class RepositoryDisplayer
               Util.openExternalURL(url);
             } catch (final Exception e) {
               Activator.log.warn("Failed to open external url=" + url
-                                 + " reason: " + e);
+                  + " reason: " + e);
             }
           }
         }
       });
 
       htmlScroll =
-        new JScrollPane(html, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+          new JScrollPane(html, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+              ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
       htmlScroll.setPreferredSize(new Dimension(300, 300));
 
       final JScrollPane treeScroll =
-        new JScrollPane(resourceTree,
-                        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+          new JScrollPane(resourceTree,
+              ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+              ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
       treeScroll.setPreferredSize(new Dimension(200, 300));
 
@@ -1022,7 +1024,7 @@ public class RepositoryDisplayer
       contextPopupMenu.add(item);
 
       item =
-        new JMenuItem(installButton.getToolTipText(), installButton.getIcon());
+          new JMenuItem(installButton.getToolTipText(), installButton.getIcon());
       item.addActionListener(installAction);
       contextPopupMenu.add(item);
 
@@ -1046,7 +1048,7 @@ public class RepositoryDisplayer
           if (contextPopupMenu != null
               && (e.isPopupTrigger() || ((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0))) {
             final TreePath tp =
-              resourceTree.getPathForLocation(e.getX(), e.getY());
+                resourceTree.getPathForLocation(e.getX(), e.getY());
             if (tp != null) {
               final TreeNode node = (TreeNode) tp.getLastPathComponent();
               if (node instanceof RepositoryNode) {
@@ -1062,7 +1064,7 @@ public class RepositoryDisplayer
       });
 
       final JSplitPane panel =
-        new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, resourcePanel);
+          new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, resourcePanel);
 
       panel.setDividerLocation(200);
 
@@ -1236,16 +1238,16 @@ public class RepositoryDisplayer
         final String[] options = new String[] { "Update", "Cancel" };
 
         final String msg =
-          "The selected resource is already installed.\n"
-              + "It can be updated from the repository.";
+            "The selected resource is already installed.\n"
+                + "It can be updated from the repository.";
 
         final int n =
-          JOptionPane.showOptionDialog(resourceTree,
-                                       msg,
-                                       "Bundle is installed", // title
-                                       JOptionPane.YES_NO_CANCEL_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE, null, // icon
-                                       options, options[0]);
+            JOptionPane.showOptionDialog(resourceTree,
+                msg,
+                "Bundle is installed", // title
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE, null, // icon
+                options, options[0]);
 
         if (n == 0) { // Update
           InputStream in = null;
@@ -1253,7 +1255,7 @@ public class RepositoryDisplayer
             in = ((RepositoryContent) node.getResource()).getContent();
             node.getBundle().update(in);
             node.appendLog("Updated from "
-                           + Util.getLocation(node.getResource()) + "\n");
+                + Util.getLocation(node.getResource()) + "\n");
           } catch (final Exception e) {
             node.appendLog("Update failed: " + e + "\n");
           } finally {
@@ -1269,34 +1271,36 @@ public class RepositoryDisplayer
       // Install the bundle from the repository resource
 
       String message = "";
-      InputStream in  = null;
       try {
-        // TODO: Use resolver service to find and install other bundles that are
-        // needed to resolve and start the selected bundle.
-        final String location = Util.getLocation(resource);
-        if (location == null) {
-          throw new Exception("No location found for resource: " +resource);
-        }
-        Bundle bundle = null;
-        if (location.startsWith("file:")) {
-          bundle = bc.installBundle(location);
-        } else {
-          in = ((RepositoryContent) node.getResource()).getContent();
-          bundle = bc.installBundle(location, in);
-        }
-        node.setInstalled(bundle);
-        message +=
-          "Installed #" + bundle.getBundleId() + " from " + location + ".\n";
+        boolean bResolve = false;
 
-        if (bStart) {
-          try {
-            bundle.start();
-            message += "Started #" + bundle.getBundleId() + ".\n";
-          } catch (final Exception es) {
-            message += "Start failed: " + es.getMessage() + ".\n";
-            Activator.log.error(message, es);
-          }
+        // If we detect a Resolver we offer to resolve and install dependencies.
+        if(repoManagerTracker.getService().resolverAvailable()) {
+          final String[] options = new String[] { "Yes", "No" };
+
+          final String msg =
+              "Do you want to resolve the selected resource\n"
+                  + "and install its required dependencies?";
+
+          final int n =
+              JOptionPane.showOptionDialog(resourceTree,
+                  msg,
+                  "Resolve the selected resource?", // title
+                  JOptionPane.YES_NO_CANCEL_OPTION,
+                  JOptionPane.QUESTION_MESSAGE, null, // icon
+                  options, options[0]);
+          bResolve = n == 0;
         }
+        InstallationResult ir = 
+            repoManagerTracker.getService().install(Collections.singletonList(resource), bResolve, bStart);
+
+        node.setInstalled(getBundle(resource));
+
+        for(String m : ir.userFeedback) {
+          message += m + "\n";
+        }
+
+
         final boolean bOK = true; // resolve and install went OK.
         if (bOK) {
           if (sortCategory == SORT_STATUS) {
@@ -1307,12 +1311,6 @@ public class RepositoryDisplayer
         message += "Installation failed: " + ei.getMessage();
         Activator.log.error(message, ei);
       } finally {
-        if (in != null) {
-          try {
-            in.close();
-          } catch (final IOException e) {
-          }
-        }
         node.appendLog(message);
       }
 
@@ -1339,24 +1337,24 @@ public class RepositoryDisplayer
 
             // String (category) -> Set (Resource)
             final Map<String, Set<Resource>> categories =
-              new TreeMap<String, Set<Resource>>(new Comparator<String>() {
-                @Override
-                public int compare(String s1, String s2)
-                {
-                  return s1.compareToIgnoreCase(s2);
-                }
-              });
+                new TreeMap<String, Set<Resource>>(new Comparator<String>() {
+                  @Override
+                  public int compare(String s1, String s2)
+                  {
+                    return s1.compareToIgnoreCase(s2);
+                  }
+                });
 
             // move all resource into a sorted
             // category map of sets
             // First find all downloadable resources in all repos.
             final Set<Resource> resources = new HashSet<Resource>();
             final Requirement downloadableReq =
-              new DownloadableBundleRequirement();
+                new DownloadableBundleRequirement();
             final RepositoryManager repoMgr = repoManagerTracker.getService();
             if (repoMgr != null) {
               final List<Capability> capabilities =
-                repoManagerTracker.getService().findProviders(downloadableReq);
+                  repoManagerTracker.getService().findProviders(downloadableReq);
               for (final Capability capability : capabilities) {
                 resources.add(capability.getResource());
               }
@@ -1377,7 +1375,7 @@ public class RepositoryDisplayer
                 .entrySet()) {
               final String category = entry.getKey();
               final DefaultMutableTreeNode categoryNode =
-                new CategoryNode(category);
+                  new CategoryNode(category);
 
               for (final Resource resource : entry.getValue()) {
                 final RepositoryNode resourceNode =
@@ -1421,25 +1419,25 @@ public class RepositoryDisplayer
           final TreeModel treeModel = resourceTree.getModel();
 
           final RepositoryNode bundleNode =
-            selectedBundle != null ? getRepositoryNode(selectedBundle) : null;
+              selectedBundle != null ? getRepositoryNode(selectedBundle) : null;
 
-          TreePath tp = null;
-          if (bundleNode != null) {
-            if (bundleNode != selectedRepositoryNode) {
-              tp = new TreePath(bundleNode.getPath());
-            }
-          } else {
-            // No node for the selected bundle, select the root node.
-            tp =
-              new TreePath(((DefaultMutableTreeNode) treeModel.getRoot())
-                  .getPath());
-          }
+              TreePath tp = null;
+              if (bundleNode != null) {
+                if (bundleNode != selectedRepositoryNode) {
+                  tp = new TreePath(bundleNode.getPath());
+                }
+              } else {
+                // No node for the selected bundle, select the root node.
+                tp =
+                    new TreePath(((DefaultMutableTreeNode) treeModel.getRoot())
+                        .getPath());
+              }
 
-          if (tp != null) {
-            resourceTree.expandPath(tp);
-            resourceTree.setSelectionPath(tp);
-            resourceTree.scrollPathToVisible(tp);
-          }
+              if (tp != null) {
+                resourceTree.expandPath(tp);
+                resourceTree.setSelectionPath(tp);
+                resourceTree.scrollPathToVisible(tp);
+              }
         }
       });
     }
@@ -1493,10 +1491,10 @@ public class RepositoryDisplayer
           public void run()
           {
             resourceTree
-                .setModel(new DefaultTreeModel(
-                                               new TopNode(
-                                                           s,
-                                                           JRepositoryAdmin.this)));
+            .setModel(new DefaultTreeModel(
+                new TopNode(
+                    s,
+                    JRepositoryAdmin.this)));
           }
         });
       } catch (final Exception e) {
@@ -1520,40 +1518,40 @@ public class RepositoryDisplayer
         // The longest item in column 1 and 2 is the title...
         tcm.getColumn(1).setMinWidth(2 * 12);
         tcm.getColumn(1).setMaxWidth(RepositoriesTableModel.COLUMN_NAMES[1]
-                                         .length() * 12);
+            .length() * 12);
         tcm.getColumn(2).setMinWidth(2 * 12);
         tcm.getColumn(2).setMaxWidth(RepositoriesTableModel.COLUMN_NAMES[2]
-                                         .length() * 12);
+            .length() * 12);
         final JScrollPane scroll =
-          new JScrollPane(table,
-                          ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            new JScrollPane(table,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         scroll.setPreferredSize(new Dimension(700, 200));
 
         panel.add(scroll, BorderLayout.CENTER);
         final String[] options = new String[] { "Cancel", "Add...", "Apply" };
         final int option =
-          JOptionPane.showOptionDialog(this, panel, "Configure Repositories",
-                                       JOptionPane.YES_NO_CANCEL_OPTION,
-                                       JOptionPane.QUESTION_MESSAGE, null,
-                                       options, options[2]);
+            JOptionPane.showOptionDialog(this, panel, "Configure Repositories",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE, null,
+                options, options[2]);
 
         if (option == 1) {
           // Add new XML repository; ask for the URL.
           final Object urlString =
-            JOptionPane.showInputDialog(this, "URL to the XML-file",
-                                        "Add XML-based Repository",
-                                        JOptionPane.PLAIN_MESSAGE, null, null,
-                                        null);
+              JOptionPane.showInputDialog(this, "URL to the XML-file",
+                  "Add XML-based Repository",
+                  JOptionPane.PLAIN_MESSAGE, null, null,
+                  null);
           if (urlString != null) {
             try {
               repoMgr.addXmlRepository((String) urlString, null);
               // The service modified event for the repMgr will trigger refresh.
             } catch (final Exception e) {
               JOptionPane.showMessageDialog(this,
-                                            "Failed to create XML repository for URL: '"
-                                                + urlString + "': " + e);
+                  "Failed to create XML repository for URL: '"
+                      + urlString + "': " + e);
             }
           }
         } else if (option == 2) {
@@ -1693,7 +1691,7 @@ public class RepositoryDisplayer
     // final String urlPrefix = "bundle://" + bc.getBundle().getBundleId();
 
     sb.append("<p>" + "Select a bundle from the bundle repository list, then "
-              + "select the install or start icons." + "</p>");
+        + "select the install or start icons." + "</p>");
 
     /*
      * sb.append("<p>" + "<img src=\"" + urlPrefix + "/player_play.png\">" +
@@ -1726,7 +1724,7 @@ public class RepositoryDisplayer
    * </p>
    */
   class ResourceComparator
-    implements Comparator<Resource>
+  implements Comparator<Resource>
   {
     @Override
     public int compare(Resource r1, Resource r2)
