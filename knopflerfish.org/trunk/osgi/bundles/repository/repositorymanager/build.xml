@@ -12,11 +12,40 @@
 
   <property name="api.pattern" value="org/knopflerfish/service/repositorymanager/**"/> 
   <property name="impl.pattern" value="org/knopflerfish/bundle/repositorymanager/**"/> 
+  <property name="all-api.pattern"
+            value="org/knopflerfish/service/repositorymanager/**,
+                   org/osgi/service/**"/> 
 
+  <target name="bundle.custom.pre">
+
+    <!-- Embedd APIs for OSGi services that the Repository Manager depends on -->
+    <bundle_locator bundleNames="repository_api,
+                                 resolver_api">
+      <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
+        <include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.repository_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.resolver_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+  </target>
+  
   <path id="bundle.compile.path">
-   <pathelement location="repository_api-N.N.N.jar"/>
    <pathelement location="repository_xml_api-N.N.N.jar"/>
-   <pathelement location="resolver_api-N.N.N.jar"/>
   </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>

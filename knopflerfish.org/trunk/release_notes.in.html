@@ -73,21 +73,37 @@
   <div class="note_group">
     <div class="note_name">Repository Manager 1.1.0</div>
     <div class="note_item">
-    Added support for Resolver services and added RepositoryManager.findResolution method.
+    Added support for Resolver service when available. Added findResolution,
+    install, and resolverAvailable methods to RepositoryManager interface.
     </div>
   </div>
   
   <div class="note_group">
     <div class="note_name">Repository Commands 1.1.0</div>
     <div class="note_item">
-    Added [-r] flag to install command that tries to automatically find and install dependencies along with the specified bundle.
+    Added [-r] flag to install command that tries to automatically find and
+    install dependencies along with the specified bundle by using new
+    methods in Repository Manager.
     </div>
   </div>
 
+   <div class="note_group">
+    <div class="note_name">Repository Desktop 1.1.0</div>
+    <div class="note_item">
+    Added support for new methods in Repository Manager to use a Resolver
+    service when available.
+    </div>
+  </div>
+  
 </div>
 
 
 <h2 class="filled">Misc, start scripts, build system etc </h2>
 <div class="release_notes">
-
+   <div class="note_group">
+    <div class="note_name">init.xargs</div>
+    <div class="note_item">Added commented out line to install Resolver
+    reference implementation.
+    </div>
+  </div>
 </div>

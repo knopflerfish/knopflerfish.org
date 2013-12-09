@@ -64,7 +64,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 
 public class RepositoryManagerImpl
-  implements RepositoryManager, RepositoryListener
+implements RepositoryManager, RepositoryListener
 {
 
   final private Repositories repos;
@@ -79,7 +79,7 @@ public class RepositoryManagerImpl
     autoEnable = true;
     repos.addListener(this);
     resolverTracker = new ServiceTracker<Resolver, Resolver>(bc,
-    		Resolver.class.getName(), null);
+        Resolver.class.getName(), null);
     resolverTracker.open();
   }
 
@@ -197,16 +197,91 @@ public class RepositoryManagerImpl
     }
   }
 
-@Override
-public Set<Resource> findResolution(List<Resource> resources) throws Exception {
-	Resolver resolver = resolverTracker.getService();
-	if(resolver == null) {
-		throw new Exception("Unable to find resolution: No Resolver service available!");
-	}
-	
-    ResolveContextImpl rc = new ResolveContextImpl(bc, resources, new ArrayList<Resource>());
+  @Override
+  public Set<Resource> findResolution(List<Resource> resources)
+      throws Exception {
+    Resolver resolver = resolverTracker.getService();
+    if (resolver == null) {
+      throw new Exception(
+          "Unable to find resolution: No Resolver service available!");
+    }
+
+    ResolveContextImpl rc = new ResolveContextImpl(bc, resources,
+        new ArrayList<Resource>());
     Map<Resource, List<Wire>> resolution = resolver.resolve(rc);
     return resolution.keySet();
-}
+  }
 
+  @Override
+  public InstallationResult install(List<Resource> requestedResources,
+      boolean resolve, boolean start) throws Exception {
+    InstallationResult installationResult = new InstallationResult();
+
+    if(resolve) {
+      Set<Resource> resolvedResources = findResolution(requestedResources);
+      installationResult.resources.addAll(resolvedResources);
+    } else {
+      installationResult.resources.addAll(requestedResources);
+    }
+
+    ArrayList<Bundle> installedBundles = new ArrayList<Bundle>();
+
+    // First install the dependencies
+    for (Resource r : installationResult.resources) {
+      // Skip the requested resources for now
+      if (requestedResources.contains(r)) {
+        continue;
+      }
+      String bundleLocation = null;
+      Bundle currentBundle = null;
+      try {
+        bundleLocation = (String) r
+            .getCapabilities(ContentNamespace.CONTENT_NAMESPACE)
+            .get(0).getAttributes()
+            .get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
+        currentBundle = bc.installBundle(bundleLocation);
+      } catch (Exception be) {
+        installationResult.userFeedback
+        .add("Failed to install dependency: "
+            + bundleLocation);
+        return installationResult;
+      }
+      installationResult.userFeedback.add("Installed dependency: "
+          + bundleLocation);
+      installedBundles.add(currentBundle);
+    }
+    // Now install the requested resources
+    for (Resource r : requestedResources) {
+      String bundleLocation = null;
+      Bundle currentBundle = null;
+      try {
+        bundleLocation = (String) r
+            .getCapabilities(ContentNamespace.CONTENT_NAMESPACE)
+            .get(0).getAttributes()
+            .get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE);
+        currentBundle = bc.installBundle(bundleLocation);
+      } catch (Exception be) {
+        installationResult.userFeedback.add("Failed to install: "
+            + bundleLocation);
+        return installationResult;
+      }
+      installationResult.userFeedback.add("Installed: "
+          + bundleLocation);
+      installedBundles.add(currentBundle);
+    }
+
+    if (start) {
+      for (Bundle ib : installedBundles) {
+        ib.start(Bundle.START_ACTIVATION_POLICY);
+        installationResult.userFeedback.add("Started: "
+            + ib.getSymbolicName());
+      }
+    }
+    return installationResult;
+  }
+
+  @Override
+  public boolean resolverAvailable() {
+    return !resolverTracker.isEmpty();
+  }
 }
