@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Repository-Manager
 Bundle-SymbolicName: org.knopflerfish.bundle.repositorymanager
-Bundle-Version: 1.1.0
+Bundle-Version: 1.2.0
 Bundle-Activator: org.knopflerfish.bundle.repositorymanager.Activator
 Bundle-Description: Repository Manager
 Bundle-Vendor: Knopflerfish

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Repository-Commands
 Bundle-SymbolicName: org.knopflerfish.bundle.repositorycommands
-Bundle-Version: 1.1.0
+Bundle-Version: 1.1.1
 Bundle-Activator: org.knopflerfish.bundle.repositorycommands.Activator
 Bundle-Description: Repository commands
 Bundle-Vendor: Knopflerfish
