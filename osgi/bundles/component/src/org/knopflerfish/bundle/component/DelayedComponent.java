@@ -56,12 +56,8 @@ class DelayedComponent extends Component {
    *
    */
   @Override
-  void subclassSatisfied() {
-    Activator.logInfo(bc, "Satisfied: " + toString());
-    final ComponentConfiguration [] ccs = newComponentConfiguration();
-    for (final ComponentConfiguration cc : ccs) {
-      cc.registerService();
-    }
+  void activateComponentConfiguration(ComponentConfiguration cc) {
+    cc.registerService();
   }
 
 }

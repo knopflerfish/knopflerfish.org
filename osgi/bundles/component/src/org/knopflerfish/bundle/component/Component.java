@@ -60,7 +60,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
   final private static int STATE_DISABLING = 3;
   final private static int STATE_ENABLED = 4;
   final private static int STATE_ENABLING = 5;
-  final private static int STATE_SATISFIED = 6;
+  final protected static int STATE_SATISFIED = 6;
 
   final static int KF_DEACTIVATION_REASON_BASE = 100;
   final static int KF_DEACTIVATION_REASON_ACTIVATION_FAILED = KF_DEACTIVATION_REASON_BASE + 1;
@@ -83,7 +83,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
   ComponentMethod activateMethod;
   ComponentMethod deactivateMethod;
   ComponentMethod modifiedMethod = null;
-  private transient int state = 0;
+  protected transient int state = 0;
   private volatile Class<?> componentClass = null;
   private Reference [] refs = null;
   private final Object lock = new Object();
@@ -369,15 +369,16 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * Component is satisfied. Create ComponentConfiguration and
    * register service depending on component type.
    */
-  void satisfied()
-  {
+  void satisfied() {
+    Activator.logInfo(bc, "Satisfied: " + toString());
     state = STATE_SATISFIED;
-    subclassSatisfied();
-
+    ComponentConfiguration [] cc = newComponentConfigurations();
+    for (int i = 0; i < cc.length; i++) {
+      activateComponentConfiguration(cc[i]);
+    }
   }
 
-  abstract void subclassSatisfied();
-
+  abstract void activateComponentConfiguration(ComponentConfiguration cc);
 
   /**
    * Component is unsatisfied dispose of all ComponentConfiguration
@@ -517,7 +518,6 @@ public abstract class Component implements org.apache.felix.scr.Component {
       if (refs != null) {
         for (final Reference ref : refs) {
           // TODO do we need to move this outside synchronized
-          // Not FactoryComponent so only one compConfig.
           ref.update(c, first);
         }
       }
@@ -537,7 +537,10 @@ public abstract class Component implements org.apache.felix.scr.Component {
       resolvedConstraint();
     } else if (unresolvedConstraints == 0) {
       // New factory pid
-      satisfied();
+      ComponentConfiguration ncc = newComponentConfiguration(pid, null);
+      if (ncc != null) {
+        activateComponentConfiguration(ncc);
+      }
     }
   }
 
@@ -620,17 +623,15 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * there should be only one.
    *
    */
-  ComponentConfiguration [] newComponentConfiguration() {
+  ComponentConfiguration [] newComponentConfigurations() {
     final ArrayList<ComponentConfiguration> res = new ArrayList<ComponentConfiguration>();
     if (cmDicts != null && !cmDicts.isEmpty()) {
       final String [] pids = cmDicts.keySet().toArray(new String [cmDicts.size()]);
       for (final String pid : pids) {
         if (compConfigs.get(pid) == null) {
-          res.add(newComponentConfiguration(pid, null));
-          if (refs != null) {
-            for (final Reference ref : refs) {
-              ref.updateNoPid(pid);
-            }
+          ComponentConfiguration cc = newComponentConfiguration(pid, null);
+          if (cc != null) {
+            res.add(cc);
           }
         }
       }
@@ -647,8 +648,15 @@ public abstract class Component implements org.apache.felix.scr.Component {
   ComponentConfiguration newComponentConfiguration(String cmPid,
                                                    Dictionary<String, Object> instanceProps)
   {
-    final Dictionary<String, Object> cmDict = cmDicts != null ? cmDicts
-        .get(cmPid) : null;
+    final Dictionary<String, Object> cmDict = cmDicts != null ? cmDicts.get(cmPid) : null;
+    if (refs != null && !cmPid.equals(NO_PID) && instanceProps == null) {
+      for (final Reference ref : refs) {
+        ref.updateNoPid(cmPid);
+        if (!ref.isOptional() && !ref.getListener(cmPid).isAvailable()) {
+          return null;
+        }
+      }
+    }
     final ComponentConfiguration cc = new ComponentConfiguration(this, cmPid,
                                                                  cmDict, instanceProps);
     synchronized (compConfigs) {

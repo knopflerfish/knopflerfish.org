@@ -33,6 +33,7 @@
     <pathelement location="${resources.dir}/componentU_test-1.0.0.jar"/>
     <pathelement location="${resources.dir}/componentF_test-1.0.0.jar"/>
     <pathelement location="${resources.dir}/componentC_test-1.0.0.jar"/>
+    <pathelement location="${resources.dir}/componentM_test-1.0.0.jar"/>
   </path>
 
   <target name="bundle.custom.pre">
@@ -45,6 +46,7 @@
     <antcall target="componentU_test"/>
     <antcall target="componentF_test"/>
     <antcall target="componentC_test"/>
+    <antcall target="componentM_test"/>
   </target>
 
   <target name="component-api_test">
@@ -103,6 +105,13 @@
       <property name="outdir"  location="${ttb.outdir}/componentC_test"/>
     </ant>
   </target>
+	  <target name="componentM_test">
+	    <ant dir="test_target_bundles/componentM_test" target="all"
+		 inheritAll="false">
+	      <property name="jardir"  location="${resources.dir}"/>
+	      <property name="outdir"  location="${ttb.outdir}/componentM_test"/>
+	    </ant>
+	  </target>
 
   <import file="${ant.dir}/bundlebuild.xml"/>
 

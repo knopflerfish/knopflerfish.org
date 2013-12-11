@@ -52,6 +52,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.Configuration;
@@ -89,6 +90,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new Test9());
     addTest(new Test10());
     addTest(new Test11());
+    addTest(new Test12());
+    addTest(new Test13());
   }
 
   public void bump(int count) {
@@ -1285,6 +1288,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       try {
         b1 = Util.installBundle(bc, "componentC_test-1.0.0.jar");
         b1.start();
+        final String b1loc = b1.getLocation();
 
         cmt = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class.getName(), null);
         cmt.open();
@@ -1305,7 +1309,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         StringBuffer targetedPid = new StringBuffer("componentC_test.factory");
         ConfigurationAdmin ca = cmt.getService();
-        Configuration c = ca.getConfiguration(targetedPid.toString(), "?");
+        Configuration c = ca.getConfiguration(targetedPid.toString(), b1loc);
         Dictionary<String, Object> props = new Hashtable<String, Object>();
         props.put("base", new Integer(1));
         c.update(props);
@@ -1340,7 +1344,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         String bsnPid  = targetedPid.append('|').append(b1.getSymbolicName()).toString();
         targetedPid.append('|').append(b1.getVersion().toString());
         targetedPid.append('|').append(b1.getLocation().toString());
-        Configuration c2 = ca.getConfiguration(targetedPid.toString(), "?");
+        Configuration c2 = ca.getConfiguration(targetedPid.toString(), b1loc);
         props.put("base", new Integer(2));
         c2.update(props);
 
@@ -1350,7 +1354,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertEquals(new Integer(2), x.getProp("base"));
         assertEquals("first", x.getProp("iprop"));
 
-        Configuration c3 = ca.getConfiguration(bsnPid, "?");
+        Configuration c3 = ca.getConfiguration(bsnPid, b1loc);
         props.put("base", new Integer(4));
         c3.update(props);
 
@@ -1387,7 +1391,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentZ");
         assertNull("Should not get serviceRef Z", ref);
 
-        c = ca.getConfiguration("c|test", "?");
+        c = ca.getConfiguration("c|test", b1loc);
         props = new Hashtable<String, Object>();
         props.put("factory", "no");
         c.update(props);
@@ -1410,7 +1414,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         
         targetedPid.setLength(0);
         targetedPid.append("c|test");
-        c = ca.createFactoryConfiguration(targetedPid.toString(), "?");
+        c = ca.createFactoryConfiguration(targetedPid.toString(), b1loc);
         props.put("factory", "first");
         c.update(props);
 
@@ -1423,7 +1427,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertEquals("first", y.getProp("factory"));
 
         targetedPid.append('|').append(b1.getSymbolicName());
-        c2 = ca.createFactoryConfiguration(targetedPid.toString(), "?");
+        c2 = ca.createFactoryConfiguration(targetedPid.toString(), b1loc);
         props.put("factory", "second");
         c2.update(props);
 
@@ -1443,7 +1447,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertEquals("second", y2.getProp("factory"));
 
         targetedPid.append('|').append(b1.getVersion());
-        c3 = ca.createFactoryConfiguration(targetedPid.toString(), "?");
+        c3 = ca.createFactoryConfiguration(targetedPid.toString(), b1loc);
         props.put("factory", "third");
         c3.update(props);
 
@@ -1462,7 +1466,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertEquals(targetedPid.toString(), y3.getProp(ConfigurationAdmin.SERVICE_FACTORYPID));
         assertEquals("third", y3.getProp("factory"));
 
-        Configuration c4 = ca.createFactoryConfiguration("c|test", "?");
+        Configuration c4 = ca.createFactoryConfiguration("c|test", b1loc);
         props.put("factory", "fourth");
         c4.update(props);
 
@@ -1508,14 +1512,15 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       } finally {
         if (b1 != null) {
           try {
+            if (cmt != null) {
+              deleteConfig(cmt.getService(), b1.getLocation());
+              cmt.close();
+            }
             b1.uninstall();
           } catch (Exception be) {
             be.printStackTrace();
             fail("Test10: got uninstall exception " + be);
           }
-        }
-        if (cmt != null) {
-          cmt.close();
         }
       }
     }
@@ -1534,6 +1539,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       try {
         b1 = Util.installBundle(bc, "componentC_test-1.0.0.jar");
         b1.start();
+        final String b1loc = b1.getLocation();
 
         cmt = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class.getName(), null);
         cmt.open();
@@ -1544,7 +1550,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertNull("Should not get serviceRef U", ref);
 
         ConfigurationAdmin ca = cmt.getService();
-        Configuration c = ca.createFactoryConfiguration("componentC_test.U", "?");
+        Configuration c = ca.createFactoryConfiguration("componentC_test.U", b1loc);
 
         Dictionary<String, Object> props = new Hashtable<String, Object>();
         props.put("vRef.target", "(vnum=v0)");
@@ -1563,7 +1569,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         ServiceReference<?> [] refs = bc.getServiceReferences("org.knopflerfish.service.componentC_test.ComponentU", null);
         assertTrue("Should get one serviceRef to ComponentU", refs != null && refs.length == 1);
 
-        Configuration c2 = ca.createFactoryConfiguration("componentC_test.U", "?");
+        Configuration c2 = ca.createFactoryConfiguration("componentC_test.U", b1loc);
         props = new Hashtable<String, Object>();
         props.put("vRef.target", "(vnum=v2)");
         c2.update(props);
@@ -1591,17 +1597,311 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       } finally {
         if (b1 != null) {
           try {
+            if (cmt != null) {
+              deleteConfig(cmt.getService(), b1.getLocation());
+              cmt.close();
+            }
             b1.uninstall();
           } catch (Exception be) {
             be.printStackTrace();
             fail("Test11: got uninstall exception " + be);
           }
         }
-        if (cmt != null) {
-          cmt.close();
+      }
+    }
+  }
+
+  private class Test12 extends FWTestCase  {
+
+    /**
+     * Test that SCR handles factory CM pids with target filters.
+     * 
+     */
+
+    public void runTest() {
+      Bundle b1 = null;
+      ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> cmt = null;
+      try {
+        b1 = Util.installBundle(bc, "componentM_test-1.0.0.jar");
+        b1.start();
+        final String b1loc = b1.getLocation();
+
+        cmt = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class.getName(), null);
+        cmt.open();
+        
+        Thread.sleep(SLEEP_TIME);
+
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentM_test.ComponentA");
+        assertNull("Should not get serviceRef A", ref);
+
+        ConfigurationAdmin ca = cmt.getService();
+
+        Configuration c = ca.createFactoryConfiguration("componentM_test.A", b1loc);
+        Hashtable<String, Object> props = new Hashtable<String, Object>();
+        props.put("anum", "a0");
+        props.put("bRef.target", "(bnum=b0)");
+        c.update(props);
+        Configuration c1 = ca.createFactoryConfiguration("componentM_test.A", b1loc);
+        props.put("anum", "a1");
+        props.put("bRef.target", "(bnum=b1)");
+        c1.update(props);
+        c = ca.createFactoryConfiguration("componentM_test.A", b1loc);
+        props.put("anum", "a2");
+        props.put("bRef.target", "(bnum=b2)");
+        c.update(props);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentM_test.ComponentB");
+        assertNull("Should not get serviceRef B", ref);
+
+        props.clear();
+        c = ca.createFactoryConfiguration("componentM_test.B2", b1loc);
+        props.put("bnum", "b1");
+        props.put("cRef.target", "(cnum=c1)");
+        c.update(props);
+        c = ca.createFactoryConfiguration("componentM_test.B2", b1loc);
+        props.put("bnum", "b2");
+        props.put("cRef.target", "(cnum=c2)");
+        c.update(props);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentM_test.ComponentC");
+        assertNull("Should not get serviceRef C", ref);
+
+        props.clear();
+        c = ca.createFactoryConfiguration("componentM_test.C", b1loc);
+        props.put("cnum", "c1");
+        c.update(props);
+        c = ca.createFactoryConfiguration("componentM_test.C", b1loc);
+        props.put("cnum", "c2");
+        c.update(props);
+        Thread.sleep(SLEEP_TIME);
+
+        ServiceReference<?> [] refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentC", null);
+        assertTrue("Should get two serviceRef to ComponentC", refs != null && refs.length == 2);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentC", "(cnum=c1)");
+        assertTrue("Should get one serviceRef to ComponentC with cnum c1", refs != null && refs.length == 1);
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentC", "(cnum=c2)");
+        assertTrue("Should get one serviceRef to ComponentC with cnum c2", refs != null && refs.length == 1);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentB", null);
+        assertTrue("Should get two serviceRef to ComponentB", refs != null && refs.length == 2);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentB", "(bnum=b1)");
+        assertTrue("Should get one serviceRef to ComponentB with bnum b1", refs != null && refs.length == 1);
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentB", "(bnum=b2)");
+        assertTrue("Should get one serviceRef to ComponentB with bnum b2", refs != null && refs.length == 1);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", null);
+        assertTrue("Should get two serviceRef to ComponentA", refs != null && refs.length == 2);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", "(anum=a1)");
+        assertTrue("Should get one serviceRef to ComponentA with anum a1", refs != null && refs.length == 1);
+        org.knopflerfish.service.componentM_test.ComponentA a =
+            (org.knopflerfish.service.componentM_test.ComponentA)bc.getService(refs[0]);
+        assertEquals("Should get b1 version", "b1", a.getProp("bnum"));
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", "(anum=a2)");
+        assertTrue("Should get one serviceRef to ComponentA with anum a2", refs != null && refs.length == 1);
+        a = (org.knopflerfish.service.componentM_test.ComponentA)bc.getService(refs[0]);
+        assertEquals("Should get b2 version", "b2", a.getProp("bnum"));
+        
+        Dictionary<String, Object> d = c1.getProperties();
+        d.put("cRef.target", "(cnum=c0)");
+        c1.update(d);
+        Thread.sleep(SLEEP_TIME);
+        
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", null);
+        assertTrue("Should get one serviceRef to ComponentA", refs != null && refs.length == 1);
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", "(anum=a2)");
+        assertTrue("Should get one serviceRef to ComponentA with anum a2", refs != null && refs.length == 1);
+
+        d.put("cRef.target", "(cnum=c2)");
+        c1.update(d);
+        Thread.sleep(SLEEP_TIME);
+        
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", null);
+        assertTrue("Should get two serviceRef to ComponentA", refs != null && refs.length == 2);
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", "(anum=a1)");
+        assertTrue("Should get one serviceRef to ComponentA with anum a1", refs != null && refs.length == 1);
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", "(anum=a2)");
+        assertTrue("Should get one serviceRef to ComponentA with anum a2", refs != null && refs.length == 1);
+      } catch (Exception e) {
+        e.printStackTrace();
+        fail("Test12: got unexpected exception " + e);
+      } finally {
+        if (b1 != null) {
+          try {
+            if (cmt != null) {
+              deleteConfig(cmt.getService(), b1.getLocation());
+              cmt.close();
+            }
+            b1.uninstall();
+          } catch (Exception be) {
+            be.printStackTrace();
+            fail("Test12: got uninstall exception " + be);
+          }
         }
       }
     }
   }
 
+  private class Test13 extends FWTestCase  {
+
+    /**
+     * Test that SCR handles factory CM pids with target filters.
+     * 
+     */
+
+    public void runTest() {
+      Bundle b1 = null;
+      ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> cmt = null;
+      try {
+        b1 = Util.installBundle(bc, "componentM_test-1.0.0.jar");
+        b1.start();
+        final String b1loc = b1.getLocation();
+
+        cmt = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class.getName(), null);
+        cmt.open();
+        
+        Thread.sleep(SLEEP_TIME);
+
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentM_test.ComponentA");
+        assertNull("Should not get serviceRef A", ref);
+
+        ConfigurationAdmin ca = cmt.getService();
+
+        Configuration c = ca.createFactoryConfiguration("componentM_test.A", b1loc);
+        Hashtable<String, Object> props = new Hashtable<String, Object>();
+        props.put("anum", "a0");
+        props.put("bRef.target", "(bnum=b0)");
+        props.put("cRef.target", "(cnum=c1)");
+        c.update(props);
+        c = ca.createFactoryConfiguration("componentM_test.A", b1loc);
+        props.put("anum", "a1");
+        props.put("bRef.target", "(bnum=b1)");
+        props.put("cRef.target", "(cnum=c2)");
+        c.update(props);
+        c = ca.createFactoryConfiguration("componentM_test.A", b1loc);
+        props.put("anum", "a2");
+        props.put("bRef.target", "(bnum=b2)");
+        props.put("cRef.target", "(cnum=c0)");
+        c.update(props);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentM_test.ComponentB");
+        assertNull("Should not get serviceRef B", ref);
+
+        props.clear();
+        c = ca.createFactoryConfiguration("componentM_test.B2", b1loc);
+        props.put("bnum", "b1");
+        props.put("cRef.target", "(cnum=c1)");
+        c.update(props);
+        c = ca.createFactoryConfiguration("componentM_test.B2", b1loc);
+        props.put("bnum", "b2");
+        props.put("cRef.target", "(cnum=c2)");
+        c.update(props);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentM_test.ComponentC");
+        assertNull("Should not get serviceRef C", ref);
+
+        props.clear();
+        Configuration c1 = ca.createFactoryConfiguration("componentM_test.C", b1loc);
+        props.put("cnum", "c1");
+        c1.update(props);
+        Configuration c2 = ca.createFactoryConfiguration("componentM_test.C", b1loc);
+        props.put("cnum", "c2");
+        c2.update(props);
+
+        Thread.sleep(SLEEP_TIME);
+
+        ServiceReference<?> [] refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentC", null);
+        assertTrue("Should get two serviceRef to ComponentC", refs != null && refs.length == 2);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentC", "(cnum=c1)");
+        assertTrue("Should get one serviceRef to ComponentC with cnum c1", refs != null && refs.length == 1);
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentC", "(cnum=c2)");
+        assertTrue("Should get one serviceRef to ComponentC with cnum c2", refs != null && refs.length == 1);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentB", null);
+        assertTrue("Should get two serviceRef to ComponentB", refs != null && refs.length == 2);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentB", "(bnum=b1)");
+        assertTrue("Should get one serviceRef to ComponentB with bnum b1", refs != null && refs.length == 1);
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentB", "(bnum=b2)");
+        assertTrue("Should get one serviceRef to ComponentB with bnum b2", refs != null && refs.length == 1);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", null);
+        assertTrue("Should get one serviceRef to ComponentA", refs != null && refs.length == 1);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", "(anum=a1)");
+        assertTrue("Should get one serviceRef to ComponentA with anum a1", refs != null && refs.length == 1);
+        org.knopflerfish.service.componentM_test.ComponentA a =
+            (org.knopflerfish.service.componentM_test.ComponentA)bc.getService(refs[0]);
+        assertEquals("Should get b1 version", "b1", a.getProp("bnum"));
+
+        c = ca.createFactoryConfiguration("componentM_test.C", b1loc);
+        props.put("cnum", "c0");
+        c.update(props);
+        Thread.sleep(SLEEP_TIME);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", null);
+        assertTrue("Should get three serviceRef to ComponentA", refs != null && refs.length == 3);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", "(anum=a1)");
+        assertTrue("Should still get one serviceRef to ComponentA with anum a1", refs != null && refs.length == 1);
+        a = (org.knopflerfish.service.componentM_test.ComponentA)bc.getService(refs[0]);
+        assertEquals("Should still get b1 version", "b1", a.getProp("bnum"));
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", "(anum=a0)");
+        assertTrue("Should get one serviceRef to ComponentA with anum a0", refs != null && refs.length == 1);
+        a = (org.knopflerfish.service.componentM_test.ComponentA)bc.getService(refs[0]);
+        assertEquals("Should get b0 version", "b0", a.getProp("bnum"));
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", "(anum=a2)");
+        assertTrue("Should get one serviceRef to ComponentA with anum a2", refs != null && refs.length == 1);
+        a = (org.knopflerfish.service.componentM_test.ComponentA)bc.getService(refs[0]);
+        assertEquals("Should get b2 version", "b2", a.getProp("bnum"));
+
+        c1.delete();
+        Thread.sleep(SLEEP_TIME);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", null);
+        assertTrue("Should get one serviceRef to ComponentA", refs != null && refs.length == 1);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", "(anum=a2)");
+        assertTrue("Should still get one serviceRef to ComponentA with anum a2", refs != null && refs.length == 1);
+        a = (org.knopflerfish.service.componentM_test.ComponentA)bc.getService(refs[0]);
+        assertEquals("Should still get b2 version", "b2", a.getProp("bnum"));
+
+        c.delete();
+        Thread.sleep(SLEEP_TIME);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentM_test.ComponentA", null);
+        assertNull("Shouldn't get serviceRef to ComponentA", refs);
+     } catch (Exception e) {
+        e.printStackTrace();
+        fail("Test13: got unexpected exception " + e);
+      } finally {
+        if (b1 != null) {
+          try {
+            if (cmt != null) {
+              deleteConfig(cmt.getService(), b1.getLocation());
+              cmt.close();
+            }
+            b1.uninstall();
+          } catch (Exception be) {
+            be.printStackTrace();
+            fail("Test13: got uninstall exception " + be);
+          }
+        }
+      }
+    }
+  }
+
+  public void deleteConfig(ConfigurationAdmin ca, String location) throws IOException, InvalidSyntaxException {
+    Configuration [] cs = ca.listConfigurations("(" + ConfigurationAdmin.SERVICE_BUNDLELOCATION + "=" + location + ")");
+    if (cs != null) {
+      for (Configuration c : cs) {
+        c.delete();
+      }
+    }
+  }
 }

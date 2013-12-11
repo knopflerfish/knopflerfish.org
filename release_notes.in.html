@@ -43,6 +43,21 @@
 <div class="release_notes">
 
   <div class="note_group">
+    <div class="note_name">Repository XML 1.0.1</div>
+    <div class="note_item">
+    Fixed a bug in CapabilityImpl.
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">SCR(component) 5.0.2</div>
+    <div class="note_item">
+    Fixed a bug that caused factory components to be falsely created or
+    missed being created when we use target filters.
+    </div>
+  </div>
+  
+  <div class="note_group">
     <div class="note_name">SCR(component) 5.0.1</div>
     <div class="note_item">
     Fixed a bug that caused problems when adding a CM configuration with
@@ -50,13 +65,6 @@
     </div>
   </div>
   
-  <div class="note_group">
-    <div class="note_name">Repository XML 1.0.1</div>
-    <div class="note_item">
-    Fixed a bug in CapabilityImpl.
-    </div>
-  </div>
-
 </div>
 
 <h2 class="filled">Knopflerfish Services</h2>
@@ -67,21 +75,6 @@
     <div class="note_item">
     Added proper handling of Bundle-License according to osgi.identity
     namepsace.
-    </div>
-  </div>
-  
-  <div class="note_group">
-    <div class="note_name">Repository Manager 1.2.0</div>
-    <div class="note_item">
-    Added install and resolverAvailable methods to RepositoryManager interface.
-    Embedded Resolver and Repository APIs.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">Repository Manager 1.1.0</div>
-    <div class="note_item">
-    Added support for Resolver services and added RepositoryManager.findResolution method.
     </div>
   </div>
   
@@ -109,15 +102,32 @@
     </div>
   </div>
   
+  <div class="note_group">
+    <div class="note_name">Repository Manager 1.2.0</div>
+    <div class="note_item">
+    Added install and resolverAvailable methods to RepositoryManager interface.
+    Embedded Resolver and Repository APIs.
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">Repository Manager 1.1.0</div>
+    <div class="note_item">
+    Added support for Resolver services and added RepositoryManager.findResolution method.
+    </div>
+  </div>
+  
 </div>
 
 
 <h2 class="filled">Misc, start scripts, build system etc </h2>
 <div class="release_notes">
+
    <div class="note_group">
     <div class="note_name">init.xargs</div>
     <div class="note_item">Added commented out line to install Resolver
     reference implementation.
     </div>
   </div>
+
 </div>

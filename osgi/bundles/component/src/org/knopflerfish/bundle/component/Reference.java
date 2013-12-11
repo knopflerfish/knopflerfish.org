@@ -242,12 +242,14 @@ class Reference implements org.apache.felix.scr.Reference
     available = 0;
     numListeners = 1;
     if (config != null && config.length > 0) {
-      listener = new ReferenceListener(this, config[0]);
+      listener = new ReferenceListener(this);
+      listener.setTarget(config[0]);
       for (int i = 1; i < config.length; i++) {
         update(config[i], false);
       }
     } else {
-      listener = new ReferenceListener(this, null);
+      listener = new ReferenceListener(this);
+      listener.setTarget(null);
     }
   }
 
@@ -323,8 +325,9 @@ class Reference implements org.apache.felix.scr.Reference
         }
       }
       numListeners++;
-      rl = new ReferenceListener(this, c);
+      rl = new ReferenceListener(this);
       factoryListeners.put(pid, rl);
+      rl.setTarget(c);
     }
   }
 

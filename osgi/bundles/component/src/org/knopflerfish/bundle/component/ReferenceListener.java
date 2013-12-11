@@ -78,9 +78,8 @@ class ReferenceListener implements ServiceListener
    * with specified CM configuration.
    *
    */
-  ReferenceListener(Reference ref, Configuration config) {
+  ReferenceListener(Reference ref) {
     this.ref = ref;
-    setTarget(config);
   }
 
 
@@ -550,23 +549,31 @@ class ReferenceListener implements ServiceListener
   private void refAdded(ServiceReference<?> s)
   {
     Activator.logDebug("refAdded, " + toString() + ", " + s);
-    ArrayList<ComponentConfiguration> ccs = getComponentConfigs();
+    CompConfigs ccs = getComponentConfigs();
     if (isDynamic()) {
       if (isMultiple()) {
-        bindReference(s, ccs);
+        bindReference(s, ccs.active);
       } else {
         final ServiceReference<?> selected = getServiceReference();
         if (s == selected) {
-          bindReference(s, ccs);
+          bindReference(s, ccs.active);
         } else if (isGreedy()) {
-          bindReference(s, ccs);
-          unbindReference(selected, ccs);                
+          bindReference(s, ccs.active);
+          unbindReference(selected, ccs.active);         
         }
       }
     } else {
       if (isGreedy()) {
         if (isMultiple() || getServiceReference().compareTo(s) < 0) {
-          reactivate(ccs);
+          reactivate(ccs.active);
+        }
+      }
+    }
+    if (ref.comp.isSatisfied()) {
+      for (String pid : ccs.inactive) {
+        ComponentConfiguration cc = ref.comp.newComponentConfiguration(pid, null);
+        if (cc != null) {
+          ref.comp.activateComponentConfiguration(cc);
         }
       }
     }
@@ -579,7 +586,7 @@ class ReferenceListener implements ServiceListener
   private void refDeleted(ServiceReference<?> s)
   {
     Activator.logDebug("refDeleted, " + toString() + ", " + s);
-    ArrayList<ComponentConfiguration> ccs = getComponentConfigs();
+    ArrayList<ComponentConfiguration> ccs = getComponentConfigs().active;
     if (isDynamic()) {
       setSelected(null);
       if (isMultiple()) {
@@ -608,7 +615,7 @@ class ReferenceListener implements ServiceListener
   private void refUpdated(ServiceReference<?> s)
   {
     Activator.logDebug("refUpdated, " + toString() + ", " + s);
-    ArrayList<ComponentConfiguration> ccs = getComponentConfigs();
+    ArrayList<ComponentConfiguration> ccs = getComponentConfigs().active;
     if (isMultiple()) {
       updatedReference(s, ccs);
     } else {
@@ -678,17 +685,31 @@ class ReferenceListener implements ServiceListener
     /**
    * Call refUpdated for component configurations that has bound this reference.
    */
-  private ArrayList<ComponentConfiguration> getComponentConfigs() {
-    ArrayList<ComponentConfiguration> res = new ArrayList<ComponentConfiguration>();
+  private CompConfigs getComponentConfigs() {
+    ArrayList<ComponentConfiguration> active = new ArrayList<ComponentConfiguration>();
+    ArrayList<String> inactive = new ArrayList<String>();
     for (String pid : getPids()) {
       final ComponentConfiguration [] componentConfigurations = ref.comp.compConfigs.get(pid);
       if (componentConfigurations != null) {
         for (final ComponentConfiguration cc : componentConfigurations) {
-          res.add(cc);
+          active.add(cc);
         }
+      } else {
+        inactive.add(pid);
       }
     }
-    return res;
+    return new CompConfigs(active, inactive);
+  }
+
+  private static class CompConfigs {
+    final ArrayList<ComponentConfiguration> active;
+    final ArrayList<String> inactive;
+   
+    CompConfigs(ArrayList<ComponentConfiguration> active,
+                ArrayList<String> inactive) {
+      this.active = active;
+      this.inactive = inactive;
+    }
   }
 
 }
