@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+
+  <!-- A service publishing a component when cm config is available -->
+  <component name="componentM_test.A"
+             configuration-policy="require"
+             immediate="true"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.2.0">
+    <implementation
+       class="org.knopflerfish.bundle.componentM_test.ComponentAImpl"/>
+    <reference name="bRef"
+               interface="org.knopflerfish.service.componentM_test.ComponentB"
+               cardinality="1..1"/>
+    <reference name="cRef"
+               interface="org.knopflerfish.service.componentM_test.ComponentC"
+               cardinality="1..1"/>
+  </component>
+
+  <!-- Two immediate components that will publish V services with different properties -->
+  <component name="componentM_test.B1"
+             immediate="true"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.2.0">
+    <implementation
+       class="org.knopflerfish.bundle.componentM_test.ComponentB1Impl"/>
+    <property name="bnum" value="b0"/>
+    <reference name="cRef"
+               target="(cnum=c0)"
+               interface="org.knopflerfish.service.componentM_test.ComponentC"
+               cardinality="1..1"/>
+  </component>
+
+  <component name="componentM_test.B2"
+  	         configuration-policy="require"
+    	     immediate="true"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.2.0">
+    <implementation
+       class="org.knopflerfish.bundle.componentM_test.ComponentB2Impl"/>
+    <reference name="cRef"
+               interface="org.knopflerfish.service.componentM_test.ComponentC"
+               cardinality="1..1"/>
+  </component>
+
+  <!-- A service publishing a component when cm config is available -->
+  <component name="componentM_test.C"
+             configuration-policy="require"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.2.0">
+    <implementation
+       class="org.knopflerfish.bundle.componentM_test.ComponentCImpl"/>
+   </component>
+
+</root>

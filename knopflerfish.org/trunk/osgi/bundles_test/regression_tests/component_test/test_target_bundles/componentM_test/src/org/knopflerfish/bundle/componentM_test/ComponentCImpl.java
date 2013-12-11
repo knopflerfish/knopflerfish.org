@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,42 +31,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.knopflerfish.bundle.component;
+package org.knopflerfish.bundle.componentM_test;
 
-import org.osgi.service.component.*;
+import java.util.Dictionary;
 
+import org.knopflerfish.service.componentM_test.ComponentC;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.component.ComponentContext;
 
-class ImmediateComponent extends Component {
+public class ComponentCImpl
+  implements ComponentC
+{
+  private ServiceRegistration<ComponentC> sr;
 
-  ImmediateComponent(SCR scr, ComponentDescription cd) {
-    super(scr, cd);
+  void activate(ComponentContext cc)
+  {
+    Dictionary<String,?> d = cc.getProperties();
+    sr = cc.getBundleContext().registerService(ComponentC.class, this, d);
+    System.out.println("CImpl: activate " + d);
   }
 
-
-  public String toString() {
-    return "Immediate component: " + compDesc.getName();
+  void deactivate(ComponentContext cc)
+  {
+    sr.unregister();
+    sr = null;
+    System.out.println("CImpl: deactivate");
   }
 
-
-  /**
-   * Immediate component satisfied, create a component configuration
-   * for each CM pid available or a single component configuration
-   * if no CM data is available. Register component service if
-   * there is one and activate component configurations.
-   *
-   */
   @Override
-  void activateComponentConfiguration(ComponentConfiguration cc) {
-    cc.registerService();
-    scr.postponeCheckin();
-    try {
-      cc.activate(null, true);
-    } catch (ComponentException _ignore) {
-      // Error messages are logged by the activate method
-      cc.dispose(KF_DEACTIVATION_REASON_ACTIVATION_FAILED, true);
-    } finally {
-      scr.postponeCheckout();
-    }
+  public Object getProp(String p) {
+    return sr.getReference().getProperty(p);
   }
 
 }

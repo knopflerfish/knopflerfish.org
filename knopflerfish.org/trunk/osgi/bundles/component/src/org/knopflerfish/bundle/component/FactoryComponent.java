@@ -67,13 +67,20 @@ class FactoryComponent extends Component
    *
    */
   @Override
-  void subclassSatisfied() {
+  void satisfied() {
     Activator.logInfo(bc, "Satisfied: " + toString());
+    state = STATE_SATISFIED;
     componentFactory = new ComponentFactoryImpl(this);
     final Hashtable<String, String> p = new Hashtable<String, String>();
     p.put(ComponentConstants.COMPONENT_NAME, compDesc.getName());
     p.put(ComponentConstants.COMPONENT_FACTORY, compDesc.getFactory());
     factoryService = bc.registerService(ComponentFactory.class.getName(), componentFactory, p);
+  }
+
+
+  @Override
+  void activateComponentConfiguration(ComponentConfiguration cc) {
+    throw new IllegalStateException("Internal error! Factory component only created with newInstance");
   }
 
 
