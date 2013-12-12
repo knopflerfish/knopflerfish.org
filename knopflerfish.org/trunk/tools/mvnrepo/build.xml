@@ -116,7 +116,13 @@
 
   </target>
 
+  <target name="update_repoindex"
+          description="Updates the OSGi Repository 1.0 index.xml file for the Maven 2 repository.">
 
+    <repoindex name="Knopflerfish Repository" dir="${mvn2.repo.dir}"/>
+
+  </target>
+  
   <target name="clean"
           description="Removes all generated files">
     <delete dir="${tmp.mvn2.repo.dir}" failonerror="false"/>
