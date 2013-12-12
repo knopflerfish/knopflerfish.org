@@ -117,7 +117,7 @@
   </target>
 
   <target name="update_repoindex"
-          depends="bundle_tasks"
+          depends="bundle_tasks,install_repoindex"
           description="Updates the OSGi Repository 1.0 index.xml file for the Maven 2 repository.">
 
     <repoindex name="Knopflerfish Repository" dir="${mvn2.repo.dir}"/>
