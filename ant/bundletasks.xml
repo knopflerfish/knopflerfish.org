@@ -126,6 +126,7 @@
       <fileset id="repoindex.jars" dir="@{dir}">
         <include name="**/*.jar"/>
         <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-sources.jar"/>
         <exclude name="**/*-javadoc.jar"/>
       </fileset>
       <pathconvert refid="repoindex.jars" property="repoindex.jars.line" pathsep=" "/>
