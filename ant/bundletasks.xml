@@ -96,30 +96,30 @@
                       failOnMissingBundles="true">
         <fileset dir="${ant.dir}/lib">
           <include name="*.jar"/>
-          <exclude name="*-source.jar"/>
+          <exclude name="*-sources.jar"/>
           <exclude name="*-javadoc.jar"/>
         </fileset>
         <!-- Search the local repository first (where jars are placed) -->
         <fileset dir="${jars.dir}/repoindex_kf">
-          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-sources.jar"/>
           <exclude name="**/*-javadoc.jar"/>
           <include name="**/*.jar"/>
         </fileset>
         <!-- Search the local default repository second -->
         <fileset dir="${osgi.jars.dir}/repoindex_kf">
-          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-sources.jar"/>
           <exclude name="**/*-javadoc.jar"/>
           <include name="**/*.jar"/>
         </fileset>
         <!-- Search the default repository third -->
         <fileset dir="${osgi.dir}/jars/repoindex_kf">
-          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-sources.jar"/>
           <exclude name="**/*-javadoc.jar"/>
           <include name="**/*.jar"/>
         </fileset>
         <!-- Search the repository to index fourth -->
         <fileset dir="@{dir}">
-          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-sources.jar"/>
           <exclude name="**/*-javadoc.jar"/>
           <include name="**/*.jar"/>
         </fileset>
@@ -128,7 +128,6 @@
       <local name="repoindex.jars.line"/>
       <fileset id="repoindex.jars" dir="@{dir}">
         <include name="**/*.jar"/>
-        <exclude name="**/*-source.jar"/>
         <exclude name="**/*-sources.jar"/>
         <exclude name="**/*-javadoc.jar"/>
       </fileset>
