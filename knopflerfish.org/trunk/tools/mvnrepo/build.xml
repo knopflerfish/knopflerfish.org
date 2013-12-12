@@ -122,9 +122,9 @@
 
     <repoindex name="Knopflerfish Repository" dir="${mvn2.repo.dir}" stylesheet="mvnrepoindex2html.xsl"/>
     <copy file="../../htdocs/css/knopflerfish.css"
-          tofile="@{dir}/knopflerfish.css"/>
+          tofile="${mvn2.repo.dir}/knopflerfish.css"/>
     <copy file="../../htdocs/css/kf_man.css"
-          tofile="@{dir}/kf_man.css"/>
+          tofile="${mvn2.repo.dir}/kf_man.css"/>
 
   </target>
   
