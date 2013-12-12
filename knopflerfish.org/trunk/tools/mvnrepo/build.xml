@@ -120,7 +120,11 @@
           depends="bundle_tasks,install_repoindex"
           description="Updates the OSGi Repository 1.0 index.xml file for the Maven 2 repository.">
 
-    <repoindex name="Knopflerfish Repository" dir="${mvn2.repo.dir}"/>
+    <repoindex name="Knopflerfish Repository" dir="${mvn2.repo.dir}" stylesheet="mvnrepoindex2html.xsl"/>
+    <copy file="../../htdocs/css/knopflerfish.css"
+          tofile="@{dir}/knopflerfish.css"/>
+    <copy file="../../htdocs/css/kf_man.css"
+          tofile="@{dir}/kf_man.css"/>
 
   </target>
   
