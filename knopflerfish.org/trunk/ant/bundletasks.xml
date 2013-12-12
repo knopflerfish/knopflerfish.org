@@ -82,6 +82,9 @@
                description="The name of the repository to create."/>
     <attribute name="dir"
                description="The directory to index."/>
+    <attribute name="stylesheet"
+               default="${ant.dir}/xsl/repository2html.xsl"
+               description="Path to xsl stylesheet."/>
 
     <sequential>
       <path id="repoindex.path.pre">
@@ -140,7 +143,7 @@
         <arg line="${repoindex.jars.line}"/>
       </java>
 
-      <copy file="${ant.dir}/xsl/repository2html.xsl"
+      <copy file="@{stylesheet}"
             tofile="@{dir}/repository2html.xsl"/>
       <replace file="@{dir}/index.xml">
         <replacetoken><![CDATA[<?xml version='1.0' encoding='utf-8'?>]]></replacetoken>
