@@ -8,6 +8,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   last release.
 
 
+=== Framework (Core) ===
+
+* Framework 5.3.12
+
+  - Fixed bug that caused IndexOutOfBoundsException when updating
+    large collections of ConditionalPermissionInfos using
+    ConditionalPermissionUpdate.
+  - Added property "org.knopflerfish.framework.validator.date" to
+    framework for testing certification validation with different dates.
+
+
 === Services (Compendium) ===
 
 * SCR(component) 3.1.20

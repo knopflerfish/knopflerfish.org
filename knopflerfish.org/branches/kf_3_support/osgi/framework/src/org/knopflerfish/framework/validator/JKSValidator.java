@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010, KNOPFLERFISH project
+ * Copyright (c) 2009-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,19 +34,32 @@
 
 package org.knopflerfish.framework.validator;
 
-import org.knopflerfish.framework.Debug;
-import org.knopflerfish.framework.FrameworkContext;
-import org.knopflerfish.framework.Validator;
-import org.knopflerfish.framework.Util;
-
-import org.osgi.framework.Constants;
-
-import java.io.*;
-import java.security.cert.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.util.*;
+import java.security.cert.CertPath;
+import java.security.cert.CertPathParameters;
+import java.security.cert.CertPathValidator;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.PKIXParameters;
+import java.security.cert.TrustAnchor;
+import java.security.cert.X509Certificate;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+
+import org.knopflerfish.framework.Debug;
+import org.knopflerfish.framework.FrameworkContext;
+import org.knopflerfish.framework.Util;
+import org.knopflerfish.framework.Validator;
+import org.osgi.framework.Constants;
 
 
 /**
@@ -67,6 +80,9 @@ public class JKSValidator implements Validator {
 
   final private static String CERT_PROVIDER_PROP =
     "org.knopflerfish.framework.validator.jks.cert_provider";
+
+  final private static String CERT_DATE_PROP =
+      "org.knopflerfish.framework.validator.date";
 
 
   /**
@@ -90,6 +106,11 @@ public class JKSValidator implements Validator {
   final private KeyStore keystore;
 
   /**
+   *
+   */
+  private Date validationDate;
+
+  /**
    * NYI make it configurable
    */
   private boolean trustKeys = true;
@@ -104,8 +125,10 @@ public class JKSValidator implements Validator {
    * Create a JKS based validator.
    *
    * @param fw FrameworkContext used to get configuration properties.
+   * @throws KeyStoreException 
+   * @throws ParseException 
    */
-  public JKSValidator(FrameworkContext fw) throws KeyStoreException  
+  public JKSValidator(FrameworkContext fw) throws KeyStoreException, ParseException
   {
     debug = fw.debug;
     keystore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -131,6 +154,15 @@ public class JKSValidator implements Validator {
         loadKeyStore(caCertsFileName, fw.props.getProperty(CA_CERTS_PASSWORD_PROP));
       }
     }
+    String d = fw.props.getProperty(CERT_DATE_PROP);
+    if (d != null) {
+      validationDate = DateFormat.getDateInstance(DateFormat.SHORT).parse(d);
+      if (debug.certificates) {
+        debug.println("Set validation date to " + validationDate);
+      }
+    } else {
+      validationDate = null;
+    }
   }
 
 
@@ -149,6 +181,9 @@ public class JKSValidator implements Validator {
       CertPathParameters params = getCertPathParameters(keystore);
       cpv.validate(c, params);
     } catch (GeneralSecurityException gse) {
+      if (debug.certificates) {
+        debug.printStackTrace("Failed to validate cert", gse);
+      }
       // NYI! Log this?
       return false;
     }
@@ -179,7 +214,7 @@ public class JKSValidator implements Validator {
   private CertPathParameters getCertPathParameters(KeyStore keystore)
     throws GeneralSecurityException
   {
-    HashSet tas = new HashSet();
+    HashSet /* TrustAnchor */ tas = new HashSet();
     for (Enumeration e = keystore.aliases(); e.hasMoreElements(); ) {
       String name = (String)e.nextElement();
       Certificate c = keystore.getCertificate(name);
@@ -192,6 +227,9 @@ public class JKSValidator implements Validator {
     PKIXParameters p = new PKIXParameters(tas);
     // NYI! Handle CRLs
     p.setRevocationEnabled(false);
+    if (validationDate != null) {
+      p.setDate(validationDate);
+    }
     return p;
   }
 
