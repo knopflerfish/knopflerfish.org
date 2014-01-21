@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2011, KNOPFLERFISH project
+ * Copyright (c) 2009-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,16 @@
 
 package org.knopflerfish.framework.validator;
 
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
 import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Validator;
-import java.security.cert.*;
-import java.util.*;
 
 /**
  * Self signed certificate validator
@@ -46,25 +52,45 @@ import java.util.*;
  */
 public class SelfSignedValidator implements Validator {
 
+  final private static String CERT_DATE_PROP =
+      "org.knopflerfish.framework.validator.date";
+
+  /**
+   *
+   */
+  private Date validationDate;
+
   /**
    * Create a SelfSignedCertificate validator.
    * 
    * @param fw
    *          FrameworkContext used to get configuration properties.
+   * @throws ParseException 
    */
-  public SelfSignedValidator(FrameworkContext fw) {
+  public SelfSignedValidator(FrameworkContext fw) throws ParseException {
+    String d = fw.props.getProperty(CERT_DATE_PROP);
+    if (d != null) {
+      validationDate = DateFormat.getDateInstance(DateFormat.SHORT).parse(d);
+    } else {
+      validationDate = null;
+    }
   }
 
   /**
    * Check if a certificate chain is to be trusted. We expect the input to be a
-   * correc chain.
+   * correct chain.
    * 
    * @return true, if validator trusts certificate chain, otherwise false.
    */
-  public boolean validateCertificateChain(List /* X509Certificate */chain) {
+  public boolean validateCertificateChain(List /* X509Certificate */ chain) {
     try {
       for (Iterator i = chain.iterator(); i.hasNext();) {
-        ((X509Certificate) i.next()).checkValidity();
+        X509Certificate cert = (X509Certificate)i.next();
+        if (validationDate != null) {
+          cert.checkValidity(validationDate);
+        } else {
+          cert.checkValidity();
+        }
       }
     } catch (CertificateException _) {
       return false;

@@ -195,25 +195,28 @@ class ConditionalPermissionInfoStorage {
     if (parentGen != generation) {
       return false;
     }
-    ArrayList checkTable = new ArrayList(updatedTable);
-    HashSet /* String */ names = new HashSet();
+    final ArrayList /* ConditionalPermissionInfo */ checkTable
+      = new ArrayList(updatedTable);
+    final HashSet /* String */ names = new HashSet();
     int oi = 0;
-    ConditionalPermissionInfoImpl ocpi = (ConditionalPermissionInfoImpl)(oi < cpiTable.size() ? cpiTable.get(oi) : null);
-    int [] update = new int[cpiTable.size() + checkTable.size()];
+    ConditionalPermissionInfoImpl ocpi = oi < cpiTable.size() ?
+        (ConditionalPermissionInfoImpl)cpiTable.get(oi) : null;
+    final int [] update = new int[cpiTable.size() + checkTable.size()];
     int ui = 0;
     String uniqueNameBase = Integer.toString(generation, Character.MAX_RADIX) + "_";
+    int nextRemove = update.length;
     int i = 0;
     for ( ; i < checkTable.size(); i++) {
       ConditionalPermissionInfoImpl cpi;
       try {
         cpi = (ConditionalPermissionInfoImpl)checkTable.get(i);
-      } catch (ClassCastException _) {
+      } catch (final ClassCastException _) {
         throw new IllegalStateException("Illegal class of element in updated table, index=" + i);
       }
       if (cpi == null) {
         throw new IllegalStateException("Updated table contains null element, index=" + i);
       }
-      String name = cpi.getName();
+      final String name = cpi.getName();
       if (name != null) {
         if (!names.add(name)) {
           throw new IllegalStateException("Updated table contains elements with same name, name=" + name);
@@ -224,7 +227,7 @@ class ConditionalPermissionInfoStorage {
       }
       if (cpi == ocpi) {
         // Update doesn't differ check next
-        ocpi = (ConditionalPermissionInfoImpl)(++oi < cpiTable.size() ? cpiTable.get(oi) : null);
+        ocpi = ++oi < cpiTable.size() ? (ConditionalPermissionInfoImpl)cpiTable.get(oi) : null;
       } else {
         int removed = 0;
         for (int j = oi + 1; j < cpiTable.size(); j++) {
@@ -237,9 +240,12 @@ class ConditionalPermissionInfoStorage {
         if (removed != 0) {
           // remove intermediate objects
           while (oi++ < removed) {
+            if (nextRemove > ui) {
+              nextRemove = ui;
+            }
             update[ui++] = -i - 1;
           }
-          ocpi = (ConditionalPermissionInfoImpl)(oi < cpiTable.size() ? cpiTable.get(oi) : null);
+          ocpi = oi < cpiTable.size() ? (ConditionalPermissionInfoImpl)cpiTable.get(oi) : null;
         } else {
           // New element add it
           update[ui++] = i;
@@ -247,8 +253,13 @@ class ConditionalPermissionInfoStorage {
       }
     }
     // remove trailing objects
-    while (oi++ < cpiTable.size()) {
-      update[ui++] = -i - 1;
+    if (oi++ < cpiTable.size()) {
+      if (nextRemove > ui) {
+        nextRemove = ui;
+      }
+      do {
+        update[ui++] = -i - 1;
+      } while (oi++ < cpiTable.size());
     }
 
     // If no updates just return
@@ -256,54 +267,45 @@ class ConditionalPermissionInfoStorage {
       return true;
     }
 
-    // Perform updateds on caches and set null names
+    // Perform updates on caches and set null names
     final int NOP = Integer.MIN_VALUE;
+    int nops = 0;
     int uniqueCounter = 0;
-    int rememberLastInsert = 0;
     for (int pui = 0; pui < ui; pui++) {
       int u = update[pui];
       if (u >= 0) {
         // We have an insert, see if we find a matching remove to avoid array shuffling
-        int remove = -1;
-        int rMatch;
-        int ipui;
-        if (pui < rememberLastInsert) {
-          rMatch = u + rememberLastInsert - pui;
-          ipui = rememberLastInsert;
-        } else {
-          rMatch = u + rememberLastInsert - pui;
-          ipui = pui;
-        }
-        while (++ipui < ui) {
-          int iu = update[ipui];
-          if (iu == -rMatch) {
-            remove = u;
-            update[ipui] = NOP;
-          } else if (iu != rMatch) {
-            rememberLastInsert = iu;
-            rMatch++;
-            continue;
+        boolean remove = false;
+        if (nextRemove < ui) {
+          int rMatch = u + nextRemove - pui - nops;
+          if (update[nextRemove] + 1 == -rMatch) {
+            update[nextRemove] = NOP;
+            nops++;
+            while (++nextRemove < ui && update[nextRemove] >= 0)
+              ;
+            remove = true;
           }
-          break;
         }
-        ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl)checkTable.get(u);
+        final ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl)checkTable.get(u);
         if (cpi.getName() == null) {
           cpi.setName(uniqueNameBase + uniqueCounter++);
         }
         cpi.setPermissionInfoStorage(this);
-        if (u == remove) {
+        if (remove) {
           cpiTable.set(u, cpi);
-        } else if (remove == -1) {
-          cpiTable.add(u, cpi);
+          updateChangedConditionalPermission(cpi, u, u);
         } else {
-          // Case with different remove & insert position not used, yet
-          throw new RuntimeException("NYI");
+          cpiTable.add(u, cpi);
+          updateChangedConditionalPermission(cpi, u, -1);
         }
-        updateChangedConditionalPermission(cpi, u, remove);
       } else if (u != NOP) {
+        while (++nextRemove < ui && update[nextRemove] >= 0)
+          ;
         u = -1 - u;
         cpiTable.remove(u);
         updateChangedConditionalPermission(null, -1, u);
+      } else {
+        nops--;
       }
     }
     generation++;
