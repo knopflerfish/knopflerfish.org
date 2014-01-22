@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2013, KNOPFLERFISH project
+ * Copyright (c) 2009-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,15 @@
 
 package org.knopflerfish.framework.validator;
 
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
+
 import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Validator;
-import java.security.cert.*;
-import java.util.*;
 
 /**
  * Self signed certificate validator
@@ -46,13 +51,28 @@ import java.util.*;
  */
 public class SelfSignedValidator implements Validator {
 
+  final private static String CERT_DATE_PROP =
+      "org.knopflerfish.framework.validator.date";
+
+  /**
+   *
+   */
+  private Date validationDate;
+
   /**
    * Create a SelfSignedCertificate validator.
    * 
    * @param fw
    *          FrameworkContext used to get configuration properties.
+   * @throws ParseException 
    */
-  public SelfSignedValidator(FrameworkContext fw) {
+  public SelfSignedValidator(FrameworkContext fw) throws ParseException {
+    String d = fw.props.getProperty(CERT_DATE_PROP);
+    if (d != null) {
+      validationDate = DateFormat.getDateInstance(DateFormat.SHORT).parse(d);
+    } else {
+      validationDate = null;
+    }
   }
 
   /**
@@ -64,7 +84,11 @@ public class SelfSignedValidator implements Validator {
   public boolean validateCertificateChain(List<X509Certificate> chain) {
     try {
       for (X509Certificate cert : chain) {
-        cert.checkValidity();
+        if (validationDate != null) {
+          cert.checkValidity(validationDate);
+        } else {
+          cert.checkValidity();
+        }
       }
     } catch (CertificateException _) {
       return false;

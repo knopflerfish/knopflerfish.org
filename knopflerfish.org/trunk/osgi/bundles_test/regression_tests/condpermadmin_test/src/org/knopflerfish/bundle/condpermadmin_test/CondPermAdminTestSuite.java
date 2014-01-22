@@ -101,6 +101,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
     if (bc.getServiceReference(CPA_SERVICE_NAME) != null) {
       addTest(new Setup());
       addTest(new Condperm100a());
+      addTest(new Condperm110a());
       addTest(new Condperm200a());
       addTest(new Condperm210a());
       addTest(new Condperm220a());
@@ -289,6 +290,137 @@ public class CondPermAdminTestSuite extends TestSuite  {
         out.println("### framework test bundle :CONDPERM100A:PASS");
       } else {
         fail("### framework test bundle :CONDPERM100A:FAIL");
+      }
+    }
+  }
+
+  public final static String USAGE_CONDPERM110A = "";
+  public final static String [] HELP_CONDPERM110A =  {
+    "Tests of ConditionalPermissionAdmin.getAccessControlContext using new ConditionalPermissionUpdate",
+    "Test different patterns and combinatitions."
+  };
+
+  class Condperm110a extends FWTestCase {
+    public void runTest() throws Throwable {
+      boolean teststatus = true;
+      ConditionInfo ci1, ci2, ci3, cibl;
+      PermissionInfo pi1, pi2, pi3, pi4;
+      Permission p1, p2;
+      AccessControlContext acc;
+
+      ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, c=SE"});
+      ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, o=big, c=*"});
+      ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"cn=hello, o=SMALL, c=FR"});
+      cibl = new ConditionInfo(BUNDLE_LOCATION_CONDITION, new String[] {"http:*"});
+
+      pi1 = new PermissionInfo("java.util.PropertyPermission", "org.knopflerfish.*", "read");
+      pi2 = new PermissionInfo("java.util.PropertyPermission", "org.osgi.*", "read");
+      pi3 = new PermissionInfo("org.osgi.framework.PackagePermission", "org.osgi.framework", "import");
+      pi4 = new PermissionInfo("org.osgi.framework.PackagePermission", "org.osgi.framework", "export");
+
+      p1 = new PropertyPermission("org.knopflerfish.*", "read");
+      p2 = new PropertyPermission("org.osgi.*", "read");
+
+      ConditionalPermissionUpdate update = cpaService.newConditionalPermissionUpdate();
+      List<ConditionalPermissionInfo> cpis = update.getConditionalPermissionInfos();
+      assertEquals("Empty conditional permission list", 0, cpis.size());
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1}, new PermissionInfo[] {pi1}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci2}, new PermissionInfo[] {pi2}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3}, new PermissionInfo[] {pi3}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
+      assertTrue("First commit", update.commit());
+      acc = cpaService.getAccessControlContext(new String [] { "cn=X, o=small, c=SE" });
+      try {
+        acc.checkPermission(p1);
+      } catch (Throwable t) {
+        t.printStackTrace();
+        fail("Permission check of " + p1 + " failed, threw " + t + " :CONDPERM110A:FAIL");
+        teststatus  = false;
+      }
+      try {
+        acc.checkPermission(p2);
+        fail("Permission check of " + p2 + " passed :CONDPERM110A:FAIL");
+        teststatus  = false;
+      } catch (AccessControlException _ignore) {
+        // Expected
+      } catch (Throwable t) {
+        fail("Permission check of " + p2 + " throw "+ t + " :CONDPERM110A:FAIL");
+        teststatus  = false;
+      }
+
+      update = cpaService.newConditionalPermissionUpdate();
+      cpis = update.getConditionalPermissionInfos();
+      assertEquals("Full conditional permission list", 5, cpis.size());
+      cpis.add(0,cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1}, new PermissionInfo[] {pi1}, ConditionalPermissionInfo.ALLOW));
+      cpis.set(2, cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci2}, new PermissionInfo[] {pi2}, ConditionalPermissionInfo.ALLOW));
+//      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3}, new PermissionInfo[] {pi3}, ConditionalPermissionInfo.ALLOW));
+      cpis.set(4,cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
+//      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
+      assertTrue("Second commit", update.commit());
+      update = cpaService.newConditionalPermissionUpdate();
+      cpis = update.getConditionalPermissionInfos();
+      assertEquals("Full conditional permission list", 6, cpis.size());
+      cpis.remove(1);
+      assertTrue("Third commit", update.commit());
+      acc = cpaService.getAccessControlContext(new String [] { "cn=X, o=small, c=SE" });
+      try {
+        acc.checkPermission(p1);
+      } catch (Throwable t) {
+        t.printStackTrace();
+        fail("Permission check of " + p1 + " failed, threw " + t + " :CONDPERM110A:FAIL");
+        teststatus  = false;
+      }
+      try {
+        acc.checkPermission(p2);
+        fail("Permission check of " + p2 + " passed :CONDPERM110A:FAIL");
+        teststatus  = false;
+      } catch (AccessControlException _ignore) {
+        // Expected
+      } catch (Throwable t) {
+        fail("Permission check of " + p2 + " throw "+ t + " :CONDPERM110A:FAIL");
+        teststatus  = false;
+      }
+
+      update = cpaService.newConditionalPermissionUpdate();
+      cpis = update.getConditionalPermissionInfos();
+      assertEquals("Full conditional permission list", 5, cpis.size());
+      cpis.clear();
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1}, new PermissionInfo[] {pi1}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci2}, new PermissionInfo[] {pi2}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3}, new PermissionInfo[] {pi3}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
+      assertTrue("Fourth commit", update.commit());
+      acc = cpaService.getAccessControlContext(new String [] { "cn=X, o=small, c=SE" });
+      try {
+        acc.checkPermission(p1);
+      } catch (Throwable t) {
+        t.printStackTrace();
+        fail("Permission check of " + p1 + " failed, threw " + t + " :CONDPERM110A:FAIL");
+        teststatus  = false;
+      }
+      try {
+        acc.checkPermission(p2);
+        fail("Permission check of " + p2 + " passed :CONDPERM110A:FAIL");
+        teststatus  = false;
+      } catch (AccessControlException _ignore) {
+        // Expected
+      } catch (Throwable t) {
+        fail("Permission check of " + p2 + " throw "+ t + " :CONDPERM110A:FAIL");
+        teststatus  = false;
+      }
+
+      update = cpaService.newConditionalPermissionUpdate();
+      cpis = update.getConditionalPermissionInfos();
+      assertEquals("Full conditional permission list", 5, cpis.size());
+      cpis.clear();
+      assertTrue("Third commit", update.commit());
+
+      if (teststatus == true) {
+        out.println("### framework test bundle :CONDPERM110A:PASS");
+      } else {
+        fail("### framework test bundle :CONDPERM110A:FAIL");
       }
     }
   }
