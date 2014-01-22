@@ -1042,6 +1042,16 @@ but "-D" should also work.
     <td>JKSValidator if org.osgi.framework.trust.repositories Is set, otherwise none</td>
   </tr>
   <tr>
+    <td>org.knopflerfish.framework.validator.date</td>
+    <td>
+      Date to use when validating certificates. The date is specifed
+      in the current locales short date format. If no date is specified
+      use the current date and time.
+    </td>
+    <td>String</td>
+    <td>-</td>
+  </tr>
+  <tr>
     <td>org.knopflerfish.framework.validator.jks.ca_certs</td>
     <td>
       File name of java keystore used by JKSValidator. Used if
