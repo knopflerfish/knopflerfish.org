@@ -49,6 +49,16 @@
 <div class="release_notes">
 
   <div class="note_group">
+    <div class="note_name">HTTP-Server 4.0.3</div>
+    <div class="note_item">
+    Fixed a bug in the handling of chunked tranfer encoding in the
+    Request implementation. An extra CR-LF was incorrectly added to
+    the end of the decoded data, causing problems when transfering
+    binary data like a zip-file.
+    </div>
+  </div>
+
+  <div class="note_group">
     <div class="note_name">Repository XML 1.0.1</div>
     <div class="note_item">
     Fixed a bug in CapabilityImpl.

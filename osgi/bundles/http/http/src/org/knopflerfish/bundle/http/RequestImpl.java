@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,6 +102,7 @@ public class RequestImpl
 
   // public methods
 
+  @Override
   public StringBuffer getRequestURL()
   {
     final StringBuffer sb =
@@ -110,16 +111,19 @@ public class RequestImpl
     return sb;
   }
 
+  @Override
   public java.util.Map<String, String[]> getParameterMap()
   {
     return base.getParameters();
   }
 
+  @Override
   public String getLocalAddr()
   {
     return localAddress.getHostAddress();
   }
 
+  @Override
   public String getLocalName()
   {
     if (httpConfig.getDNSLookup()) {
@@ -136,17 +140,18 @@ public class RequestImpl
     return hostAddress;
   }
 
+  @Override
   public int getLocalPort()
   {
     return localPort;
   }
 
-  public void init(InputStream is,
-                   InetAddress localAddress,
-                   int localPort,
-                   InetAddress remoteAddress,
-                   int remotePort,
-                   HttpConfigWrapper httpConfig)
+  public void init(final InputStream is,
+                   final InetAddress localAddress,
+                   final int localPort,
+                   final InetAddress remoteAddress,
+                   final int remotePort,
+                   final HttpConfigWrapper httpConfig)
       throws HttpException, IOException
   {
     base.init(is, httpConfig);
@@ -157,7 +162,8 @@ public class RequestImpl
     this.remoteAddress = remoteAddress;
     this.remotePort = remotePort;
 
-    final boolean http_1_1 = base.getProtocol().equals(RequestBase.HTTP_1_1_PROTOCOL);
+    final boolean http_1_1 =
+      base.getProtocol().equals(RequestBase.HTTP_1_1_PROTOCOL);
 
     if (http_1_1
         && !base.getHeaders(HeaderBase.HOST_HEADER_KEY).hasMoreElements()) {
@@ -197,7 +203,8 @@ public class RequestImpl
       }
     } else {
       if (method.equals(RequestBase.POST_METHOD)) {
-        final String transfer_encoding = getHeader(HeaderBase.TRANSFER_ENCODING_KEY);
+        final String transfer_encoding =
+          getHeader(HeaderBase.TRANSFER_ENCODING_KEY);
         if (HeaderBase.TRANSFER_ENCODING_VALUE_CHUNKED
             .equals(transfer_encoding)) {
           // Handle chunked body the by reading every chunk and creating
@@ -214,7 +221,7 @@ public class RequestImpl
     handleSession();
   }
 
-  ServletInputStreamImpl readChunkedBody(ServletInputStreamImpl is)
+  ServletInputStreamImpl readChunkedBody(final ServletInputStreamImpl is)
       throws IOException, HttpException
   {
     int chunkSize = 0;
@@ -236,7 +243,12 @@ public class RequestImpl
         line = is.readLine();
         n += line.length();
         sb.append(line);
-        sb.append("\r\n");
+        if (n < chunkSize) {
+          // The chunk contained embedded CRLF that caused readLine to
+          // terminate before the end of the chunk; restore them and read on
+          sb.append("\r\n");
+          n += 2;
+        }
       }
     } while (chunkSize > 0);
 
@@ -260,7 +272,7 @@ public class RequestImpl
 
   // package methods
 
-  public void setServletPath(String servletPath)
+  public void setServletPath(final String servletPath)
   {
     this.servletPath = servletPath;
   }
@@ -284,10 +296,12 @@ public class RequestImpl
 
   // implements PoolableObject
 
+  @Override
   public void init()
   {
   }
 
+  @Override
   public void destroy()
   {
     base.destroy();
@@ -314,6 +328,7 @@ public class RequestImpl
 
   // implements Request
 
+  @Override
   public InputStream getRawInputStream()
   {
     return base.getBody();
@@ -321,6 +336,7 @@ public class RequestImpl
 
   // implements HttpServletRequest
 
+  @Override
   public String getAuthType()
   {
     final Object o = getAttribute(HttpContext.AUTHENTICATION_TYPE);
@@ -330,6 +346,7 @@ public class RequestImpl
     return null;
   }
 
+  @Override
   public String getRemoteUser()
   {
     final Object o = getAttribute(HttpContext.REMOTE_USER);
@@ -339,11 +356,13 @@ public class RequestImpl
     return null;
   }
 
+  @Override
   public String getContextPath()
   {
     return "";
   }
 
+  @Override
   public Cookie[] getCookies()
   {
     Dictionary<String, Cloneable> d;
@@ -358,48 +377,53 @@ public class RequestImpl
     return cookies;
   }
 
-  public long getDateHeader(String name)
+  @Override
+  public long getDateHeader(final String name)
   {
     final String value = base.getHeader(name);
-    if (value == null)
-     {
+    if (value == null) {
       return -1; // NYI: throw new IllegalArgumentException()???
     }
 
     return HttpUtil.parseDate(value);
   }
 
-  public String getHeader(String name)
+  @Override
+  public String getHeader(final String name)
   {
     return base.getHeader(name);
   }
 
+  @Override
   public Enumeration<String> getHeaderNames()
   {
     return base.getHeaders().keys();
   }
 
-  public Enumeration<?> getHeaders(String name)
+  @Override
+  public Enumeration<?> getHeaders(final String name)
   {
     return base.getHeaders(name);
   }
 
-  public int getIntHeader(String name)
+  @Override
+  public int getIntHeader(final String name)
   {
     final String value = base.getHeader(name);
-    if (value == null)
-     {
+    if (value == null) {
       return -1; // NYI: throw new NumberFormatException()???
     }
 
     return Integer.parseInt(value);
   }
 
+  @Override
   public String getMethod()
   {
     return base.getMethod();
   }
 
+  @Override
   public String getPathInfo()
   {
     final String decodedURI = HttpUtil.decodeURLEncoding(base.getURI());
@@ -410,37 +434,44 @@ public class RequestImpl
     return null;
   }
 
+  @Override
   public String getPathTranslated()
   {
     return getPathInfo();
   }
 
+  @Override
   public String getQueryString()
   {
     return base.getQueryString();
   }
 
+  @Override
   public String getRequestURI()
   {
     return base.getURI();
   }
 
+  @Override
   public String getRequestedSessionId()
   {
     return requestedSessionId;
   }
 
+  @Override
   public String getServletPath()
   {
     return servletPath;
   }
 
+  @Override
   public HttpSession getSession()
   {
     return getSession(true);
   }
 
-  public HttpSession getSession(boolean create)
+  @Override
+  public HttpSession getSession(final boolean create)
   {
     if (session == null) {
       session = sessionManager.getHttpSession(requestedSessionId);
@@ -452,26 +483,31 @@ public class RequestImpl
     return session;
   }
 
+  @Override
   public Principal getUserPrincipal()
   {
     return null;
   }
 
+  @Override
   public boolean isRequestedSessionIdFromCookie()
   {
     return requestedSessionIdFromCookie;
   }
 
+  @Override
   public boolean isRequestedSessionIdFromURL()
   {
     return requestedSessionIdFromURL;
   }
 
+  @Override
   public boolean isRequestedSessionIdFromUrl()
   {
     return isRequestedSessionIdFromURL(); // deprecated
   }
 
+  @Override
   public boolean isRequestedSessionIdValid()
   {
     if (requestedSessionId == null) {
@@ -485,70 +521,83 @@ public class RequestImpl
     return requestedSessionId.equals(session.getId());
   }
 
-  public boolean isUserInRole(String role)
+  @Override
+  public boolean isUserInRole(final String role)
   {
     return false;
   }
 
   // implements ServletRequest
 
-  public Object getAttribute(String name)
+  @Override
+  public Object getAttribute(final String name)
   {
     return attributes.getAttribute(name);
   }
 
+  @Override
   public Enumeration<String> getAttributeNames()
   {
     return attributes.getAttributeNames();
   }
 
-  public void setAttribute(String name, Object value)
+  @Override
+  public void setAttribute(final String name, final Object value)
   {
     attributes.setAttribute(name, value);
   }
 
-  public void removeAttribute(String name)
+  @Override
+  public void removeAttribute(final String name)
   {
     attributes.removeAttribute(name);
   }
 
-  public void setCharacterEncoding(String enc)
+  @Override
+  public void setCharacterEncoding(final String enc)
       throws UnsupportedEncodingException
   {
     base.setCharacterEncoding(enc);
   }
 
+  @Override
   public String getCharacterEncoding()
   {
     return base.getCharacterEncoding();
   }
 
+  @Override
   public int getContentLength()
   {
     return base.getContentLength();
   }
 
+  @Override
   public String getContentType()
   {
     return base.getContentType();
   }
 
+  @Override
   public ServletInputStream getInputStream()
   {
     return base.getBody(); // NYI: should be wrapped
   }
 
+  @Override
   public Locale getLocale()
   {
     return base.getLocales().nextElement();
   }
 
+  @Override
   public Enumeration<Locale> getLocales()
   {
     return base.getLocales();
   }
 
-  public String getParameter(String name)
+  @Override
+  public String getParameter(final String name)
   {
     final String[] values = getParameterValues(name);
     if (values == null || values.length == 0) {
@@ -557,21 +606,25 @@ public class RequestImpl
     return values[0];
   }
 
+  @Override
   public Enumeration<String> getParameterNames()
   {
     return base.getParameters().keys();
   }
 
-  public String[] getParameterValues(String name)
+  @Override
+  public String[] getParameterValues(final String name)
   {
     return base.getParameters().get(name);
   }
 
+  @Override
   public String getProtocol()
   {
     return base.getProtocol();
   }
 
+  @Override
   public BufferedReader getReader()
   {
     InputStreamReader isr = null;
@@ -591,16 +644,19 @@ public class RequestImpl
     // wrapped
   }
 
-  public String getRealPath(String path)
+  @Override
+  public String getRealPath(final String path)
   {
     return null; // deprecated
   }
 
+  @Override
   public String getRemoteAddr()
   {
     return remoteAddress.getHostAddress();
   }
 
+  @Override
   public String getRemoteHost()
   {
     if (httpConfig.getDNSLookup()) {
@@ -609,17 +665,20 @@ public class RequestImpl
     return remoteAddress.getHostAddress();
   }
 
+  @Override
   public int getRemotePort()
   {
     return remotePort;
   }
 
-  public RequestDispatcher getRequestDispatcher(String uri)
+  @Override
+  public RequestDispatcher getRequestDispatcher(final String uri)
   {
     final RequestDispatcher rd = registrations.getRequestDispatcher(uri);
     return rd;
   }
 
+  @Override
   public String getServerName()
   {
     String host = base.getHeader(HeaderBase.HOST_HEADER_KEY);
@@ -642,6 +701,7 @@ public class RequestImpl
     return host;
   }
 
+  @Override
   public int getServerPort()
   {
     final String host = base.getHeader(HeaderBase.HOST_HEADER_KEY);
@@ -658,6 +718,7 @@ public class RequestImpl
     return isSecure() ? 443 : 80;
   }
 
+  @Override
   public boolean isSecure()
   {
     return httpConfig.isSecure();
@@ -668,6 +729,7 @@ public class RequestImpl
    *
    * @see javax.servlet.ServletRequest#getScheme()
    */
+  @Override
   public String getScheme()
   {
     return httpConfig.getScheme();
