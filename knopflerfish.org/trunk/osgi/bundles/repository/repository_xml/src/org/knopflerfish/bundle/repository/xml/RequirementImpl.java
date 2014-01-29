@@ -41,6 +41,7 @@ import org.osgi.resource.Resource;
 
 public class RequirementImpl implements Requirement {
   final Data d;
+
   RequirementImpl(Data d) {
     this.d = d;
   }
@@ -64,11 +65,11 @@ public class RequirementImpl implements Requirement {
   public Resource getResource() {
     return d.resource;
   }
-  
+
   public String toString() {
-    return "Requirement[\n" + d.toString() +"]\n";
+    return "Requirement[\n" + d.toString() + "]\n";
   }
-  
+
   public boolean equals(Object other) {
     if (this == other)
       return true;
@@ -76,11 +77,12 @@ public class RequirementImpl implements Requirement {
       return false;
     if (!(other instanceof Requirement))
       return false;
-    Requirement r = (Requirement)other;
-    return 
-        getNamespace().equals(r.getNamespace()) &&
-        getDirectives().equals(r.getDirectives()) &&
-        getAttributes().equals(r.getAttributes()) &&
-        getResource().equals(r.getResource());
+    Requirement r = (Requirement) other;
+    return getNamespace().equals(r.getNamespace())
+        && getDirectives().equals(r.getDirectives())
+        && getAttributes().equals(r.getAttributes())
+        && getResource() == r.getResource();
+    // getResource().equals(r.getResource());
+
   }
 }

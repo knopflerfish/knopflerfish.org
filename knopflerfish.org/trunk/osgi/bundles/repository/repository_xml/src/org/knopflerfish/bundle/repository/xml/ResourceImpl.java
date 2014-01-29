@@ -53,10 +53,10 @@ public class ResourceImpl implements Resource, RepositoryContent {
   @Override
   public List<Capability> getCapabilities(String namespace) {
     List<Capability> result = cs;
-    if(namespace != null) {
+    if (namespace != null) {
       result = new ArrayList<Capability>();
-      for(Capability c : cs) {
-        if(namespace.equalsIgnoreCase(c.getNamespace())) {
+      for (Capability c : cs) {
+        if (namespace.equalsIgnoreCase(c.getNamespace())) {
           result.add(c);
         }
       }
@@ -67,10 +67,10 @@ public class ResourceImpl implements Resource, RepositoryContent {
   @Override
   public List<Requirement> getRequirements(String namespace) {
     List<Requirement> result = rs;
-    if(namespace != null) {
+    if (namespace != null) {
       result = new ArrayList<Requirement>();
-      for(Requirement r : rs) {
-        if(namespace.equalsIgnoreCase(r.getNamespace())) {
+      for (Requirement r : rs) {
+        if (namespace.equalsIgnoreCase(r.getNamespace())) {
           result.add(r);
         }
       }
@@ -80,7 +80,7 @@ public class ResourceImpl implements Resource, RepositoryContent {
 
   void addReq(RequirementImpl req) {
     rs.add(req);
-    
+
   }
 
   void addCap(CapabilityImpl cap) {
@@ -90,41 +90,41 @@ public class ResourceImpl implements Resource, RepositoryContent {
   boolean hasContent() {
     return !getCapabilities(ContentNamespace.CONTENT_NAMESPACE).isEmpty();
   }
-  
+
   @Override
   public InputStream getContent() {
     try {
       Capability c = getCapabilities(ContentNamespace.CONTENT_NAMESPACE).get(0);
-      return new URL((String)c.getAttributes().get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE)).openStream();
+      return new URL((String) c.getAttributes().get(
+          ContentNamespace.CAPABILITY_URL_ATTRIBUTE)).openStream();
     } catch (Exception e) {
       e.printStackTrace();
       return null;
     }
   }
-  
+
   public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append("Resource[\n");
-    for(Capability c : cs) {
+    for (Capability c : cs) {
       sb.append(c.toString());
     }
-    for(Requirement r : rs) {
+    for (Requirement r : rs) {
       sb.append(r.toString());
     }
     sb.append("]\n");
     return sb.toString();
   }
-  
-   public boolean equals(Object other) {
-     if (this == other)
-       return true;
-     if (other == null)
-       return false;
-     if (!(other instanceof Resource))
-       return false;
-     Resource r = (Resource)other;
-     return 
-         getCapabilities(null).equals(r.getCapabilities(null)) &&
-         getRequirements(null).equals(r.getRequirements(null));
-   }
+
+  public boolean equals(Object other) {
+    if (this == other)
+      return true;
+    if (other == null)
+      return false;
+    if (!(other instanceof Resource))
+      return false;
+    Resource r = (Resource) other;
+    return getCapabilities(null).equals(r.getCapabilities(null))
+        && getRequirements(null).equals(r.getRequirements(null));
+  }
 }

@@ -33,14 +33,15 @@
  */
 
 package org.knopflerfish.bundle.repository.xml;
+
 import java.util.Map;
 
 import org.osgi.resource.Capability;
 import org.osgi.resource.Resource;
 
-
 public class CapabilityImpl implements Capability {
   final Data d;
+
   CapabilityImpl(Data d) {
     this.d = d;
   }
@@ -64,11 +65,11 @@ public class CapabilityImpl implements Capability {
   public Resource getResource() {
     return d.resource;
   }
-  
+
   public String toString() {
-    return "Capability[\n" + d.toString() +"]\n";
+    return "Capability[\n" + d.toString() + "]\n";
   }
-  
+
   public boolean equals(Object other) {
     if (this == other)
       return true;
@@ -76,12 +77,11 @@ public class CapabilityImpl implements Capability {
       return false;
     if (!(other instanceof Capability))
       return false;
-    Capability c = (Capability)other;
-    return 
-        getNamespace().equals(c.getNamespace()) &&
-        getDirectives().equals(c.getDirectives()) &&
-        getAttributes().equals(c.getAttributes())  &&
-        getResource() == c.getResource();
-        // getResource().equals(c.getResource());
+    Capability c = (Capability) other;
+    return getNamespace().equals(c.getNamespace())
+        && getDirectives().equals(c.getDirectives())
+        && getAttributes().equals(c.getAttributes())
+        && getResource() == c.getResource();
+    // getResource().equals(c.getResource());
   }
 }
