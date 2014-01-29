@@ -35,6 +35,7 @@ package org.knopflerfish.bundle.http;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -226,43 +227,33 @@ public class RequestImpl
   {
     int chunkSize = 0;
     String line;
-    final StringBuffer sb = new StringBuffer();
+    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-    // Build stringbuffer containing all chunk contents, then
-    // make a byte array using request encoding.
-    // Yes, one could likely be more memory effective
     do {
+      // Get chunk size
       line = is.readLine().trim();
       final int ix = line.indexOf(";");
       if (ix != -1) {
         line = line.substring(0, ix);
       }
       chunkSize = Integer.parseInt(line, 16);
-      int n = 0;
-      while (n < chunkSize) {
-        line = is.readLine();
-        n += line.length();
-        sb.append(line);
-        if (n < chunkSize) {
-          // The chunk contained embedded CRLF that caused readLine to
-          // terminate before the end of the chunk; restore them and read on
-          sb.append("\r\n");
-          n += 2;
-        }
+      // Append chunk data to bos
+      final byte[] buf = new byte[chunkSize];
+      int count = 0;
+      while (count < chunkSize) {
+        count += is.read(buf, count, chunkSize - count);
       }
+      bos.write(buf, 0, chunkSize);
+      // consume the CRLF at end of line.
+      is.read(); // CR
+      is.read(); // LF
     } while (chunkSize > 0);
 
     // remaining stuff should be parsed as headers
     base.parseHeaders(is);
 
-    String enc = getCharacterEncoding();
-    if (enc == null || enc.length() == 0) {
-      enc = "UTF-8";
-    }
-    final byte[] bytes = sb.toString().getBytes(enc);
-    final ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
-
-    return new ServletInputStreamImpl(bin, bytes.length);
+    final ByteArrayInputStream bin = new ByteArrayInputStream(bos.toByteArray());
+    return new ServletInputStreamImpl(bin, bos.size());
   }
 
   public boolean getKeepAlive()
