@@ -101,6 +101,7 @@ import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
+import org.osgi.service.repository.ContentNamespace;
 import org.osgi.service.repository.Repository;
 import org.osgi.service.repository.RepositoryContent;
 import org.osgi.util.tracker.ServiceTracker;
@@ -1275,20 +1276,29 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
 
         // If we detect a Resolver we offer to resolve and install dependencies.
         if(repoManagerTracker.getService().resolverAvailable()) {
-          final String[] options = new String[] { "Yes", "No" };
-
-          final String msg =
-              "Do you want to resolve the selected resource\n"
-                  + "and install its required dependencies?";
-
-          final int n =
-              JOptionPane.showOptionDialog(resourceTree,
-                  msg,
-                  "Resolve the selected resource?", // title
-                  JOptionPane.YES_NO_CANCEL_OPTION,
-                  JOptionPane.QUESTION_MESSAGE, null, // icon
-                  options, options[0]);
-          bResolve = n == 0;
+          Set<Resource> resolved = repoManagerTracker.getService().findResolution(Collections.singletonList(resource));
+          resolved.remove(resource);
+          if(!resolved.isEmpty()) { // Additional dependencies exsist
+            final String[] options = new String[] { "Yes", "No" };
+  
+            String msg =
+                "Do you want to resolve the selected resource\n"
+                    + "and install the following dependencies:\n";
+            for(Resource dependency : resolved) {
+              msg += dependency.getCapabilities(ContentNamespace.CONTENT_NAMESPACE)
+                  .get(0).getAttributes()
+                  .get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE) + "\n";
+            }
+  
+            final int n =
+                JOptionPane.showOptionDialog(resourceTree,
+                    msg,
+                    "Resolve the selected resource?", // title
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE, null, // icon
+                    options, options[0]);
+            bResolve = n == 0;
+          }
         }
         InstallationResult ir = 
             repoManagerTracker.getService().install(Collections.singletonList(resource), bResolve, bStart);

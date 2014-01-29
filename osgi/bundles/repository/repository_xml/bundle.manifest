@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: repository xml
 Bundle-SymbolicName: org.knopflerfish.bundle.repository.xml
-Bundle-Version: 1.0.1
+Bundle-Version: 1.0.2
 Bundle-Category: utility
 Bundle-Description: Xml Backed Repository
 Bundle-Vendor: Knopflerfish
