@@ -49,6 +49,13 @@
 <div class="release_notes">
 
   <div class="note_group">
+    <div class="note_name">HTTP-Server 4.0.4</div>
+    <div class="note_item">
+    Fixed another bug in the handling of chunked tranfer encoding in the
+    Request implementation. A chunk contianing a charter followed by a
+    new line char was not correctly un-chunked.
+    </div>
+
     <div class="note_name">HTTP-Server 4.0.3</div>
     <div class="note_item">
     Fixed a bug in the handling of chunked tranfer encoding in the
