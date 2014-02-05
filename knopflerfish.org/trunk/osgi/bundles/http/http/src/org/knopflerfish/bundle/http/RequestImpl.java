@@ -237,19 +237,21 @@ public class RequestImpl
         line = line.substring(0, ix);
       }
       chunkSize = Integer.parseInt(line, 16);
-      // Append chunk data to bos
-      final byte[] buf = new byte[chunkSize];
-      int count = 0;
-      while (count < chunkSize) {
-        count += is.read(buf, count, chunkSize - count);
+      if (chunkSize > 0) {
+        // Append chunk data to bos
+        final byte[] buf = new byte[chunkSize];
+        int count = 0;
+        while (count < chunkSize) {
+          count += is.read(buf, count, chunkSize - count);
+        }
+        bos.write(buf, 0, chunkSize);
+        // Consume CRLF following the chunk data.
+        is.read(); // CR
+        is.read(); // LF
       }
-      bos.write(buf, 0, chunkSize);
-      // consume the CRLF at end of line.
-      is.read(); // CR
-      is.read(); // LF
     } while (chunkSize > 0);
 
-    // remaining stuff should be parsed as headers
+    // remaining stuff, if any, should be parsed as headers
     base.parseHeaders(is);
 
     final ByteArrayInputStream bin = new ByteArrayInputStream(bos.toByteArray());

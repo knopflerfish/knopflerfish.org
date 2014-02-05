@@ -49,6 +49,13 @@
 <div class="release_notes">
 
   <div class="note_group">
+    <div class="note_name">HTTP-Server 4.0.5</div>
+    <div class="note_item">
+    Fixed another bug in the handling of chunked tranfer encoding in the
+    Request implementation. The last chunk (with size 0) is not followed
+    by any chunk-data and thus there is no CRLF to consume.
+    </div>
+
     <div class="note_name">HTTP-Server 4.0.4</div>
     <div class="note_item">
     Fixed another bug in the handling of chunked tranfer encoding in the
