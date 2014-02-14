@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,24 +38,24 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.PushbackReader;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.osgi.framework.Constants;
-import org.osgi.service.cm.ConfigurationAdmin;
-
 import org.knopflerfish.shared.cm.CMDataReader;
 import org.knopflerfish.shared.cm.CMDataWriter;
+import org.osgi.framework.Constants;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * Persistent storage of configuration data
@@ -64,81 +64,209 @@ import org.knopflerfish.shared.cm.CMDataWriter;
  */
 
 class ConfigurationStore {
-    private final static String storeDataFile = "store_data";
+  private static final String VERSION = "1";
 
-    private final static String pidDataFile = "pid_to_file";
+  private static final String VERSION_PROP = "version";
 
-    private final static String factoryPidDataFile = "fpid_to_pids";
+  private static final String CHKSUM_PROP = "##KF#CHK_SUM##";
 
-    private final static String generatedPids = "generated_pids";
+  private final static String STORE_DATA_FILE = "store_data";
 
-    private final File storeDir;
+  private final static String PID_DATA_FILE = "pid_to_file";
 
-    private final Properties storeData;
+  private final static String FACTORY_PID_DATA_FILE = "fpid_to_pids";
 
-    private final Properties pidToFileName;
+  private final static String GENERATED_PIDS_FILE = "generated_pids";
 
-    private Hashtable<String, Object> factoryPidToPids;
+  private static final String NEXT_SUFFIX = ".next";
 
-    private final Hashtable<String, ConfigurationDictionary> cache
-      = new Hashtable<String, ConfigurationDictionary>();
+  private static final String OLD_SUFFIX = ".old";
 
-    private final CMDataReader cmDataReader = new CMDataReader();
+  private static final String FACTORY_PID_SUFFIX_SEPARATOR = "._";
 
-    public ConfigurationStore(File storeDir) throws IOException {
-        this.storeDir = storeDir;
-        storeDir.mkdirs();
+  private final File storeDir;
 
-        storeData = createAndLoadProperties(storeDataFile);
-        pidToFileName = createAndLoadProperties(pidDataFile);
-        factoryPidToPids = loadHashtable(factoryPidDataFile);
-        if (factoryPidToPids == null) {
-            factoryPidToPids = new Hashtable<String, Object>();
-        }
-    }
+  private final Properties storeData = new  Properties();
 
-    public synchronized Enumeration<Object> listPids() {
-        return pidToFileName.keys();
-    }
+  private final Properties pidToFileName = new Properties();
 
-    public synchronized ConfigurationDictionary load(String pid)
-            throws IOException {
-        String fileName = pidToFileName.getProperty(pid);
-        if (fileName == null) {
-            return null;
-        }
-        return loadConfigurationDictionary(fileName);
-    }
+  private final Properties generatedPids = new Properties();
 
-    public synchronized ConfigurationDictionary[] loadAll(String factoryPid)
-            throws IOException {
-        @SuppressWarnings("unchecked")
-        Vector<String> v = (Vector<String>) factoryPidToPids.get(factoryPid);
-        if (v == null) {
-            return null;
-        }
-        Vector<ConfigurationDictionary> loaded
-          = new Vector<ConfigurationDictionary>();
-        for (int i = 0; i < v.size(); ++i) {
-            ConfigurationDictionary d = load(v.elementAt(i));
-            if (d != null) {
-                loaded.addElement(d);
+  private Hashtable<String, Object> factoryPidToPids;
+
+  private final Hashtable<String, ConfigurationDictionary> cache
+  = new Hashtable<String, ConfigurationDictionary>();
+
+  private final CMDataReader cmDataReader = new CMDataReader();
+
+
+  public ConfigurationStore(File storeDir) throws IOException {
+    this.storeDir = storeDir;
+    storeDir.mkdirs();
+    boolean doInit = true;
+ 
+    if (loadProperties(STORE_DATA_FILE, storeData)) {
+      if (VERSION.equals(storeData.getProperty(VERSION_PROP))) {
+        if (loadProperties(PID_DATA_FILE, pidToFileName)) {
+          if (loadProperties(GENERATED_PIDS_FILE, generatedPids)) {
+            try {
+              factoryPidToPids = loadHashtable(FACTORY_PID_DATA_FILE);
+              doInit = false;
+            } catch (IOException e) {
+              Activator.log.error("Failed to load " + FACTORY_PID_DATA_FILE, e);
             }
+          } else {
+            Activator.log.error("Failed to load " + GENERATED_PIDS_FILE);
+          }
+        } else {
+          Activator.log.error("Failed to load " + PID_DATA_FILE);
         }
-        ConfigurationDictionary[] configurations = new ConfigurationDictionary[loaded
-                .size()];
-        loaded.copyInto(configurations);
-        return configurations;
+      } else {
+        Activator.log.error("Found wrong version of CM data " + PID_DATA_FILE);
+      }
     }
+    if (doInit) {
+      init();
+    }
+  }
+
+  private void init() throws IOException {
+    // Remove STORE_DATA_FILE to indicate that we are re-init dir.
+    fdelete(STORE_DATA_FILE);
+    storeData.clear();
+    storeData.put(VERSION_PROP, VERSION);
+    pidToFileName.clear();
+    generatedPids.clear();
+    factoryPidToPids = new Hashtable<String, Object>();
+    String [] files = storeDir.list(); 
+    HashSet<String> pidFiles = new HashSet<String>();
+    int recovered = 0;
+    for (String f : files) {
+      String n = null;
+      if (f.endsWith(NEXT_SUFFIX)) {
+        n = f.substring(0, f.length() - NEXT_SUFFIX.length());
+      } else if (f.endsWith(OLD_SUFFIX)) {
+        n = f.substring(0, f.length() - OLD_SUFFIX.length());
+      } else if (f.startsWith(STORE_DATA_FILE) ||
+                 f.startsWith(PID_DATA_FILE) ||
+                 f.startsWith(GENERATED_PIDS_FILE) ||
+                 f.startsWith(FACTORY_PID_DATA_FILE)) {
+        continue;
+      } else {
+        n = f;
+      }
+      try {
+        Long.parseLong(n);
+        pidFiles.add(n);
+      } catch (NumberFormatException _) {
+        Activator.log.warn("Found unknown file in CM data dir: " + f);
+      }
+    }
+    for (String f : pidFiles) {
+      try {
+        Hashtable<String, Object> d = loadHashtable(f);
+        String pid = (String) d.get(CMDataReader.SERVICE_PID);
+        String factoryPid = (String) d.get(CMDataReader.FACTORY_PID);
+        if (pid != null) {
+          if (factoryPid != null) {
+            registerFactoryPid(pid, factoryPid);
+            int h = pid.lastIndexOf(FACTORY_PID_SUFFIX_SEPARATOR);
+            try {
+              if (h > 0) {
+                String suffix = pid.substring(h + FACTORY_PID_SUFFIX_SEPARATOR.length());
+                long found = Long.parseLong(suffix);
+                final String key = factoryKey(factoryPid);
+                if (key.length() == h) {
+                  String old = generatedPids.getProperty(key);
+                  if (old == null || Long.parseLong(old) < found) {
+                    generatedPids.put(key, Long.toString(found));
+                  }
+                }
+              }
+            } catch (NumberFormatException _ignore) { }
+          }
+          String old = (String) pidToFileName.put(pid, f);
+          // If we have conflict keep newest
+          if (old != null) {
+            if (Long.parseLong(old) > Long.parseLong(f)) {
+              pidToFileName.put(pid, old);
+              fdelete(f);
+            } else {
+              fdelete(old);
+            }
+          } else {
+            recovered++;
+          }
+        } else {
+          Activator.log.warn("Found CM data without pid in: " + f);
+        }
+      } catch (Exception e) {
+        Activator.log.warn("Found corrupted CM data in: " + f, e);
+      }
+    }
+    storeHashtable(factoryPidToPids, FACTORY_PID_DATA_FILE);
+    storeProperties(generatedPids, GENERATED_PIDS_FILE);
+    storeProperties(pidToFileName, PID_DATA_FILE);
+    storeProperties(storeData, STORE_DATA_FILE);
+    if (recovered > 0) {
+      Activator.log.info("Recovered data from corrupted CM data dir, entries found " + recovered);
+    } else {
+      Activator.log.info("Initialized CM data dir");
+    }
+  }
+
+  private String factoryKey(String factoryPid) {
+    // Remove the target specification from the factory PID before using it as a
+    // base for the generated PID.
+    final int barPos = factoryPid.indexOf('|');
+    final boolean isTargetedPID = barPos > 0; // At least one char in the PID.
+    return isTargetedPID ? factoryPid.substring(0, barPos) : factoryPid;
+  }
+
+  public synchronized Enumeration<Object> listPids() {
+    return pidToFileName.keys();
+  }
+
+  public synchronized ConfigurationDictionary load(String pid) throws IOException {
+    String fileName = pidToFileName.getProperty(pid);
+    if (fileName == null) {
+      return null;
+    }
+    try {
+      return loadConfigurationDictionary(fileName);
+    } catch (IOException e) {
+      pidToFileName.remove(pid);
+      Activator.log.error("Removed faulty CM data for: " + pid, e);
+      throw e;
+    }
+  }
+
+  public synchronized ConfigurationDictionary[] loadAll(String factoryPid)
+      throws IOException {
+    @SuppressWarnings("unchecked")
+    Vector<String> v = (Vector<String>) factoryPidToPids.get(factoryPid);
+    if (v == null) {
+      return null;
+    }
+    Vector<ConfigurationDictionary> loaded = new Vector<ConfigurationDictionary>();
+    for (int i = 0; i < v.size(); ++i) {
+      ConfigurationDictionary d = load(v.elementAt(i));
+      if (d != null) {
+        loaded.addElement(d);
+      }
+    }
+    ConfigurationDictionary[] configurations = new ConfigurationDictionary[loaded.size()];
+    loaded.copyInto(configurations);
+    return configurations;
+  }
 
   public synchronized void store(String pid,
-                                 String factoryPid,
-                                 ConfigurationDictionary configuration,
-                                 boolean incrementChangeCount)
-      throws IOException
+      String factoryPid,
+      ConfigurationDictionary configuration,
+      boolean incrementChangeCount)
+          throws IOException
   {
     String fileName = fileNameOf(pid, factoryPid);
-
     storeConfigurationDictionary(configuration, fileName, incrementChangeCount);
   }
 
@@ -152,210 +280,233 @@ class ConfigurationStore {
     if (fileName == null || "".equals(fileName)) {
       return null;
     }
-    storeProperties(pidToFileName, pidDataFile);
+    storeProperties(pidToFileName, PID_DATA_FILE);
 
     ConfigurationDictionary d = loadConfigurationDictionary(fileName);
     uncacheConfigurationDictionary(fileName);
-    String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
-    if (fpid != null) {
-      @SuppressWarnings("unchecked")
-      Vector<String> v = (Vector<String>) factoryPidToPids.get(fpid);
-      if (v.removeElement(pid)) {
-        if (v.isEmpty()) {
-          factoryPidToPids.remove(fpid);
+    if (d != null) {
+      String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
+      if (fpid != null) {
+        @SuppressWarnings("unchecked")
+        Vector<String> v = (Vector<String>) factoryPidToPids.get(fpid);
+        if (v != null && v.removeElement(pid)) {
+          if (v.isEmpty()) {
+            factoryPidToPids.remove(fpid);
+          }
+          storeHashtable(factoryPidToPids, FACTORY_PID_DATA_FILE);
         }
-        storeHashtable(factoryPidToPids, factoryPidDataFile);
       }
     }
-
-    File f = new File(storeDir, fileName);
-    if (f.exists()) {
-      f.delete();
-    }
+    fdelete(fileName);
     return d;
   }
 
-    public synchronized String generatePid(String targetedFactoryPid)
-        throws IOException
-    {
-      // Remove the target specification from the factory PID before using it as a
-      // base for the generated PID.
-      final int barPos = targetedFactoryPid.indexOf('|');
-      final boolean isTargetedPID = barPos > 0; // At least one char in the PID.
-      final String factoryPid = isTargetedPID ? targetedFactoryPid.substring(0, barPos) : targetedFactoryPid;
+  public synchronized String generatePid(String targetedFactoryPid)
+      throws IOException
+  {
+    final String factoryPid = factoryKey(targetedFactoryPid);
+    String suffix = null;
+    suffix = generatedPids.getProperty(factoryPid);
+    if (suffix == null) {
+      suffix = new Long(0).toString();
+    } else {
+      long l = Long.parseLong(suffix) + 1;
+      suffix = Long.toString(l);
+    }
+    generatedPids.put(factoryPid, suffix);
+    storeProperties(generatedPids, GENERATED_PIDS_FILE);
+    return factoryPid + FACTORY_PID_SUFFIX_SEPARATOR + suffix;
+  }
 
-      String suffix = null;
-      Properties p = new Properties();
-      File pidFile = new File(storeDir, generatedPids);
-      if (pidFile.exists()) {
-        InputStream is = new BufferedInputStream(new FileInputStream(pidFile));
+  private String fileNameOf(String pid, String factoryPid) throws IOException {
+    if (pid == null) {
+      return null;
+    }
+    String s = pidToFileName.getProperty(pid);
+    if (s == null) {
+      s = generateNewFileName(pid, factoryPid);
+    }
+    return s;
+  }
+
+  private String generateNewFileName(String pid, String factoryPid)
+      throws IOException {
+    final String lastUsedFileNumber = "lastUsedFileNumber";
+
+    String fileNumber = storeData.getProperty(lastUsedFileNumber);
+    if (fileNumber == null) {
+      fileNumber = new Long(0).toString();
+    } else {
+      long l = Long.parseLong(fileNumber) + 1;
+      fileNumber = new Long(l).toString();
+    }
+    storeData.put(lastUsedFileNumber, fileNumber);
+    storeProperties(storeData, STORE_DATA_FILE);
+
+    if (factoryPid != null) {
+      registerFactoryPid(pid, factoryPid);
+      storeHashtable(factoryPidToPids, FACTORY_PID_DATA_FILE);
+    }
+
+    pidToFileName.put(pid, fileNumber);
+    storeProperties(pidToFileName, PID_DATA_FILE);
+
+    return fileNumber;
+  }
+
+  private void registerFactoryPid(String pid, String factoryPid) {
+    @SuppressWarnings("unchecked")
+    Vector<String> v = (Vector<String>) factoryPidToPids.get(factoryPid);
+    if (v == null) {
+      v = new Vector<String>();
+      factoryPidToPids.put(factoryPid, v);
+    }
+    v.addElement(pid);
+  }
+
+  private boolean loadProperties(String fileName, Properties p) {
+    File file;
+    while ((file = finput(fileName)) != null) {
+      InputStream is = null;
+      try {
+        is = new BufferedInputStream(new FileInputStream(file));
         p.load(is);
-        if (is != null) {
-          is.close();
-        }
-        suffix = p.getProperty(factoryPid);
-      }
-      if (suffix == null) {
-        suffix = new Long(0).toString();
-      } else {
-        long l = Long.parseLong(suffix) + 1;
-        suffix = new Long(l).toString();
-      }
-      p.put(factoryPid, suffix);
-      FileOutputStream os = new FileOutputStream(pidFile);
-      p.save(os, "Suffixes used for generating pids");
-      if (os != null) {
-        os.close();
-      }
-      return factoryPid + "." + suffix;
-    }
-
-    // ////////////////////
-
-    private String fileNameOf(String pid, String factoryPid) throws IOException {
-        if (pid == null) {
-            return null;
-        }
-        String s = pidToFileName.getProperty(pid);
-        if (s == null) {
-            s = generateNewFileName(pid, factoryPid);
-        }
-        return s;
-    }
-
-    private String generateNewFileName(String pid, String factoryPid)
-            throws IOException {
-        final String lastUsedFileNumber = "lastUsedFileNumber";
-
-        String fileNumber = storeData.getProperty(lastUsedFileNumber);
-        if (fileNumber == null) {
-            fileNumber = new Long(0).toString();
+        is.close();
+        is = null;
+        String chkSum = p.getProperty(CHKSUM_PROP);
+        if (chkSum != null) {
+          if (Integer.parseInt(chkSum) == checkSum(p)) {
+            return true;
+          }
+          Activator.log.warn("FAIL! Checksum wrong for properties file: " + file);
         } else {
-            long l = Long.parseLong(fileNumber) + 1;
-            fileNumber = new Long(l).toString();
+          // Ignore warning if CM upgrade
+          if (fileName.equals(STORE_DATA_FILE) &&
+              !p.isEmpty() && !p.containsKey(VERSION_PROP)) {
+            Activator.log.info("Old CM data format detected, upgrade");
+          } else {
+            Activator.log.warn("FAIL! Missing checksum for properties file: " + file);
+          }
         }
-        storeData.put(lastUsedFileNumber, fileNumber);
-        storeProperties(storeData, storeDataFile);
-
-        if (factoryPid != null) {
-            @SuppressWarnings("unchecked")
-            Vector<String> v = (Vector<String>) factoryPidToPids.get(factoryPid);
-            if (v == null) {
-                v = new Vector<String>();
-                factoryPidToPids.put(factoryPid, v);
-            }
-            v.addElement(pid);
-            storeHashtable(factoryPidToPids, factoryPidDataFile);
+      } catch (Exception e) {
+        if (is != null) {
+          try {
+            is.close();
+          } catch (IOException _ignore) { }
         }
-
-        pidToFileName.put(pid, fileNumber);
-        storeProperties(pidToFileName, pidDataFile);
-
-        return fileNumber;
+        Activator.log.warn("FAIL! Read properties: " + file, e);
+      }
+      file.delete();
+      p.clear();
     }
+    return false;
+  }
 
-    private Properties createAndLoadProperties(String fileName)
-            throws IOException {
-        Properties p = new Properties();
-        File f = new File(storeDir, fileName);
-        if (f.exists()) {
-            InputStream is = new BufferedInputStream(new FileInputStream(f));
-            p.load(is);
-            if (is != null) {
-                is.close();
-            }
-        }
-        return p;
+  private void storeProperties(Properties p, String fileName)
+      throws IOException {
+    FileOutputStream fo = null;
+    try {
+      fo = foutput(fileName);
+      p.put(CHKSUM_PROP, Integer.toString(checkSum(p)));
+      p.store(fo, "Private data of the ConfigurationStore");
+      fo.close();
+      fo = null;
+    } finally {
+      fclose(fileName, fo, true);
+      p.remove(CHKSUM_PROP);
     }
+  }
 
-    private void storeProperties(Properties p, String fileName)
-            throws IOException {
-        File f = new File(storeDir, fileName);
-        OutputStream os = new FileOutputStream(f);
-        p.save(os, "Private data of the ConfigurationStore");
-        if (os != null) {
-            os.close();
+  private Hashtable<String, Object> loadHashtable(String fileName) throws IOException {
+    File f;
+    IOException savedException = null;
+    while ((f = finput(fileName)) != null) {
+      PushbackReader r = null;
+      try {
+        r = new PushbackReader(new BufferedReader(
+            new InputStreamReader(new FileInputStream(f),
+                CMDataReader.ENCODING), 8192), 8);
+
+        Hashtable<String,Object> h = cmDataReader.readCMData(r);
+        r.close();
+        r = null;
+        if (f.getName().length() != fileName.length()) {
+          // We have recovered a file
+          f.renameTo(new File(storeDir, fileName));
+          Activator.log.info("Recovered CM data from: " + fileName);
+        } else {
+          // Succeeded reading a file, remove backup
+          deleteBackup(fileName);
         }
-    }
-
-    // ////////////////////
-    private Hashtable<String, Object> loadHashtable(String fileName) throws IOException {
-        if (fileName == null) {
-            return null;
-        }
-
-        File f = new File(storeDir, fileName);
-        if (!f.exists()) {
-            return null;
-        }
-
-        PushbackReader r = new PushbackReader(new BufferedReader(
-                new InputStreamReader(new FileInputStream(f),
-                        CMDataReader.ENCODING), 8192), 8);
-
-        Hashtable<String,Object> h = null;
-        try {
-            h = cmDataReader.readCMData(r);
-        } catch (Exception e) {
-            Activator.log.error("Failed reading file " + f.toString(), e);
-            h = null;
-        }
-
-        if (r != null) {
-            r.close();
-        }
-
         return h;
-    }
-
-    private void storeHashtable(Hashtable<String, Object> h, String fileName)
-            throws IOException {
-        File f = new File(storeDir, fileName);
-        PrintWriter w = new PrintWriter(new OutputStreamWriter(
-                new FileOutputStream(f), CMDataWriter.ENCODING));
-
-        CMDataWriter.writeConfiguration(fileName, h, w);
-        if (w != null) {
-            w.close();
+      } catch (Exception e) {
+        Activator.log.warn("Failed reading file " + f.toString(), e);
+        if (e instanceof IOException) {
+          savedException = (IOException) e;
+        } else {
+          savedException  = new IOException("Parsing error, " + fileName + ": " + e);
         }
-    }
-
-    // /////////////
-
-    private ConfigurationDictionary getCachedConfigurationDictionary(
-            String fileName) {
-        return cache.get(fileName);
-    }
-
-    private void readAndCacheConfigurationDictionary(String fileName)
-            throws IOException {
-        Hashtable<String, Object> h = loadHashtable(fileName);
-        if (h != null) {
-            cache.put(fileName, new ConfigurationDictionary(h));
+        if (r != null) {
+          try {
+            r.close();
+          } catch (IOException _ignore) { }
         }
+        f.delete();
+      }
     }
-
-    private void uncacheConfigurationDictionary(String fileName) {
-      cache.remove(fileName);
+    if (savedException != null) {
+      throw savedException;
+    }
+    throw new FileNotFoundException(fileName.toString());
   }
 
-    private void cacheConfigurationDictionary(String fileName, ConfigurationDictionary d) {
+  private void storeHashtable(Hashtable<String, Object> h, String fileName)
+      throws IOException {
+    FileOutputStream fo = null;
+    try {
+      fo = foutput(fileName);
+      PrintWriter w = new PrintWriter(new OutputStreamWriter(fo, CMDataWriter.ENCODING));
+
+      CMDataWriter.writeConfiguration(fileName, h, w);
+      w.close();
+      fo = null;
+    } finally {
+      fclose(fileName, fo, true);
+    }
+  }
+
+  private ConfigurationDictionary getCachedConfigurationDictionary(
+      String fileName) {
+    return cache.get(fileName);
+  }
+
+  private ConfigurationDictionary readAndCacheConfigurationDictionary(String fileName) throws IOException {
+    Hashtable<String, Object> h = loadHashtable(fileName);
+    if (h != null) {
+      ConfigurationDictionary d = new ConfigurationDictionary(h);
       cache.put(fileName, d);
+      return d;
+    }
+    return null;
   }
 
-    private ConfigurationDictionary loadConfigurationDictionary(String fileName)
-            throws IOException {
-        if (fileName == null) {
-            return null;
-        }
+  private void uncacheConfigurationDictionary(String fileName) {
+    cache.remove(fileName);
+  }
 
-        ConfigurationDictionary d = getCachedConfigurationDictionary(fileName);
-        if (d == null) {
-            readAndCacheConfigurationDictionary(fileName);
-            d = getCachedConfigurationDictionary(fileName);
-        }
-        return d;
+  private void cacheConfigurationDictionary(String fileName, ConfigurationDictionary d) {
+    cache.put(fileName, d);
+  }
+
+  private ConfigurationDictionary loadConfigurationDictionary(String fileName)
+      throws IOException
+  {
+    ConfigurationDictionary d = getCachedConfigurationDictionary(fileName);
+    if (d == null) {
+      d = readAndCacheConfigurationDictionary(fileName);
     }
+    return d;
+  }
 
   private void storeConfigurationDictionary(ConfigurationDictionary d,
                                             String fileName,
@@ -365,24 +516,94 @@ class ConfigurationStore {
     // uncacheConfigurationDictionary(fileName);
     // using uncache here will loose the change count since it is not persisted.
     cacheConfigurationDictionary(fileName, d);
-    File f = new File(storeDir, fileName);
-    PrintWriter w =
-      new PrintWriter(new OutputStreamWriter(new FileOutputStream(f),
-                                             CMDataWriter.ENCODING));
+    FileOutputStream fo = null;
+    try {
+      fo = foutput(fileName);
+      PrintWriter w = new PrintWriter(new OutputStreamWriter(fo, CMDataWriter.ENCODING));
 
-    if (incrementChangeCount) {
-      d.incrementChangeCount();
-    }
-    String pid = (String) d.get(Constants.SERVICE_PID);
-    String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
-    if (fpid == null) {
-      CMDataWriter.writeConfiguration(pid, d, w);
-    } else {
-      CMDataWriter.writeFactoryConfiguration(fpid, pid, d, w);
-    }
-
-    if (w != null) {
+      if (incrementChangeCount) {
+        d.incrementChangeCount();
+      }
+      String pid = (String) d.get(Constants.SERVICE_PID);
+      String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
+      if (fpid == null) {
+        CMDataWriter.writeConfiguration(pid, d, w);
+      } else {
+        CMDataWriter.writeFactoryConfiguration(fpid, pid, d, w);
+      }
       w.close();
+      fo = null;
+    } finally {
+      fclose(fileName, fo, false);
     }
   }
+
+  private File finput(String fileName) {
+    File res = new File(storeDir, fileName);
+    if (!res.exists()) {
+      res = new File(storeDir, fileName + NEXT_SUFFIX);
+      if (!res.exists()) {
+        res = new File(storeDir, fileName + OLD_SUFFIX);
+        if (!res.exists()) {
+          res = null;
+        }
+      }
+    }
+    return res;
+  }
+
+  private FileOutputStream foutput(String fileName) throws FileNotFoundException {
+    File f = new File(storeDir, fileName);
+    if (f.exists()) {
+      File fold = new File(storeDir, fileName + OLD_SUFFIX);
+      fold.delete();
+      f.renameTo(fold);
+    }
+    File fnext = new File(storeDir, fileName + NEXT_SUFFIX);
+    if (fnext.exists()) {
+      fnext.renameTo(f);
+    }
+    return new FileOutputStream(fnext);
+  }
+
+  private void fclose(String fileName, FileOutputStream fo, boolean purgeOld) {
+    File fnext = new File(storeDir, fileName + NEXT_SUFFIX);
+    if (fo == null) {
+      File f = new File(storeDir, fileName);
+      if (f.exists()) {
+        f.delete();
+      }
+      fnext.renameTo(f);
+      if (purgeOld) {
+        new File(storeDir, fileName + OLD_SUFFIX).delete();
+      }
+    } else {
+      try {
+        fo.close();
+      } catch (IOException _ignore) { }
+      fnext.delete();
+    }
+  }
+
+  private void fdelete(String fileName) {
+    new File(storeDir, fileName).delete();
+    new File(storeDir, fileName + NEXT_SUFFIX).delete();
+    new File(storeDir, fileName + OLD_SUFFIX).delete();
+  }
+
+  private boolean deleteBackup(String fileName) {
+    return new File(storeDir, fileName + OLD_SUFFIX).delete();
+  }
+
+  private int checkSum(Properties p) {
+    int res = 0;
+    p.remove(CHKSUM_PROP);
+    for (Object o : p.values()) {
+      if (o instanceof String) {
+        res += 997 + 11 * ((String)o).length();
+      }
+    }
+    return res;
+  }
+
 }

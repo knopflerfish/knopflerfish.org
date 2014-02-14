@@ -49,23 +49,31 @@
 <div class="release_notes">
 
   <div class="note_group">
+    <div class="note_name">CM 5.0.1</div>
+    <div class="note_item">
+    Improved the persistent storage of CM data,
+    made it more robust and fault resilient. 
+    </div>
+  </div>
+  
+  <div class="note_group">
     <div class="note_name">HTTP-Server 4.0.5</div>
     <div class="note_item">
-    Fixed another bug in the handling of chunked tranfer encoding in the
+    Fixed another bug in the handling of chunked transfer encoding in the
     Request implementation. The last chunk (with size 0) is not followed
     by any chunk-data and thus there is no CRLF to consume.
     </div>
 
     <div class="note_name">HTTP-Server 4.0.4</div>
     <div class="note_item">
-    Fixed another bug in the handling of chunked tranfer encoding in the
+    Fixed another bug in the handling of chunked transfer encoding in the
     Request implementation. A chunk contianing a charter followed by a
     new line char was not correctly un-chunked.
     </div>
 
     <div class="note_name">HTTP-Server 4.0.3</div>
     <div class="note_item">
-    Fixed a bug in the handling of chunked tranfer encoding in the
+    Fixed a bug in the handling of chunked transfer encoding in the
     Request implementation. An extra CR-LF was incorrectly added to
     the end of the decoded data, causing problems when transfering
     binary data like a zip-file.
