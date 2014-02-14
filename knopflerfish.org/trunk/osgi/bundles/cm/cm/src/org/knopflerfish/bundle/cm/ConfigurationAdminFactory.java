@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1029,7 +1029,12 @@ class ConfigurationAdminFactory
       filterString == null ? null : Activator.bc.createFilter(filterString);
     while (configurationPids.hasMoreElements()) {
       final String pid = (String) configurationPids.nextElement();
-      final ConfigurationDictionary d = load(pid, null);
+      ConfigurationDictionary d;
+      try {
+        d = load(pid, null);
+      } catch (IOException e) {
+        continue;
+      }
       if (d == null) {
         continue;
       }
