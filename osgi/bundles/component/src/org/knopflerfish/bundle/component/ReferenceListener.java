@@ -694,7 +694,7 @@ class ReferenceListener implements ServiceListener
         for (final ComponentConfiguration cc : componentConfigurations) {
           active.add(cc);
         }
-      } else {
+      } else if (!(ref.comp instanceof FactoryComponent)) {
         inactive.add(pid);
       }
     }
