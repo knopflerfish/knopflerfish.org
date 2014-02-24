@@ -317,7 +317,7 @@ public class SystemMetatypeProvider
 
       while (metaTypeFiles.hasMoreElements()) {
         url = metaTypeFiles.nextElement();
-        bmtr.mergeWith(Loader.loadBMTIfromUrl(bc, b, url));
+        bmtr.mergeWith(OsgiMetaTypeXmlParser.loadBMTIfromUrl(bc, b, url));
       }
 
       bmtr.prepare();
@@ -344,7 +344,7 @@ public class SystemMetatypeProvider
 
       if (url != null) {
         try {
-          mtp = Loader.loadMTPFromURL(b, url);
+          mtp = KFLegacyMetaTypeParser.loadMTPFromURL(b, url);
           providers.put(b, mtp);
         } catch (final Exception e) {
           log.info("Failed to load metatype XML from bundle " + b.getBundleId(),
@@ -370,7 +370,7 @@ public class SystemMetatypeProvider
 
       if (url != null) {
         try {
-          Loader.loadDefaultsFromURL(mtp, url);
+          KFLegacyMetaTypeParser.loadDefaultsFromURL(mtp, url);
           log.info("Bundle " + b.getBundleId() + ": loaded default values");
         } catch (final Exception e) {
           log.info("Failed to load cm defaults XML from bundle "

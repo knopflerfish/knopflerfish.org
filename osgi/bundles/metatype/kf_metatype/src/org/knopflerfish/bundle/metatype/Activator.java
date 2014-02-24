@@ -56,7 +56,7 @@ import org.osgi.service.metatype.MetaTypeProvider;
 import org.osgi.service.metatype.MetaTypeService;
 
 import org.knopflerfish.service.log.LogRef;
-import org.knopflerfish.util.metatype.Loader;
+import org.knopflerfish.util.metatype.KFLegacyMetaTypeParser;
 import org.knopflerfish.util.metatype.MTP;
 import org.knopflerfish.util.metatype.OCD;
 import org.knopflerfish.util.metatype.SystemMetatypeProvider;
@@ -110,7 +110,7 @@ public class Activator
           try {
             for (int i = 0; i < urls.size(); i++) {
               final URL url = new URL(urls.elementAt(i));
-              mtp[i] = Loader.loadMTPFromURL(bc.getBundle(), url);
+              mtp[i] = KFLegacyMetaTypeParser.loadMTPFromURL(bc.getBundle(), url);
             }
 
             for (final ServiceRegistration<?> reg : confMtpRegs.keySet()) {
