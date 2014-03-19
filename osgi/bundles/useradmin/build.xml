@@ -13,14 +13,35 @@
 		   org/knopflerfish/service/um/useradmin/*,
 		   org/knopflerfish/service/um/ipam/*"/>
   <property name="impl.pattern" 
-            value="org/knopflerfish/service/um/useradmin/impl/*"/> 
+            value="org/knopflerfish/service/um/useradmin/impl/*"/>
+  <property name="impl-api.pattern"
+            value="org/knopflerfish/service/log/*"/>
 
   <path id="bundle.compile.path">
    <pathelement location="log_api-N.N.N.jar"/>
    <pathelement location="event_api-N.N.N.jar"/>
    <pathelement location="cm_api-N.N.N.jar"/>
   </path>
+  
+  <target name="bundle.custom.pre">
 
+    <!-- Embedd Knopflerfish log API in order to make bundle self-contained. -->
+    <bundle_locator bundleNames="log_api">
+      <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
+        <include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.log_api}">
+        <patternset>
+          <include name="org/knopflerfish/service/log/**/*"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+  </target>
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>
