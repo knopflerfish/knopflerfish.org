@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KF-XML-Metatype
 Bundle-SymbolicName: org.knopflerfish.bundle.kf_metatype
-Bundle-Version: 5.0.1
+Bundle-Version: 5.0.2
 Bundle-Category: utility
 Bundle-Description: XML format support for CM and Metatype
 Bundle-Vendor: Knopflerfish,nanoxml
@@ -19,6 +19,7 @@ Bundle-Classpath: .,nanoxml-2.2.1.jar
 Bundle-Activator: org.knopflerfish.bundle.metatype.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 api-Provide-Capability: [bundle.emptystring]
+lib-Provide-Capability: [bundle.emptystring]
 Provide-Capability: osgi.service;
    objectClass:List<String>="org.osgi.service.metatype.MetaTypeService",
  osgi.service;
