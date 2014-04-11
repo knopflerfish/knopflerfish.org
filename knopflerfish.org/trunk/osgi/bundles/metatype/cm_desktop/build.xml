@@ -23,7 +23,7 @@
    <pathelement location="util-N.N.N.jar"/>
    <pathelement location="desktop_api-N.N.N.jar"/>
    <pathelement location="metatype-N.N.N.jar"/>
-   <pathelement location="kf_metatype-N.N.N.jar"/>
+   <pathelement location="kf_metatype_all-N.N.N.jar"/>
   </path>
   
   <target name="bundle.custom.pre">

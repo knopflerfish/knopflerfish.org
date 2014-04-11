@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: CM-Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.cm_desktop
-Bundle-Version: 5.0.1
+Bundle-Version: 5.0.2
 Bundle-Category: management
 Bundle-Description: CM desktop plugin
 Bundle-Vendor: Knopflerfish
@@ -15,7 +15,8 @@ Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/metatype/cm_desktop/
 Bundle-Activator: org.knopflerfish.bundle.desktop.cm.Activator
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.5))"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.5))",
+ osgi.service;objectClass:List<String>="org.osgi.service.metatype.MetaTypeService"
 Provide-Capability: osgi.service;
    objectClass:List<String>="org.osgi.service.cm.ConfigurationListener",
  osgi.service;

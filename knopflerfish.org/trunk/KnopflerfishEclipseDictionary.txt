@@ -53,3 +53,11 @@ multi
 verbosity
 plugin
 downloadable
+ubicore
+namespace
+prodata
+validators
+vaadin
+validator
+unsubscribed
+solidus
