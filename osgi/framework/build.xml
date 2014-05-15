@@ -45,6 +45,16 @@
     <isset property="jdk1.7+"/>
   </condition>
 
+  <!-- When comipling with Java 7 we use the Java 7 runtime -->
+  <!-- as libraryjar in proguard since ee.minimum does not contain -->
+  <!-- java.lang.StringBuilder which is used by the compiler for -->
+  <!-- string concatenation in the code. -->
+  <condition property="proguard.libraryjar"
+             value="${java.home}/lib/rt.jar"
+             else="${osgi.dir}/ee/ee.minimum.jar">
+    <isset property="jdk1.7+"/>
+  </condition>
+
     
   <property name="src.dir" location="src"/>
 
@@ -253,7 +263,7 @@
       <!-- Specify the input jars, output jars, and library jars. -->
       <injar  file="${jarfile_compact}.tmp.jar" />
       <outjar file="${jarfile_compact}" />
-      <libraryjar file="${osgi.dir}/ee/ee.minimum.jar" />
+      <libraryjar file="${proguard.libraryjar}" />
 
       <!-- Preserve Main. -->
       <keepclasseswithmembers access="public">
