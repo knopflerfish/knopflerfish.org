@@ -387,6 +387,10 @@ public class Main
    * directory for restarts.
    */
   private void save_restart_props(Map<String, String> props) {
+    final String ro = framework.getBundleContext().getProperty(FWProps.READ_ONLY_PROP);
+    if ("true".equalsIgnoreCase(ro)) {
+      return;
+    }
     final String xrwp = framework.getBundleContext().getProperty(WRITE_FWPROPS_XARGS_PROP);
     if ("false".equalsIgnoreCase(xrwp)) {
       return;

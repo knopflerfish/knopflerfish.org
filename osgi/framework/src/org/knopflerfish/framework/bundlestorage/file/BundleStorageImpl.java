@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.osgi.framework.Constants;
-
 import org.knopflerfish.framework.BundleArchive;
 import org.knopflerfish.framework.BundleStorage;
 import org.knopflerfish.framework.FWProps;
@@ -132,6 +131,11 @@ public class BundleStorageImpl implements BundleStorage {
   boolean checkSigned;
 
   /**
+   * True if we shouldn't write any files.
+   */
+  private boolean readOnly;
+
+  /**
    * Create a container for all bundle data in this framework.
    * Try to restore all saved bundle archive state.
    *
@@ -140,13 +144,13 @@ public class BundleStorageImpl implements BundleStorage {
     this.framework = framework;
     initProps(framework.props);
     // See if we have a storage directory
-    bundlesDir = Util.getFileStorage(framework, "bs");
+    bundlesDir = Util.getFileStorage(framework, "bs", !isReadOnly());
     if (bundlesDir == null) {
       throw new RuntimeException("No bundle storage area available!");
     }
     // Restore all saved bundles
     final String [] list = bundlesDir.list();
-    for (int i = 0; list != null & i < list.length; i++) {
+    for (int i = 0; list != null && i < list.length; i++) {
       long id;
       try {
         id = Long.parseLong(list[i]);
@@ -195,18 +199,22 @@ public class BundleStorageImpl implements BundleStorage {
     throws Exception
   {
     final long id = nextFreeId++;
-    final FileTree dir = new FileTree(bundlesDir, String.valueOf(id));
-    if (dir.exists()) {
-      // remove any old garbage
-      dir.delete();
+    final FileTree dir = isReadOnly() ? null : new FileTree(bundlesDir, String.valueOf(id));
+    if (dir != null) {
+      if (dir.exists()) {
+        // remove any old garbage
+        dir.delete();
+      }
+      dir.mkdir();
     }
-    dir.mkdir();
     try {
       final BundleArchive ba = new BundleArchiveImpl(this, dir, is, location, id);
       archives.add(ba);
       return ba;
     } catch (final Exception e) {
-      dir.delete();
+      if (dir != null) {
+        dir.delete();
+      }
       throw e;
     }
   }
@@ -299,6 +307,11 @@ public class BundleStorageImpl implements BundleStorage {
   // Package methods
   //
 
+  boolean isReadOnly() {
+    return readOnly;
+  }
+
+
   /**
    * Remove bundle archive from archives list.
    *
@@ -340,6 +353,7 @@ public class BundleStorageImpl implements BundleStorage {
     checkSigned = props.getBooleanProperty(FWProps.BUNDLESTORAGE_CHECKSIGNED_PROP);
     isWindows = props.getProperty(Constants.FRAMEWORK_OS_NAME).startsWith("Windows");
     jarVerifierBug = props.getBooleanProperty(JAR_VERIFIER_BUG_PROP);
+    readOnly = props.getBooleanProperty(FWProps.READ_ONLY_PROP);
    }
 
 

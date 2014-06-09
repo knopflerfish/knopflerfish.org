@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.knopflerfish.framework.Debug;
+import org.knopflerfish.framework.FWProps;
 import org.knopflerfish.framework.Util;
 import org.osgi.service.condpermadmin.ConditionInfo;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
@@ -72,13 +73,16 @@ class ConditionalPermissionInfoStorage {
 
   final private Debug debug;
 
+  final private boolean readOnly;
+
   /**
    *
    */
   ConditionalPermissionInfoStorage(PermissionsHandle ph) {
     this.ph = ph;
     debug = ph.framework.debug;
-    condPermDir = Util.getFileStorage(ph.framework, "condperm");
+    readOnly = ph.framework.props.getBooleanProperty(FWProps.READ_ONLY_PROP);
+    condPermDir = Util.getFileStorage(ph.framework, "condperm", !readOnly);
     if (condPermDir == null) {
       System.err.println("Property org.osgi.framework.dir not set," +
                          "conditional permission info will not be saved between sessions");
@@ -400,7 +404,7 @@ class ConditionalPermissionInfoStorage {
     if (debug.permissions) {
       debug.println("CondPermStorage save " + size() + " cpis, gen=" + generation);
     }
-    if (condPermDir != null) {
+    if (condPermDir != null && !readOnly) {
       AccessController.doPrivileged(new PrivilegedAction<Object>() {
           public Object run() {
             purge();

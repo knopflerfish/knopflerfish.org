@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -242,6 +242,9 @@ public class Archive implements FileArchive {
         }
       }
       if (doUnpack) {
+        if (ba.storage.isReadOnly()) {
+          throw new IOException("Bundle storage is read-only, no archive unpack.");
+        }
         if (fileIsReference) {
           fileIsReference = false;
           file = bsFile;
@@ -283,6 +286,9 @@ public class Archive implements FileArchive {
     if (!doUnpack) {
       if (isDirectory) {
         if (!fileIsReference) {
+          if (ba.storage.isReadOnly()) {
+            throw new IOException("Bundle storage is read-only, unable to save archive.");
+          }
           sourceFile.copyTo(file);
         }
         if (ba.storage.checkSigned) {
@@ -984,7 +990,7 @@ public class Archive implements FileArchive {
     if (file != null) {
       final File f = new File(file);
       if (f.isFile()) {
-        return doRename(libNameKey, new File(file));
+        return doRename(libNameKey, f);
       }
     }
     return null;
@@ -997,7 +1003,8 @@ public class Archive implements FileArchive {
    */
   private String doRename(String key, File file1) {
     String val = file1.getAbsolutePath();
-    if (renameLibs.containsKey(key)) {
+    // TODO should we fail when we are readonly
+    if (!ba.storage.isReadOnly() && renameLibs.containsKey(key)) {
       final File file2 = new File(renameLibs.get(key));
       if (file1.renameTo(file2)) {
         val = file2.getAbsolutePath();
@@ -1027,7 +1034,7 @@ public class Archive implements FileArchive {
    */
   private void setPerm(File f) {
     // No OS-cmd for setting permissions given.
-    if (ba.storage.execPermCmd.length() == 0) {
+    if (ba.storage.isReadOnly() || ba.storage.execPermCmd.length() == 0) {
       return;
     }
     final String abspath = f.getAbsolutePath();
@@ -1293,6 +1300,9 @@ public class Archive implements FileArchive {
    * @param is InputStream to read from.
    */
   private void loadFile(File output, InputStream is) throws IOException {
+    if (ba.storage.isReadOnly()) {
+      throw new IOException("Bundle storage is read-only, unable to save: " + output);
+    }
     OutputStream os = null;
     try {
       if (output != null) {
@@ -1485,16 +1495,18 @@ public class Archive implements FileArchive {
    *
    */
   private void saveCertificates() throws IOException {
-    final File f = new File(getPath() + CERTS_SUFFIX);
-    if (certs != null) {
-      try {
-        final FileOutputStream fos = new FileOutputStream(f);
-        for (final Certificate cert : certs) {
-          fos.write(cert.getEncoded());
+    if (!ba.storage.isReadOnly()) {
+      final File f = new File(getPath() + CERTS_SUFFIX);
+      if (certs != null) {
+        try {
+          final FileOutputStream fos = new FileOutputStream(f);
+          for (final Certificate cert : certs) {
+            fos.write(cert.getEncoded());
+          }
+          fos.close();
+        } catch (final CertificateEncodingException e) {
+          ba.frameworkWarning(e);
         }
-        fos.close();
-      } catch (final CertificateEncodingException e) {
-        ba.frameworkWarning(e);
       }
     }
   }
@@ -1526,7 +1538,7 @@ public class Archive implements FileArchive {
   /**
    *
    */
-  public void removeCertificates() {
+  private void removeCertificates() {
     final File f = new File(getPath() + CERTS_SUFFIX);
     f.delete();
   }

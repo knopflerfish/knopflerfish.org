@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,7 +131,6 @@ class BundleArchiveImpl implements BundleArchive
     location         = bundleLocation;
     archive          = new Archive(this, bundleDir, 0, is, source, location);
     putContent(LOCATION_FILE, location);
-    //    putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
   }
 
   /**
@@ -474,16 +473,18 @@ class BundleArchiveImpl implements BundleArchive
    */
   public void purge() {
     close();
-    if (storage.removeArchive(this)) {
-      (new File(bundleDir, LOCATION_FILE)).delete();
-      (new File(bundleDir, AUTOSTART_FILE)).delete();
-      (new File(bundleDir, REV_FILE)).delete();
-      (new File(bundleDir, STARTLEVEL_FILE)).delete();
-      (new File(bundleDir, LAST_MODIFIED_FILE)).delete();
-    }
-    archive.purge();
-    if (bundleDir.list().length == 0) {
-      bundleDir.delete();
+    if (!storage.isReadOnly()) {
+      if (storage.removeArchive(this)) {
+        (new File(bundleDir, LOCATION_FILE)).delete();
+        (new File(bundleDir, AUTOSTART_FILE)).delete();
+        (new File(bundleDir, REV_FILE)).delete();
+        (new File(bundleDir, STARTLEVEL_FILE)).delete();
+        (new File(bundleDir, LAST_MODIFIED_FILE)).delete();
+      }
+      archive.purge();
+      if (bundleDir.list().length == 0) {
+        bundleDir.delete();
+      }
     }
   }
 
@@ -595,13 +596,15 @@ class BundleArchiveImpl implements BundleArchive
    * @exception IOException if we fail to save our string
    */
   private void putContent(String f, String content) throws IOException {
-    DataOutputStream out = null;
-    try {
-      out = new DataOutputStream(new FileOutputStream(new File(bundleDir, f)));
-      out.writeUTF(content);
-    } finally {
-      if (out != null) {
-        out.close();
+    if (!storage.isReadOnly()) {
+      DataOutputStream out = null;
+      try {
+        out = new DataOutputStream(new FileOutputStream(new File(bundleDir, f)));
+        out.writeUTF(content);
+      } finally {
+        if (out != null) {
+          out.close();
+        }
       }
     }
   }

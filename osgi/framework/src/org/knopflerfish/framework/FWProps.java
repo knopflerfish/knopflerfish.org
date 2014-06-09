@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2013, KNOPFLERFISH project
+ * Copyright (c) 2009-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.io.InputStream;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -139,6 +137,11 @@ public class FWProps {
    * current start level will be 1
    */
   public final static String STARTLEVEL_COMPAT_PROP = "org.knopflerfish.framework.startlevel.compat";
+
+  /**
+   * Set to true indicates that the framework shouldn't write any files.
+   */
+  public static final String READ_ONLY_PROP = "org.knopflerfish.framework.readonly";
 
   /**
    * Name of special property containing a comma-separated list of all other
@@ -491,6 +494,7 @@ public class FWProps {
     setPropertyDefault(REGISTERSERVICEURLHANDLER_PROP, TRUE);
     setPropertyDefault(STARTLEVEL_COMPAT_PROP, FALSE);
     setPropertyDefault(STARTLEVEL_USE_PROP, TRUE);
+    setPropertyDefault(READ_ONLY_PROP, FALSE);
   }
 
 }

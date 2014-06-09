@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,9 @@ public class StartLevelController
 
   // Set to true indicates startlevel compatibility mode.
   // all bundles and current start level will be 1
-  boolean  bCompat /*= false*/;
+  final boolean  bCompat /*= false*/;
+
+  final private boolean readOnly;
 
 
   StartLevelController(FrameworkContext fwCtx)
@@ -93,7 +95,8 @@ public class StartLevelController
     this.fwCtx = fwCtx;
     bCompat = fwCtx.props.getBooleanProperty(FWProps.STARTLEVEL_COMPAT_PROP);
 
-    storage = Util.getFileStorage(fwCtx, "startlevel");
+    readOnly = fwCtx.props.getBooleanProperty(FWProps.READ_ONLY_PROP);
+    storage = Util.getFileStorage(fwCtx, "startlevel", !readOnly);
   }
 
   void open() {
@@ -269,7 +272,7 @@ public class StartLevelController
 
         // Skip level save in mem storage since bundle levels
         // won't be saved anyway
-        if (storeLevel && storage != null) {
+        if (storeLevel && storage != null && !readOnly) {
           try {
             Util.putContent(new File(storage, LEVEL_FILE),
                             Integer.toString(currentLevel));
@@ -483,7 +486,7 @@ public class StartLevelController
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
     initStartLevel = bCompat ? 1 : startLevel;
-    if (storage != null && save) {
+    if (storage != null && !readOnly && save) {
       try {
         Util.putContent(new File(storage, INITIAL_LEVEL_FILE),
                         Integer.toString(initStartLevel));

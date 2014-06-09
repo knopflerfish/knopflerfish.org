@@ -632,6 +632,7 @@ but "-D" should also work.
     <td>False</td>
   </tr>
   <tr>
+    <a name="fileref"></a>
     <td>org.knopflerfish.framework.bundlestorage.file.reference</td>
     <td>
      When using file bundle storage, file: URLs can optionally
@@ -960,6 +961,19 @@ but "-D" should also work.
     </td>
     <td>String</td>
     <td>patchedclasses</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.readonly</td>
+    <td>
+      Controls if the framework should skip saving state changes
+      permantly under framework directory. This means that if we are
+      running with the default "file" bundle storage then new bundles
+      must be installed as a referenced file URL (see property
+      <a href="#fileref">org.knopflerfish.framework.bundlestorage.file.reference</a>).
+      This also implies that no data storage will be available to bundles.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.service.conditionalpermissionadmin</td>
