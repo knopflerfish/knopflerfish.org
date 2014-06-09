@@ -68,7 +68,7 @@ import org.osgi.util.tracker.ServiceTracker;
 
 public class ComponentTestSuite extends TestSuite implements ComponentATest
 {
-  public static final long SLEEP_TIME = 300;
+  public static final long SLEEP_TIME = 1000;
 
   private BundleContext bc;
 
