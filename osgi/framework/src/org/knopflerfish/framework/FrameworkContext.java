@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLStreamHandlerFactory;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -228,6 +229,18 @@ public class FrameworkContext  {
   static int smUse = 0;
 
 
+  static void setupURLStreamHandleFactory() {
+    ServiceURLStreamHandlerFactory res = new ServiceURLStreamHandlerFactory();
+    try {
+      URL.setURLStreamHandlerFactory(res);
+      systemUrlStreamHandlerFactory = res;
+    } catch (final Throwable e) {
+      System.err.println("Cannot set global URL handlers, "
+         +"continuing without OSGi service URL handler (" +e +")");
+    }
+  }
+
+
   /**
    * Contruct a framework context
    *
@@ -310,25 +323,25 @@ public class FrameworkContext  {
       // handler, since this requires an intialized framework to work
       if (props.REGISTERSERVICEURLHANDLER) {
         // Check if we already have registered one
-        if (systemUrlStreamHandlerFactory != null) {
-          urlStreamHandlerFactory = systemUrlStreamHandlerFactory;
+        if (systemUrlStreamHandlerFactory == null) {
+          setupURLStreamHandleFactory();
+        }
+        urlStreamHandlerFactory = systemUrlStreamHandlerFactory;
+        if (systemContentHandlerFactory != null) {
           contentHandlerFactory   = systemContentHandlerFactory;
         } else {
-          urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
           contentHandlerFactory   = new ServiceContentHandlerFactory(this);
           try {
-            URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
             URLConnection.setContentHandlerFactory(contentHandlerFactory);
             systemContentHandlerFactory   = contentHandlerFactory;
-            systemUrlStreamHandlerFactory = urlStreamHandlerFactory;
           } catch (final Throwable e) {
             debug.printStackTrace
-              ("Cannot set global URL handlers, "
-               +"continuing without OSGi service URL handler (" +e +")", e);
+              ("Cannot set global content handlers, "
+               +"continuing without OSGi service content handler (" +e +")", e);
           }
         }
       } else {
-        urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
+        urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory();
         contentHandlerFactory   = new ServiceContentHandlerFactory(this);
       }
     }

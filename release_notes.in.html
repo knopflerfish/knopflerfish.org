@@ -31,7 +31,7 @@
 <div class="release_notes">
 
   <div class="note_group">
-    <div class="note_name">Framework 7.0.2</div>
+    <div class="note_name">Framework 7.1.0</div>
     <div class="note_item">
     Fixed bug that caused IndexOutOfBoundsException when updating large
     collections of ConditionalPermissionInfos using ConditionalPermissionUpdate.
@@ -39,6 +39,16 @@
     <div class="note_item">
     Added property "org.knopflerfish.framework.validator.date" to framework
     for testing certification validation with different dates.
+    </div>
+    <div class="note_item">
+    Added new URL protocol "fwresource" to access resources from the framework
+    classloader.
+    </div>
+    <div class="note_item">
+    The start class org.knopflerfish.framework.Main now tries to load xargs as
+    framework resource if the file is not found. This means that we together
+    with the new fwresource protocol can create a single jar that contains the
+    framework, all jars and xargs files that needs to start a complete application.
     </div>
   </div>
 

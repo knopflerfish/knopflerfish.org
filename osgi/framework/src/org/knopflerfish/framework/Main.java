@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -101,7 +102,8 @@ public class Main
   Map<String, String> sysProps = new HashMap<String, String>();
 
   static public final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
-  static public final String JARDIR_DEFAULT = "file:";
+  static public final String JARDIR_DEFAULT = "file:jars/;"
+      + FWResourceURLStreamHandler.PROTOCOL + ":jars/";
 
   static public final String XARGS_INIT     = "init.xargs";
   static public final String XARGS_RESTART  = "restart.xargs";
@@ -159,6 +161,8 @@ public class Main
       verbosity = Integer.parseInt(null==vpv ? VERBOSITY_DEFAULT: vpv);
     } catch (final Exception ignored) { }
     populateSysProps();
+    // Setup URLStremFactory so that we can use fwresource:
+    FrameworkContext.setupURLStreamHandleFactory();
   }
 
 
@@ -205,17 +209,14 @@ public class Main
     if (bZeroArgs) {// Add default xargs file to command line
       // To determine the fwdir we must process all -D/-F definitions
       // on the current command line.
-      final String xargsPath = getDefaultXArgs();
-      if(xargsPath != null) {
-        if (0==args.length) {
-          args = new String[] {"-xargs", xargsPath};
-        } else {
-          final String[] newArgs = new String[args.length +2];
-          newArgs[0] = "-xargs";
-          newArgs[1] = xargsPath;
-          System.arraycopy(args, 0, newArgs, 2, args.length);
-          args = newArgs;
-        }
+      if (0==args.length) {
+        args = new String[] {"-xargs", XARGS_DEFAULT};
+      } else {
+        final String[] newArgs = new String[args.length +2];
+        newArgs[0] = "-xargs";
+        newArgs[1] = XARGS_DEFAULT;
+        System.arraycopy(args, 0, newArgs, 2, args.length);
+        args = newArgs;
       }
     }
 
@@ -272,23 +273,26 @@ public class Main
   }
 
 
-  String[] getJarBase() {
+  URL[] getJarBase() {
     assertFramework();
     String jars = framework.getBundleContext().getProperty(JARDIR_PROP);
     if(jars == null) {
       jars = JARDIR_DEFAULT;
     }
 
-    final String[] base = Util.splitwords(jars, ";");
-    for (int i=0; i<base.length; i++) {
+    final String[] ja = Util.splitwords(jars, ";");
+    ArrayList<URL> res = new ArrayList<URL>();
+    for (int i=0; i<ja.length; i++) {
+      final String u = ja[i].trim();
       try {
-        base[i] = new URL(base[i]).toString();
-      } catch (final Exception ignored) {
+        res.add(new URL(u));
+        println("jar base[" + i + "]=" + u, 3);
+      } catch (final MalformedURLException ignored) {
+        System.err.println("Skip illegal jar base: " + u);
       }
-      println("jar base[" + i + "]=" + base[i], 3);
     }
 
-    return base;
+    return res.toArray(new URL[res.size()]);
   }
 
 
@@ -818,7 +822,6 @@ public class Main
    * @param location The location to be completed.
    */
   private String completeLocation(String location) {
-    final String[] base = getJarBase();
     // Handle file: case where topDir is not ""
     if(location.startsWith("file:jars/") && !topDir.equals("")) {
       location = ("file:" + topDir + "/" + location.substring(5)).replace('\\', '/');
@@ -827,11 +830,12 @@ public class Main
     final int ic = location.indexOf(":");
     if (ic<2 || ic>location.indexOf("/")) {
       println("location=" + location, 2);
+      final URL[] base = getJarBase();
       // URL without protocol complete it.
       for (int i=0; i<base.length; i++) {
         println("base[" + i + "]=" + base[i], 2);
         try {
-          final URL url = new URL( new URL(base[i]), location );
+        	final URL url = new URL(base[i], location);
 
           println("check " + url, 2);
           if ("file".equals(url.getProtocol())) {
@@ -860,8 +864,7 @@ public class Main
           location = url.toString();
           println("found location=" + location, 5);
           break; // Found.
-        } catch (final Exception _e) {
-        }
+        } catch (final Exception _ignore) { }
       }
     }
     return location;
@@ -896,7 +899,7 @@ public class Main
             }
           } catch (final RuntimeException e) {
             if(bIgnoreException) {
-              println("Failed to load -xargs " + xargsPath, 1, e);
+              println("Failed to load --xargs " + xargsPath, 1, e);
             } else {
               throw e;
             }
@@ -965,8 +968,10 @@ public class Main
    * Helper method which tries to find a default xargs files to use.
    * Note: Make sure that fwProps are up to date by calling
    * processProperties(args) before calling this method.
+   *
+   * @throws IOException 
    */
-  String getDefaultXArgs() {
+  BufferedReader getDefaultXArgs() throws IOException {
     boolean bInit = Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
       .equals(fwProps.get(Constants.FRAMEWORK_STORAGE_CLEAN));
 
@@ -985,13 +990,10 @@ public class Main
     final String defDirStr = fwDir.getParent();
     final File   defDir    = defDirStr != null ? new File(defDirStr) : null;
 
-    final File   cwDir = new File(new File("").getAbsolutePath());
-
     println("defDir=" +defDir, 5);
-    println("cwDir="  +cwDir, 5);
 
     final File[] dirs = null!=defDir ?
-      new File[]{ fwDir, defDir, cwDir } : new File[]{ fwDir, cwDir };
+      new File[]{ fwDir, defDir } : new File[]{ fwDir };
 
     // Determine the root OSGi dir, a.k.a. topDir
     for (final File dir : dirs) {
@@ -1023,9 +1025,20 @@ public class Main
         }
       }
     }
-    println("default xargs file is " + xargsFound, 2);
-
-    return xargsFound;
+    if (xargsFound != null) {
+      println("default xargs file is " + xargsFound, 2);
+      return getXargsReader(xargsFound);
+    } else {
+      IOException failure = null;
+      for (int i = 0; i<xargNames.length; i++) {
+        try {
+          return getXargsReader(xargNames[i]);
+        } catch (IOException e) {
+          failure = e;
+        }
+      }
+      throw failure;
+    }
   }
 
 
@@ -1091,6 +1104,7 @@ public class Main
         for (final String subdir : subdirs) {
           sb.append(";file:" + jarBaseDir + "/" + subdir + "/");
         }
+        sb.append(FWResourceURLStreamHandler.PROTOCOL + ":jars/");
         jars = sb.toString().replace('\\', '/');
         fwProps.put(JARDIR_PROP, jars);
         println("scanned " +JARDIR_PROP +"=" + jars, 2);
@@ -1266,67 +1280,17 @@ public class Main
    *         <tt>argv</tt> by the caller.
    */
   String [] loadArgs(String xargsPath, String[] oldArgs) {
-    if(XARGS_DEFAULT.equals(xargsPath)) {
-      processProperties(oldArgs);
-      xargsPath = getDefaultXArgs();
-    }
-
     // out result
     final List<String> v = new ArrayList<String>();
 
     BufferedReader in = null;
     try {
-
-      // Check as file first, then as a URL
-      println("Searching for xargs file with '" +xargsPath +"'.", 2);
-
-      // 1) Search in parent dir of the current framework directory
-      final String fwDirStr = Util.getFrameworkDir(fwProps);
-
-      // avoid getAbsoluteFile() since some profiles don't have this
-      final File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
-
-      // avoid getParentFile() since some profiles don't have this
-      final String defDirStr = fwDir.getParent();
-      final File   defDir    = defDirStr != null ? new File(defDirStr) : null;
-      if (null!=defDir) {
-        // Make the file object absolute before calling exists(), see
-        // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
-        // for details.
-        final File f = new File(new File(defDir,xargsPath).getAbsolutePath());
-        println(" trying " +f, 5);
-        if(f.exists()) {
-          println("Loading xargs file " + f, 1);
-          in = new BufferedReader(new FileReader(f));
-        }
+      if (XARGS_DEFAULT.equals(xargsPath)) {
+        processProperties(oldArgs);
+        in = getDefaultXArgs();
+      } else {
+        in = getXargsReader(xargsPath);
       }
-
-      // 2) Search in the current working directory
-      if (null==in) {
-        // Make the file object absolute before calling exists(), see
-        // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
-        // for details.
-        final File f = new File(new File(xargsPath).getAbsolutePath());
-        println(" trying " +f, 5);
-        if(f.exists()) {
-          println("Loading xargs file " + f, 1);
-          in = new BufferedReader(new FileReader(f));
-        }
-      }
-
-      // 3) Try argument as URL
-      if(in == null) {
-        try {
-          println(" trying URL " +xargsPath, 5);
-          final URL url = new URL(xargsPath);
-          println("Loading xargs url " + url, 0);
-          in = new BufferedReader(new InputStreamReader(url.openStream()));
-        } catch (final MalformedURLException e)  {
-          throw new IllegalArgumentException("Bad xargs URL " + xargsPath +
-                                             ": " + e);
-        }
-      }
-
       StringBuffer contLine = new StringBuffer();
       String       line     = null;
       String       tmpline  = null;
@@ -1407,6 +1371,73 @@ public class Main
     v.toArray(args2);
 
     return args2;
+  }
+
+
+  private BufferedReader getXargsReader(String xargsPath)
+      throws IOException {
+    BufferedReader in = null;
+    println("Searching for xargs file with '" +xargsPath +"'.", 2);
+
+    // 1) Search in parent dir of the current framework directory
+    final String fwDirStr = Util.getFrameworkDir(fwProps);
+
+    // avoid getAbsoluteFile() since some profiles don't have this
+    final File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
+
+    // avoid getParentFile() since some profiles don't have this
+    final String defDirStr = fwDir.getParent();
+    final File   defDir    = defDirStr != null ? new File(defDirStr) : null;
+    if (null!=defDir) {
+      // Make the file object absolute before calling exists(), see
+      // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
+      // for details.
+      final File f = new File(new File(defDir,xargsPath).getAbsolutePath());
+      println(" trying " +f, 5);
+      if(f.exists()) {
+        println("Loading xargs file " + f, 1);
+        in = new BufferedReader(new FileReader(f));
+      }
+    }
+
+    // 2) Search in the current working directory
+    if (null==in) {
+      // Make the file object absolute before calling exists(), see
+      // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
+      // for details.
+      final File f = new File(new File(xargsPath).getAbsolutePath());
+      println(" trying " +f, 5);
+      if(f.exists()) {
+        println("Loading xargs file " + f, 1);
+        in = new BufferedReader(new FileReader(f));
+      }
+    }
+
+    // 3) Try argument as URL if it contains ':'.
+    if (in == null && xargsPath.indexOf(':') != -1) {
+      try {
+        println(" trying URL " +xargsPath, 5);
+        final URL url = new URL(xargsPath);
+        println("Loading xargs url " + url, 1);
+        in = new BufferedReader(new InputStreamReader(url.openStream()));
+      } catch (final MalformedURLException _ignore)  { }
+    }
+    // 4) Try as resource
+    if (null==in) {
+      ClassLoader cl = getClass().getClassLoader();
+      while (cl != null) {
+        InputStream is = cl.getResourceAsStream(xargsPath);
+        if (is != null) {
+          in = new BufferedReader(new InputStreamReader(is));
+          break;
+        }
+        cl = cl.getParent();
+      }
+    }
+    if (null==in) {
+      throw new FileNotFoundException("Didn't find xargs file: " + xargsPath);
+    }
+    return in;
   }
 
 
