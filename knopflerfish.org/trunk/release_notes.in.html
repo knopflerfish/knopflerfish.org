@@ -45,10 +45,17 @@
     classloader.
     </div>
     <div class="note_item">
-    The start class org.knopflerfish.framework.Main now tries to load xargs as
+    The start class org.knopflerfish.framework.Main now tries to load xargs as a
     framework resource if the file is not found. This means that we together
     with the new fwresource protocol can create a single jar that contains the
     framework, all jars and xargs files that needs to start a complete application.
+    </div>
+    <div class="note_item">
+    Added property "org.knopflerfish.framework.readonly", that puts framework
+    in a read only mode. This means that framework will not write any files
+    in "fwdir". This means that if we are running with the default "file"
+    bundle storage then new bundles must be installed as a referenced file URL.
+    This also implies that no data storage will be available to bundles.
     </div>
   </div>
 

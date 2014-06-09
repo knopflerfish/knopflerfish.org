@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.osgi.service.permissionadmin.PermissionInfo;
-
 import org.knopflerfish.framework.Debug;
+import org.knopflerfish.framework.FWProps;
 import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Util;
 
@@ -75,6 +75,8 @@ class PermissionInfoStorage {
 
   final private Debug debug;
 
+  final boolean readOnly;
+
   /**
    *
    */
@@ -83,7 +85,8 @@ class PermissionInfoStorage {
     initialDefault = new PermissionInfo[] { new PermissionInfo(DEFAULTPERM) };
     defaultPermissions = initialDefault;
 
-    permDir = Util.getFileStorage(ctx, "perms");
+    readOnly = ctx.props.getBooleanProperty(FWProps.READ_ONLY_PROP);
+    permDir = Util.getFileStorage(ctx, "perms", !readOnly);
     if (permDir == null) {
       System.err.println("Property org.osgi.framework.dir not set," +
                          "permission data will not be saved between sessions");
@@ -256,7 +259,7 @@ class PermissionInfoStorage {
    * Save a permission array.
    */
   private void save(final String location, final PermissionInfo [] perms) {
-    if (permDir != null) {
+    if (permDir != null && !readOnly) {
       AccessController.doPrivileged(new PrivilegedAction<Object>() {
           public Object run() {
             File f;

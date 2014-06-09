@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,10 +108,9 @@ public class Util {
   /**
    * Check for local file storage directory.
    *
-   * @param name local directory name.
    * @return A FileTree object of directory or null if no storage is available.
    */
-  public static FileTree getFileStorage(FrameworkContext ctx, String name) {
+  public static FileTree getFileStorage(FrameworkContext ctx, String name, boolean create) {
     // See if we have a storage directory
     final String fwdir = getFrameworkDir(ctx);
     if (fwdir == null) {
@@ -124,12 +123,16 @@ public class Util {
           throw new RuntimeException("Not a directory: " + dir);
         }
       } else {
-        if (!dir.mkdirs()) {
+        if (create && !dir.mkdirs()) {
           throw new RuntimeException("Cannot create directory: " + dir);
         }
       }
     }
     return dir;
+  }
+
+  public static FileTree getFileStorage(FrameworkContext ctx, String name) {
+    return getFileStorage(ctx, name, true);
   }
 
 

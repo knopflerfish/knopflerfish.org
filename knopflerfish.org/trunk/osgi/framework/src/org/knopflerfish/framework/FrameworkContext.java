@@ -38,7 +38,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLStreamHandlerFactory;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -379,7 +378,11 @@ public class FrameworkContext  {
       throw new RuntimeException("Failed to initialize storage "
                                  + storageClass, cause);
     }
-    dataStorage = Util.getFileStorage(this, "data");
+    if (props.getBooleanProperty(FWProps.READ_ONLY_PROP)) {
+      dataStorage = null;
+    } else {
+      dataStorage = Util.getFileStorage(this, "data");
+    }
 
     BundleThread.checkWarnStopActionNotSupported(this);
     bundleThreads = new LinkedList<BundleThread>();
