@@ -34,8 +34,7 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.framework_test.*;
+import org.osgi.framework.BundleEvent;
 
 /*
   This implementation of a listener behaves very badly as it does not return 

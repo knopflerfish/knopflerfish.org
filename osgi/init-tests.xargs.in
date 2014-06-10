@@ -58,7 +58,7 @@
 -Forg.knopflerfish.log.file=true
 
 # bootdelegation
-# The test case FRAME163a reuires boot delegation for javax.naming
+# The test case FRAME163a requires boot delegation for javax.naming
 # to actually check that it works.
 -Forg.osgi.framework.bootdelegation=sun.*,javax.naming
 

@@ -34,17 +34,23 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import java.util.*;
-import java.io.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.io.PrintStream;
+import java.util.Properties;
+import java.util.Vector;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.framework_test.*;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
-import org.osgi.service.packageadmin.*;
-
-import junit.framework.*;
+import org.knopflerfish.service.framework_test.FrameworkTest;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleListener;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.Version;
+import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.packageadmin.PackageAdmin;
 
 public class PackageTestSuite extends TestSuite implements FrameworkTest {
   BundleContext bc;

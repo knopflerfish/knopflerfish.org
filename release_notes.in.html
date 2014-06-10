@@ -31,7 +31,7 @@
 <div class="release_notes">
 
   <div class="note_group">
-    <div class="note_name">Framework 7.1.0</div>
+    <div class="note_name">Framework 7.1.1</div>
     <div class="note_item">
     Fixed bug that caused IndexOutOfBoundsException when updating large
     collections of ConditionalPermissionInfos using ConditionalPermissionUpdate.
@@ -56,6 +56,9 @@
     in "fwdir". This means that if we are running with the default "file"
     bundle storage then new bundles must be installed as a referenced file URL.
     This also implies that no data storage will be available to bundles.
+    </div>
+    <div class="note_item">
+    Fixed exception when doing BundleWiring.listResources on root directory.
     </div>
   </div>
 

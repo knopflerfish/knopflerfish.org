@@ -34,9 +34,13 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import java.util.*;
-import org.osgi.framework.*;
-import junit.framework.*;
+import java.util.Hashtable;
+
+import junit.framework.TestSuite;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 public class Activator implements BundleActivator {
 
@@ -92,6 +96,13 @@ public class Activator implements BundleActivator {
     }
     {
       TestSuite suite = new CapabilityTestSuite(bc);
+      Hashtable props = new Hashtable();
+      props.put("service.pid", suite.getName());
+      ServiceRegistration sr
+        = bc.registerService(TestSuite.class.getName(), suite, props);
+    }
+    {
+      TestSuite suite = new BundleWiringTestSuite(bc);
       Hashtable props = new Hashtable();
       props.put("service.pid", suite.getName());
       ServiceRegistration sr

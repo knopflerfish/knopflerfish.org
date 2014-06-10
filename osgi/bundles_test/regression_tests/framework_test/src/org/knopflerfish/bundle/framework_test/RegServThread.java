@@ -34,10 +34,11 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.framework_test.*;
-import java.util.*;
-import java.io.*;
+import java.io.PrintStream;
+import java.util.Hashtable;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 public class RegServThread implements Runnable {
   BundleContext bc;

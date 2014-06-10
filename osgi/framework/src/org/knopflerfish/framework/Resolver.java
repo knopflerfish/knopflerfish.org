@@ -119,6 +119,11 @@ class Resolver {
    */
   private ExportPkg tempCollision;
 
+  /**
+   * Thread currently doing resolve
+   */
+  private Object resolveThread;
+
   /* Statistics to check need for tempBlackList */
   int tempBlackListChecks = 0;
   int tempBlackListHits = 0;
@@ -217,6 +222,7 @@ class Resolver {
           wait();
         } catch (final InterruptedException _ignore) { }
       }
+      resolveThread = Thread.currentThread();
       tempResolved = new HashSet<BundleGeneration>();
       tempProvider = new HashMap<String, ExportPkg>();
       tempRequired = new HashMap<RequireBundle, BundlePackages>();
@@ -242,6 +248,7 @@ class Resolver {
         tempProvider = null;
         tempRequired = null;
         tempResolved = null;
+        resolveThread = null;
         notifyAll();
       }
     }
@@ -370,6 +377,7 @@ class Resolver {
       } while (tempResolved != null);
    	}
 
+    resolveThread = Thread.currentThread();
     tempResolved = new HashSet<BundleGeneration>();
     try {
       if (!addTempResolved(bg)) {
@@ -377,6 +385,7 @@ class Resolver {
       }
     } catch (BundleException be) {
       tempResolved = null;
+      resolveThread = null;
       notifyAll();
       throw be;
     }
@@ -389,6 +398,7 @@ class Resolver {
     }
     if (res != null) {
       tempResolved = null;
+      resolveThread = null;
       notifyAll();
       return res;
     }
@@ -438,6 +448,7 @@ class Resolver {
       tempRequired = null;
       tempBlackList = null;
       tempWires = null;
+      resolveThread = null;
       notifyAll();
     }
     if (framework.debug.resolver) {
@@ -1396,6 +1407,9 @@ class Resolver {
    */
   private void checkThread() throws BundleException {
     Thread t = Thread.currentThread();
+    if (t.equals(resolveThread)) {
+      throw new BundleException("Can not currently start new resolve during a resolve.");      
+    }
     for (BundleGeneration bg : tempResolved) {
       if (bg.bundle.isBundleThread(t)) {
 		    throw new BundleException("Can not resolve a bundle inside current BundleListener." +

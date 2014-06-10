@@ -35,15 +35,23 @@
 package org.knopflerfish.bundle.framework_test;
 
 import java.io.PrintStream;
-import java.util.*;
-import java.security.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.*;
-
-import junit.framework.*;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 import org.knopflerfish.service.framework_test.FrameworkTest;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.service.packageadmin.RequiredBundle;
 
 public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
   BundleContext bc;

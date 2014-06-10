@@ -591,10 +591,11 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     if (debug.classLoader) {
       debug.println(this + " List bundle resources: " + path + ", pattern=" + filePattern);
     }
-    final int start = path.startsWith("/") ? 1 : 0;
-    final int end = path.endsWith("/") ? -1 : 0;
-    if (start != 0 || end != 0) {
-      path = path.substring(start, path.length() + end);
+    if (path.startsWith("/")) {
+      path = path.substring(1);
+    }
+    if (path.endsWith("/")) {
+      path = path.substring(0, path.length() - 1);
     }
     // TODO handle . within path
     String pkg = path.replace('/', '.');
@@ -786,8 +787,10 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
             }
           }
         }
-        // Import checked we don't need to list any more in this directory.
-        options |= ONLY_RECURSE;
+        if (cl != this) {
+          // Import checked we don't need to list any more in this directory.
+          options |= ONLY_RECURSE;
+        }
       } else if (!local) {
         /* 4 */
         final ArrayList<BundleGeneration> pl = bpkgs.getRequiredBundleGenerations(pkg);
@@ -1190,7 +1193,13 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         for (FileArchive fa : items) {
           for (String e : fa.listDir(path)) {
             if (scanned.contains(e)) {
+              if (cl.debug.classLoader) {
+                cl.debug.println("classLoader(#" + cl.bpkgs.bg.bundle.id + ") - list search skip: " + e);
+              }
               continue;
+            } else if (cl.debug.classLoader) {
+              cl.debug.println("classLoader(#" + cl.bpkgs.bg.bundle.id +
+                  ") - list search check: " + e + (onlyRecurse ? " (scan)" : ""));
             }
             if (e.endsWith("/")) {
               e = e.substring(0, e.length() - 1);
@@ -1209,6 +1218,9 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
             }
             if (!onlyRecurse && (name == null || Util.filterMatch(name, e))) {
               answer.add(path + "/" + e);
+              if (cl.debug.classLoader) {
+                cl.debug.println("classLoader(#" + cl.bpkgs.bg.bundle.id + ") - list search match: " + e);
+              }
             }
           }
         }

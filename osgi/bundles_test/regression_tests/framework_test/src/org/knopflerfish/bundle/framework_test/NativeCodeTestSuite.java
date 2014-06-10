@@ -34,21 +34,28 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import java.util.*;
-import java.io.*;
-import java.math.*;
-import java.net.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.Permission;
+import java.security.PermissionCollection;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.Properties;
+import java.util.Vector;
 
-import org.osgi.framework.*;
-import org.knopflerfish.bundle.framework_test.FrameworkTestSuite.Frame069a;
-import org.knopflerfish.service.framework_test.*;
+import junit.framework.TestSuite;
 
-import org.osgi.service.packageadmin.*;
-import org.osgi.service.permissionadmin.*;
-
-import junit.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.service.permissionadmin.PermissionInfo;
 
 public class NativeCodeTestSuite extends TestSuite {
   BundleContext bc;

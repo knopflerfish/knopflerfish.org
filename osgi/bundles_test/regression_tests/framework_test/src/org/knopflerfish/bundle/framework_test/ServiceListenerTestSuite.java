@@ -34,18 +34,20 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import java.util.*;
-import java.io.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.io.PrintStream;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.framework_test.*;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
-import org.osgi.service.packageadmin.*;
-import org.osgi.service.permissionadmin.*;
-
-import junit.framework.*;
+import org.knopflerfish.service.framework_test.FrameworkTest;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceReference;
 
 public class ServiceListenerTestSuite
   extends TestSuite
