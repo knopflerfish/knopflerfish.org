@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import java.security.*;
 
 public class PermissionTest extends java.security.Permission {
   String action;

@@ -33,19 +33,18 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import java.io.*;
-import java.lang.reflect.*;
-import java.net.URL;
-import java.util.*;
-import java.security.*;
+import java.io.PrintStream;
 
-import org.osgi.framework.*;
-import org.osgi.framework.wiring.FrameworkWiring;
-import org.osgi.service.packageadmin.*;
-
-import junit.framework.*;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 import org.knopflerfish.service.framework_test.FrameworkTest;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.wiring.FrameworkWiring;
 
 public class CapabilityTestSuite extends TestSuite implements FrameworkTest
 {

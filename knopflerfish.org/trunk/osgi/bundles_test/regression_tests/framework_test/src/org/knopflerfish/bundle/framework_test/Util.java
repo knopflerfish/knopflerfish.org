@@ -34,12 +34,19 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Arrays;
 
-import java.util.*;
-import java.io.*;
-import java.net.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.packageadmin.PackageAdmin;
 
 /**
  * Misc static utility methods.

@@ -34,18 +34,23 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import java.io.*;
-import java.lang.reflect.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.*;
-import java.security.*;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.*;
-
-import junit.framework.*;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 import org.knopflerfish.service.framework_test.FrameworkTest;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.packageadmin.PackageAdmin;
 
 
 public class FragmentTestSuite extends TestSuite implements FrameworkTest {

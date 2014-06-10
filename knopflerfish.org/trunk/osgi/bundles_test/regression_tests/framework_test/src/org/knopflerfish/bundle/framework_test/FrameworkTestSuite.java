@@ -34,16 +34,48 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import java.util.*;
-import java.io.*;
-import java.net.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.SocketPermission;
+import java.net.URL;
+import java.net.URLConnection;
+import java.security.Permission;
+import java.security.PermissionCollection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.Vector;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.framework_test.*;
+import junit.framework.TestSuite;
 
-import junit.framework.*;
+import org.knopflerfish.service.framework_test.FrameworkTest;
+import org.osgi.framework.AdminPermission;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Configurable;
+import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.PackagePermission;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServicePermission;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.SynchronousBundleListener;
 
 public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   BundleContext bc;
@@ -1407,7 +1439,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
       assertEquals("GetEntryPaths did not retrieve the correct number of "
-                   +"elements.", 148, i);
+                   +"elements.", 152, i);
 
       //existing file, non-directory, ending with slash
       enume = bc.getBundle().getEntryPaths("/bundleA_test-1.0.0.jar/");

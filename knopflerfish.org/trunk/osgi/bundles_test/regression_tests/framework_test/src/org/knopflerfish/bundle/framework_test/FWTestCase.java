@@ -34,8 +34,9 @@
 
 package org.knopflerfish.bundle.framework_test;
 
-import junit.framework.*;
-import java.lang.reflect.*;
+import java.lang.reflect.Field;
+
+import junit.framework.TestCase;
 
 public class FWTestCase extends TestCase {
 
