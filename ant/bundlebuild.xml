@@ -281,6 +281,9 @@
   <!-- Where the javadoc for exported packages goes. -->
   <property name="javadoc.out.dir" location="${outdir}/javadoc"/>
 
+  <!-- Where the javadoc for exported packages goes. -->
+  <property name="resources.out.dir" location="${outdir}/resources"/>
+
   <!-- If lib-variant of bundle shall be built or not. -->
   <property name="bundle.build.lib"    value="false"/>
 
@@ -573,6 +576,7 @@
 
     <available property="src.dir.exists"       file="${src.dir}"/>
     <available property="resources.dir.exists" file="${resources.dir}"/>
+    <available property="resources.out.dir.exists" file="${outdir}/resources"/>
     <available property="doc.dir.exists"       file="${doc.dir}"/>
 
     <condition property="do_build_lib">
@@ -1002,9 +1006,21 @@
 
   <!-- Helper taget that adds files from the resources directory -->
   <!-- to a bundle. -->
-  <target name="add_resources" if="resources.dir.exists">
+  <target name="add_resources">
+    <antcall target="add_resources_bundle" inheritRefs="true"/>
+    <antcall target="add_resources_generated" inheritRefs="true"/>
+  </target>
+
+  <target name="add_resources_bundle" if="resources.dir.exists">
     <jar jarfile="${add.resource.jarfile}" update="true">
       <fileset dir="${resources.dir}"/>
+    </jar>
+  </target>
+
+  <!--<target name="add_resources_generated" if="resources.out.dir.exists"> -->
+  <target name="add_resources_generated" if="resources.out.dir.exists">
+    <jar jarfile="${add.resource.jarfile}" update="true">
+      <fileset dir="${resources.out.dir}"/>
     </jar>
   </target>
 
