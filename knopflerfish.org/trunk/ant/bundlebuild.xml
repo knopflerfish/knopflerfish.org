@@ -411,7 +411,7 @@
     <fail if="require.bundle" message="require.bundle->bmfa.Require-Bundle"/>
     <fail if="bundle.uuid"    message="bundle.uuid->bmfa.Bundle-UUID"/>
     <fail if="bundle.config"  message="bundle.config->bmfa.Bundle-Config"/>
-    <fail if="bundle.icon"    message="bundle.icon->bmfa.Application-Icon"/>
+    <fail if="bundle.icon"    message="bundle.icon->bmfa.Bundle-Icon"/>
     <fail if="bundle.subversionurl"
           message="bundle.subversionurl->bmfa.Bundle-SubversionURL"/>
     <fail if="bundle.apivendor"
