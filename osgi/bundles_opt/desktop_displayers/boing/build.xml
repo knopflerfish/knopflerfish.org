@@ -14,7 +14,7 @@
    <pathelement location="desktop_api-N.N.N.jar"/>
   </path>
   
-  <property name="bmfa.Application-Icon"   value="boing32x32.png"/>
+  <property name="bmfa.Bundle-Icon"   value="boing32x32.png"/>
   <property name="bmfa.Bundle-Description" value="Boing demo desktop plugin"/>
   <property name="bmfa.Bundle-Vendor"      value="knopflerfish"/>
   <property name="bmfa.Bundle-Category"    value="service"/>
