@@ -210,10 +210,10 @@ public class Main
       // To determine the fwdir we must process all -D/-F definitions
       // on the current command line.
       if (0==args.length) {
-        args = new String[] {"-xargs", XARGS_DEFAULT};
+        args = new String[] {"--xargs", XARGS_DEFAULT};
       } else {
         final String[] newArgs = new String[args.length +2];
-        newArgs[0] = "-xargs";
+        newArgs[0] = "--xargs";
         newArgs[1] = XARGS_DEFAULT;
         System.arraycopy(args, 0, newArgs, 2, args.length);
         args = newArgs;

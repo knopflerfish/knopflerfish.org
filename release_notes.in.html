@@ -31,15 +31,19 @@
 <div class="release_notes">
 
   <div class="note_group">
+    <div class="note_name">Framework 7.1.2</div>
+    <div class="note_item">
+    Fixed framework restart problem introduced in 7.1.0.
+    </div>
+    <div class="note_item">
+    Relaxed "org.knopflerfish.framework.validator.date" parsing, so that
+    it tries short US locale pattern if default locale parsing fails.
+    </div>
     <div class="note_name">Framework 7.1.1</div>
     <div class="note_item">
-    Fixed bug that caused IndexOutOfBoundsException when updating large
-    collections of ConditionalPermissionInfos using ConditionalPermissionUpdate.
+    Fixed exception when doing BundleWiring.listResources on root directory.
     </div>
-    <div class="note_item">
-    Added property "org.knopflerfish.framework.validator.date" to framework
-    for testing certification validation with different dates.
-    </div>
+    <div class="note_name">Framework 7.1.0</div>
     <div class="note_item">
     Added new URL protocol "fwresource" to access resources from the framework
     classloader.
@@ -57,8 +61,14 @@
     bundle storage then new bundles must be installed as a referenced file URL.
     This also implies that no data storage will be available to bundles.
     </div>
+    <div class="note_name">Framework 7.0.2</div>
     <div class="note_item">
-    Fixed exception when doing BundleWiring.listResources on root directory.
+    Fixed bug that caused IndexOutOfBoundsException when updating large
+    collections of ConditionalPermissionInfos using ConditionalPermissionUpdate.
+    </div>
+    <div class="note_item">
+    Added property "org.knopflerfish.framework.validator.date" to framework
+    for testing certification validation with different dates.
     </div>
   </div>
 
