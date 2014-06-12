@@ -54,6 +54,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import org.knopflerfish.framework.Debug;
 import org.knopflerfish.framework.FrameworkContext;
@@ -156,7 +157,12 @@ public class JKSValidator implements Validator {
     }
     String d = fw.props.getProperty(CERT_DATE_PROP);
     if (d != null) {
-      validationDate = DateFormat.getDateInstance(DateFormat.SHORT).parse(d);
+      try {
+        validationDate = DateFormat.getDateInstance(DateFormat.SHORT).parse(d);
+      } catch (ParseException _ignore) {
+        // Always try US format
+        validationDate = DateFormat.getDateInstance(DateFormat.SHORT, Locale.US).parse(d);
+      }
       if (debug.certificates) {
         debug.println("Set validation date to " + validationDate);
       }
