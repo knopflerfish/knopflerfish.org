@@ -1,0 +1,5 @@
+Bundle-Manifest-Version: 2
+Bundle-Version: 1.0.0
+Bundle-Name: fb_C
+Bundle-SymbolicName: test.fb_C
+Export-Package: test_fapi ; version="1"

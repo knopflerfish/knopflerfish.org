@@ -1,0 +1,611 @@
+<h1>About Knopflerfish&nbsp;5 - an OSGi R5 distribution</h1>
+
+Knopflerfish&nbsp;5 (KF5) is designed to be implemented according to
+the <a href="http://www.osgi.org/osgi_technology/download_specs.asp?section=2">
+OSGi R5 specifications</a>.  The distribution includes the
+following components:
+
+<ul>
+  <li>Knopflerfish OSGi framework - OSGi R5 Core Specification
+      implementation</li>
+
+  <li>Knopflerfish OSGi bundles - OSGi R5 Service Compendium
+      implementation</li>
+
+  <li>Knopflerfish components &amp; extras - Knopflerfish bundles and
+      utilities</li>
+
+</ul>
+
+<h2 class="kf">Knopflerfish&nbsp;5 OSGi Framework - OSGi R5 Core</h2>
+
+<p>
+  The Knopflerfish&nbsp;5 OSGi framework is implemented in accordance
+  with the OSGi R5 specification.  
+</p>
+<p>
+  The numbering for the OSGi defined components
+  refer to the OSGi specification chapter numbering.
+  The Changes column indicates if the service / API has been updated
+  in R5 compared to R4v4.3  of the Core specification, in which case
+  the new specification chapter version is stated.
+</p>
+<p>
+  <table class="kf">
+    <tr> <th colspan="5">Core Specification -  Knopflerfish OSGi framework</th></tr>
+    <tr>
+      <td class="subhead">Section</td>
+      <td class="subhead">Changes</td>  
+      <td class="subhead">Status</td>  
+      <td class="subhead">R5</td>  
+      <td class="subhead">Description</td>
+    </tr>
+    <tr>
+      <td class="nowrap">2. Security Layer</td>
+      <td class="nowrap">NA</td>
+      <td class="nowrap"> Done  </td>
+      <td class="nowrap"> Full  </td>
+      <td> The OSGi Security Layer based on the Java2 security mechanism.
+      </td>
+    </tr>
+    <tr>
+      <td class="nowrap">3. Module Layer</td>
+      <td class="nowrap">NA</td>
+      <td> Done </td>
+      <td> Full </td>
+      <td>
+	The OSGi solution for Java modularization, a.k.a. OSGi bundles.
+      </td>
+    </tr>
+   
+    <tr>
+      <td>4. Life Cycle Layer </td>
+      <td class="nowrap">NA</td>
+      <td> Done </td>
+      <td> Full </td>
+      <td> Function to control the security and life cycle operations of bundles
+      </td>
+    </tr>
+
+    <tr>
+      <td> 5. Service Layer </td>
+      <td class="nowrap">NA</td>
+      <td> Done </td>
+      <td> Full </td>
+      <td> The Service Layer provides a publish, find and bind model
+           trough the service registry.
+    </tr>
+
+    <tr> <th colspan="5">Core Specification - Knopflerfish Framework API:s</th></tr>
+
+    <tr>
+      <td class="nowrap"> <div class="newkf4">6. Resource API </div></td>
+      <td class="nowrap">New</td>
+      <td class="nowrap"> Done </td>
+      <td> Full
+      <td> 
+	An API for the generic Requirement-Capability model.
+      </td>
+    </tr>
+
+    <tr>
+      <td class="nowrap"> 7. Bundle Wiring API </td>
+      <td class="nowrap">1.1</td>
+      <td class="nowrap"> Done </td>
+      <td> Full
+      <td> 
+	An API that provides access to the internal Framework package
+        sharing mechanism. This API replaces the Package Admin Service
+        from the OSGi R4&nbsp;v4.2 and earlier.
+      </td>
+    </tr>
+
+    <tr>
+      <td class="nowrap"> 8. Framework Namespaces </td>
+      <td class="nowrap">New</td>
+      <td class="nowrap"> Done </td>
+      <td> Full
+      <td> 
+        A namespace definition for the generic Requirement-Capability model.
+      </td>
+    </tr>
+
+    <tr>
+      <td class="nowrap"> 9. Start Level API </td>
+      <td class="nowrap">No</td>
+      <td class="nowrap"> Done </td>
+      <td> Full
+      <td> 
+        An API to control the relative starting and stopping order of
+        bundles in an OSGi Service Platform. This API replaces the
+        Start Level Service from OSGi R4&nbsp;v4.2 and earlier.
+      </td>
+    </tr>
+
+    
+    <tr>
+      <td class="nowrap"> 10. Framework API </td>
+      <td class="nowrap">1.7</td>
+      <td class="nowrap"> Done </td>
+      <td> Full
+      <td> 
+        The core API for bundles to interact with the OSGi Framework.
+      </td>
+    </tr>
+
+    <tr> <th colspan="5">Core Specification - Knopflerfish Framework Services</th></tr>
+
+    <tr>
+      <td class="nowrap"> 50. Conditional Permission Admin </td>
+      <td class="nowrap">No</td>
+      <td class="nowrap"> Done </td>
+      <td> Full </td> 
+      <td> Essentially a security policy and permission system for
+      OSGi bundles. Supersedes Permission Admin</td>
+    </tr>
+
+    <tr>
+      <td class="nowrap"> 51. Permission Admin </td>
+      <td class="nowrap">No</td>
+      <td class="nowrap"> Done </td>
+      <td> Full </td> 
+      <td> A permission system for bundles</td>
+   </tr>
+
+    <tr>
+      <td class="nowrap"> 52. URL Handler </td>
+      <td class="nowrap">No</td>
+      <td class="nowrap"> Done </td>
+      <td> Full </td>
+      <td> A mechanism to extend the Java run-time with new URL
+      schemes and content handlers through bundles </td>
+    </tr>
+
+    <tr>
+      <td class="nowrap"> 53. Resolver Hooks </td>
+      <td class="nowrap">No</td>
+      <td class="nowrap"> Done </td>
+      <td> Full </td>
+      <td> A set of mechanisms for close interaction with the module
+      layer resolving of bundle requirements and capabilities. 	</td>
+    </tr>
+    <tr>
+      <td class="nowrap"> 54. Bundle Hooks </td>
+      <td class="nowrap">1.1</td>
+      <td class="nowrap"> Done </td>
+      <td> Full </td>
+      <td> A set of mechanisms for controlling visibility of bundles
+      for other bundles. </td>
+    </tr>
+    <tr>
+      <td class="nowrap"> 55. Service Hooks </td>
+      <td class="nowrap">No</td>
+      <td class="nowrap"> Done </td>
+      <td> Full </td>
+      <td> A set of mechanisms for close interaction with the Service
+      Registry. </td>
+    </tr>
+    <tr>
+      <td class="nowrap"> 56. Weaving Hooks </td>
+      <td class="nowrap">No</td>
+      <td class="nowrap"> Done </td>
+      <td> Full </td>
+      <td> A set of mechanisms for doing byte code weaving of classes
+      loaded by a Bundle Class Loader.  </td>
+    </tr>
+    <tr>
+      <td> 701. Tracker Specification</td>
+      <td class="nowrap">No</td>
+      <td> Done </td>
+      <td> Full</td>
+      <td> Utility for Bundle and Service tracking</td>
+    </tr>
+  </table>
+</p>
+<br>
+
+
+<h2 class="kf">Knopflerfish&nbsp;5 OSGi Bundles - OSGi R5 Compendium Services</h2>
+
+<p>
+  The Knopflerfish&nbsp;5 OSGi Compendium Services are implemented in
+  accordance with the OSGi R5 specification. 
+</p>
+<p>
+  Some of the OSGi Compendium Services are only available
+  in the commercial 
+  <a href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">
+    Knopflerfish Pro 5</a> 
+  version provided by <a href="http://www.makewave.com">Makewave.</a>
+  These services are clearly marked in the table below,
+</p>
+
+<p>
+  The numbering for the OSGi defined components refer to the OSGi
+  specification chapter numbering. The Changes column indicates if the
+  service / API has been updated in R5 compared to R4v4.3 of the
+  Compendium specification, in which case the new specification
+  chapter version is stated.
+</p>
+
+<p>
+  <table class="kf">
+    <tr>
+      <th colspan="5"> <b>Knopflerfish OSGi Bundles - Service Compendium </th>
+    </tr>
+
+    <tr>
+      <td class="subhead">Specification</td>
+      <td class="subhead">Updates</td>  
+      <td class="subhead">Status</td>  
+      <td class="subhead nowrap">R5</td>  
+      <td class="subhead nowrap">Description</td>
+    </tr>
+
+    <tr>
+      <td> 101. Log </td>
+      <td> No </td>
+      <td> Stable </td>
+      <td> Full</td>
+      <td> A message logger for the OSGi Service Platform. </td>
+    </tr>
+
+    <tr>
+      <td> 102. HTTP </td>
+      <td> No </td>
+      <td> Stable </td>
+      <td> Full</td>
+      <td> 
+	HTTP server for the OSGi Service Platform. Supports both
+        static HTML pages, as well as Servlets serving dynamic content
+      </td>
+    </tr>
+
+    <tr>
+      <td> 103. Device Access </td>
+      <td> No </td>
+      <td> Stable </td>
+      <td> Full</td>
+      <td> 
+	The Device Access specification supports the coordination of
+        automatic detection and attachment of existing devices on an
+        OSGi Service Platform.
+      </td>
+    </tr>
+    
+    <tr>
+      <td class="nowrap"> 104. Configuration Admin </td>
+      <td> 1.5 </td>
+      <td> Done </td>
+      <td> Full</td>
+      <td> Service for setting configuration information of OSGi bundles</td>
+    </tr>
+    
+    <tr>
+      <td> 105. Meta Type </td>
+      <td> No </td>
+      <td> Done</td>
+      <td> Full</td>
+      <td> Service that allow bundle developers to describe attribute
+           types in a computer readable form using so-called meta- data.
+      </td>
+    </tr>
+
+    <tr>
+      <td> 106. Preferences </td>
+      <td> No </td>
+      <td> Stable</td>
+      <td> Full</td>
+      <td> 
+      	Service that provides easy to use persistent storage of bundle
+	data. typically user preference.  Knopflerfish Pro includes an
+	enhanced Preferences implementation where Ubicore serves as a
+	remote Backing Store for the Preferences service.
+      </td>
+    </tr>
+
+    <tr>
+      <td> 107. User Admin </td>
+      <td> No </td>
+      <td> Stable</td>
+      <td> Full</td>
+      <td> 
+	Service that a bundle can use for Authentication and Authorization.
+      </td>
+    </tr>
+
+    <tr>
+      <td class="kfpro"> 108. Wire Admin</td>
+      <td class="kfpro"> No </td>
+      <td class="kfpro"> Stable KF Pro</td>
+      <td class="kfpro"> Full</td>
+      <td class="kfpro"> 
+	Wiring of OSGi services inside an OSGi Service Platform. KF Pro only
+      </td>
+    </tr>
+
+    <tr>
+      <td> 109. IO Connector </td>
+      <td> No </td>
+      <td> Stable </td>
+      <td> Full</td>
+      <td>
+	A connector service that adopts the Java 2 ME
+        javax.microedition.io for OSGi
+      </td>
+    </tr>
+
+    <tr>
+      <td class="kfpro"> 110. Initial Provisioning </td>
+      <td class="kfpro"> No </td>
+      <td class="kfpro"> Stable KF Pro</td>
+      <td class="kfpro"> Full</td>
+      <td class="kfpro"> Defines how to initially install the
+      management agent in an OSGi Service Platform. KF Pro only</td>
+    </tr>
+
+    <tr>
+      <td class="kfpro"> 111. UPnP Device Service </td>
+      <td class="kfpro"> No </td>
+      <td class="kfpro"> Done KF Pro</td>
+      <td class="kfpro"> Full</td>
+      <td class="kfpro"> Service for interaction with UPnP devices and
+	Control Points. KF Pro only</td>
+    </tr>
+
+    <tr>
+      <td> 112. Declarative Services </td>
+      <td> No </td>
+      <td> Done </td>
+      <td> Full</td>
+      <td> Service that defines a declarative model for publishing,
+      finding and binding to OSGi services </td>
+    </tr>
+
+    <tr>
+      <td> 113. Event Admin </td>
+      <td> No </td>
+      <td> Stable </td>
+      <td> Full</td>
+      <td> 
+	Provides an inter-bundle communication mechanism by sending events. 
+      </td>
+    </tr>
+    <tr>
+      <td class="kfpro">114. Deployment Admin</td>
+      <td class="kfpro"> No </td>
+      <td class="kfpro"> Stable KF Pro </td>
+      <td class="kfpro"> Full</td>
+      <td class="kfpro">The Deployment Admin and Device Management
+      Tree (DMT) bundle</td>
+    <tr>
+      <td class="kfpro">115. Auto Configuration</td>
+      <td class="kfpro"> No </td>
+      <td class="kfpro"> Stable KF Pro </td>
+      <td class="kfpro"> Full</td>
+      <td class="kfpro">The auto-configuration resource plug-in for
+      the deployment admin service.</td>
+    </tr>
+    <tr>
+      <td class="kfpro">116. Application Admin</td>
+      <td class="kfpro"> No </td>
+      <td class="kfpro"> Stable KF Pro </td>
+      <td class="kfpro"> Full</td>
+      <td class="kfpro">The Application Admin Service</td>
+    </tr>
+    <tr>
+      <td class="kfpro">117. DMT Admin</td>
+      <td class="kfpro"> No </td>
+      <td class="kfpro"> Stable KF Pro </td>
+      <td class="kfpro"> Full</td>
+      <td class="kfpro">The Device Management Tree (DMT) Admin bundle.</td>
+    </tr>
+    <tr>
+      <td class="kfpro">119. Monitor Admin</td>
+      <td class="kfpro"> No </td>
+      <td class="kfpro"> Stable KF Pro </td>
+      <td class="kfpro"> Full</td>
+      <td class="kfpro"> The Monitor Admin Service. KF Pro only</td>	 
+    </tr>
+    <tr>
+      <td class="kfpro">120. Foreign Application Access</td>
+      <td class="kfpro"> No </td>
+      <td class="kfpro"> Stable KF Pro </td>
+      <td class="kfpro"> Full</td>
+      <td class="kfpro">A midlet container for Application Admin</td>
+    </tr>
+    <tr>
+      <td> 132. Repository </td>
+      <td> New </td>
+      <td> In Progress </td>
+      <td> New</td>
+      <td> Repository is a service to search and retrieve general
+           resources, e.g. OSGi bundles</td>
+    </tr>
+    <tr>
+      <td> 702. XML Parser Service </td>
+      <td> No </td>
+      <td> Stable </td>
+      <td> Full</td>
+      <td> Standardized XML Parser utility</td>
+    </tr>
+    <tr>
+      <td> 703. Position </td>
+      <td> No </td>
+      <td> Stable </td>
+      <td> Full</td>
+      <td> Utility for handling geographic positions</td>
+    </tr>
+
+    <tr>
+      <td> 704. Measurement and State </td>
+      <td> No </td>
+      <td> Stable </td>
+      <td> Full</td>
+      <td> 
+	A utility that provides a consistent way of handling a
+	diverse range of measurements for bundle developers</td>
+    </tr>
+  </table>
+</p>
+
+<br>
+
+<h2 class="kf">Knopflerfish&nbsp;5 Components - Bundles and Utilities </h2>
+
+The Knopflerfish distribution includes a set of Knopflerfish specific
+bundles and Utilities. Some of the components include, or are based on
+other popular open source components / projects. Knopflerfish has in
+this case typically provided a wrapper class, <em>bundlifying</em> the
+component / project.
+
+<p>
+  <table class="kf">
+    <tr>
+      <th colspan="4"> Knopflerfish Components</th>
+    </tr>
+
+    <tr>
+      <td class="subhead">Component</td>
+      <td class="subhead">Status</td>  
+      <td class="subhead">Includes</td>  
+      <td class="subhead">Description</td>
+    </tr>
+    <tr>
+      <td> Desktop </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> 
+	The desktop is a graphical tool for managing a running framework. The
+	desktop can be extended using plug-ins. Support added for new
+        OSGi R5 features.
+      </td>
+    </tr>
+
+    <tr>
+      <td> Log Utilities </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> 
+	Utility classes for easier logging.
+      </td>
+    </tr>
+    
+    <tr>
+      <td> Misc utilities </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> 
+	Misc utility classes for text, job and IO handling.
+      </td>
+    </tr>
+    <tr>
+      <td> Console </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> 
+	The Console service provides means for command-based tools to 
+	publish their commands. Any bundle can provide commands.
+      </td>
+    </tr>
+    
+    <tr>
+      <td> TTY Console </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> 
+	Console using stdin/stdout
+      </td>
+    </tr>
+    <tr>
+      <td> Telnet Console </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> 
+	Console using telnet
+      </td>
+    </tr>
+    <tr>
+      <td> Console - Framework Commands </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> Commands for handling the core Knopflerfish OSGi
+           framework. 
+      </td>
+    </tr>
+    <tr>
+      <td> Console - Log Commands </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> 
+	Commands for handling the OSGi log
+      </td>
+    </tr>
+    <tr>
+      <td> Console - CM Commands </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> 
+	Command for handling the Configuration Management data
+      </td>
+    </tr>
+    <tr>
+      <td> Console - SCR Commands </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> 
+	Command for handling and examining Declarative Services
+        components.
+      </td>
+    </tr>
+    <tr>
+      <td> Class Patcher </td>
+      <td> Stable </td>
+      <td> NA</td>
+      <td> 
+        This bundle contains the support for class patching using ASM
+        that was previously implemented in the framework. It is
+        implemented as a Weaving Hooks. The configuration properties
+        remain the same in order to be backward compatible.
+      </td>
+    </tr>
+    <tr>
+      <th colspan="4">Knopflerfish Extras &amp; Wrapper Components</td>
+    </tr>
+    <tr>
+      <td class="subhead">Component</td>
+      <td class="subhead">Status</td>  
+      <td class="subhead">Includes</td>  
+      <td class="subhead">Comment</td>
+    </tr>
+    <tr>
+      <td> Commons Logging </td>
+      <td> Stable </td>
+      <td> Commons Logging</td>
+      <td> 
+	The Commons logging bundle wraps the Apache
+	Commons Logging API over the OSGi log
+      </td>
+    </tr>
+    <tr>
+      <td> Serial port </td>
+      <td> Stable </td>
+      <td> RXTX</td>
+      <td> 
+	Serial ports are supported via the OSGi device model and the 
+	<code>javax.comm</code> API. Implementations from Sun (win32) and
+	RXTX (linux) are used for the included bundles.
+      </td>
+    </tr>
+    <tr>
+      <td> KF Test Suite </td>
+      <td> Stable </td>
+      <td> JUnit</td>
+      <td> 
+	A JUnit based test suite for Knopflerfish bundle & framework
+        testing.
+      </td>
+    </tr>
+  </table>
+</p>
+

@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: measurement
+Bundle-SymbolicName: org.knopflerfish.bundle.measurement
+Bundle-Version: 4.0.0
+Bundle-Category: osgi
+Bundle-Description: Measurement API
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/measurement/
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+Import-Package: org.osgi.util.measurement; version="[1.0,1.1)"

@@ -1,0 +1,43 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: KF-XML-Metatype
+Bundle-SymbolicName: org.knopflerfish.bundle.kf_metatype
+Bundle-Version: 5.0.2
+Bundle-Category: utility
+Bundle-Description: XML format support for CM and Metatype
+Bundle-Vendor: Knopflerfish,nanoxml
+Bundle-APIVendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
+ description="BSD 3-clause";
+ link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/metatype/kf_metatype/
+Bundle-Classpath: .,nanoxml-2.2.1.jar
+Bundle-Activator: org.knopflerfish.bundle.metatype.Activator
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+api-Provide-Capability: [bundle.emptystring]
+lib-Provide-Capability: [bundle.emptystring]
+Provide-Capability: osgi.service;
+   objectClass:List<String>="org.osgi.service.metatype.MetaTypeService",
+ osgi.service;
+   objectClass:List<String>="org.knopflerfish.util.metatype.SystemMetatypeProvider",
+ osgi.service;
+   objectClass:List<String>="org.osgi.service.cm.ManagedService";
+   service.pid:String="org.knopflerfish.util.metatype.SystemMetatypeProvider",
+ osgi.service;
+   objectClass:List<String>="org.osgi.service.cm.ManagedService";
+   service.pid:String="java.system.properties"
+Export-Package: org.knopflerfish.util.metatype,
+ net.n3.nanoxml; version=2.2.1
+Import-Package: org.osgi.framework; version="[1.6,2)",
+ org.osgi.service.cm; version="[1.4,2)",
+ org.osgi.service.metatype; version="[1.2,2)",
+ org.osgi.util.tracker; version="[1.5,2)",
+ org.knopflerfish.service.log; version="[1.2,2)",
+ org.knopflerfish.util,
+ org.knopflerfish.util.metatype,
+ org.kxml2.io,
+ org.xmlpull.v1

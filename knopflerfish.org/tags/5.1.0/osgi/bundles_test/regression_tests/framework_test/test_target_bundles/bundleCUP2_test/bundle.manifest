@@ -1,0 +1,10 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleCUP_test
+Bundle-SymbolicName: bundleCUP_test
+Bundle-Version: 2.0.0
+Bundle-Description: Test bundle for framework, bundleCU_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: testing
+Bundle-UUID: org.knopflerfish:bundleCUP_test:2.0.0:all

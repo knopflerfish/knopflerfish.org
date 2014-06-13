@@ -1,0 +1,39 @@
+<?xml version="1.0"?> 
+<project name="dateservice" default="all"> 
+  
+  <property name="kf.dir" location="../../../../osgi"/>
+  
+  <property name="framework.jar" 
+	    location="${kf.dir}/framework.jar"/>
+  
+  <target name="all" depends="init,compile,jar"/> 
+  
+  <target name="init"> 
+    <mkdir dir="out/classes"/> 
+  </target> 
+  
+  <target name="compile"> 
+    <javac destdir       = "out/classes" 
+	   debug         = "on" 
+	   srcdir        = "src" 
+	   > 
+      <classpath>
+	<pathelement location="${framework.jar}"/>
+      </classpath>      	  	  
+    </javac> 
+  </target> 
+  
+  <target name="jar"> 
+    <jar basedir  = "out/classes" 
+	 jarfile  = "out/${ant.project.name}.jar" 
+	 compress = "true" 
+	 includes = "**/*" 
+	 manifest = "manifest.mf">
+    </jar>
+  </target> 
+  
+  <target name="clean"> 
+    <delete dir = "out"/> 
+  </target> 
+  
+</project> 

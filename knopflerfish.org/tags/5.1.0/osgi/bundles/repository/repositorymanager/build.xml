@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="repositorymanager" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.repositorymanager}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.api"   value = "true"/>
+  <property name = "bundle.build.all"   value = "true"/>
+  <property name = "bundle.build.doc"   value = "false"/>
+
+  <property name="api.pattern" value="org/knopflerfish/service/repositorymanager/**"/> 
+  <property name="impl.pattern" value="org/knopflerfish/bundle/repositorymanager/**"/> 
+  <property name="all-api.pattern"
+            value="org/knopflerfish/service/repositorymanager/**,
+                   org/osgi/service/**"/> 
+
+  <target name="bundle.custom.pre">
+
+    <!-- Embedd APIs for OSGi services that the Repository Manager depends on -->
+    <bundle_locator bundleNames="repository_api,
+                                 resolver_api">
+      <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
+        <include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.repository_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.resolver_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+  </target>
+  
+  <path id="bundle.compile.path">
+   <pathelement location="repository_xml_api-N.N.N.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

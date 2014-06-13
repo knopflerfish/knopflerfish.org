@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MetaData xmlns="http://www.osgi.org/xmlns/metatype/v1.0.0">
+
+  <OCD id="org.knopflerfish.util.metatype.ocd.SystemMetatypeProvider"
+		name="OCD for KF Metatype Configuration" >
+    <AD name="External Metatype URLs"
+	id="external.metatype.urls"
+	type="String"
+	cardinality="-10"
+	description="List of URLs for external KF-Metatype XML files." />
+  </OCD>
+                           
+  <Designate pid="org.knopflerfish.util.metatype.SystemMetatypeProvider">
+    <Object ocdref="org.knopflerfish.util.metatype.ocd.SystemMetatypeProvider"/>
+  </Designate>
+
+</MetaData>

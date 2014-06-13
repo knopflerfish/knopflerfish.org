@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-Version: 0.1.0
+Bundle-Name: C - Require bundle example
+Bundle-SymbolicName: test.rb_C
+api-Import-Package: 
+Import-Package: org.osgi.framework,test_rb.C
+Export-Package: test_rb.C
+Require-Bundle: test.rb_D-API

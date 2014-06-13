@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+
+  <!-- A service publishing a component when cm config is available -->
+  <component name="componentC_test.U"
+             configuration-policy="require"
+             immediate="true"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.2.0">
+    <implementation
+       class="org.knopflerfish.bundle.componentC_test.ComponentUImpl"/>
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentC_test.ComponentU"/>
+    </service>
+    <reference name="vRef"
+               interface="org.knopflerfish.service.componentC_test.ComponentV"
+               cardinality="1..1"/>
+  </component>
+
+  <!-- Two immediate components that will publish V services with different properties -->
+  <component name="componentC_test.V1"
+             immediate="true"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.2.0" >
+    <property name="vnum" value="v1"/>
+    <implementation
+       class="org.knopflerfish.bundle.componentC_test.ComponentVImpl"/>
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentC_test.ComponentV"/>
+    </service>
+  </component>
+
+  <component name="componentC_test.V2"
+             immediate="true"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.2.0" >
+    <property name="vnum" value="v2"/>
+    <implementation
+       class="org.knopflerfish.bundle.componentC_test.ComponentVImpl"/>
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentC_test.ComponentV"/>
+    </service>
+  </component>
+
+  <!-- A service publishing a factory component when cm config is available -->
+  <component name="componentC_test.factory"
+             factory="componentC_test.X"
+             configuration-policy="require"
+             modified="modify"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.2.0">
+    <implementation
+       class="org.knopflerfish.bundle.componentC_test.ComponentXImpl"/>
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentC_test.ComponentX"/>
+    </service>
+   </component>
+
+  <!-- An immediate component that will publish an Y services based on factory config -->
+  <component name="componentC_test.Y"
+  	         configuration-pid="c|test"
+             immediate="true"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.2.0" >
+    <implementation
+       class="org.knopflerfish.bundle.componentC_test.ComponentYImpl"/>
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentC_test.ComponentY"/>
+    </service>
+  </component>
+
+  <!-- An delayed component that will publish a Z service when X is available -->
+  <component name="componentC_test.Z"
+             immediate="false"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.2.0" >
+    <implementation
+       class="org.knopflerfish.bundle.componentC_test.ComponentZImpl"/>
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentC_test.ComponentZ"/>
+    </service>
+    <reference name="componentC_test.X"
+               interface="org.knopflerfish.service.componentC_test.ComponentX"
+               cardinality="1..n"
+               policy="dynamic"
+               bind="setX"
+               updated="updatedX"
+               unbind="unsetX"/>
+  </component>
+
+</root>

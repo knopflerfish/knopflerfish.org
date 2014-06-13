@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<project name="pkgname" default="all">
+
+  <!-- build properties -->
+
+  <property name="topdir"        location="."/>
+  <property name="outdir"        location="${topdir}/out/${ant.project.name}"/>
+  <property name="classout"      location="${outdir}/classes"/>
+  <property name="docdir"        location="${ant.project.name}/apidoc"/>
+
+
+  <property name="src.dir" location = "src"/>
+
+  <!-- targets -->
+  <target name="all" depends="compile,jar">
+  </target>
+
+  <target name="compile" description="compiles all java sources">
+    <mkdir dir="${classout}"/>
+
+    <javac destdir       = "${classout}" 
+           srcdir        = "${src.dir}" 
+           debug         = "on"
+	   includes      = "**/*.java"
+    >
+   </javac>
+  </target>
+
+ <target name="jar" depends="compile" description="build jar">
+    <jar basedir="${classout}"
+         jarfile="${outdir}/${ant.project.name}.jar"
+    >
+     <manifest>
+      <attribute name = "Main-class"             value="org.knopflerfish.tools.pkgname.Main"/>
+     </manifest>
+    </jar>  
+ </target>  
+ 
+ <target name="clean" description="removes all generated files">
+  <delete dir="${outdir}"/>
+ </target>
+
+</project>

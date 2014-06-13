@@ -1,0 +1,11 @@
+-- I = Improvement  M = Missing --
+
+I Refactor Archive.java in bundlestorage when it come to searching for entries.
+
+I Refactor classloader to better handle recursive listEntries.
+
+I Check ResolveHooks and packages lock
+
+I More SystemBundle headers
+
+ 

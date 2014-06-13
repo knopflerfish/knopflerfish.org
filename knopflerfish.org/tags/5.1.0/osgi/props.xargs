@@ -1,0 +1,91 @@
+#
+# Common properties used by different init.xargs files
+#
+
+#-Forg.osgi.framework.storage=fwdir
+
+# The Service Platform ID should be used by bundles needing to
+# a unique ID for the platform itself
+-Forg.osgi.provisioning.spid=knopflerfish
+
+# Initial startup verbosity, 0 is low verbosity
+#-Forg.knopflerfish.framework.main.verbosity=0
+
+# Security
+#-Forg.osgi.framework.security=osgi
+#-Forg.knopflerfish.framework.all_signed=false
+#-Forg.knopflerfish.framework.validator=JKSValidator
+
+# File storage properties
+#-Forg.knopflerfish.framework.bundlestorage.file.trusted=false
+#-Forg.knopflerfish.framework.bundlestorage.file.unpack=false
+#-Forg.knopflerfish.framework.bundlestorage.file.always_unpack=true
+-Forg.knopflerfish.framework.bundlestorage.file.reference=true
+
+# JKSValidator properties (JVM default if not set).
+#-Forg.knopflerfish.framework.validator.jks.ca_certs=
+#-Forg.knopflerfish.framework.validator.jks.ca_certs_password=
+
+# Avoid java verifier bug
+#-Forg.knopflerfish.framework.bundlestorage.file.jar_verifier_bug=true
+
+# Various debug flags
+#-Forg.knopflerfish.framework.debug.resolver=true
+-Forg.knopflerfish.framework.debug.errors=true
+#-Forg.knopflerfish.framework.debug.warnings=true
+#-Forg.knopflerfish.framework.debug.classloader=true
+#-Forg.knopflerfish.framework.debug.startlevel=true
+#-Forg.knopflerfish.framework.debug.ldap=true
+#-Forg.knopflerfish.framework.debug.service_reference=true
+#-Forg.knopflerfish.framework.debug.bundle_resource=true
+#-Forg.knopflerfish.framework.debug.permissions=true
+#-Forg.knopflerfish.framework.debug.lazy_activation=true
+#-Forg.knopflerfish.framework.debug.framework=true
+#-Forg.knopflerfish.framework.debug.certificates=true
+
+# Complete comma-separated list of packages exported by the system bundle
+# 
+#-Forg.osgi.framework.system.packages=
+
+# Comma-separated list of packages exported by the system bundle. The
+# osgi packages provided by the framework will be added to this list.
+# Only used when org.osgi.framework.system.packages is not set.
+#
+#-Forg.knopflerfish.framework.system.packages.base=javax.swing,javax.swing.tree, javax.swing.table, javax.swing.plaf.metal, javax.swing.plaf.basic, javax.swing.plaf, javax.swing.filechooser, javax.swing.event, javax.swing.border, javax.accessibility
+
+# Comma-separated list of packages to be added to the set of packages
+# exported by the system bundle.
+#
+#-Forg.osgi.framework.system.packages.extra=
+
+# Comma-separated list of packages that must be loaded by system classloader
+#
+#-Forg.osgi.framework.bootdelegation=*
+
+# If set to true, use strict rules for loading classes from the boot
+# class loader.
+# If false, accept class loading from the boot class path from classes
+# themselves on the boot class.
+# Default is false
+#
+#-Forg.knopflerfish.framework.strictbootclassloading=false
+
+# If set to true, export all framework properties as system properties.
+#
+#-Forg.knopflerfish.framework.main.xargs.writesysprops=false
+
+# Web server properties
+-Forg.knopflerfish.http.dnslookup=false
+-Forg.osgi.service.http.port=8080
+
+# Log service properties
+-Forg.knopflerfish.log.out=false
+-Forg.knopflerfish.log.level=info
+-Forg.knopflerfish.log.grabio=true
+-Forg.knopflerfish.log.file=true
+-Forg.knopflerfish.log.memory.size=250
+
+#consoletelnet properties
+-Forg.knopflerfish.consoletelnet.user=admin
+-Forg.knopflerfish.consoletelnet.pwd=admin
+-Forg.knopflerfish.consoletelnet.port=2323

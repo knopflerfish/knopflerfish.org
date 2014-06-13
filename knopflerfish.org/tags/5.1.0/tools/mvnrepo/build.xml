@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="KFtoMaven" default="all">
+
+  <!-- The KF- version to use in the update-target. -->
+  <property name="kf.version" value="5.0.0"/>
+
+  <dirname property="projdir"   file="${ant.file.KFtoMaven}"/>
+  <property name="topdir"       location="${projdir}/../.."/>
+  <property name="ant.dir"      location="${topdir}/ant"/>
+
+  <!-- Path to the Knopflerfish http root directory. -->
+  <property name="kf.http.dir"  location="/home/knopflerfish/www"/>
+
+  <!-- Path to the maven2 repository to update. -->
+  <property name="mvn2.repo.dir" location="${kf.http.dir}/maven2" />
+
+  <!-- Temporary repo to update, will be renamed to final when done. -->
+  <tstamp/>
+  <property name="tmp.mvn2.repo.dir"
+            location="${kf.http.dir}/maven2_${DSTAMP}"/>
+
+  <!--Root directory for Knopflerfish releases -->
+  <property name="releases.dir" location="${kf.http.dir}/releases"/>
+
+  <!-- Location of intermediate build results -->
+  <property name="out.dir"     location="${projdir}/out"/>
+
+  <!-- JDK 5 or later is required! -->
+  <fail>
+    <condition>
+      <not>
+        <available classname="java.lang.StringBuilder"/>
+      </not>
+    </condition>
+    Ant Maven Tasks requires JDK 1.5 or later. You are using ${ant.java.version}.
+  </fail>
+
+  <import file="${ant.dir}/bundletasks.xml"/>
+
+
+  <macrodef name="toMavenRepo"
+            description="Update a Maven2 repository with all bundles of a Knopflerfish release.">
+    <attribute name="version"
+               description="The Knopflerfish version to add to the repo"/>
+    <attribute name="repo"
+               description="The Maven2 repository to update"/>
+    <sequential>
+      <mkdir dir="${out.dir}"/>
+
+      <bundleMvnAnt templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
+                    repoDir="@{repo}"
+                    outDir="${out.dir}"
+                    buildFile="KFtoMvn-@{version}.xml"
+                    version="@{version}"
+                    dependencyManagementFile="KF-@{version}_dependencyManagement.xml"
+                    settingsFile="${projdir}/settings.xml">
+        <!-- Include framework.jar -->
+        <fileset dir="${releases.dir}/@{version}/osgi">
+          <include name="framework.jar"/>
+        </fileset>
+        <!-- and all bundles in the jars-directory -->
+        <fileset dir="${releases.dir}/@{version}/osgi/jars">
+          <include name="**/*.jar"/>
+        </fileset>
+      </bundleMvnAnt>
+
+      <ant dir="${out.dir}" antfile="KFtoMvn-@{version}.xml"
+           target="all" inheritAll="false" inheritRefs="false"/>
+    </sequential>
+  </macrodef>
+
+
+  <target name="all"
+          depends="clean,bundle_tasks"
+          description="Creates a new maven2-repository with a temporary name.">
+
+    <toMavenRepo version="5.0.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="4.0.1" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="4.0.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.6.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.5.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.4.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.3.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.2.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.1.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.0.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="2.4.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="2.3.3" repo="${tmp.mvn2.repo.dir}"/>
+
+
+  </target>
+
+  <target name="install"
+          description="Installs the temporary repository as the active one.">
+    <move file="${mvn2.repo.dir}" tofile="${mvn2.repo.dir}_old_${DSTAMP}"/>
+    <move file="${tmp.mvn2.repo.dir}" tofile="${mvn2.repo.dir}"/>
+    <delete dir="${mvn2.repo.dir}_old_${DSTAMP}" failonerror="false"/>
+  </target>
+
+
+  <target name="update"
+          depends="bundle_tasks"
+          description="Populate temporary maven2-repository with bundles for the given KF-version.">
+
+    <toMavenRepo version="${kf.version}" repo="${tmp.mvn2.repo.dir}"/>
+
+  </target>
+
+
+  <target name="update_www"
+          depends="bundle_tasks"
+          description="Updates the maven2-repository with bundles for the given KF-version.">
+
+    <toMavenRepo version="${kf.version}" repo="${mvn2.repo.dir}"/>
+
+  </target>
+
+  <target name="update_repoindex"
+          depends="bundle_tasks,install_repoindex"
+          description="Updates the OSGi Repository 1.0 index.xml file for the Maven 2 repository.">
+
+    <repoindex name="Knopflerfish Repository" dir="${mvn2.repo.dir}" stylesheet="mvnrepoindex2html.xsl"/>
+    <copy file="../../htdocs/css/knopflerfish.css"
+          tofile="${mvn2.repo.dir}/knopflerfish.css"/>
+    <copy file="../../htdocs/css/kf_man.css"
+          tofile="${mvn2.repo.dir}/kf_man.css"/>
+
+  </target>
+  
+  <target name="clean"
+          description="Removes all generated files">
+    <delete dir="${tmp.mvn2.repo.dir}" failonerror="false"/>
+    <delete dir="${out.dir}" failonerror="false"/>
+  </target>
+</project>
