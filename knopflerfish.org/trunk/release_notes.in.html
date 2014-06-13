@@ -30,50 +30,6 @@
 <h2 class="filled">Knopflerfish Framework - OSGi Core Specification</h2>
 <div class="release_notes">
 
-  <div class="note_group">
-    <div class="note_name">Framework 7.1.2</div>
-    <div class="note_item">
-    Fixed framework restart problem introduced in 7.1.0.
-    </div>
-    <div class="note_item">
-    Relaxed "org.knopflerfish.framework.validator.date" parsing, so that
-    it tries short US locale pattern if default locale parsing fails.
-    </div>
-
-    <div class="note_name">Framework 7.1.1</div>
-    <div class="note_item">
-    Fixed exception when doing BundleWiring.listResources on root directory.
-    </div>
-
-    <div class="note_name">Framework 7.1.0</div>
-    <div class="note_item">
-    Added new URL protocol "fwresource" to access resources from the framework
-    classloader.
-    </div>
-    <div class="note_item">
-    The start class org.knopflerfish.framework.Main now tries to load xargs as a
-    framework resource if the file is not found. This means that we together
-    with the new fwresource protocol can create a single jar that contains the
-    framework, all jars and xargs files that needs to start a complete application.
-    </div>
-    <div class="note_item">
-    Added property "org.knopflerfish.framework.readonly", that puts framework
-    in a read only mode. This means that framework will not write any files
-    in "fwdir". This means that if we are running with the default "file"
-    bundle storage then new bundles must be installed as a referenced file URL.
-    This also implies that no data storage will be available to bundles.
-    </div>
-
-    <div class="note_name">Framework 7.0.2</div>
-    <div class="note_item">
-    Fixed bug that caused IndexOutOfBoundsException when updating large
-    collections of ConditionalPermissionInfos using ConditionalPermissionUpdate.
-    </div>
-    <div class="note_item">
-    Added property "org.knopflerfish.framework.validator.date" to framework
-    for testing certification validation with different dates.
-    </div>
-  </div>
 
 </div>
 
@@ -81,168 +37,12 @@
 <h2 class="filled">OSGi Compendium Specification</h2>
 <div class="release_notes">
 
-  <div class="note_group">
-    <div class="note_name">UserAdmin 4.1.1</div>
-    <div class="note_item">
-    Now contains and imports/exports org.knopflerfish.service.log
-    in order to be self-contained.
-    </div>
-    <div class="note_item">
-      Changed to use the OSGi defined Bundle-Icon instead of
-      Application-Icon.
-  </div>
-  
-  <div class="note_group">
-    <div class="note_name">KF-XML-Metatype 5.0.1</div>
-    <div class="note_item">
-    Fixed bug in handling of designate-element that could cause
-    configurations to be created, deleted or overwritten
-    unintentionally.
-    Refactored handling of standardized OSGi metatype xml and
-    legacy proprietary meta type xml into separate classes.
-    </div>
-  </div>
-  
-  <div class="note_group">
-    <div class="note_name">CM 5.0.1</div>
-    <div class="note_item">
-    Improved the persistent storage of CM data,
-    made it more robust and fault resilient. 
-    </div>
-  </div>
-  
-  <div class="note_group">
-    <div class="note_name">HTTP-Server 4.0.5</div>
-    <div class="note_item">
-    Fixed another bug in the handling of chunked transfer encoding in the
-    Request implementation. The last chunk (with size 0) is not followed
-    by any chunk-data and thus there is no CRLF to consume.
-    </div>
-
-    <div class="note_name">HTTP-Server 4.0.4</div>
-    <div class="note_item">
-    Fixed another bug in the handling of chunked transfer encoding in the
-    Request implementation. A chunk contianing a charter followed by a
-    new line char was not correctly un-chunked.
-    </div>
-
-    <div class="note_name">HTTP-Server 4.0.3</div>
-    <div class="note_item">
-    Fixed a bug in the handling of chunked transfer encoding in the
-    Request implementation. An extra CR-LF was incorrectly added to
-    the end of the decoded data, causing problems when transfering
-    binary data like a zip-file.
-    </div>
-  </div>  
-  
-  <div class="note_group">
-    <div class="note_name">Prefs 4.0.2</div>
-    <div class="note_item">
-      Added bundle icon.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">Repository XML 1.0.2</div>
-    <div class="note_item">
-    Fixed a bug in RequirementImpl and did some clean up.
-    </div>
-
-    <div class="note_name">Repository XML 1.0.1</div>
-    <div class="note_item">
-    Fixed a bug in CapabilityImpl.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">SCR(component) 5.0.3</div>
-    <div class="note_item">
-    Fixed missed factory component check in previous version. This miss caused
-    following error:<p/>
-    java.lang.IllegalStateException: Internal error! Factory component only created with newInstance
-    </div>
-
-    <div class="note_name">SCR(component) 5.0.2</div>
-    <div class="note_item">
-    Fixed a bug that caused factory components to be falsely created or
-    missed being created when we use target filters.
-    </div>
-
-    <div class="note_name">SCR(component) 5.0.1</div>
-    <div class="note_item">
-    Fixed a bug that caused problems when adding a CM configuration with
-    a target filter to an unsatisfied component.
-    </div>
-  </div>
   
 </div>
 
 <h2 class="filled">Knopflerfish Services</h2>
 <div class="release_notes">
 
-   <div class="note_group">
-    <div class="note_name">CM Desktop 5.0.2</div>
-    <div class="note_item">
-    Add requirement for the Meta Type Service.
-    </div>
-  </div>
-  
-  <div class="note_group">
-    <div class="note_name">KF Resource Analyzer Extensions 1.0.1</div>
-    <div class="note_item">
-    Added proper handling of Bundle-License according to osgi.identity
-    namepsace.
-    </div>
-  </div>
-  
-  <div class="note_group">
-    <div class="note_name">Repository Commands 1.1.1</div>
-    <div class="note_item">
-    Bug fixes and some refactorings.
-    </div>
-
-    <div class="note_name">Repository Commands 1.1.0</div>
-    <div class="note_item">
-    Added [-r] flag to install command that tries to automatically find and
-    install dependencies along with the specified bundle by using new
-    methods in Repository Manager.
-    </div>
-  </div>
-  
-  <div class="note_group">
-    <div class="note_name">Repository Desktop 1.1.1</div>
-    <div class="note_item">
-    The dialogue now gives information about exactly what will be installed when asking if a
-    Resolver should be used.
-    </div>
-
-    <div class="note_name">Repository Desktop 1.1.0</div>
-    <div class="note_item">
-    Added support for new methods in Repository Manager to use a Resolver
-    service when available.
-    </div>
-  </div>
-  
-  <div class="note_group">
-    <div class="note_name">Repository Manager 1.2.0</div>
-    <div class="note_item">
-    Added install and resolverAvailable methods to RepositoryManager interface.
-    Embedded Resolver and Repository APIs.
-    </div>
-
-    <div class="note_name">Repository Manager 1.1.0</div>
-    <div class="note_item">
-    Added support for Resolver services and added RepositoryManager.findResolution method.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">KF-XML-Metatype 5.0.2</div>
-    <div class="note_item">
-    Only build an "all" variant. This makes it possible to correctly install
-    CM-Desktop using the Repository Desktop with the Felix resolver.
-    </div>
-  </div>
 
 </div>
 
@@ -250,11 +50,5 @@
 <h2 class="filled">Misc, start scripts, build system etc </h2>
 <div class="release_notes">
 
-   <div class="note_group">
-    <div class="note_name">init.xargs</div>
-    <div class="note_item">Added commented out line to install Resolver
-    reference implementation.
-    </div>
-  </div>
 
 </div>
