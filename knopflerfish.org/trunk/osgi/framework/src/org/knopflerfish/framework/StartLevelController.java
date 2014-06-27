@@ -66,18 +66,15 @@ public class StartLevelController
   final static int START_MIN = 0;
   final static int START_MAX = Integer.MAX_VALUE;
 
-  final static String LEVEL_FILE = "currentlevel";
   final static String INITIAL_LEVEL_FILE = "initiallevel";
 
   Thread        wc;
-  long          wcDelay  = 2000;
   boolean       bRun     = false;
-  Queue<Runnable> jobQueue = new Queue<Runnable>(100);
+  Queue<Runnable> jobQueue = new Queue<Runnable>(0);
 
   int currentLevel     = 0;
   int initStartLevel   = 1;
   int targetStartLevel = currentLevel;
-  boolean acceptChanges = true;
 
   final FrameworkContext fwCtx;
 
@@ -97,6 +94,14 @@ public class StartLevelController
 
     readOnly = fwCtx.props.getBooleanProperty(FWProps.READ_ONLY_PROP);
     storage = Util.getFileStorage(fwCtx, "startlevel", !readOnly);
+
+    // Create first job to goto beginning start-level
+    setStartLevel0(-1, false);
+ 
+    // restoreState just reads from persistent storage
+    // open() needs to be called to actually do the work
+    // This is done after framework has been launched.
+    restoreState();
   }
 
   void open() {
@@ -104,18 +109,15 @@ public class StartLevelController
       fwCtx.debug.println("startlevel: open");
     }
 
-    final Runnable lastJob = jobQueue.lastElement();
+    final Runnable beginJob = jobQueue.firstElement();
     wc = new Thread(fwCtx.threadGroup, this, "startlevel job");
-    synchronized (lastJob) {
+    synchronized (beginJob) {
       bRun = true;
       wc.start();
-      if (!acceptChanges) {
-        acceptChanges = true;
-      }
       // Wait for the last of the jobs scheduled before starting the
       // framework to complete before return
       try {
-        lastJob.wait();
+        beginJob.wait();
       } catch (final InterruptedException _ignore) { }
     }
   }
@@ -129,44 +131,13 @@ public class StartLevelController
    * <p>Note that {@link open()} needs to be called for any work to
    * be done.</p>
    */
-  void restoreState() {
+  private void restoreState() {
     if (fwCtx.debug.startlevel) {
       fwCtx.debug.println("startlevel: restoreState");
     }
-    if (storage != null) {
-      // Set the target start level to go to when open() is called.
-      int startLevel = -1;
-      try {
-        final String s = Util.getContent(new File(storage, LEVEL_FILE));
-        if (s != null) {
-          startLevel = Integer.parseInt(s);
-          if (fwCtx.debug.startlevel) {
-            fwCtx.debug.println("startlevel: restored level " + startLevel);
-          }
-        }
-      } catch (final Exception _ignored) { }
-      if (startLevel == -1) {
-        // No stored start level to restore, try the beginning start level
-        final String sBeginningLevel
-          = fwCtx.props.getProperty(Constants.FRAMEWORK_BEGINNING_STARTLEVEL);
-        try {
-          startLevel = Integer.parseInt(sBeginningLevel);
-          if (fwCtx.debug.startlevel) {
-            fwCtx.debug.println("startlevel: beginning level " + startLevel);
-          }
-        } catch (final NumberFormatException nfe) {
-          fwCtx.debug.printStackTrace("Invalid number '" + sBeginningLevel +
-                                      "' in value of property named '"
-                                      + Constants.FRAMEWORK_BEGINNING_STARTLEVEL
-                                      + "'.", nfe);
-        }
-      }
-      if (startLevel<0) {
-        startLevel = 1;
-      }
-      setStartLevel0(startLevel, false, false, true);
 
-      // Restore the initial bundle start level
+    // Restore the initial bundle start level
+    if (storage != null) {
       try {
         final String s = Util.getContent(new File(storage, INITIAL_LEVEL_FILE));
         if (s != null) {
@@ -177,45 +148,32 @@ public class StartLevelController
   }
 
 
-  void close() {
-    if (fwCtx.debug.startlevel) {
-      fwCtx.debug.println("*** closing startlevel service");
-    }
-
-    bRun = false;
-    jobQueue.insert(new Runnable() {
-        public void run() {
-          jobQueue.close();
-        }
-      });
-    if(wc != null) {
-      try {
-        wc.join(wcDelay * 2);
-      } catch (final Exception ignored) {
-      }
-      wc = null;
-    }
-  }
-
   void shutdown() {
-    acceptChanges = false;
     synchronized (wc) {
-      setStartLevel0(0, false, true, false);
-      while (currentLevel > 0) {
-        try { wc.wait(); } catch (final Exception e) {}
+      setStartLevel0(0, false);
+      while (bRun) {
+        try {
+          wc.join();
+        } catch (InterruptedException _ignore) { }
       }
     }
-    close();
+    if (fwCtx.debug.startlevel) {
+      fwCtx.debug.println("*** closed startlevel service");
+    }
   }
 
   public void run() {
     while(bRun) {
       try {
-        final Runnable job = jobQueue.removeWait((float)(wcDelay / 1000.0));
+        final Runnable job = jobQueue.remove();
         if (job != null) {
           job.run();
           synchronized (job) {
-            job.notify();
+            if (currentLevel == 0) {
+              bRun = false;
+              jobQueue.close();
+            }
+            job.notifyAll();
           }
         }
       } catch (final Exception ignored) {
@@ -241,16 +199,12 @@ public class StartLevelController
       throw new IllegalArgumentException("Initial start level must be > 0, is "
                                          + startLevel);
     }
-    if (acceptChanges) {
-      // No start-level changed events if called before open() or after close().
-      setStartLevel0(startLevel, bRun, false, true, listeners);
-    }
+    // No start-level changed events if called before open() or after close().
+    setStartLevel0(startLevel, true, listeners);
   }
 
   private void setStartLevel0(final int startLevel,
                               final boolean notifyFw,
-                              final boolean notifyWC,
-                              final boolean storeLevel,
                               final FrameworkListener... listeners)
   {
     if (fwCtx.debug.startlevel) {
@@ -260,7 +214,26 @@ public class StartLevelController
     jobQueue.insert(new Runnable() {
       public void run() {
         final int sl = bCompat ? 1 : startLevel;
-        targetStartLevel = sl;
+
+        // Set the beginning start level to go to when open() is called.
+        if (sl == -1) {
+          final String sBeginningLevel
+            = fwCtx.props.getProperty(Constants.FRAMEWORK_BEGINNING_STARTLEVEL);
+          try {
+            targetStartLevel = Integer.parseInt(sBeginningLevel);
+          } catch (final NumberFormatException nfe) {
+            fwCtx.debug.printStackTrace("Invalid number '" + sBeginningLevel +
+                                        "' in value of property named '"
+                                        + Constants.FRAMEWORK_BEGINNING_STARTLEVEL
+                                        + "'.", nfe);
+            targetStartLevel = 1;
+          }
+          if (fwCtx.debug.startlevel) {
+            fwCtx.debug.println("startlevel: beginning level " + targetStartLevel);
+          }
+        } else {
+          targetStartLevel = sl;
+        }
 
         while (targetStartLevel > currentLevel) {
           increaseStartLevel();
@@ -270,27 +243,12 @@ public class StartLevelController
           decreaseStartLevel();
         }
 
-        // Skip level save in mem storage since bundle levels
-        // won't be saved anyway
-        if (storeLevel && storage != null && !readOnly) {
-          try {
-            Util.putContent(new File(storage, LEVEL_FILE),
-                            Integer.toString(currentLevel));
-          } catch (final Exception e) {
-            e.printStackTrace();
-          }
-        }
         if (notifyFw) {
           final FrameworkEvent event
             = new FrameworkEvent(FrameworkEvent.STARTLEVEL_CHANGED,
                                  fwCtx.systemBundle, null);
           // Send event to all registered framework listeners
           fwCtx.listeners.frameworkEvent(event, listeners);
-        }
-        if (notifyWC && wc != null) {
-          synchronized (wc) {
-            wc.notifyAll();
-          }
         }
       }
     });
@@ -426,11 +384,13 @@ public class StartLevelController
 
     fwCtx.perm.callSetStartLevel(bundle, bCompat ? 1 : startLevel);
 
-    jobQueue.insert(new Runnable() {
-      public void run() {
-        syncStartLevel(bundle);
-      }
-    });
+    if (bRun) {
+      jobQueue.insert(new Runnable() {
+        public void run() {
+          syncStartLevel(bundle);
+        }
+      });
+    }
   }
 
 
@@ -454,7 +414,7 @@ public class StartLevelController
               }
               bs.start(startOptions);
             }
-          } else if (bs.getStartLevel() > currentLevel) {
+          } else {
             if ((bs.getState() & (Bundle.ACTIVE|Bundle.STARTING)) != 0) {
               if (fwCtx.debug.startlevel) {
                 fwCtx.debug.println("startlevel: stop " + bs);

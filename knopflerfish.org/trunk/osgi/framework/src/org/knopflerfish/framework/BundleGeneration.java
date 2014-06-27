@@ -628,6 +628,11 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         && bundle.isResolved()) {
       throw new IllegalStateException("Bundle does not allow fragments to attach dynamically");
     }
+    try {
+      BundleClassPath.checkNativeCode(fragmentBundle.archive, bundle.fwCtx.props, true);
+    } catch (BundleException e) {
+      throw new IllegalStateException(e.getMessage());
+    }
     if (!bundle.fwCtx.resolverHooks.filterMatches(fragmentBundle.fragment,
                                                   new BundleNameVersionCapability(this, BundleRevision.HOST_NAMESPACE))) {
       throw new IllegalStateException("Resolver hooks vetoed attach to: " + this);      
@@ -643,6 +648,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         // TODO, should we unregister fragment packaaes
         throw new IllegalStateException(be.getMessage());
       }
+    } else {
+      
     }
     if (bundle.fwCtx.debug.resolver) {
       bundle.fwCtx.debug.println("Fragment(" + fragmentBundle.bundle + ") attached to host(id="

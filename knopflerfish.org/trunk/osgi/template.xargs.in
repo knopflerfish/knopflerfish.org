@@ -14,6 +14,9 @@
 # RepositoryServices
 -Forg.knopflerfish.repository.xml.urls=$(REPOSITORY_XML_URLS)
 
+# Set beginning start-level
+-Forg.osgi.framework.startlevel.beginning=7
+
 ## Basic KF bundles
 -initlevel 1
 -install @log_all-N.N.N.jar@
@@ -65,9 +68,6 @@ $(AWT)-install @desktop_all-N.N.N.jar@
 -install @httproot-N.N.N.jar@
 
 $(OS_ARGS)
-
--startlevel 7
-
 
 # Start of these bundles are delayed since this makes start
 # order dependencies much easier

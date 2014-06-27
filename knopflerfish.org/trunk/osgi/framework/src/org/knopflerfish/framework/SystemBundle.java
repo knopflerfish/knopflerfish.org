@@ -231,7 +231,7 @@ public class SystemBundle extends BundleImpl implements Framework {
             if (stopEvent != null) {
               break;
             }
-          } catch (final InterruptedException _) {
+          } catch (final InterruptedException _ignore) {
           }
           if (timeout > 0) {
             timeout = timeout - (Util.timeMillis() - st);

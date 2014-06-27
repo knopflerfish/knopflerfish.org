@@ -11,8 +11,6 @@
   <property name="bundle.build.impl" value="false"/>
   <property name="bundle.build.doc"  value="false"/>
 
-  <property name="all.suffix.name"  value=""/>
-
   <path id="bundle.compile.path">
   </path>
 

@@ -358,7 +358,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     } else {
       try {
         fwId = Integer.parseInt(host.substring(e + 1));
-      } catch (final NumberFormatException _) {
+      } catch (final NumberFormatException _ignore) {
         return null;
       }
     }

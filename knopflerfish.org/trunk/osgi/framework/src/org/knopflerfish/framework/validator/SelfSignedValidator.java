@@ -90,7 +90,7 @@ public class SelfSignedValidator implements Validator {
           cert.checkValidity();
         }
       }
-    } catch (CertificateException _) {
+    } catch (CertificateException _ignore) {
       return false;
     }
     return true;

@@ -603,11 +603,6 @@ public class FrameworkContext  {
       }
       startLevelController = new StartLevelController(this);
 
-      // restoreState just reads from persistent storage
-      // open() needs to be called to actually do the work
-      // This is done after framework has been launched.
-      startLevelController.restoreState();
-
       @SuppressWarnings("deprecation")
       final
       String [] clsName = new String [] { org.osgi.service.startlevel.StartLevel.class.getName() };
