@@ -373,6 +373,7 @@ public class Main
           saveStartLevel = false;
         } else if (saveStartLevel && i+1 < args.length && "-startlevel".equals(args[i])) {
           fwProps.put(Constants.FRAMEWORK_BEGINNING_STARTLEVEL, args[i+1]);
+          saveStartLevel = false;
         }
       } catch (final Exception e) {
         e.printStackTrace(System.err);

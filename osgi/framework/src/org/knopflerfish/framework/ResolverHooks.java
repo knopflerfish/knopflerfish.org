@@ -263,7 +263,7 @@ public class ResolverHooks {
   }
 
 
-  boolean hasHooks() throws BundleException {
+  boolean hasHooks() {
     return active != null;
   }
 

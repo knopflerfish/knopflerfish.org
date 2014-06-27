@@ -16,6 +16,8 @@
 
 -Dorg.knopflerfish.gosg.jars=$(GOSG_JARS)
 
+-Forg.osgi.framework.startlevel.beginning=20
+
 -init
 
 -initlevel 1
@@ -28,7 +30,5 @@
 # the test case runner bundle.
 -initlevel 20
 -istart @junit_runner_all-N.N.N.jar@
-
--startlevel 20
 
 -launch

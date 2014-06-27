@@ -73,6 +73,9 @@
 -Forg.osgi.framework.os.name=linux
 -Forg.osgi.framework.processor=arm_le
 
+# Set beginning start-level
+-Forg.osgi.framework.startlevel.beginning=7
+
 -init
 
 -initlevel 1
@@ -111,9 +114,6 @@ $(DO_CPA_TEST)-istart @condpermadmin_test-N.N.N.jar@
 -start  @cm_all-N.N.N.jar@
 -istart @component_all-N.N.N.jar@
 -istart @component_test-N.N.N.jar@
-
-
--startlevel 7
 
 -start  @http_all-N.N.N.jar@
 -start  @event_all-N.N.N.jar@

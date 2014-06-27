@@ -234,7 +234,7 @@ class ConditionalPermissionInfoStorage {
       ConditionalPermissionInfoImpl cpi;
       try {
         cpi = (ConditionalPermissionInfoImpl)checkTable.get(i);
-      } catch (final ClassCastException _) {
+      } catch (final ClassCastException _ignore) {
         throw new IllegalStateException("Illegal class of element in updated table, index=" + i);
       }
       if (cpi == null) {

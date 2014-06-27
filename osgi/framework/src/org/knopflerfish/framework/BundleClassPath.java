@@ -309,10 +309,44 @@ public class BundleClassPath {
    * @throws BundleException if native code resolve failed.
    */
   private void resolveNativeCode(BundleArchive ba, boolean isFrag) throws BundleException {
+    List<String> best = checkNativeCode(ba, fwCtx.props, isFrag);
+    if (best != null) {
+      nativeLibs = new HashMap<String, FileArchive>();
+      bloop: for (final String name : best) {
+        for (final FileArchive fa : archives) {
+          if (!isFrag || fa.getBundleGeneration().archive == ba) {
+            final String key = fa.checkNativeLibrary(name);
+            if (key != null) {
+              nativeLibs.put(key, fa);
+              if (debug.classLoader) {
+                debug.println(this + "- Registered native library: " + key + " -> " + fa);
+              }
+              continue bloop;
+            }
+          }
+        }
+        throw new BundleException("Bundle#" + bid + ", failed to resolve native code: "
+            + name, BundleException.NATIVECODE_ERROR);
+      }
+    } else {
+      // No native code in this bundle
+      nativeLibs = null;
+    }
+  }
+
+
+  /**
+   * Check native code attribute.
+   * 
+   * @return 
+   *
+   * @throws BundleException if native code match fails.
+   */
+  static List<String> checkNativeCode(BundleArchive ba, FWProps fwProps, boolean isFrag) throws BundleException {
     final String bnc = ba.getAttribute(Constants.BUNDLE_NATIVECODE);
     if (bnc != null) {
       final ArrayList<String> proc = new ArrayList<String>(3);
-      final String procP = fwCtx.props.getProperty(Constants.FRAMEWORK_PROCESSOR).toLowerCase();
+      final String procP = fwProps.getProperty(Constants.FRAMEWORK_PROCESSOR).toLowerCase();
       proc.add(procP);
       final String procS = System.getProperty("os.arch").toLowerCase();
       if (!procP.equals(procS)) {
@@ -333,7 +367,7 @@ public class BundleClassPath {
         }
       }
       final ArrayList<String> os = new ArrayList<String>();
-      final String osP = fwCtx.props.getProperty(Constants.FRAMEWORK_OS_NAME).toLowerCase();
+      final String osP = fwProps.getProperty(Constants.FRAMEWORK_OS_NAME).toLowerCase();
       os.add(osP);
       final String osS = System.getProperty("os.name").toLowerCase();
       if (!osS.equals(osP)) {
@@ -349,8 +383,8 @@ public class BundleClassPath {
           break;
         }
       }
-      final Version osVer = new Version(fwCtx.props.getProperty(Constants.FRAMEWORK_OS_VERSION));
-      final String osLang = fwCtx.props.getProperty(Constants.FRAMEWORK_LANGUAGE);
+      final Version osVer = new Version(fwProps.getProperty(Constants.FRAMEWORK_OS_VERSION));
+      final String osLang = fwProps.getProperty(Constants.FRAMEWORK_LANGUAGE);
       boolean optional = false;
       List<String> best = null;
       VersionRange bestVer = null;
@@ -436,16 +470,16 @@ public class BundleClassPath {
           final String sfs = sf.get(0);
           if (sf.size() == 1) {
             try {
-              if (!(FrameworkUtil.createFilter(sfs)).match(fwCtx.props.getProperties())) {
+              if (!(FrameworkUtil.createFilter(sfs)).match(fwProps.getProperties())) {
                 continue;
               }
             } catch (final InvalidSyntaxException ise) {
-              throw new BundleException("Bundle#" + bid +
+              throw new BundleException("Bundle#" + ba.getBundleId() +
                                         ", Invalid syntax for native code selection filter: "
                                         + sfs, BundleException.NATIVECODE_ERROR, ise);
             }
           } else {
-            throw new BundleException("Bundle#" + bid +
+            throw new BundleException("Bundle#" + ba.getBundleId() +
                                       ", Invalid character after native code selection filter: "
                                       + sfs, BundleException.NATIVECODE_ERROR);
           }
@@ -475,45 +509,23 @@ public class BundleClassPath {
         bestVer = matchVer;
         bestLang = matchLang;
       }
-      if (best == null) {
-        if (optional) {
-          return;
-        } else {
-          throw new BundleException("Bundle#" + bid +
-                                    ", no matching native code libraries found for os="
-                                    + os + " version=" + osVer + ", processor="
-                                    + proc + " and language=" + osLang + ".",
-                                    BundleException.NATIVECODE_ERROR);
-        }
+      if (best == null && !optional) {
+        throw new BundleException("Bundle#" + ba.getBundleId() +
+                                  ", no matching native code libraries found for os="
+                                  + os + " version=" + osVer + ", processor="
+                                  + proc + " and language=" + osLang + ".",
+                                  BundleException.NATIVECODE_ERROR);
       }
-      nativeLibs = new HashMap<String, FileArchive>();
-      bloop: for (final String name : best) {
-        for (final FileArchive fa : archives) {
-          if (!isFrag || fa.getBundleGeneration().archive == ba) {
-            final String key = fa.checkNativeLibrary(name);
-            if (key != null) {
-              nativeLibs.put(key, fa);
-              if (debug.classLoader) {
-                debug.println(this + "- Registered native library: " + key + " -> " + fa);
-              }
-              continue bloop;
-            }
-          }
-        }
-        throw new BundleException("Bundle#" + bid + ", failed to resolve native code: "
-                                  + name, BundleException.NATIVECODE_ERROR);
-      }
-    } else {
-      // No native code in this bundle
-      nativeLibs = null;
+      return best;
     }
+    return null;
   }
 
 
   /**
    * Check if a string exists in a list. Ignore case when comparing.
    */
-  private boolean containsIgnoreCase(List<String> fl, List<String> l) {
+  static boolean containsIgnoreCase(List<String> fl, List<String> l) {
     for (final String string : l) {
       final String s = string.toLowerCase();
       for (final String string2 : fl) {

@@ -91,6 +91,8 @@
 		<antcall target="bundleN1_test"/>
 		<antcall target="bundleN2_test"/>
 		<antcall target="bundleN3_test"/>
+		<antcall target="bundleN4_test"/>
+		<antcall target="bundleN5_test"/>
 	</target>
 
 	<target name="bundleA_test">
@@ -562,7 +564,22 @@
 			<property name="bundle_tasks.built" value="true"/>
 		</ant>
 	</target>
-
+	<target name="bundleN4_test">
+		<ant dir="test_target_bundles/bundleN4_test" target="all"
+	 inheritAll="false">
+			<property name="jardir"  location="${resources.dir}"/>
+			<property name="outdir"  location="${ttb.outdir}/bundleN4_test"/>
+			<property name="bundle_tasks.built" value="true"/>
+		</ant>
+	</target>
+	<target name="bundleN5_test">
+		<ant dir="test_target_bundles/bundleN5_test" target="all"
+	 inheritAll="false">
+			<property name="jardir"  location="${resources.dir}"/>
+			<property name="outdir"  location="${ttb.outdir}/bundleN5_test"/>
+			<property name="bundle_tasks.built" value="true"/>
+		</ant>
+	</target>
 
 	<import file="${ant.dir}/bundlebuild.xml"/>
 
