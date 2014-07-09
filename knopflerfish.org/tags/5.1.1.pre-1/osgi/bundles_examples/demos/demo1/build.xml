@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="demo1" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.demo1}"/>
+  <import file="${proj.dir}/../../examples_include.xml"/>
+
+  <property name="api.pattern"
+            value="org/knopflerfish/service/demo1/*"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/service/demo1/impl/*"/>
+
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

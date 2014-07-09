@@ -1,0 +1,3 @@
+All original JUnit code (as junit.jar) is from
+ 
+ http://junit.sourceforge.net/

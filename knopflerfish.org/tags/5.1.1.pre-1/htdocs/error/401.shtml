@@ -1,0 +1,22 @@
+<html>
+<head>
+<title>401 Unauthorized</title>
+
+<LINK href="/error/style.css" rel="stylesheet" type="text/css">
+
+</head>
+<body>
+
+<h2>401 Unauthorized</h2>
+
+<div class="message">
+The server could not verify that you are authorized to access
+the URL <b>"<!--#echo var="REDIRECT_URL" -->"</b>.
+You either supplied the wrong credentials (e.g., bad password), or your
+browser doesn't understand how to supply the credentials required.
+</div>
+
+<!--#include file="error_bottom.html" -->
+
+</body>
+</html>

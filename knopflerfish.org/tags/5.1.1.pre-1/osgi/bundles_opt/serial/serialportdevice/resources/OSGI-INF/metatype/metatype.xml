@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MetaData xmlns="http://www.osgi.org/xmlns/metatype/v1.0.0">
+
+  <OCD id="org.knopflerfish.serialport.ocd.factory"
+       name="OCD for Serialport factory configurations" >
+
+    <AD name="Port"
+	id="port"
+	type="String"
+	description="The name of the device file (COM1, COM2, /dev/ttyS0, ...) associated with the serial port" />
+
+    <AD name="Product"
+	id="product"
+	type="String"
+	description="The name of the device connected to the serial port." />
+
+    <AD name="Revision"
+	id="revision"
+	type="String"
+	description="The revision number of the device connected to the serial port." />
+
+  </OCD>
+                           
+  <Designate factoryPid="org.knopflerfish.serialport.factory">
+    <Object ocdref="org.knopflerfish.serialport.ocd.factory"/>
+  </Designate>
+
+</MetaData>

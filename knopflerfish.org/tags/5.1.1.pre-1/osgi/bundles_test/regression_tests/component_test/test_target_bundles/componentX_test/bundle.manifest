@@ -1,0 +1,12 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: componentX_test
+Bundle-SymbolicName: org.knopflerfish.bundle.componentX_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for SCR, circular bind test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: testing
+Import-Package: org.osgi.service.component
+Service-Component: service.xml
+

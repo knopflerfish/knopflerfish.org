@@ -1,0 +1,12 @@
+Bundle-Name: bundleN4_test
+Bundle-SymbolicName: bundleN4_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle unmatched native code fragment
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: testing
+Fragment-Host: bundleN3_test-LIB
+Bundle-NativeCode: bar ; osname = Linux ; osname = MacOSX ;
+                   osname = SunOS ; osname = VxWork ; osname = Win32 ; 
+                   processor = notFound

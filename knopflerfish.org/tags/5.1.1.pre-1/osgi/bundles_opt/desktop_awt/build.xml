@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="desktop_awt" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.desktop_awt}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <!-- Needs java.awt outside of ee.minimum -->
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
+
+  <property name="api.pattern"
+	    value="org/knopflerfish/service/desktop/**"/> 
+  <property name="impl.pattern"
+	    value="org/knopflerfish/bundle/**"/> 
+  <property name="all-api.pattern"
+	    value="org/knopflerfish/service/console/**"/> 
+
+  <!-- Embedd the KF console API. -->
+  <target name="bundle.custom.pre">
+    <bundle_locator bundleNames="console_api">
+      <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
+	<include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.console_api}">
+	<patternset><exclude name="META-INF/*"/></patternset>
+      </zipfileset>
+    </copy>      
+  </target>
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

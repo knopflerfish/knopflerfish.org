@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+
+  <!-- A service publishing component that has an optional dynamic reference -->
+  <component name="component2_test.C2"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation
+       class="org.knopflerfish.bundle.component2_test.ComponentC2Impl"/>
+    <service>
+      <provide
+         interface="org.knopflerfish.service.component2_test.Component"/>
+    </service>
+  </component>
+
+</root>

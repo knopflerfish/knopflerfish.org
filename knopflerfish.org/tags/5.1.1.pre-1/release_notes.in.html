@@ -1,0 +1,74 @@
+<!-- The first line in this file is used by the desktop to check -->
+<!-- for new releases, i.e., do not change its format.           -->
+<!-- It must contain the word "Knopflerfish" followed by a space -->
+<!-- and then the version followed by another space.             -->
+
+<h1 class="kf">Release Notes Knopflerfish $(VERSION) (OSGi R5)</h1>
+<p>
+
+  Maintenance release of Knopflerfish 5 available from
+  $(BASE_URL)/$(VERSION). Released $(RELEASE_DATE).
+
+</p>
+<p>
+
+  Knopflerfish 5 is an implementation of the "OSGi Service Platform
+  Release 5". It contains all services specified in the "Core
+  Specification" and most of the non Enterprise Edition related
+  services specified in the "Compendium Specification".
+
+</p>
+
+<p>
+
+  The Release Notes include all new features & changes for
+  Knopflerfish $(VERSION) compared to the release of Knopflerfish
+  $(VERSION_PREV).
+
+</p>
+
+<h2 class="filled">Knopflerfish Framework - OSGi Core Specification</h2>
+<div class="release_notes">
+
+  <div class="note_group">
+    <div class="note_name">Framework 7.1.3</div>
+    <div class="note_item">
+    Fixed native code checking before we attach fragment.
+    </div>
+    <div class="note_item">
+    Changed behaviour start-up of start-level service, so that always
+    goes to beginning start-level instead of last active start-level
+    from previous run. This to comply with the OSGi Core specification.
+    </div>
+    <div class="note_item">
+    Removed limit on number of queued start-level operations (was 100).
+    </div>
+  </div>
+
+</div>
+
+
+<h2 class="filled">OSGi Compendium Specification</h2>
+<div class="release_notes">
+
+  
+</div>
+
+<h2 class="filled">Knopflerfish Services</h2>
+<div class="release_notes">
+
+
+</div>
+
+
+<h2 class="filled">Misc, start scripts, build system etc </h2>
+<div class="release_notes">
+
+  <div class="note_group">
+    <div class="note_name">*.xargs files</div>
+    <div class="note_item">
+    Updated according to new start-level behaviour.
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="cm_desktop" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.cm_desktop}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.5"/>
+
+  <property name="bundle.build.doc"      value="true"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/desktop/cm/**"/>
+
+  <property name="all-api.pattern"
+            value="org/knopflerfish/shared/cm/**"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="cm_api-N.N.N.jar"/>
+   <pathelement location="util-N.N.N.jar"/>
+   <pathelement location="desktop_api-N.N.N.jar"/>
+   <pathelement location="metatype-N.N.N.jar"/>
+   <pathelement location="kf_metatype_all-N.N.N.jar"/>
+  </path>
+  
+  <target name="bundle.custom.pre">
+    <!-- Embedd the the cm_data-XML parser from the CM shared pkg. -->
+    <bundle_locator bundleNames="cm_all">
+      <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
+        <include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.cm_all}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+          <include name="org/knopflerfish/shared/cm/**"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+  </target>
+
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>
