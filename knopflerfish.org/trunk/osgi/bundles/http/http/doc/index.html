@@ -80,8 +80,8 @@ Usage: list [-help] [-c] [-r] [-t] [-l]
     <td>org.osgi.service.http.port</td>
     <td>
 
-	Port number that the HTTP server will listen for http-requests
-	on.
+      Port number that the HTTP server will listen for http-requests
+      on.
 
     </td>
     <td>int</td>
@@ -91,8 +91,8 @@ Usage: list [-help] [-c] [-r] [-t] [-l]
     <td>org.osgi.service.http.secure.port</td>
     <td>
 
-	Port number that the HTTP server will listen for
-	https-requests on.
+      Port number that the HTTP server will listen for
+      https-requests on.
 
     </td>
     <td>int</td>
@@ -102,8 +102,8 @@ Usage: list [-help] [-c] [-r] [-t] [-l]
     <td>org.osgi.service.http.hostname</td>
     <td>
 
-	Host (IP interface name) to open the HTTP server socket
-	on. An empty string means all available interfaces.
+      Host (IP interface name) to open the HTTP server socket
+      on. An empty string means all available interfaces.
 
     </td>
     <td>String</td>
@@ -113,9 +113,9 @@ Usage: list [-help] [-c] [-r] [-t] [-l]
     <td>org.knopflerfish.http.mime.props</td>
     <td>
 
-     URL to properties file defining MIME type mappings. The key in
-     the properties file is the file name extension and the value is
-     the associated MIME type.
+      URL to properties file defining MIME type mappings. The key in
+      the properties file is the file name extension and the value is
+      the associated MIME type.
 
     </td>
     <td>String</td>
@@ -224,7 +224,7 @@ Usage: list [-help] [-c] [-r] [-t] [-l]
       a 413 response is returned - Request Entity Too Large. 
     </td>
     <td>int</td>
-    <td>8090</td>
+    <td>8190</td>
   </tr>
   <tr>
     <td>org.knopflerfish.http.limit.requestheaders</td>
@@ -334,6 +334,45 @@ The http bundle accepts Factory configurations on the PID
   method. The default is 16384 bytes.
 </dd>
 
+<dt>req.client.auth (Boolean)</dt>
+<dd>
+  If client authentication shall be required or not when using
+  https. The default is false.
+</dd>
+
+<dt>org.knopflerfish.http.encoding.default (String)</dt>
+<dd>
+  The default character encoding to use for text in the HTTP
+  response. The default is ISO-8859-1.
+</dd>
+
+<dt>org.knopflerfish.http.trace.enabled (Boolean)</dt>
+<dd>
+  If the TRACE method shall be enabled or not.
+  The default is false.
+</dd>
+
+<dt>org.knopflerfish.http.limit.requestline (Integer)</dt>
+<dd>
+  Defines the maximum length of an HTTP request line. This limit
+  is also applied for HTTP header lines. When exceeding this limit
+  a 413 response is returned - Request Entity Too Large.
+  The default is 8190.
+</dd>
+
+<dt>org.knopflerfish.http.limit.requestheaders (Integer)</dt>
+<dd>
+  Defines the maximum number of headers accepted per request. 
+  When exceeding this limit a 413 response is returned - Request Entity Too Large. 
+  The default is 100.
+</dd>
+
+<dt>org.knopflerfish.http.limit.postsize (Integer)</dt>
+<dd>
+  Defines the maximum content size for a POST request. A value of
+  -1 indicates there is no limit. This is also the default behaviour.
+  When exceeding this limit a 413 response is returned - Request Entity Too Large. 
+  The default is -1 (no limit).
+</dd>
+
 </dl>
-
-

@@ -41,7 +41,6 @@ import java.util.Hashtable;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
-
 import org.knopflerfish.service.log.LogRef;
 
 public class HttpServer
@@ -195,6 +194,12 @@ public class HttpServer
   public boolean isHttpsOpen()
   {
     return httpsSocketListener.isOpen();
+  }
+
+  public boolean portConfigMatch(HttpConfig config) {
+    // TODO Auto-generated method stub
+    return httpSocketListener.portConfigMatch(new HttpConfigWrapper(false, config))
+        && httpsSocketListener.portConfigMatch(new HttpConfigWrapper(true, config));
   }
 
 } // HttpServer
