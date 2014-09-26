@@ -96,11 +96,19 @@ public class HttpServerFactory
       }
 
       // As soon as we get a "non-default"-config, delete default
-      if (!DEFAULT_PID.equals(pid) && (null != servers.get(DEFAULT_PID))) {
+      HttpConfig newConfig = null;
+      final HttpServer defaultServer = servers.get(DEFAULT_PID);
+      if (!DEFAULT_PID.equals(pid) && (null != defaultServer)) {
         if (log.doDebug()) {
           log.debug("Overriding default instance with new pid " + pid);
         }
-        deleted(DEFAULT_PID);
+        // Check if configured server has same as default, reuse
+        newConfig = new HttpConfig(bc, configuration);
+        if (defaultServer.portConfigMatch(newConfig)) {
+          servers.put(pid, defaultServer);
+        } else {
+          deleted(DEFAULT_PID);
+        }
       }
 
       HttpServer httpServer = servers.get(pid);
@@ -108,11 +116,15 @@ public class HttpServerFactory
         if (log.doDebug()) {
           log.debug("create pid=" + pid);
         }
-        httpServer = new HttpServer(bc, new HttpConfig(bc, configuration), log);
+        if (newConfig == null) {
+          newConfig = new HttpConfig(bc, configuration);
+        }
+        httpServer = new HttpServer(bc, newConfig, log);
         servers.put(pid, httpServer);
 
         // registration is moved to HttpServer.update()
       } else {
+        // TODO should we really merge configs?
         httpServer.getHttpConfig().updated(configuration);
       }
 

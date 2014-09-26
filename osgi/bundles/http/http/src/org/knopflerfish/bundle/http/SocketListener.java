@@ -111,11 +111,7 @@ public class SocketListener
   {
     // the following if statements prevents unnecessary calls to init
     // (when nothing changed)
-    if (isSecure == httpConfig.isSecure() && (requireClientAuth != null)
-        && (requireClientAuth.booleanValue() == httpConfig.requireClientAuth())
-        && port == httpConfig.getPort() && httpConfig.getHost().equals(host)
-        && httpConfig.getMaxConnections() == maxConnections
-        && isEnabled == httpConfig.isEnabled()) {
+    if (portConfigMatch(httpConfig)) {
       return;
     }
 
@@ -506,6 +502,14 @@ public class SocketListener
   public boolean isOpen()
   {
     return socket != null;
+  }
+
+  public boolean portConfigMatch(HttpConfigWrapper config) {
+    return isSecure == config.isSecure() && (requireClientAuth != null)
+        && (requireClientAuth.booleanValue() == config.requireClientAuth())
+        && port == config.getPort() && config.getHost().equals(host)
+        && config.getMaxConnections() == maxConnections
+        && isEnabled == config.isEnabled();
   }
 
 } // SocketListener

@@ -32,7 +32,7 @@
 	description="This integer property decides the default timeout in seconds for an HTTP session."
 	type="Integer"
 	id="session.timeout.default"
-	default="1200 "/>
+	default="1200"/>
     <AD name="connection.max"
 	description="This integer property decides the maximum number of concurrent connections to the HTTP server."
 	type="Integer"
@@ -58,6 +58,36 @@
 	type="Boolean"
 	id="dns.lookup"
 	default="false" />
+    <AD name="req.client.auth"
+    description="Controls if client authentication shall be required or not when using https."
+    type="Boolean"
+    id="req.client.auth"
+    default="false" />
+    <AD name="org.knopflerfish.http.encoding.default"
+    description="Default character encoding for server."
+    type="String"
+    id="org.knopflerfish.http.encoding.default"
+    default="ISO-8859-1" />
+    <AD name="org.knopflerfish.http.trace.enabled"
+    description="Controls if HTTP request method TRACE should be allowed."
+    type="Boolean"
+    id="org.knopflerfish.http.trace.enabled"
+    default="false" />
+    <AD name="org.knopflerfish.http.limit.requestline"
+    description="Defines the maximum length of an HTTP request line. This limit is also applied for HTTP header lines."
+    type="Integer"
+    id="org.knopflerfish.http.limit.requestline"
+    default="8190" />
+    <AD name="org.knopflerfish.http.limit.postsize"
+    description="Defines the maximum content size for a POST request"
+    type="Integer"
+    id="org.knopflerfish.http.limit.postsize"
+    default="-1" />
+    <AD name="org.knopflerfish.http.limit.requestheaders"
+    description="Defines the maximum number of headers accepted per request."
+    type="Integer"
+    id="org.knopflerfish.http.limit.requestheaders"
+    default="100" />
   </OCD>
 
   <Designate factoryPid="org.knopflerfish.bundle.http.factory.HttpServer">
