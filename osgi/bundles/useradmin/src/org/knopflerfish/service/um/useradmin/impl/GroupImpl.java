@@ -138,7 +138,7 @@ public class GroupImpl extends UserImpl implements Group {
     public boolean addMember(Role role) {
         SecurityManager sm = System.getSecurityManager();
         if(null!=sm){
-          sm.checkPermission(UserAdminImpl.adminPermission);
+          sm.checkPermission(UserAdminImpl.getAdminPermission());
         }
         if (basicMembers.contains(role)) {
             return false;
@@ -153,7 +153,7 @@ public class GroupImpl extends UserImpl implements Group {
     public boolean addRequiredMember(Role role) {
         SecurityManager sm = System.getSecurityManager();
         if(null!=sm){
-          sm.checkPermission(UserAdminImpl.adminPermission);
+          sm.checkPermission(UserAdminImpl.getAdminPermission());
         }
         if (reqMembers.contains(role)) {
             return false;
@@ -168,7 +168,7 @@ public class GroupImpl extends UserImpl implements Group {
     public boolean removeMember(Role role) {
         SecurityManager sm = System.getSecurityManager();
         if(null!=sm){
-          sm.checkPermission(UserAdminImpl.adminPermission);
+          sm.checkPermission(UserAdminImpl.getAdminPermission());
         }
         if (basicMembers.removeElement(role)) {
             ((RoleImpl) role).basicMemberOf.removeElement(this);

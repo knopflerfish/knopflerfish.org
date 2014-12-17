@@ -71,7 +71,7 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 public class UserAdminImpl implements ServiceFactory, UserAdmin,
         ServiceListener {
-    static final UserAdminPermission adminPermission;
+    private static UserAdminPermission adminPermission;
 
     protected ServiceReference uasr; // our service ref
 
@@ -84,11 +84,6 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     EventQueue eventQueue;
 
     ServiceTracker eventAdminTracker;
-
-    static {
-        adminPermission = new UserAdminPermission(UserAdminPermission.ADMIN,
-                                                  null);
-    }
 
     UserAdminImpl() {
         revert(); // Read saved roles
@@ -389,6 +384,17 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
       } catch (IOException e) {
         Activator.log.error("Failed to save roles", e);
       }
+    }
+
+    public static synchronized UserAdminPermission getAdminPermission() {
+      if(adminPermission == null) {
+        try {
+          adminPermission = new UserAdminPermission(UserAdminPermission.ADMIN, null);
+        } catch(Exception e) {
+          Activator.log.warn("Exception when trying to created UserAdminPermission. Probably tried to run with Security turned on in Dalvik.", e); 
+        }
+      }
+      return adminPermission;
     }
 
 }

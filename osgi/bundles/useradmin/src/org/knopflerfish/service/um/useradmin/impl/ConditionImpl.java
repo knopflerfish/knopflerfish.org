@@ -106,7 +106,7 @@ public class ConditionImpl extends RoleImpl implements Condition {
     public void setFilter(String filter) {
       SecurityManager sm = System.getSecurityManager();
       if(null!=sm){
-        sm.checkPermission(UserAdminImpl.adminPermission);
+        sm.checkPermission(UserAdminImpl.getAdminPermission());
       }
       this.filter = filter;
     }
