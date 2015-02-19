@@ -54,8 +54,8 @@
   <!-- Download and install repoindex -->
 
   <property name="bndtools.download.url"
-            value="https://bndtools.ci.cloudbees.com/job/bindex.master/lastStableBuild/artifact/cnf/releaserepo"/>
-
+            value="https://github.com/bndtools/bundle-hub/raw/master/" />
+  
   <property name="org.osgi.impl.bundle.repoindex.cli.jar"
             value="org.osgi.impl.bundle.repoindex.cli-0.0.4.jar"/>
   <property name="org.osgi.impl.bundle.repoindex.cli.download.url"
@@ -64,7 +64,7 @@
   <property name="org.osgi.impl.bundle.repoindex.ant.jar"
             value="org.osgi.impl.bundle.repoindex.ant-0.0.1.jar"/>
   <property name="org.osgi.impl.bundle.repoindex.ant.download.url"
-            value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.ant"/>
+            value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.ant/" />
 
   <target name="install_repoindex">
     <get src="${org.osgi.impl.bundle.repoindex.cli.download.url}/${org.osgi.impl.bundle.repoindex.cli.jar}"
