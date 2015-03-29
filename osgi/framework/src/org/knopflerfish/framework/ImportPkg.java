@@ -331,10 +331,12 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     // This is handle when resolving package.
     // If one import is mandatory then all must match.
 
-    if (packageRange != null && packageRange.intersection(ip.packageRange).isEmpty()) {
+    if (packageRange != null && ip.packageRange != null &&
+        packageRange.intersection(ip.packageRange).isEmpty()) {
       return false;
     }
-    return bundleRange == null || !bundleRange.intersection(ip.bundleRange).isEmpty();
+    return bundleRange == null || ip.bundleRange == null ||
+        !bundleRange.intersection(ip.bundleRange).isEmpty();
   }
 
 
