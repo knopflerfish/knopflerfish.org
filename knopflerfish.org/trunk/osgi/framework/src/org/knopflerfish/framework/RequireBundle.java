@@ -167,7 +167,8 @@ class RequireBundle
         !rb.resolution.equals(Constants.RESOLUTION_MANDATORY)) {
       return false;
     }
-    return  bundleRange == null || !bundleRange.intersection(rb.bundleRange).isEmpty();
+    return  bundleRange == null || rb.bundleRange == null ||
+        !bundleRange.intersection(rb.bundleRange).isEmpty();
   }
 
 
