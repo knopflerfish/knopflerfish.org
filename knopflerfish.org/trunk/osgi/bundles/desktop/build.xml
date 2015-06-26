@@ -15,6 +15,9 @@
   <!-- Uses java.awt, javax.swing, ... -->
   <property name="bundle.compile.EE" value="ee.JavaSE_1.5"/>
 
+  <!-- Dex disabled, Uses java.awt, javax.swing -->
+  <property name="no.dex" value="true"/>
+
   <property name="api.pattern"
             value="org/knopflerfish/service/desktop/**"/> 
 

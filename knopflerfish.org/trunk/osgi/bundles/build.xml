@@ -2,36 +2,8 @@
 
 <project name="osgi" default="all">
 
-  <!-- some bundles only build on 1.4 or later -->
-  <target name="setup">
-    <condition property="is14+">
-      <or>
-	<equals arg1="${ant.java.version}" arg2="1.4"/>
-	<equals arg1="${ant.java.version}" arg2="1.5"/>
-	<equals arg1="${ant.java.version}" arg2="1.6"/>
-	<equals arg1="${ant.java.version}" arg2="1.7"/>
-	<equals arg1="${ant.java.version}" arg2="1.8"/>
-      </or>
-    </condition>
-  </target>
-
-  <!-- some bundles only build on 1.4 or later -->
-  <target name="build14.all" if="is14+">
-    <echo message="** Building 1.4 specific bundles **"/>
-    <ant dir="sslj2sp"           target="all"/>
-  </target>
-  <target name="build14.clean" if="is14+">
-    <echo message="** Building 1.4 specific bundles **"/>
-    <ant dir="sslj2sp"           target="clean"/>
-  </target>
-  <target name="build14.bundle_doc" if="is14+">
-    <echo message="** Building 1.4 specific bundles **"/>
-    <ant dir="sslj2sp"           target="bundle_doc"/>
-  </target>
-
-
   <!-- Internal target that calls a specified target in all sub-dirs. -->
-  <target name="doAntBuild" depends="setup">
+  <target name="doAntBuild">
     <ant target="${the.target}" dir="namespace"/>
     <ant target="${the.target}" dir="util"/>
     <ant target="${the.target}" dir="cm/cm"/>
@@ -44,9 +16,7 @@
     <ant target="${the.target}" dir="frameworkcommands"/>
     <ant target="${the.target}" dir="logcommands"/>
     <ant target="${the.target}" dir="jsdk"/>
-
-    <antcall target="build14.${the.target}"/>
-
+    <ant target="${the.target}" dir="sslj2sp"/>
     <ant target="${the.target}" dir="http"/>
     <ant target="${the.target}" dir="xml"/>
     <ant target="${the.target}" dir="useradmin"/>
@@ -90,7 +60,7 @@
 
 
   <target name="all" 
-	  description="Builds all bundles">
+          description="Builds all bundles">
     <!-- Resolve cyclic dependecy by building selected APIs first. -->
     <ant dir="log" target="jar_api"/>
 
@@ -101,16 +71,23 @@
   </target>
 
   <target name="clean" 
-	  description="Cleans all bundles">
+          description="Cleans all bundles">
     <antcall target="doAntBuild">
       <param name="the.target" value="clean"/>
     </antcall>
   </target>
-  
+
   <target name="bundle_doc" 
-	  description="Builds doc for all bundles">
+          description="Builds doc for all bundles">
     <antcall target="doAntBuild">
       <param name="the.target" value="bundle_doc"/>
+    </antcall>
+  </target>
+
+  <target name="dex_jars"
+    description="Dexifies all built bundles.">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="dex_jars"/>
     </antcall>
   </target>
 

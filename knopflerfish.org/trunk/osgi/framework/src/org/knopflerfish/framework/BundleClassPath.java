@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2013, KNOPFLERFISH project
+ * Copyright (c) 2009-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -142,7 +142,7 @@ public class BundleClassPath {
       component = component.substring(1);
     }
     if (debug.classLoader) {
-      debug.println(this + "compentExists: " + component);
+      debug.println(this + "componentExists: " + component);
     }
     if (0 == component.length()) {
       // The special case asking for "/"

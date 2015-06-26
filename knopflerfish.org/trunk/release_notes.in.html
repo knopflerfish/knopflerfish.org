@@ -31,6 +31,15 @@
 <div class="release_notes">
 
   <div class="note_group">
+    <div class="note_name">Framework 7.2.0</div>
+    <div class="note_item">
+    New improved support for Android DEX files.
+    Now we follow the Bundle-Classpath.
+    You no longer need to include the *.class files.
+    </div>
+    <div class="note_item">
+    Fixed NPE which could happen we doing a dynamic import.
+    </div>
     <div class="note_name">Framework 7.1.4</div>
     <div class="note_item">
     Fixed NPE during package resolving.
@@ -71,6 +80,20 @@
 
 <h2 class="filled">Misc, start scripts, build system etc </h2>
 <div class="release_notes">
+
+  <div class="note_group">
+    <div class="note_name">Build files</div>
+    <div class="note_item">
+    The Android build system has been updated. Built Android/DEX bundles
+    will be placed in the "dex_jars" directory. The Android/DEX framework
+    will be called  "framework.dex.jar".
+    Building dex jars is enabled by setting the property "ANDROID_HOME".
+    Already built bundles can be dexified by calling the ant target "dex_jars".
+    </div>
+    <div class="note_item">
+    The build files under "tools/android" has been updated to use the new build environment.
+    </div>
+  </div>
 
   <div class="note_group">
     <div class="note_name">*.xargs files</div>

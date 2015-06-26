@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -226,6 +226,7 @@ class Resolver {
       tempResolved = new HashSet<BundleGeneration>();
       tempProvider = new HashMap<String, ExportPkg>();
       tempRequired = new HashMap<RequireBundle, BundlePackages>();
+      tempWires = new ArrayList<BundleWireImpl>();
       tempBlackList = new HashSet<ExportPkg>();
       tempBackTracked = new HashSet<BundlePackages>();
       backTrackUses(ip);
@@ -247,6 +248,7 @@ class Resolver {
         tempBlackList = null;
         tempProvider = null;
         tempRequired = null;
+        tempWires = null;
         tempResolved = null;
         resolveThread = null;
         notifyAll();
@@ -371,11 +373,11 @@ class Resolver {
       // Not true, wait before starting new resolve process.
       checkThread();
       do {
- 	     try {
-  	      wait();
-    	  } catch (final InterruptedException _ignore) { }
+        try {
+          wait();
+        } catch (final InterruptedException _ignore) { }
       } while (tempResolved != null);
-   	}
+    }
 
     resolveThread = Thread.currentThread();
     tempResolved = new HashSet<BundleGeneration>();
@@ -402,7 +404,7 @@ class Resolver {
       notifyAll();
       return res;
     }
-    
+
     HashSet<ExportPkg> baseTempBlackList = new HashSet<ExportPkg>();
     tempBlackList = new HashSet<ExportPkg>();
     tempProvider = new HashMap<String, ExportPkg>();
@@ -452,7 +454,7 @@ class Resolver {
       notifyAll();
     }
     if (framework.debug.resolver) {
-      framework.debug.println("resolve: Done for " + bg);
+      framework.debug.println("resolve: Done for " + bg + ", result=" + res);
     }
     return res;
   }

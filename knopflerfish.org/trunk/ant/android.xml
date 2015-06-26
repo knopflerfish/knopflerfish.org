@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   ** Copyright (c) 2011-2013, KNOPFLERFISH project
+   ** Copyright (c) 2011-2015, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -36,66 +36,76 @@
 <!--  Android instrumentation support,                            -->
 <!--  adds a .dex-file to a bundle jar-file                       -->
 <!-- ============================================================ -->
-<project name="android_instrumentation" basedir=".">
+<project name="android_instrumentation" xmlns:if="ant:if" xmlns:unless="ant:unless">
 
   <!-- Are we building for Dalvik/Android? -->
   <available property="android.exists" file="${ANDROID_HOME}"/>
 
-  <!-- look for dx.jar and aapt in Android sdk -->
-  <first id="first.dx">
-    <fileset dir="${ANDROID_HOME}"
-             includes="**/dx.jar"
-             erroronmissingdir="false"/>
-  </first>
-  <first id="first.aapt">
-    <fileset dir="${ANDROID_HOME}"
-             includes="**/aapt*"
-             erroronmissingdir="false"/>
-  </first>
-  <property name="android.tool.dx" value="${toString:first.dx}" />
-  <property name="android.tool.aapt" value="${toString:first.aapt}" />
-
-
-  <macrodef name="add_dex"
-            description="Generates xargs-file from templare.">
-    <attribute name="jarfile"
-               description="The jar file to create and add a .dex-file to."/>
-    <attribute name="outdir"
-               description="Directory to write temporary file to"/>
-
+  <macrodef name="android.init.path">
+    <!-- look for dx.jar in Android sdk -->
     <sequential>
-      <basename file="@{jarfile}" suffix="jar" property="jarfile.basename"/>
-      <tempfile destdir="@{outdir}" prefix="${jarfile.basename}"
-                property="temp.dir"/>
-      <mkdir dir="${temp.dir}"/>
-      <property name="temp.dex" location="${temp.dir}/classes.dex"/>
-
-      <exec executable="${android.tool.aapt}" dir="${temp.dir}">
-        <arg value="remove"/>     
-        <arg value="-f"/>
-        <arg value="@{jarfile}"/>
-        <arg value="classes.dex"/>
-      </exec>
-
-      <java fork="true" jar="${android.tool.dx}">
-        <arg value="--dex"/>
-        <arg value="--output=${temp.dex}"/>
-        <arg value="@{jarfile}"/>
-      </java>
-
-      <exec executable="${android.tool.aapt}" dir="${temp.dir}">
-        <arg value="add"/>     
-        <arg value="-f"/>
-        <arg value="@{jarfile}"/>
-        <arg value="classes.dex"/>
-      </exec>
-
-      <delete dir="${temp.dir}"/>
+      <first id="first.dx">
+        <fileset dir="${ANDROID_HOME}"
+                 includes="**/dx.jar"
+                 erroronmissingdir="false"/>
+      </first>
+      <property name="android.tool.dx" value="${toString:first.dx}" />
+      <property name="android.path.checked" value="true"/>
     </sequential>
   </macrodef>
 
-  <!-- Helper taget that adds Android dex data to the bundle. -->
-  <target name="add_dex" if="android.exists">
-  </target>
+  <dirname property="ant.dir" file="${ant.file.android_instrumentation}"/>
+  <property name="bundledexify" location="${ant.dir}/../tools/android/bundledexify" />
+
+
+  <macrodef name="dexify_bundle"
+    description="Creates Android/Dalvik dexified bundle.">
+    <attribute name="targetApiLevel" default="12"
+      description="Android target API level to use when dexifing"/>
+    <attribute name="bundle"
+      description="Path to bundle to convert"/>
+
+    <sequential>
+      <android.init.path unless:true="android.path.checked"/>
+      <echo message="Dexify: @{bundle}"/>
+      <java fork="true" classname="org.knopflerfish.tools.bundledexify.Main">
+        <classpath>
+          <pathelement location="${bundledexify}/bundledexify.jar"/>
+          <pathelement location="${android.tool.dx}"/>
+        </classpath>
+        <arg value="-apilevel"/>
+        <arg value="@{targetApiLevel}"/>
+        <arg line="@{bundle}"/>
+      </java>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="dexify_bundles"
+    description="Creates Android/Dalvik dexified bundles for all listed files into a directory.">
+    <attribute name="targetApiLevel" default="12"
+      description="Android target API level to use when dexifing"/>
+    <attribute name="dir"
+      description="The output directory"/>
+    <attribute name="bundles.ref"
+      description="Ref to pathset of bundles to convert"/>
+
+    <sequential>
+      <android.init.path unless:true="android.path.checked"/>
+      <local name="bundles"/>
+      <pathconvert property="bundles" refid="@{bundles.ref}" pathsep=" " />
+      <echo message="Dexify: ${bundles}"/>
+      <java fork="true" classname="org.knopflerfish.tools.bundledexify.Main">
+        <classpath>
+          <pathelement location="${bundledexify}/bundledexify.jar"/>
+          <pathelement location="${android.tool.dx}"/>
+        </classpath>
+        <arg value="-apilevel"/>
+        <arg value="@{targetApiLevel}"/>
+        <arg value="-outdir"/>
+        <arg value="@{dir}"/>
+        <arg line="${bundles}"/>
+      </java>
+    </sequential>
+  </macrodef>
 
 </project>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   ** Copyright (c) 2003-2013, KNOPFLERFISH project
+   ** Copyright (c) 2003-2015, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,6 @@
 
 
   <import file="${ant.dir}/android.xml"/>
-
 
 
   <!-- ************************************************************ -->
@@ -136,7 +135,6 @@
       </not>
     </or>
   </condition>
-
 
 
   <!-- ************************************************************ -->
@@ -256,6 +254,13 @@
   <!-- Subdirectory of jars.dir where this projects bundles shall live. -->
   <property name="jardir"   location="${jars.dir}/${jardir.name}"/>
 
+  <!-- The root of the local bundle repository, in which built bundles -->
+  <!-- are placed.                                                     -->
+  <property name="dexs.dir" location="${topdir}/dex_jars"/>
+
+  <!-- Subdirectory of dexs.dir where this projects dex bundles shall live. -->
+  <property name="dexdir"   location="${dexs.dir}/${jardir.name}"/>
+
   <!-- The root if the local bundle docs directory. -->
   <property name="docs.dir" location="${root.out.dir}/doc"/>
 
@@ -345,6 +350,13 @@
   <!-- and the exported and imported packages on the console.      -->
   <property name="bundlemanifest.verbose" value="true"/>
 
+  <patternset id="jars.pattern">
+    <include name="${ant.project.name}.jar" />
+    <include name="${ant.project.name}-*.jar" />
+    <include name="${ant.project.name}_all-*.jar" />
+    <include name="${ant.project.name}_api-*.jar" />
+    <include name="${ant.project.name}_lib-*.jar" />
+  </patternset>
 
   <!-- Path that finds the framework API packages.                 -->
   <path id="framework.path">
@@ -568,6 +580,13 @@
     <antcall target="jar_lib"             inheritRefs="true"/>
     <antcall target="jar_impl"            inheritRefs="true"/>
     <antcall target="jar_all"             inheritRefs="true"/>
+    <antcall target="cond_dex_jars" inheritRefs="true"/>
+  </target>
+
+  <target name="dex_jars"
+          description="Dexifies all variants of the bundle.">
+    <fail unless="android.exists" message="You must set the ANDROID_HOME property"/>
+    <antcall target="cond_dex_jars" inheritRefs="true"/>
   </target>
 
   <!-- set up build conditions -->
@@ -792,10 +811,6 @@
         <param name="pkgSrcAvail" value="${pkgSrcAvail}"/>
       </antcall>
 
-      <antcall target="add_dex" inheritRefs="true">
-        <param name="jarfile" value="@{jar}"/>
-      </antcall>
-
     </sequential>
   </macrodef>
 
@@ -904,7 +919,6 @@
   </target>
 
 
-  
   <!-- ============================= IMPL =============================== -->
   <!-- Bundle with all private classes, activator and resources. -->
   <target name="jar_impl"
@@ -1033,12 +1047,13 @@
     </jar>
   </target>
 
-  <!-- Helper taget that adds Android dex data to the bundle. -->
-  <target name="add_dex" if="android.exists">
-    <echo message="add_dex ${jarfile}"/>
-    <add_dex jarfile="${jarfile}" outdir="${outdir}"/>
+  <!-- Helper target that creates a Android dexified bundle. -->
+  <target name="cond_dex_jars" if="android.exists" unless="no.dex">
+    <fileset dir="${jardir}" id="dex.jars.refid" erroronmissingdir="false">
+      <patternset refid="jars.pattern"/>
+    </fileset>
+    <dexify_bundles bundles.ref="dex.jars.refid" dir="${dexdir}"/>
   </target>
-
 
   <!-- Should only add items to ${source.files} and ${exported.files} -->
   <!-- when ${generate.javadoc.data} is set to "true" and there are   -->
@@ -1088,12 +1103,8 @@
   <target name="clean" description="Deletes all generated files.">
     <delete dir="${outdir}" failonerror="false"/>
     <delete includeEmptyDirs="true" verbose="true" failonerror="false">
-      <fileset dir="${jardir}">
-        <include name="${ant.project.name}.jar" />
-        <include name="${ant.project.name}-*.jar" />
-        <include name="${ant.project.name}_all-*.jar" />
-        <include name="${ant.project.name}_api-*.jar" />
-        <include name="${ant.project.name}_lib-*.jar" />
+      <fileset dir="${jardir}" erroronmissingdir="false">
+        <patternset refid="jars.pattern"/>
       </fileset>
       <dirset dir="${jardir}" excludes="*,**/*"/>
     </delete>

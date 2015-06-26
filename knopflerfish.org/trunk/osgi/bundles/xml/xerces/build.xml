@@ -14,6 +14,9 @@
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.minimum"/>
 
+  <!-- Dex disabled, DX tool fails on current jar(too old?) -->
+  <property name="no.dex" value="true"/>
+
   <property name="bundle.extraimports"   value="sun.io"/>
 
   <property name="api.pattern"

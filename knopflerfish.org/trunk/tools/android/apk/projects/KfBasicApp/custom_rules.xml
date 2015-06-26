@@ -4,73 +4,46 @@
      specify the bundles to include in the .apk, and the start
      levels they should use.
 
-     "kind" controls the type of bundle that will be built.
-     "startlevel" should be an int and is the assets/jars sub-folder
-     name that a bundle will be built to - the folder name will be
-     used as start level for the bundles in that folder when the
-     Knopflerfish framework is started.
+     Bundle files should be dexified into the assets/jars/<level> sub-folder.
+     The folder name will be used as start level for the bundles in that
+     folder when the Knopflerfish framework is started.
 -->
 
 <project name="KfBasicApp custom" default="help">
   <dirname  property="kf.basicapp.dir"
            file="${ant.file.KfBasicApp custom}"/>
-
   <property name="assets.jars.dir"
             location="${kf.basicapp.dir}/assets/jars"/>
 
   <import file="${kf.basicapp.dir}/../../../ant/apk_custom.xml"/>
 
-  <!-- list of filelists -->
-  <filelist id="level.1.bundles.api" dir="${osgi.dir}/bundles">
-    <file name="cm/cm/build.xml"/>
-    <file name="jsdk/build.xml"/>
-    <file name="useradmin/build.xml"/>
-  </filelist>
+  <property name="kf.osgi.jars.dir" value="jars"/>
 
-  <filelist id="level.1.bundles.lib" dir="${osgi.dir}/bundles">
-    <file name="util/build.xml"/>
-  </filelist>
+  <fileset id="level.1.bundles" dir="${osgi.dir}/${kf.osgi.jars.dir}">
+    <include name="cm/cm_all-*.jar"/>
+    <include name="jsdk/jsdk_api-*.jar"/>
+    <include name="useradmin/useradmin_all-*.jar"/>
+    <include name="util/util-*.jar"/>
+    <include name="log/log_all-*.jar"/>
+  </fileset>
 
-  <filelist id="level.1.bundles.all" dir="${osgi.dir}/bundles">
-    <file name="log/build.xml"/>
-  </filelist>
+  <fileset id="level.2.bundles" dir="${osgi.dir}/${kf.osgi.jars.dir}">
+    <include name="consoletelnet/consoletelnet-*.jar"/>
+    <include name="frameworkcommands/frameworkcommands-*.jar"/>
+    <include name="logcommands/logcommands-*.jar"/>
+    <include name="console/console_all-*.jar"/>
+    <include name="http/http_all-*.jar"/>
+  </fileset>
 
-  <filelist id="level.2.bundles.impl" dir="${osgi.dir}/bundles">
-    <file name="console/consoletelnet/build.xml"/>
-    <file name="frameworkcommands/build.xml"/>
-    <file name="logcommands/build.xml"/>
-  </filelist>
+  <fileset id="level.3.bundles" dir="${osgi.dir}/${kf.osgi.jars.dir}">
+    <include name="httproot/httproot-*.jar"/>
+    <include name="httpconsole/httpconsole_all-*.jar"/>
+  </fileset>
 
-  <filelist id="level.2.bundles.all" dir="${osgi.dir}/bundles">
-    <file name="console/console/build.xml"/>
-    <file name="http/http/build.xml"/>
-  </filelist>
-
-  <filelist id="level.3.bundles.impl" dir="${osgi.dir}/bundles">
-    <file name="http/httproot/build.xml"/>
-    <file name="http/httpconsole/build.xml"/>
-  </filelist>
-
-  <target name="bundle_compile">
-    <!-- filelists to include in build -->
-    <bundles_build startlevel="1" kind="api">
-      <filelist refid="level.1.bundles.api"/>
-    </bundles_build>
-    <bundles_build startlevel="1" kind="lib">
-      <filelist refid="level.1.bundles.lib"/>
-    </bundles_build>
-    <bundles_build startlevel="1" kind="all">
-      <filelist refid="level.1.bundles.all"/>
-    </bundles_build>
-    <bundles_build startlevel="2" kind="impl">
-      <filelist refid="level.2.bundles.impl"/>
-    </bundles_build>
-    <bundles_build startlevel="2" kind="all">
-      <filelist refid="level.2.bundles.all"/>
-    </bundles_build>
-    <bundles_build startlevel="3" kind="impl">
-      <filelist refid="level.3.bundles.impl"/>
-    </bundles_build>
+  <target name="bundle_dexify">
+    <dexify_bundles dir="${assets.jars.dir}/1" bundles.ref="level.1.bundles"/>
+    <dexify_bundles dir="${assets.jars.dir}/2" bundles.ref="level.2.bundles"/>
+    <dexify_bundles dir="${assets.jars.dir}/3" bundles.ref="level.3.bundles"/>
   </target>
 
 </project>

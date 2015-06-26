@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <project name="ee" default="all">
-  
+
   <dirname  property="proj.dir" file="${ant.file.ee}"/>
 
   <!-- build properties -->
@@ -18,15 +18,18 @@
        EEs but but usefull to have when compiling / writing source
        code to get / supress compiler warnings. -->
   <property name="src_annotations.jarfile"
-	    location="${proj.dir}/src_annotations.jar"/>
+            location="${proj.dir}/src_annotations.jar"/>
+
+  <property name="android.jarfile"
+            location="${proj.dir}/android.jar"/>
 
   <property name="javac.source" value="1.5"/>
   <property name="javac.target" value="1.5"/>
   <property name="src.dir"      location="src"/>
 
   <!-- targets -->
-  <target name="all" depends="jar"
-	  description="Builds the src_annotations.jar stub file.">
+  <target name="all" depends="annotations, android"
+          description="Builds the src_annotations.jar stub file.">
   </target>
 
   <target name="compile">
@@ -35,7 +38,7 @@
            srcdir            = "${src.dir}" 
            debug             = "on"
            includeantruntime = "false"
-	   includejavaruntime= "false"
+           includejavaruntime= "false"
            includes          = "**/*.java"
            target            = "${javac.target}"
            source            = "${javac.source}"
@@ -43,7 +46,7 @@
     </javac>
   </target>
 
-  <target name="jar" depends="compile" description="build jar">
+  <target name="annotations" depends="compile" description="build src_annotations.jar">
     <tstamp>
       <format property="framework.tstamp" 
               pattern="'Build' EE MMMM d yyyy, HH:mm:ss"
@@ -51,16 +54,37 @@
     </tstamp>
 
     <jar basedir="${classout}"
-         jarfile="${src_annotations.jarfile}">
+         jarfile="${src_annotations.jarfile}"
+         includes="java/**">
       <manifest>
         <attribute name="Description"
-		   value="Annotations with source retension for EEs that does not define them."/>
+                   value="Annotations with source retension for EEs that does not define them."/>
         <attribute name="License"
                    value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
         <attribute name="Build-Date"             value="${framework.tstamp}"/>
       </manifest>
-    </jar>  
-  </target>  
+    </jar>
+  </target>
+
+  <target name="android" depends="compile" description="build android.jar">
+    <tstamp>
+      <format property="framework.tstamp" 
+              pattern="'Build' EE MMMM d yyyy, HH:mm:ss"
+              locale="en"/>
+    </tstamp>
+
+    <jar basedir="${classout}"
+         jarfile="${android.jarfile}"
+         includes="dalvik/**">
+      <manifest>
+        <attribute name="Description"
+                   value="Android classes need for knopflerfish compilation."/>
+        <attribute name="License"
+                   value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
+        <attribute name="Build-Date"             value="${framework.tstamp}"/>
+      </manifest>
+    </jar>
+  </target>
 
   <target name="clean" description="removes all generated files">
     <delete dir="${outdir}"/>

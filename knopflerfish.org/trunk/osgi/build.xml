@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="osgi" default="default">
+<project name="osgi" default="default" xmlns:if="ant:if" xmlns:unless="ant:unless">
 
   <!-- build properties -->
 
@@ -11,12 +11,12 @@
   <property name="gosg.jars"       value="file:jars/"/>
 
   <property name="repository.current.release"
-	    value="http://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
+      value="http://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
   <property name="repository.local"
-	    value="file:jars/index.xml"/>
+      value="file:jars/index.xml"/>
   <property name="repository.xml.urls"
-	    value="${repository.local},
-		   ${repository.current.release}"/>
+      value="${repository.local},
+       ${repository.current.release}"/>
 
   <!-- Properties controling javadoc generation -->
   <property name="root.out.dir"    location="out"/>
@@ -39,6 +39,7 @@
   <property name="test.gosg.jars" value="file:jars/;file:test_jars/"/>
 
 
+  <import file="${ant.dir}/android.xml"/>
   <import file="${ant.dir}/bundletasks.xml"/>
   <import file="${ant.dir}/xargs.xml"/>
 
@@ -47,6 +48,7 @@
     <mkdir dir="${root.out.dir}"/>
     <available property="dir.bundles_test.present" file="bundles_test"/>
     <available property="dir.bundles_examples.present" file="bundles_examples"/>
+    <android.init.path unless:true="android.path.checked"/>
   </target>
 
   <target name="default"
@@ -72,6 +74,7 @@
 
   <target name="bundles_test"
           depends="init,bundles_test_missing,bundles_test_present" />
+
   <target name="bundles_test_present" if="dir.bundles_test.present">
     <ant dir="bundles_test" target="all"
          inheritAll="false" inheritRefs="false">
@@ -80,14 +83,23 @@
     </ant>
     <antcall target="xargs"/>
   </target>
+
   <target name="bundles_test_missing" unless="dir.bundles_test.present">
-   <echo level="warning"
-         message="The directory for regression test bundles, bundles_test, is missing, skipping test bundles. To build test bundles use subversion to check out the complete knopflerfish.org tree."/>
+    <echo level="warning"
+          message="The directory for regression test bundles, bundles_test, is missing, skipping test bundles. To build test bundles use subversion to check out the complete knopflerfish.org tree."/>
+  </target>
+
+  <target name="dex_jars"
+          description="Dexifies all built bundles.">
+    <ant dir="framework"        target="dex_jars"/>
+    <ant dir="bundles"          target="dex_jars"/>
+    <ant dir="bundles_opt"      target="dex_jars"/>
+    <ant dir="bundles_examples" target="dex_jars"/>
   </target>
 
   <target name="repoindex"
-	  description="Generates the repository index file."
-	  depends="init,bundle_tasks,install_repoindex">
+    description="Generates the repository index file."
+    depends="init,bundle_tasks,install_repoindex">
     <local name="version.repoindex"/>
     <condition property="version.repoindex"
                value="${version} "
@@ -446,6 +458,7 @@
   <delete file="framework.jar"/>
   <delete dir="${root.out.dir}"/>
   <delete dir="jars"/>
+  <delete dir="dex_jars"/>
   <delete dir="${ant.dir}/classes"/>
   <delete file="headless.xargs"/>
   <delete file="minimal.xargs"/>

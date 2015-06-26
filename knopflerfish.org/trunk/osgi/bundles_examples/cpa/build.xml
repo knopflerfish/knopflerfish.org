@@ -10,7 +10,7 @@
   </target>
 
   <target name="all" 
-	  description="Builds all bundles">
+          description="Builds all bundles">
     <antcall target="doAntBuild">
       <param name="the.target" value="all"/>
     </antcall>
@@ -18,16 +18,23 @@
   </target>
 
   <target name="clean" 
-	  description="Cleans all bundles">
+          description="Cleans all bundles">
     <antcall target="doAntBuild">
       <param name="the.target" value="clean"/>
     </antcall>
   </target>
-  
+
   <target name="bundle_doc" 
-	  description="Builds doc for all bundles">
+          description="Builds doc for all bundles">
     <antcall target="doAntBuild">
       <param name="the.target" value="bundle_doc"/>
+    </antcall>
+  </target>
+
+  <target name="dex_jars"
+    description="Dexifies all built bundles.">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="dex_jars"/>
     </antcall>
   </target>
 

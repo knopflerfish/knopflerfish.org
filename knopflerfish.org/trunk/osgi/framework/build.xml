@@ -18,7 +18,7 @@
   <property name="frameworkdoc_template"
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.impl.version"   value="7.1.4"/>
+  <property name="fw.impl.version"   value="7.2.0"/>
 
   <property name="jarfile"
             location="${topdir}/${ant.project.name}.jar"/>
@@ -39,7 +39,7 @@
     <isset property="jdk1.7+"/>
   </condition>
 
-  <!-- When comipling with Java 7 we must use the Java 7 runtime -->
+  <!-- When compiling with Java 7 we must use the Java 7 runtime -->
   <!-- since ee.minimum does not contain java.lang.Iterable. -->
   <condition property="javac.includeJavaRuntime" value="true" else="false">
     <isset property="jdk1.7+"/>
@@ -55,7 +55,6 @@
     <isset property="jdk1.7+"/>
   </condition>
 
-    
   <property name="src.dir" location="src"/>
 
   <property name="printClasses" location="true"/>
@@ -67,6 +66,9 @@
   <property name="nonFoundationSrcs"
             value="org/knopflerfish/framework/validator/JKSValidator.java"/>
 
+  <property name="androidSrcs"
+            value="org/knopflerfish/framework/bundlestorage/dex/*.java"/>
+
   <path id="ee.minimum.path">
     <pathelement location="${osgi.dir}/ee/ee.minimum.jar"/>
     <!-- Outside EE, but usefull when compling -->
@@ -75,13 +77,24 @@
 
   <path id="ee.foundation.path">
     <pathelement location="${osgi.dir}/ee/ee.foundation.jar"/>
-    <!-- Outside EE, but usefull when compling -->
+    <!-- Outside EE, but useful when compling -->
     <pathelement location="${osgi.dir}/ee/src_annotations.jar"/>
   </path>
 
   <path id="compile.path">
     <pathelement location="${topdir}/framework/resources"/>
     <pathelement location="libs/asm-3.2.jar"/>
+  </path>
+
+  <path id="android.system.path">
+    <pathelement location="${osgi.dir}/ee/android.jar"/>
+  </path>
+
+  <path id="android.ee.minimum.path">
+    <pathelement location="${osgi.dir}/ee/ee.minimum.jar"/>
+    <pathelement location="${osgi.dir}/ee/android.jar"/>
+    <!-- Outside EE, but usefull when compling -->
+    <pathelement location="${osgi.dir}/ee/src_annotations.jar"/>
   </path>
 
   <path id="empty.path">
@@ -95,6 +108,11 @@
     <isset property="jdk1.7+"/>
   </condition>
 
+  <condition property="android.class.path.name"
+             value="android.system.path"
+             else="android.ee.minimum.path">
+    <isset property="jdk1.7+"/>
+  </condition>
 
   <!-- targets -->
   <target name="all"
@@ -117,12 +135,13 @@
            includeantruntime = "false"
            includejavaruntime= "${javac.includeJavaRuntime}"
            includes          = "**/*.java"
-           excludes          = "${nonFoundationSrcs},**/package-info.java"
+           excludes          = "${androidSrcs},${nonFoundationSrcs},**/package-info.java"
            target            = "${javac.target}"
            source            = "${javac.source}"
            bootclasspathref  = "${boot.class.path.name}"
            classpathref      = "compile.path"
            >
+      <compilerarg value="-Xlint:-options"/>
     </javac>
     <!-- Non foundation compliant part (uses java.security.cert) -->
     <javac destdir           = "${classout}"
@@ -136,6 +155,22 @@
            source            = "${javac.source}"
            classpathref      = "compile.path"
            >
+      <compilerarg value="-Xlint:-options"/>
+    </javac>
+    <!-- Android parts (uses dalvik.*) -->
+    <javac destdir           = "${classout}"
+           srcdir            = "${src.dir}"
+           debug             = "on"
+           includeantruntime = "false"
+           includejavaruntime= "${javac.includeJavaRuntime}"
+           includes          = "${androidSrcs}"
+           excludes          = "**/package-info.java"
+           target            = "${javac.target}"
+           source            = "${javac.source}"
+           bootclasspathref  = "${android.class.path.name}"
+           classpathref      = "compile.path"
+           >
+      <compilerarg value="-Xlint:-options"/>
     </javac>
   </target>
 
@@ -150,7 +185,7 @@
            includeantruntime = "false"
            includejavaruntime= "${javac.includeJavaRuntime}"
            includes          = "**/*.java"
-           excludes          = "${nonFoundationSrcs},org/knopflerfish/framework/bundlestorage/memory/SelfSignedValidator.java,org/knopflerfish/framework/bundlestorage/memory/*.java,**/package-info.java,org/knopflerfish/framework/SecurePermissionOps.java,org/knopflerfish/framework/permissions/*.java"
+           excludes          = "${nonFoundationSrcs},org/knopflerfish/framework/validator/SelfSignedValidator.java,org/knopflerfish/framework/bundlestorage/dex/*.java,org/knopflerfish/framework/bundlestorage/memory/*.java,**/package-info.java,org/knopflerfish/framework/SecurePermissionOps.java,org/knopflerfish/framework/permissions/*.java"
            target            = "${javac.target}"
            source            = "${javac.source}"
            bootclasspathref  = "${boot.class.path.name}"
@@ -191,7 +226,6 @@
     <antcall target="jar_file_full"/>
     <antcall target="jar_file_compact"/>
 
-    <antcall target="add_dex"/>
   </target>
 
   <target name   = "jar_file_full"
@@ -222,6 +256,7 @@
         <attribute name="SplashScreen-Image"     value="kfsplash.gif"/>
       </manifest>
     </jar>
+    <antcall target="cond_dex_jars"/>
   </target>
 
   <target name = "jar_file_compact"
@@ -257,7 +292,7 @@
   </target>
 
   <target name = "proguard_compact"
-	  depends="install_proguard">
+          depends="install_proguard">
     <move file="${jarfile_compact}" tofile="${jarfile_compact}.tmp.jar"/>
     <proguard note="false">
       <!-- Specify the input jars, output jars, and library jars. -->
@@ -276,14 +311,14 @@
       <!-- Keep KF dynamic  -->
       <keep name="org.knopflerfish.framework.FrameworkFactoryImpl"/>
       <keep name="org.knopflerfish.framework.bundlestorage.file.BundleStorageImpl">
-      	<constructor/>
+        <constructor/>
       </keep>
 
       <!-- Keep OSGi interface -->
       <keep name="org.osgi.**" access="public">
-      	<field access="public,protected"/>
-      	<method access="public,protected"/>
-      	<constructor access="public,protected"/>
+        <field access="public,protected"/>
+        <method access="public,protected"/>
+        <constructor access="public,protected"/>
       </keep>
 
       <!-- Explicitly preserve all serialization members. The Serializable
@@ -310,13 +345,13 @@
         <method type      ="java.lang.Object"
                 name      ="writeReplace"
                 parameters="" />
-      	<method type      ="java.lang.Object"
+        <method type      ="java.lang.Object"
                 name      ="readResolve"
                 parameters="" />
       </keepclassmembers>
 
     </proguard>
-  	<delete file="${jarfile_compact}.tmp.jar"/>
+    <delete file="${jarfile_compact}.tmp.jar"/>
   </target>
 
   <target name="source.jar" if="bundle.build.source.jar">
@@ -379,11 +414,15 @@
     </jar>
   </target>
 
+  <target name="dex_jars"
+          description="Dexifies framework.">
+    <fail unless="android.exists" message="You must set the ANDROID_HOME property"/>
+    <antcall target="cond_dex_jars" inheritRefs="true"/>
+  </target>
 
   <!-- Helper taget that adds Android dex data to framework.jar. -->
-  <target name="add_dex" if="android.exists">
-    <echo message="add_dex ${jarfile}"/>
-    <add_dex jarfile="${jarfile}" outdir="${outdir}"/>
+  <target name="cond_dex_jars" if="android.exists">
+    <dexify_bundle bundle="${jarfile}"/>
   </target>
 
   <target name="framework_doc"

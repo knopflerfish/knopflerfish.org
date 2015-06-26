@@ -9,6 +9,9 @@
   <!-- Uses java.awt.*, javax.swing.*            -->
   <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
 
+  <!-- Dex disabled, Uses java.awt, javax.swing -->
+  <property name="no.dex" value="true"/>
+
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/desktop/**"/>
 

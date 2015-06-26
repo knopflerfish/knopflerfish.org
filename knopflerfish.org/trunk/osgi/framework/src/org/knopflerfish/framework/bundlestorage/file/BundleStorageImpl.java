@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,13 +39,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.osgi.framework.Constants;
 import org.knopflerfish.framework.BundleArchive;
 import org.knopflerfish.framework.BundleStorage;
 import org.knopflerfish.framework.FWProps;
 import org.knopflerfish.framework.FileTree;
 import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Util;
+import org.osgi.framework.Constants;
 
 
 /**
@@ -70,39 +70,39 @@ public class BundleStorageImpl implements BundleStorage {
    * Controls if we should try to unpack bundles with sub-jars and
    * native code.
    */
-  boolean alwaysUnpack;
+  protected boolean alwaysUnpack;
 
   /**
    * Controls if file: URLs should be referenced only, not copied
    * to bundle storage dir
    */
-  boolean fileReference;
+  protected boolean fileReference;
 
   /**
    * Controls if we should trust file storage to be secure.
    */
-  boolean trustedStorage;
+  protected boolean trustedStorage;
 
   /**
    * Controls if we should try to unpack bundles with sub-jars and
    * native code.
    */
-  boolean unpack;
+  protected boolean unpack;
 
   /**
    * Optional OS-command to set executable permission on native code.
    */
-  String execPermCmd;
+  protected String execPermCmd;
 
   /**
    * Is current OS a Windows OS.
    */
-  boolean isWindows;
+  protected boolean isWindows;
 
   /**
    * Is JarVerifier bug present.
    */
-  boolean jarVerifierBug;
+  protected boolean jarVerifierBug;
 
   /**
    * Top directory for storing all jar data for bundles.
@@ -128,12 +128,12 @@ public class BundleStorageImpl implements BundleStorage {
   /**
    * If we should check if bundles are signed
    */
-  boolean checkSigned;
+  protected boolean checkSigned;
 
   /**
    * True if we shouldn't write any files.
    */
-  private boolean readOnly;
+  protected boolean readOnly;
 
   /**
    * Create a container for all bundle data in this framework.
@@ -169,7 +169,7 @@ public class BundleStorageImpl implements BundleStorage {
       if (dir.isDirectory()) {
         try {
           final boolean bUninstalled = BundleArchiveImpl.isUninstalled(dir);
-          if(bUninstalled) {
+          if (bUninstalled) {
             // silently remove any bundle marked as uninstalled
             dir.delete();
           } else {
@@ -301,6 +301,10 @@ public class BundleStorageImpl implements BundleStorage {
     }
     framework = null;
     bundlesDir = null;
+  }
+
+  protected Archive createArchive(BundleArchiveImpl ba, FileTree dir, int rev) {
+    return new Archive(ba, dir, rev);
   }
 
   //

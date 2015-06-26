@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   ** Copyright (c) 2003-2013, KNOPFLERFISH project
+   ** Copyright (c) 2003-2015, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@
   <!-- Download and install repoindex -->
 
   <property name="bndtools.download.url"
-            value="https://github.com/bndtools/bundle-hub/raw/master/" />
+            value="https://raw.githubusercontent.com/bndtools/bundle-hub/master/" />
   
   <property name="org.osgi.impl.bundle.repoindex.cli.jar"
             value="org.osgi.impl.bundle.repoindex.cli-0.0.4.jar"/>
@@ -152,7 +152,7 @@
     </sequential>
   </macrodef>
 
-  <property name="proguard.version" value="4.10"/>
+  <property name="proguard.version" value="5.2"/>
   <property name="proguard-anttask.jar"
             value="proguard-anttask-${proguard.version}.jar"/>
   <property name="proguard-base.jar"
