@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2014, KNOPFLERFISH project
+ * Copyright (c) 2009-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -201,39 +201,50 @@ public class FWProps {
   public static int javaVersionMinor = -1;
   public static int javaVersionMicro = -1;
 
+  public static int androidApiLevel = -1;
+
   static {
-    String javaVersion = System.getProperty("java.specification.version");
-    if (javaVersion == null || javaVersion.length()==0) {
-      javaVersion = System.getProperty("java.version");
+    try {
+      androidApiLevel = Class.forName("android.os.Build$VERSION").getField("SDK_INT").getInt(null);
+    } catch (final UnsatisfiedLinkError strange) {
+      // Sometimes we get this on Android, select API level 12 for now
+      androidApiLevel = 12;
+    } catch (final Exception ignore) {
     }
-    // Value is on the form M.N.U_P[-xxx] where M,N,U,P are decimal integers
-    if (null != javaVersion) {
-      int startPos = 0;
-      int endPos = 0;
-      final int max = javaVersion.length();
-      while (endPos < max && Character.isDigit(javaVersion.charAt(endPos))) {
-        endPos++;
+    if (androidApiLevel == -1) {
+      String javaVersion = System.getProperty("java.specification.version");
+      if (javaVersion == null || javaVersion.length()==0) {
+        javaVersion = System.getProperty("java.version");
       }
-      if (startPos < endPos) {
-        try {
-          javaVersionMajor = Integer.parseInt(javaVersion.substring(startPos, endPos));
-          startPos = endPos + 1;
-          endPos = startPos;
-          while (endPos < max && Character.isDigit(javaVersion.charAt(endPos))) {
-            endPos++;
-          }
-          if (startPos < endPos) {
-            javaVersionMinor = Integer.parseInt(javaVersion.substring(startPos, endPos));
+      // Value is on the form M.N.U_P[-xxx] where M,N,U,P are decimal integers
+      if (null != javaVersion) {
+        int startPos = 0;
+        int endPos = 0;
+        final int max = javaVersion.length();
+        while (endPos < max && Character.isDigit(javaVersion.charAt(endPos))) {
+          endPos++;
+        }
+        if (startPos < endPos) {
+          try {
+            javaVersionMajor = Integer.parseInt(javaVersion.substring(startPos, endPos));
             startPos = endPos + 1;
             endPos = startPos;
             while (endPos < max && Character.isDigit(javaVersion.charAt(endPos))) {
               endPos++;
             }
             if (startPos < endPos) {
-              javaVersionMicro = Integer.parseInt(javaVersion.substring(startPos, endPos));
+              javaVersionMinor = Integer.parseInt(javaVersion.substring(startPos, endPos));
+              startPos = endPos + 1;
+              endPos = startPos;
+              while (endPos < max && Character.isDigit(javaVersion.charAt(endPos))) {
+                endPos++;
+              }
+              if (startPos < endPos) {
+                javaVersionMicro = Integer.parseInt(javaVersion.substring(startPos, endPos));
+              }
             }
+          } catch (final NumberFormatException _nfe) {
           }
-        } catch (final NumberFormatException _nfe) {
         }
       }
     }
@@ -374,6 +385,11 @@ public class FWProps {
           ee.append((i > 5) ? ",JavaSE-1." : ",J2SE-1.");
           ee.append(i);
         }
+      } else if (androidApiLevel > 0) {
+        // We haven't tried below 12
+        for (int i = androidApiLevel; i >= 12; i--) {
+          ee.append(",Android-" + i);
+        }
       }
       props.put(FRAMEWORK_EXECUTIONENVIRONMENT, ee.toString());
     }
@@ -471,7 +487,7 @@ public class FWProps {
     setPropertyDefault(ALL_SIGNED_PROP, FALSE);
     setPropertyDefault(AUTOMANIFEST_PROP, FALSE);
     setPropertyDefault(AUTOMANIFEST_CONFIG_PROP, "!!/automanifest.props");
-    setPropertyDefault(BUNDLESTORAGE_PROP, "file");
+    setPropertyDefault(BUNDLESTORAGE_PROP, androidApiLevel >= 0 ? "dex" : "file");
     setPropertyDefault(BUNDLESTORAGE_CHECKSIGNED_PROP, TRUE);
     setPropertyDefault(PATCH_PROP, FALSE);
     setPropertyDefault(PATCH_CONFIGURL_PROP, "!!/patches.props");

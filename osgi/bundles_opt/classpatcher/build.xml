@@ -14,6 +14,9 @@
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.minimum"/>
 
+  <!-- Dex disabled, not applicable on Android -->
+  <property name="no.dex" value="true"/>
+
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
 

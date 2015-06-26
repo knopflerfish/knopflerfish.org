@@ -43,12 +43,13 @@ Building:
      See http://java.com/en/download/faq/java_6.xml for details.
      Note that JDK 1.7 or later can NOT be used to build Knopflerfish,
      but Knopflerfish will run on them.
-   - Ant 1.8.1 or later, available from ant.apache.org.
+   - Ant 1.9.1 or later, available from ant.apache.org.
    - openssl, to create and manipulate certificates when using
      security and the Conditional Permission Admin (CPA) service. Test
      suites for CPA can not be built and executed without openssl.
-   - ProGuard 4, tested with 4.10. This is only need if you want
-     to build the compact version of the framework.
+   - ProGuard 4.10 or later, tested with 5.2. This is only need if you want
+     to build the compact version of the framework. You need ProGuard 5
+     or later if you want to build with Java8.
 
 1. Step into the osgi dir
 2. Start the build by:

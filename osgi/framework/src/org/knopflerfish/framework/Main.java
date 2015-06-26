@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -150,6 +150,9 @@ public class Main
    */
   public static void main(String[] args) {
     main = new Main();
+
+    System.out.println(main.bootText);
+
     main.start(args);
     System.exit(0);
   }
@@ -163,20 +166,17 @@ public class Main
     populateSysProps();
     // Setup URLStremFactory so that we can use fwresource:
     FrameworkContext.setupURLStreamHandleFactory();
-  }
-
-
-  protected void start(String[] args) {
-    version = Util.readFrameworkVersion();
     final String tstampYear = Util.readTstampYear();
 
     bootText =
       "Knopflerfish OSGi framework launcher, version " + version + "\n" +
       "Copyright 2003-" +tstampYear +" Knopflerfish. All Rights Reserved.\n" +
       "See http://www.knopflerfish.org for more information.\n";
+  }
 
-    System.out.println(bootText);
 
+  public Framework start(String[] args) {
+    version = Util.readFrameworkVersion();
     // Check if framework is started with no args at all.
     // This typically happens when starting with "java -jar framework.jar"
     // or similar (e.g by double-clicking on framework.jar)
@@ -221,7 +221,7 @@ public class Main
     }
 
     args = expandArgs(args);
-    handleArgs(args);
+    return handleArgs(args);
   }
 
 
@@ -465,7 +465,7 @@ public class Main
    *
    * @param args argument line
    */
-  private void handleArgs(String[] args) {
+  private Framework handleArgs(String[] args) {
     boolean bLaunched = false;
 
     // If not init, check if we have saved framework properties
@@ -491,10 +491,14 @@ public class Main
       }
     }
 
+    boolean bg = false;
     // Process all other options.
     for (int i = 0; i < args.length; i++) {
       try {
-        if ("-exit".equals(args[i])) {
+        if ("-bg".equals(args[i])) {
+          println("Background mode.", 0);
+          bg  = true;
+        } else if ("-exit".equals(args[i])) {
           println("Exit.", 0);
           System.exit(0);
         } else if (args[i].startsWith("-F")) {
@@ -713,6 +717,9 @@ public class Main
         error("Framework launch failed, " + t.getMessage(), t);
       }
     }
+    if (bg) {
+      return framework;
+    }
     FrameworkEvent stopEvent = null;
     while (true) { // Ignore interrupted exception.
       try {
@@ -721,18 +728,18 @@ public class Main
         case FrameworkEvent.STOPPED:
           // FW terminated, Main is done!
           println("Framework terminated", 0);
-          return;
+          return framework;
         case FrameworkEvent.STOPPED_UPDATE:
           // Automatic FW restart, wait again.
           break;
         case FrameworkEvent.STOPPED_BOOTCLASSPATH_MODIFIED:
           // A manual FW restart with new boot class path is needed.
-          return;
+          return framework;
         case FrameworkEvent.ERROR:
           // Stop failed or other error, give up.
           error("Fatal framework error, terminating.",
                 stopEvent.getThrowable());
-          return;
+          return framework;
         case FrameworkEvent.WAIT_TIMEDOUT:
           // Should not happen with timeout==0, give up.
           error("Framework waitForStop(0) timed out!",

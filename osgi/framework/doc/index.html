@@ -313,13 +313,13 @@ OSGi Framework properties should be specified using "-F".
     <td></td>
   </tr>
   <tr>
-	<td>org.osgi.framework.bsnversion</td>
-	<td>
-	  Allow installation of multiple bundles with the same bundle symbolic
-	  name or restrict this. The property can have the following values:
+  <td>org.osgi.framework.bsnversion</td>
+  <td>
+    Allow installation of multiple bundles with the same bundle symbolic
+    name or restrict this. The property can have the following values:
       <table class="man_inner">
       <tr>
-	    <td class="man_inner"><b>single</b></td>
+      <td class="man_inner"><b>single</b></td>
         <td class="man_inner">
           A combination of equal bundle symbolic name and equal version is
           unique in the framework. Installing a second bundle with the same
@@ -334,15 +334,15 @@ OSGi Framework properties should be specified using "-F".
         </td>
       </tr>
       <tr>
-	    <td class="man_inner"><b>managed</b></td>
+      <td class="man_inner"><b>managed</b></td>
         <td class="man_inner">
           Using a Bundle Collision Hook to filter any non-colliding bundles.
         </td>
       </tr>
       </table>
-	</td>
+  </td>
     <td>String</td>
-    <td>managed</td>	
+    <td>managed</td>
   <tr>
     <td>org.osgi.framework.bundle.parent</td>
     <td>
@@ -601,10 +601,54 @@ but "-D" should also work.
     <td>org.knopflerfish.framework.bundlestorage</td>
     <td>
       Storage implementation for bundles
-      [file, memory]
+      [dex, file, memory]
     </td>
     <td>String</td>
-    <td>file</td>
+    <td>file (dex for Android systems)</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.bundlestorage.dex.always_unpack</td>
+    <td>
+     When using dex file bundle storage, bundle jars can be unpacked
+     or copied as-is. Unpacking leads to faster restart and class loading
+     but takes longer for initial startup.
+
+     If set to true, unpack all bundle jars.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <a name="fileref"></a>
+    <td>org.knopflerfish.framework.bundlestorage.dex.reference</td>
+    <td>
+     When using dex file bundle storage, file: URLs can optionally
+     be referenced only, not copied to the persistent area.
+
+     If set to true, file: URLs are referenced only.
+
+     Note: Individual bundles can be reference installed
+           by using URLs of the syntax:
+
+           reference:file:&lt;path&gt;
+
+           This works even if the global reference flag
+           is not enabled.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.bundlestorage.dex.trusted</td>
+    <td>
+     Are the bundles stored in the dex file bundle storage to be trusted, if not
+     signed bundles will be checked every time they are read.
+     Untrusted storage leads to slower restart and class loading.
+
+     If set to true, trust bundles in bundle storage.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.bundlestorage.file.always_unpack</td>
@@ -702,18 +746,18 @@ but "-D" should also work.
       uninstalled before the method has returned, this property defines how to
       manage the bundle's start/stop thread. Possible values are:
       <table class="man_inner">
-	<tr>
-	  <td class="man_inner">"stop"</td>
-	  <td class="man_inner">Calls the stop() method of the bundle's thread</td>
-	</tr>
-	<tr>
-	  <td>"minprio"</td>
-	  <td>Sets a minium priority of the bundle's thred</td>
-	</tr>
-	<tr>
-	  <td>"ignore"</td>
-	  <td>Do nothing</td>
-	</tr>
+        <tr>
+          <td class="man_inner">"stop"</td>
+          <td class="man_inner">Calls the stop() method of the bundle's thread</td>
+        </tr>
+        <tr>
+          <td>"minprio"</td>
+          <td>Sets a minium priority of the bundle's thred</td>
+        </tr>
+        <tr>
+          <td>"ignore"</td>
+          <td>Do nothing</td>
+        </tr>
       </table>
     </td>
     <td>String</td>

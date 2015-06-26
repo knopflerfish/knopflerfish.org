@@ -11,8 +11,6 @@
             location="${apk.custom.dir}/../../../ant"/>
   <property name="osgi.dir"
             location="${kf.ant.dir}/../osgi"/>
-  <property name="kf.version"
-            value="4.0.0"/>
   <property name="servicelib.dir"
             location="${android.library.reference.1}"/>
   <available property="framework.jar.exists"
@@ -21,65 +19,10 @@
   <property name="ANDROID_HOME" location="${sdk.dir}"/>
   <import file="${kf.ant.dir}/android.xml"/>
 
-
-  <!-- macro that builds bundles (from KF and KF-Pro) in file list
-       to assets/jars/<start level> folder -->
-  <macrodef name="bundles_build"
-            description="Execute all bundle build files given by the nested file list element.">
-    <attribute name="startlevel" default="1"/>
-    <attribute name="kind" default="all"/>
-    <element name="filelist" implicit="yes"/>
-    <sequential>
-      <local name="jars.dir"/>
-      <property name="jars.dir" location="${assets.jars.dir}/@{startlevel}"/>
-      <mkdir dir="${jars.dir}"/>
-      <subant target="all" inheritall="false">
-	<property name="ANDROID_HOME" location="${sdk.dir}"/>
-        <property name="ant.dir"  location="${kf.ant.dir}"/>
-	<property name="jardir"   location="${jars.dir}"/>
-        <property name="osgi.dir" location="${osgi.dir}"/>
-        <property name="root.out.dir"  location="${out.absolute.dir}/bundels"/>
-        <property name="bundle_tasks.built" value="true"/>
-        <property name="bundle.build.api" value="false"/>
-        <property name="bundle.build.impl" value="false"/>
-        <property name="bundle.build.all" value="false"/>
-        <property name="bundle.build.lib" value="false"/>
-        <property name="bundle.build.@{kind}" value="true"/>
-        <filelist/>
-      </subant>
-    </sequential>
-  </macrodef>
-
-  <!-- macro that optionally removes files from a jar and then
-       dexifies the jar (used bundles with embedded jars) -->
-  <macrodef name="dexifynested" description="">
-    <attribute name="jarfile"/>
-    <attribute name="excludes"/>
-    <sequential>
-      <basename property="jar.name" file="@{jarfile}"/>
-      <!-- remove files from jar -->
-      <jar destfile="${out.absolute.dir}/${jar.name}">
-	<zipfileset src="@{jarfile}" excludes="@{excludes}"/>
-      </jar>
-      <copy file="${out.absolute.dir}/${jar.name}"
-            tofile="@{jarfile}"/>
-      <!-- dexify jar file -->
-      <antcall target="add_dex" inheritRefs="true">
-        <param name="jarfile" value="@{jarfile}"/>
-      </antcall>
-    </sequential>
-  </macrodef>
-
-  <target name="add_dex">
-    <echo message="add_dex ${jarfile}"/>
-    <add_dex jarfile="${jarfile}" outdir="${out.absolute.dir}"/>
-  </target>
-
-
   <!-- -pre-* and -post* are targets picked up by the android build -->
 
   <!-- build bundles before android build, see custom_rules.xml -->
-  <target name="-pre-build" depends="bundle_compile"/>
+  <target name="-pre-build" depends="bundle_dexify"/>
 
   <!-- adds 'META-INF/services/org.osgi.framework.launch' (it is
        not included from framework.jar when it is added to the .apk) -->
@@ -107,7 +50,7 @@
   <target name="-post-compile" depends="check_framework"/>
   <target name="check_framework">
     <fail unless="framework.jar.exists">
-      framework.jar was not found at beginning of buid, build again.
+      framework.jar was not found at beginning of build, build again.
     </fail>
   </target>
 

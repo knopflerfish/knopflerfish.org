@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -526,25 +526,29 @@ public class SystemBundle extends BundleImpl implements Framework {
         sp.append(fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_BASE_PROP));
 
         if (sp.length() == 0) {
-          // use default set of packages.
-          String jver = fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_VERSION_PROP);
-
-          Version jv;
-          if (jver == null) {
-            jv = new Version(FWProps.javaVersionMajor, FWProps.javaVersionMinor, 0);
+          if (FWProps.androidApiLevel >= 0) {
+            addSysPackagesFromFile(sp, "android_packages.txt", new Version(FWProps.androidApiLevel, 0, 0));
           } else {
-            try {
-              jv = new Version(jver);
-            } catch (IllegalArgumentException _ignore){
-              if (fwCtx.debug.framework) {
-                fwCtx.debug.println("No built in list of Java packages to be exported "
-                    + "by the system bundle for JRE with version '" + jver
-                    + "', using the list for 1.7.");
+            // use default set of packages.
+            String jver = fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_VERSION_PROP);
+
+            Version jv;
+            if (jver == null) {
+              jv = new Version(FWProps.javaVersionMajor, FWProps.javaVersionMinor, 0);
+            } else {
+              try {
+                jv = new Version(jver);
+              } catch (IllegalArgumentException _ignore){
+                if (fwCtx.debug.framework) {
+                  fwCtx.debug.println("No built in list of Java packages to be exported "
+                      + "by the system bundle for JRE with version '" + jver
+                      + "', using the list for 1.7.");
+                }
+                jv = new Version(1,7,0);
               }
-              jv = new Version(1,7,0);
             }
+            addSysPackagesFromFile(sp, "packages.txt", jv);
           }
-          addSysPackagesFromFile(sp, "packages.txt", jv);
         } else {
           if (sp.charAt(sp.length() - 1) == ',') {
             sp.deleteCharAt(sp.length() - 1);

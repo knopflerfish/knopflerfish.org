@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2013, KNOPFLERFISH project
+ * Copyright (c) 2009-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ import java.util.Set;
 public interface FileArchive {
 
   /**
-   * Get a byte array containg the contents of named file from a bundle archive.
+   * Get a byte array containing the contents of named file from a bundle archive.
    *
    * @param component File to get.
    * @return Byte array with contents of file or null if file doesn't exist.
@@ -54,6 +54,16 @@ public interface FileArchive {
    */
   byte[] getClassBytes(String component) throws IOException;
 
+
+  /**
+   * Load class bytes into specified class loader for named file from a bundle archive.
+   *
+   * @param component File to get.
+   * @param classloader Class loader to use for component.
+   * @return Class for loaded bytes or null if no fil doesn't exist.
+   * @exception IOException if failed to read jar entry.
+   */
+  Class loadClassBytes(String path, ClassLoader classloader);
 
   /**
    * Get a BundleResourceStream to named entry inside a bundle. Leading '/' is

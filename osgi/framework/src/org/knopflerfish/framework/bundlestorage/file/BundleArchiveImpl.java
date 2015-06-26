@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ import org.knopflerfish.framework.bundlestorage.Util;
  * @author Philippe Laporte
  * @author Mats-Ola Persson
  */
-class BundleArchiveImpl implements BundleArchive
+public class BundleArchiveImpl implements BundleArchive
 {
 
   /**
@@ -82,13 +82,13 @@ class BundleArchiveImpl implements BundleArchive
 
   final BundleStorageImpl storage;
 
+  final String location;
+
   private final Archive archive;
 
   private BundleGeneration bundleGeneration = null;
 
   private final long id;
-
-  final private String location;
 
   private int autostartSetting = -1; // => not started.
 
@@ -125,11 +125,12 @@ class BundleArchiveImpl implements BundleArchive
       source = new URL(bundleLocation);
     } catch (final Exception e) {
     }
-    bundleDir        = dir;
-    storage          = bundleStorage;
-    id               = bundleId;
-    location         = bundleLocation;
-    archive          = new Archive(this, bundleDir, 0, is, source, location);
+    bundleDir = dir;
+    storage = bundleStorage;
+    id = bundleId;
+    location = bundleLocation;
+    archive = storage.createArchive(this, bundleDir, 0);
+    archive.downloadArchive(is, source);
     putContent(LOCATION_FILE, location);
   }
 
@@ -175,9 +176,10 @@ class BundleArchiveImpl implements BundleArchive
       } catch (final NumberFormatException ignore) {}
     }
 
-    id            = bundleId;
-    storage       = bundleStorage;
-    archive       = new Archive(this, bundleDir, rev, location);
+    id = bundleId;
+    storage = bundleStorage;
+    archive = storage.createArchive(this, bundleDir, rev);
+    archive.restoreArchive();
   }
 
 
@@ -200,7 +202,8 @@ class BundleArchiveImpl implements BundleArchive
     if(bReference) {
       source = new URL(location);
     }
-    archive = new Archive(this, bundleDir, rev, is, source, location);
+    archive = storage.createArchive(this, bundleDir, rev);
+    archive.downloadArchive(is, source);
     if(!bReference) {
       putContent(REV_FILE, Integer.toString(rev));
     }
@@ -235,7 +238,7 @@ class BundleArchiveImpl implements BundleArchive
       archives = new ArrayList<Archive>();
     }
     try {
-      final Archive a = new Archive(archive, path, archives.size() + 1);
+      Archive a = archive.subArchive(path, archives.size() + 1);
       archives.add(a);
       return a;
     } catch (final IOException io) {

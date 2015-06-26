@@ -9,6 +9,9 @@
   <!-- Needs java.awt outside of ee.minimum -->
   <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
 
+  <!-- Dex disabled, Uses java.awt -->
+  <property name="no.dex" value="true"/>
+
   <property name="api.pattern"
 	    value="org/knopflerfish/service/desktop/**"/> 
   <property name="impl.pattern"

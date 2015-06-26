@@ -12,4 +12,10 @@
     <ant dir="permissionadmin"          target="clean"/>
   </target>
 
+  <target name="dex_jars"
+    description="Dexifies all built bundles.">
+    <ant dir="servicetracker"           target="dex_jars"/>
+    <ant dir="permissionadmin"          target="dex_jars"/>
+  </target>
+
 </project>

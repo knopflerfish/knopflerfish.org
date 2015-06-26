@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,9 +116,14 @@ public class Archive implements FileArchive {
   final private static String OSGI_OPT_DIR = "OSGI-OPT/";
 
   /**
+   * FileTree handle for bundle storage directory.
+   */
+  protected FileTree bundleDir;
+
+  /**
    * File handle for file that contains current archive.
    */
-  private FileTree file;
+  protected FileTree file;
 
   /**
    * Set to true if above file is a reference outside framework storage.
@@ -128,9 +133,7 @@ public class Archive implements FileArchive {
   /**
    * JAR file handle for file that contains current archive.
    */
-  private ZipFile jar;
-
-  final private String location;
+  protected ZipFile jar = null;
 
   /**
    * Certificates for this archive.
@@ -171,7 +174,10 @@ public class Archive implements FileArchive {
   /**
    *
    */
-  final private int subId;
+  protected int subId;
+
+  protected int revision;
+
 
 
   /**
@@ -181,19 +187,28 @@ public class Archive implements FileArchive {
    * @param ba BundleArchiveImpl for this archive.
    * @param dir Directory to save data in.
    * @param rev Revision of bundle content (used for updates).
+   */
+  protected Archive(BundleArchiveImpl ba, FileTree dir, int rev) {
+    this.ba = ba;
+    this.bundleDir = dir;
+    this.revision = rev;
+  }
+
+
+  /**
+   * Create an Archive based on contents of an InputStream, the archive is saved
+   * as local copy in the specified directory.
+   *
    * @param is Jar file data in an InputStream.
    * @param url URL to use to CodeSource.
-   * @param location Location for archive
    */
-  Archive(BundleArchiveImpl ba, File dir, int rev, InputStream is, URL source, String location)
+  protected void downloadArchive(InputStream is, URL source)
       throws IOException {
-    this.location = location;
-    this.ba = ba;
     subId = 0;
 
     boolean isDirectory = false;
     final FileTree sourceFile;
-    final FileTree bsFile = new FileTree(dir, ARCHIVE + rev);
+    final FileTree bsFile = new FileTree(bundleDir, ARCHIVE + revision);
 
     if (isReference(source)) {
       fileIsReference = true;
@@ -233,9 +248,9 @@ public class Archive implements FileArchive {
         ji = new JarInputStream(bis, ba.storage.checkSigned);
         manifest = ji.getManifest();
         // If manifest == null then, Manifest probably not first in JAR, should
-        // we complain?
-        // Now, try to use the jar anyway. Maybe the manifest is there.
-        if (manifest == null || !needUnpack(manifest.getMainAttributes())) {
+        // we complain? Or if on Android there is a problem with JAR in JAR reading.
+        // So we unpack to be sure we can access everything.
+        if (manifest != null && !needUnpack(manifest.getMainAttributes())) {
           bis.reset();
         } else {
           doUnpack = true;
@@ -280,7 +295,6 @@ public class Archive implements FileArchive {
         if (verify) {
           checkCertificates(verifiedEntries);
         }
-        jar = null;
       }
     }
     if (!doUnpack) {
@@ -294,7 +308,6 @@ public class Archive implements FileArchive {
         if (ba.storage.checkSigned) {
           // NYI! Verify signed directory
         }
-        jar = null;
       } else {
         if (!fileIsReference) {
           loadFile(file, bis);
@@ -306,7 +319,7 @@ public class Archive implements FileArchive {
       }
     }
     if (manifest != null) {
-      manifest = new AutoManifest(ba.storage.framework, manifest, location);
+      manifest = new AutoManifest(ba.storage.framework, manifest, ba.location);
     } else {
       manifest = getManifest();
     }
@@ -325,56 +338,25 @@ public class Archive implements FileArchive {
 
 
   /**
-   * Get the file path from an URL, handling the case where it's a
-   * reference:file: URL
-   */
-  String getFile(URL source) {
-    final String sfile = source.getFile();
-    if (sfile.startsWith("file:")) {
-      return sfile.substring(5);
-    } else {
-      return sfile;
-    }
-  }
-
-
-  boolean isFile(URL source) {
-    return source != null && "file".equals(source.getProtocol());
-  }
-
-
-  /**
-   * Check if an URL is a reference: URL or if we have global references on all
-   * file: URLs
-   */
-  boolean isReference(URL source) {
-    return (source != null)
-        && ("reference".equals(source.getProtocol()) || (ba.storage.fileReference && isFile(source)));
-  }
-
-
-  /**
    * Create an Archive based on contents of a saved archive in the specified
    * directory. Take lowest versioned archive and remove rest.
    *
    */
-  Archive(BundleArchiveImpl ba, File dir, int rev, String location) throws IOException {
-    this.location = location;
-    this.ba = ba;
+  protected void restoreArchive() throws IOException {
     subId = 0;
-    final String[] f = dir.list();
+    final String[] f = bundleDir.list();
     file = null;
-    if (rev != -1) {
-      file = new FileTree(dir, ARCHIVE + rev);
+    if (revision != -1) {
+      file = new FileTree(bundleDir, ARCHIVE + revision);
     } else {
-      rev = Integer.MAX_VALUE;
+      revision = Integer.MAX_VALUE;
       for (final String element : f) {
         if (element.startsWith(ARCHIVE)) {
           try {
             final int c = Integer.parseInt(element.substring(ARCHIVE.length()));
-            if (c < rev) {
-              rev = c;
-              file = new FileTree(dir, element);
+            if (c < revision) {
+              revision = c;
+              file = new FileTree(bundleDir, element);
             }
           } catch (final NumberFormatException ignore) {
           }
@@ -385,8 +367,8 @@ public class Archive implements FileArchive {
       if (element.startsWith(ARCHIVE)) {
         try {
           final int c = Integer.parseInt(element.substring(ARCHIVE.length()));
-          if (c != rev) {
-            (new FileTree(dir, element)).delete();
+          if (c != revision) {
+            (new FileTree(bundleDir, element)).delete();
           }
         } catch (final NumberFormatException ignore) {
         }
@@ -394,35 +376,31 @@ public class Archive implements FileArchive {
       if (element.startsWith(SUBDIR)) {
         try {
           final int c = Integer.parseInt(element.substring(SUBDIR.length()));
-          if (c != rev) {
-            (new FileTree(dir, element)).delete();
+          if (c != revision) {
+            (new FileTree(bundleDir, element)).delete();
           }
         } catch (final NumberFormatException ignore) {
         }
       }
     }
     if (file == null) {
-      if (location != null) {
-        try {
-          final URL url = new URL(location);
-          if (isReference(url)) {
-            file = new FileTree(getFile(url));
-          }
-        } catch (final Exception e) {
-          throw new IOException("Bad file URL stored in referenced jar in: "
-              + dir.getAbsolutePath() + ", location=" + location + ", e=" + e);
+      try {
+        final URL url = new URL(ba.location);
+        if (isReference(url)) {
+          file = new FileTree(getFile(url));
         }
+      } catch (final Exception e) {
+        throw new IOException("Bad file URL stored in referenced jar in: "
+            + bundleDir.getAbsolutePath() + ", location=" + ba.location + ", e=" + e);
       }
       if (file == null || !file.exists()) {
-        throw new IOException("No saved jar file found in: " + dir.getAbsolutePath()
-            + ", old location=" + location);
+        throw new IOException("No saved jar file found in: " + bundleDir.getAbsolutePath()
+            + ", old location=" + ba.location);
       }
       fileIsReference = true;
     }
 
-    if (file.isDirectory()) {
-      jar = null;
-    } else {
+    if (!file.isDirectory()) {
       jar = new ZipFile(file);
     }
     if (ba.storage.checkSigned) {
@@ -440,37 +418,35 @@ public class Archive implements FileArchive {
    * new archive is saved in a subdirectory below local copy of the existing
    * Archive.
    *
-   * @param a Parent Archive.
    * @param path Path of new Archive inside old Archive.
+   * @param id Sub-id of Archive.
    * @exception FileNotFoundException if no such Jar file in archive.
    * @exception IOException if failed to read Jar file.
    */
-  Archive(Archive a, String path, int id) throws IOException {
-    this.location = a.location;
-    this.ba = a.ba;
-    subId = id;
-    if (a.jar != null) {
-      jar = a.jar;
+  protected Archive subArchive(String path, int id) throws IOException {
+    Archive res = ba.storage.createArchive(ba, bundleDir, revision);
+    res.subId = id;
+    if (jar != null) {
+      res.jar = jar;
       // Try a directory first, make sure that path ends with "/"
       if (!path.endsWith("/")) {
         path += "/";
       }
-      subJar = jar.getEntry(path);
-      if (subJar == null) {
-        subJar = jar.getEntry(path.substring(0, path.length() - 1));
+      res.subJar = jar.getEntry(path);
+      if (res.subJar == null) {
+        res.subJar = jar.getEntry(path.substring(0, path.length() - 1));
       }
-      if (subJar == null) {
+      if (res.subJar == null) {
         throw new IOException("No such JAR component: " + path);
       }
-      file = a.file;
+      res.file = file;
     } else {
-      file = findFile(a.file, path);
-      if (file.isDirectory()) {
-        jar = null;
-      } else {
-        jar = new ZipFile(file);
+      res.file = findFile(file, path);
+      if (!res.file.isDirectory()) {
+        res.jar = new ZipFile(res.file);
       }
     }
+    return res;
   }
 
 
@@ -486,6 +462,35 @@ public class Archive implements FileArchive {
     } else {
       return file.getAbsolutePath();
     }
+  }
+
+
+  /**
+   * Get the file path from an URL, handling the case where it's a
+   * reference:file: URL
+   */
+  private String getFile(URL source) {
+    final String sfile = source.getFile();
+    if (sfile.startsWith("file:")) {
+      return sfile.substring(5);
+    } else {
+      return sfile;
+    }
+  }
+
+
+  private boolean isFile(URL source) {
+    return source != null && "file".equals(source.getProtocol());
+  }
+
+
+  /**
+   * Check if an URL is a reference: URL or if we have global references on all
+   * file: URLs
+   */
+  private boolean isReference(URL source) {
+    return (source != null)
+        && ("reference".equals(source.getProtocol()) || (ba.storage.fileReference && isFile(source)));
   }
 
 
@@ -590,9 +595,6 @@ public class Archive implements FileArchive {
   public BundleResourceStream getBundleResourceStream(String component) {
     if (bClosed) {
       return null;
-    }
-    if (component.startsWith("/")) {
-      throw new RuntimeException("Assert! Path should never start with / here");
     }
     ZipEntry ze;
     try {
@@ -724,6 +726,17 @@ public class Archive implements FileArchive {
       return null;
     }
     return answer.elements();
+  }
+
+
+  public boolean isJar() {
+    return jar != null;
+  }
+
+
+  @Override
+  public Class<?> loadClassBytes(String name, ClassLoader cl) {
+    return null;
   }
 
 
@@ -1167,6 +1180,14 @@ public class Archive implements FileArchive {
 
 
   /**
+   * Returns the File object for this bundle.
+   */
+  protected File getFile() {
+    return file;
+  }
+
+
+  /**
    * Returns the path to this bundle.
    */
   String getPath() {
@@ -1262,7 +1283,7 @@ public class Archive implements FileArchive {
     // TBD: Should recognize entry with lower case?
     final BundleResourceStream mi = getBundleResourceStream("META-INF/MANIFEST.MF");
     if (mi != null) {
-      return new AutoManifest(ba.storage.framework, new Manifest(mi), location);
+      return new AutoManifest(ba.storage.framework, new Manifest(mi), ba.location);
     } else {
       throw new IOException("Manifest is missing");
     }

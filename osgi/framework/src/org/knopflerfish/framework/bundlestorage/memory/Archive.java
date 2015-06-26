@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -282,6 +282,49 @@ class Archive implements FileArchive {
   }
 
 
+  @Override
+  public Class<?> loadClassBytes(String name, ClassLoader cl) {
+    return null;
+  }
+
+
+  @Override
+  public boolean exists(String path, boolean onlyDirs) {
+    if (path.equals("")) {
+      return true;
+    }
+    if (onlyDirs) {
+      if (!path.endsWith("/")) {
+        path = path + "/";
+      }
+      for (String k : content.keySet()) {
+        if (k.startsWith(path)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return content.containsKey(path);
+    }
+  }
+
+
+  @Override
+  public Set<String> listDir(String path) {
+    Set<String> res = new HashSet<String>();
+    if (path.length() > 0 && !path.endsWith("/")) {
+      path = path + "/";
+    }
+    for (String k : content.keySet()) {
+      String e = matchPath(path, k);
+      if (e != null) {
+        res.add(e);
+      }
+    }
+    return res;
+  }
+
+
   //
   // Private methods
   //
@@ -323,43 +366,6 @@ class Archive implements FileArchive {
       }
     }
     return files;
-  }
-
-
-  @Override
-  public boolean exists(String path, boolean onlyDirs) {
-    if (path.equals("")) {
-      return true;
-    }
-    if (onlyDirs) {
-      if (!path.endsWith("/")) {
-        path = path + "/";
-      }
-      for (String k : content.keySet()) {
-        if (k.startsWith(path)) {
-          return true;
-        }
-      }
-      return false;
-    } else {
-      return content.containsKey(path);
-    }
-  }
-
-
-  @Override
-  public Set<String> listDir(String path) {
-    Set<String> res = new HashSet<String>();
-    if (path.length() > 0 && !path.endsWith("/")) {
-      path = path + "/";
-    }
-    for (String k : content.keySet()) {
-      String e = matchPath(path, k);
-      if (e != null) {
-        res.add(e);
-      }
-    }
-    return res;
   }
 
 
