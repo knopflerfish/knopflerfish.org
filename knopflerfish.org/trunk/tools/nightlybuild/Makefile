@@ -22,7 +22,7 @@ export JAVA_HOME = /usr
 
 
 #ANT	= /usr/bin/ant
-ANT	= /home/knopflerfish/ant/apache-ant-1.9.1/bin/ant
+ANT	= /home/knopflerfish/ant/apache-ant-1.9.5/bin/ant
 AWK     = /usr/bin/awk
 CAT     = /bin/cat
 CP      = /bin/cp 
