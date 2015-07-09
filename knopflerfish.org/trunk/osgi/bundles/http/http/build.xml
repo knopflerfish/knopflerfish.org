@@ -50,6 +50,7 @@
       <zipfileset src="${bap.util}">
         <patternset>
           <include name="org/knopflerfish/util/Timer*"/>
+          <include name="org/knopflerfish/util/Text*"/>
         </patternset>
       </zipfileset>
     </copy>
