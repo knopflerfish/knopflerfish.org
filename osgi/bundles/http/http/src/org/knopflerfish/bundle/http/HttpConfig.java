@@ -46,6 +46,7 @@ import java.util.Vector;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
+import org.knopflerfish.util.Text;
 
 public class HttpConfig
 {
@@ -511,7 +512,7 @@ public class HttpConfig
   
   private void parseCompressMimeTypes(String value) {
     compressMimeTypes.clear();
-    String[] types = value.split("\\s*,\\s*");
+    String[] types = Text.splitwords(value, ",", '"');
     for (int i = 0; i < types.length; i++) {
       compressMimeTypes.put(types[i], types[i]);
     }

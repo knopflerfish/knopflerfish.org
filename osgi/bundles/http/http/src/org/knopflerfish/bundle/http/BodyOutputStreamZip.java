@@ -135,7 +135,7 @@ public class BodyOutputStreamZip  extends BodyOutputStream
 
     // write GZIP trailer
     writeInt((int) crc.getValue());
-    writeInt((int) deflater.getBytesRead());
+    writeInt(deflater.getTotalIn());
   }
   
   private void writeInt(int v) throws IOException {
@@ -180,7 +180,7 @@ public class BodyOutputStreamZip  extends BodyOutputStream
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-      throw new IllegalStateException("Failed to set compress mode", e);
+      throw new IllegalStateException("Failed to set compress mode");
     }
   }
   
