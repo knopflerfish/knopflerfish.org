@@ -69,7 +69,43 @@
     <div class="note_item">
     Fixed so it runs under Dalvik that lacks Security support.
     </div>
-</div>
+
+  <div class="note_group">
+    <div class="note_name">HTTP Server 5.1.0</div>
+    <div class="note_item">
+      HTTP server refactoring making the HTTP server use less resources (threads and memory).
+    </div>
+    <div class="note_item">
+      New HTTP server thread pool. The maximum number of threads and threads keeping open, or "Keep-Alive"
+      connections  can be tuned via two new system properties: <code>org.knopflerfish.http.threads.max</code>
+      and <code>org.knopflerfish.http.threads.keep_alive</code>
+    </div>
+    <div class="note_item">
+      HTTP server supports and uses chunked transfer encoding by default
+    </div>
+    <div class="note_item">
+      Minor corrections to be more HTTP/1.1 conformant. E.g. not sending "Connection: Keep-Alive" to
+      an HTTP/1.1 client, but rather only sending "Connection: close" when actually closing the connection
+    </div>
+    <div class="note_item">
+      Support for automatic compressing of content. This is controlled via the property:
+      <code>org.knopflerfish.http.always_compress.mime_types</code>. Content with a mime type specified by this
+      comma separated list will always be compressed by the container.
+      Specifying just the type and leaving out the subtype will apply compression to all subtypes.
+      E.g. "text" will apply compression to text/html, text/plain etc. "text" is the default value.
+    </div>
+    <div class="note_name">HTTP Server 5.0.0</div>
+    <div class="note_item">
+    Improved the configuration handling the first time a CM
+    configuration is received to avoid unnecessary reconfigurations of
+    the built-in default setings. This could lead to a server socket
+    close followed by new listen on the same port.
+    </div>
+    <div class="note_item">
+    CM meta-data is updated to include previously undocumented configuration parameters.
+    </div>
+  </div>
+
 
 <h2 class="filled">Knopflerfish Services</h2>
 <div class="release_notes">
@@ -102,4 +138,11 @@
     </div>
   </div>
 
+  <div class="note_group">
+    <div class="note_name">bndtools</div>
+    <div class="note_item">
+      Changed the download URL for bnd and bndtools artifacts to the bndtools repo on github
+    </div>
+  </div>
+  
 </div>
