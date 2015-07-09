@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2009,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
+
 public class RequestWrapper
   extends HttpServletRequestWrapper
   implements Request
@@ -49,7 +50,10 @@ public class RequestWrapper
     super(request);
   }
 
-  // implements Request
+  /* (non-Javadoc)
+   * @see org.knopflerfish.bundle.http.Request
+   */
+  @Override
   public InputStream getRawInputStream()
   {
     final HttpServletRequest request = (HttpServletRequest) getRequest();
@@ -58,6 +62,17 @@ public class RequestWrapper
       return ((Request) request).getRawInputStream();
     }
     return null;
+  }
+  
+  
+  @Override
+  public boolean isHTTP_1_1() {
+    final HttpServletRequest request = (HttpServletRequest) getRequest();
+
+    if (request instanceof Request) {
+      return ((Request) request).isHTTP_1_1();
+    }
+    return false;
   }
 
 } // RequestWrapper

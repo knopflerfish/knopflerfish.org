@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,40 +55,41 @@ import javax.servlet.http.HttpSession;
 
 import org.osgi.service.http.HttpContext;
 
-public class RequestImpl
-  implements Request, PoolableObject
+public class RequestImpl implements Request
 {
   // private fields
 
-  private final RequestBase base;
+  private final RequestBase        base;
 
-  private HttpConfigWrapper httpConfig;
+  private HttpConfigWrapper        httpConfig;
 
-  private final Registrations registrations;
+  private final Registrations      registrations;
 
   private final HttpSessionManager sessionManager;
 
-  private InetAddress localAddress = null;
-  private InetAddress remoteAddress = null;
+  private InetAddress              localAddress                 = null;
+  private InetAddress              remoteAddress                = null;
 
-  private int localPort = 0;
-  private int remotePort = 0;
+  private int                      localPort                    = 0;
+  private int                      remotePort                   = 0;
 
-  private final Attributes attributes = new Attributes();
+  private final Attributes         attributes                   = new Attributes();
 
-  private boolean keepAlive = false;
+  private boolean                  keepAlive                    = false;
 
-  private HttpSession session = null;
+  private HttpSession              session                      = null;
 
-  private String requestedSessionId = null;
+  private String                   requestedSessionId           = null;
 
-  private boolean requestedSessionIdFromURL = false;
+  private boolean                  requestedSessionIdFromURL    = false;
 
-  private boolean requestedSessionIdFromCookie = false;
+  private boolean                  requestedSessionIdFromCookie = false;
 
-  private String servletPath = null;
+  private String                   servletPath                  = null;
 
-  private Cookie[] cookies = null;
+  private Cookie[]                 cookies                      = null;
+
+  private boolean                  is_http_1_1                  = false;
 
   // constructors
 
@@ -107,8 +108,8 @@ public class RequestImpl
   public StringBuffer getRequestURL()
   {
     final StringBuffer sb =
-      new StringBuffer((httpConfig.isSecure() ? "https" : "http") + "://"
-                       + getLocalName() + ":" + getLocalPort() + base.getURI());
+        new StringBuffer((httpConfig.isSecure() ? "https" : "http") + "://"
+            + getLocalName() + ":" + getLocalPort() + base.getURI());
     return sb;
   }
 
@@ -147,6 +148,14 @@ public class RequestImpl
     return localPort;
   }
 
+  public void reinit(final InputStream is, final HttpConfigWrapper httpConfig)
+      throws HttpException, IOException
+  {
+    destroy();
+    base.init(is, httpConfig);
+    // do_init();
+  }
+
   public void init(final InputStream is,
                    final InetAddress localAddress,
                    final int localPort,
@@ -156,17 +165,20 @@ public class RequestImpl
       throws HttpException, IOException
   {
     base.init(is, httpConfig);
-
     this.httpConfig = httpConfig;
     this.localAddress = localAddress;
     this.localPort = localPort;
     this.remoteAddress = remoteAddress;
     this.remotePort = remotePort;
+    // do_init();
+  }
 
-    final boolean http_1_1 =
-      base.getProtocol().equals(RequestBase.HTTP_1_1_PROTOCOL);
+  public void handle() throws HttpException, IOException
+  {
+    base.handle();
+    is_http_1_1 = base.getProtocol().equals(RequestBase.HTTP_1_1_PROTOCOL);
 
-    if (http_1_1
+    if (is_http_1_1
         && !base.getHeaders(HeaderBase.HOST_HEADER_KEY).hasMoreElements()) {
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
     }
@@ -183,31 +195,33 @@ public class RequestImpl
     final String method = base.getMethod();
     // TODO: OPTIONS and DELETE -> lengthKnown
     final boolean lengthKnown =
-      method.equals(RequestBase.GET_METHOD)
-          || method.equals(RequestBase.HEAD_METHOD) || available != -1;
+        method.equals(RequestBase.GET_METHOD)
+            || method.equals(RequestBase.HEAD_METHOD) || available != -1;
     if (lengthKnown) {
-      if (http_1_1) {
-        if (!"Close".equals(connection)) {
+      if (is_http_1_1) {
+        if (!"close".equalsIgnoreCase(connection)) {
           keepAlive = true;
         }
-      } else if ("Keep-Alive".equals(connection)) {
+      } else if ("Keep-Alive".equalsIgnoreCase(connection)) {
         keepAlive = true;
       }
     }
 
+    // keepAlive = false;
+
     if (available != -1) {
       if (keepAlive) {
         base.getBody().setLimit(available);
-      } else if (!http_1_1) {
+      } else if (!is_http_1_1) {
         // perhaps not according to spec, but works better :)
         base.getBody().setLimit(available);
       }
     } else {
       if (method.equals(RequestBase.POST_METHOD)) {
         final String transfer_encoding =
-          getHeader(HeaderBase.TRANSFER_ENCODING_KEY);
+            getHeader(HeaderBase.TRANSFER_ENCODING_KEY);
         if (HeaderBase.TRANSFER_ENCODING_VALUE_CHUNKED
-            .equals(transfer_encoding)) {
+                                                      .equals(transfer_encoding)) {
           // Handle chunked body the by reading every chunk and creating
           // a new servletinputstream for the decoded body
           // The only client (so far) that seems to be doing this is the
@@ -275,7 +289,7 @@ public class RequestImpl
   private void handleSession()
   {
     final Cookie sessionCookie =
-      (Cookie) base.getCookies().get(HttpUtil.SESSION_COOKIE_KEY);
+        (Cookie) base.getCookies().get(HttpUtil.SESSION_COOKIE_KEY);
     if (sessionCookie != null) {
       requestedSessionIdFromCookie = true;
       requestedSessionId = sessionCookie.getValue();
@@ -287,14 +301,6 @@ public class RequestImpl
     }
   }
 
-  // implements PoolableObject
-
-  @Override
-  public void init()
-  {
-  }
-
-  @Override
   public void destroy()
   {
     base.destroy();
@@ -319,11 +325,37 @@ public class RequestImpl
     cookies = null;
   }
 
+  public void reset(boolean keepAlive)
+  {
+    base.reset(keepAlive);
+
+    localAddress = null;
+    remoteAddress = null;
+
+    localPort = 0;
+    remotePort = 0;
+
+    attributes.removeAll();
+
+    this.keepAlive = keepAlive;
+
+    session = null;
+    requestedSessionId = null;
+    requestedSessionIdFromURL = false;
+    requestedSessionIdFromCookie = false;
+
+    servletPath = null;
+
+    cookies = null;
+    // TODO Auto-generated method stub
+  }
+
   // implements Request
 
   @Override
   public InputStream getRawInputStream()
   {
+    // log(Thread.currentThread().getName() + " - getRawInputStream()");
     return base.getBody();
   }
 
@@ -574,6 +606,7 @@ public class RequestImpl
   @Override
   public ServletInputStream getInputStream()
   {
+    // log("getInputStream()");
     return base.getBody(); // NYI: should be wrapped
   }
 
@@ -620,13 +653,14 @@ public class RequestImpl
   @Override
   public BufferedReader getReader()
   {
+    // log("getReader()");
     InputStreamReader isr = null;
     try {
       final String enc = getCharacterEncoding();
       isr =
-        null == enc
-          ? new InputStreamReader(base.getBody())
-          : new InputStreamReader(base.getBody(), enc);
+          null == enc
+              ? new InputStreamReader(base.getBody())
+              : new InputStreamReader(base.getBody(), enc);
     } catch (final UnsupportedEncodingException use) {
       // Fallback to use the local default encoding...
       isr = new InputStreamReader(base.getBody());
@@ -719,13 +753,24 @@ public class RequestImpl
 
   /*
    * (non-Javadoc)
-   *
+   * 
    * @see javax.servlet.ServletRequest#getScheme()
    */
   @Override
   public String getScheme()
   {
     return httpConfig.getScheme();
+  }
+
+  @Override
+  public boolean isHTTP_1_1()
+  {
+    return is_http_1_1;
+  }
+  
+  private void log(String s)
+  {
+    Activator.log.info(Thread.currentThread().getName() + " - " + s);
   }
 
 } // RequestImpl

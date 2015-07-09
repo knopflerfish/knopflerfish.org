@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2009,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.http;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -71,6 +72,10 @@ public class ResponseWrapper
       return ((Response) response).getRawOutputStream();
     }
     return null;
+  }
+
+  public void copy(InputStream is) {
+    // Do nothing
   }
 
   // override ServletResponse methods
@@ -114,5 +119,6 @@ public class ResponseWrapper
 
     return pw;
   }
-
+  
+  
 } // ResponseWrapper

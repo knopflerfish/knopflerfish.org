@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2013,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.http;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -47,12 +46,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpUtils;
 
 public class RequestBase
-  extends HeaderBase
+                        extends HeaderBase
 {
   // private constants
 
   // The URL to use as context when parsing the request URI.
-  private static URL BASE_HTTP_URL = null;
+  private static URL                  BASE_HTTP_URL      = null;
   static {
     try {
       BASE_HTTP_URL = new URL("http://localhost/");
@@ -63,40 +62,39 @@ public class RequestBase
 
   // protected constants
 
-  protected static final String GET_METHOD = "GET";
+  protected static final String       GET_METHOD         = "GET";
 
-  protected static final String HEAD_METHOD = "HEAD";
+  protected static final String       HEAD_METHOD        = "HEAD";
 
-  protected static final String POST_METHOD = "POST";
+  protected static final String       POST_METHOD        = "POST";
 
-  protected static final String HTTP_1_0_PROTOCOL = "HTTP/1.0";
+  protected static final String       HTTP_1_0_PROTOCOL  = "HTTP/1.0";
 
-  protected static final String HTTP_1_1_PROTOCOL = "HTTP/1.1";
+  protected static final String       HTTP_1_1_PROTOCOL  = "HTTP/1.1";
 
-  protected static final String FORM_MIME_TYPE =
-    "application/x-www-form-urlencoded";
+  protected static final String       FORM_MIME_TYPE     = "application/x-www-form-urlencoded";
 
   // private fields
 
-  private String method = null;
+  private String                      method             = null;
 
   // The protocol on the request line.
-  private String protocol = null;
+  private String                      protocol           = null;
 
   // The abs path part of the request URI
-  private String uri = null;
+  private String                      uri                = null;
 
   // The query part of the request URI
-  private String queryString = null;
+  private String                      queryString        = null;
 
   // The session id parameter of the request URI
-  private String sessionIdParameter = null;
+  private String                      sessionIdParameter = null;
 
-  private Hashtable<String, String[]> queryParameters = null;
+  private Hashtable<String, String[]> queryParameters    = null;
 
-  private Hashtable<String, String[]> parameters = null;
+  private Hashtable<String, String[]> parameters         = null;
 
-  private ServletInputStreamImpl body = null;
+  private ServletInputStreamImpl      body               = null;
 
   // constructors
 
@@ -109,18 +107,45 @@ public class RequestBase
   public void init(InputStream is, HttpConfigWrapper httpConfig)
       throws HttpException, IOException
   {
-    final ServletInputStreamImpl in =
-      new ServletInputStreamImpl(new BufferedInputStream(is));
-
-    parseRequestLine(in);
-    super.init(in, httpConfig);
-
-    body = in;
+    body = new ServletInputStreamImpl(is);
+    super.init(httpConfig);
   }
+
+  public void handle()
+      throws HttpException, IOException
+  {
+    parseRequestLine(body);
+    super.handle(body);
+  }
+
 
   @Override
   public void destroy()
   {
+    // Activator.log.info("destroy() - " + this);
+    method = null;
+    protocol = null;
+    uri = null;
+    sessionIdParameter = null;
+    queryString = null;
+
+    queryParameters = null;
+    parameters = null;
+    try {
+      body.close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    body = null;
+
+    super.destroy();
+  }
+
+  public void reset(boolean keepAlive)
+  {
+    // Activator.log.info(Thread.currentThread().getName() +
+    // " - RequestBase.reset() - keepAlive=" + keepAlive);
     method = null;
     protocol = null;
     uri = null;
@@ -130,9 +155,12 @@ public class RequestBase
     queryParameters = null;
     parameters = null;
 
-    body = null;
+    // body = null;
 
-    super.destroy();
+    body.setLimit(-1);
+    if (!keepAlive)
+      body.init();
+    super.reset();
   }
 
   public String getMethod()
@@ -233,7 +261,7 @@ public class RequestBase
       final int sessionPos = uri.lastIndexOf(HttpUtil.SESSION_PARAMETER_KEY);
       if (-1 < sessionPos) {
         sessionIdParameter =
-          uri.substring(sessionPos + HttpUtil.SESSION_PARAMETER_KEY.length());
+            uri.substring(sessionPos + HttpUtil.SESSION_PARAMETER_KEY.length());
         uri = uri.substring(0, sessionPos);
       }
       queryString = url.getQuery();
@@ -250,7 +278,7 @@ public class RequestBase
       try {
         @SuppressWarnings("unchecked")
         final Hashtable<String, String[]> res =
-          HttpUtils.parseQueryString(queryString);
+            HttpUtils.parseQueryString(queryString);
         return res;
       } catch (final IllegalArgumentException ignore) {
       }

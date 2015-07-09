@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2011,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,17 +48,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.knopflerfish.service.log.LogRef;
 
 public class Transaction
-  implements Runnable, PoolableObject
+  implements Runnable
 {
   // private fields
 
   private HttpConfigWrapper httpConfig;
 
   private final Registrations registrations;
-
-  private final ObjectPool requestPool;
-
-  private final ObjectPool responsePool;
 
   private InputStream is = null;
 
@@ -69,16 +65,28 @@ public class Transaction
   protected LogRef log;
 
   protected Socket client = null;
+  
+  private TransactionManager transManager;
+  
+  private RequestImpl requestImpl;
+  
+  private ResponseImpl responseImpl;
+  
+  private int requestCount = 0;
+  
+  String name = null;
 
   // constructors
 
-  public Transaction(final LogRef log, final Registrations registrations,
-                     final ObjectPool requestPool, final ObjectPool responsePool)
+  public Transaction(final TransactionManager transManager,
+                     int count,
+                     final LogRef log, 
+                     final Registrations registrations)
   {
+    this.transManager = transManager;
     this.log = log;
     this.registrations = registrations;
-    this.requestPool = requestPool;
-    this.responsePool = responsePool;
+    this.name = "Transaction-" + count;
   }
 
   // public methods
@@ -89,28 +97,20 @@ public class Transaction
     this.client = client;
   }
 
-  public void init(final InputStream is,
-                   final OutputStream os,
-                   final HttpConfigWrapper httpConfig)
-  {
-    this.httpConfig = httpConfig;
-    this.is = is;
-    this.os = os;
-  }
-
+ 
   // implements Runnable
 
   public void run()
   {
-    final RequestImpl request = (RequestImpl) requestPool.get();
-    final ResponseImpl response = (ResponseImpl) responsePool.get();
-
     InetAddress remoteAddress = null;
     InetAddress localAddress = null;
 
     int localPort = 0;
     int remotePort = 0;
-
+    boolean reservedKeepAlive = false;
+    
+    long startTime = System.currentTimeMillis();
+    
     try {
       if (client != null) {
         client.setSoTimeout(1000 * httpConfig.getConnectionTimeout());
@@ -121,34 +121,51 @@ public class Transaction
         remoteAddress = client.getInetAddress();
         remotePort = client.getPort();
       }
-
+      requestImpl.init(is, localAddress, localPort, remoteAddress, remotePort, httpConfig);
+      responseImpl.init(os, requestImpl, httpConfig);
+      
       while (true) {
         try {
-          request.init(is, localAddress, localPort, remoteAddress, remotePort,
-                       httpConfig);
-          response.init(os, request, httpConfig);
+          requestImpl.handle();
+          responseImpl.handle();
+          requestCount++;
+          
+          // Determine if keep-alive is requested and if request can be granted,
+          // given the thread keep alive policy
+          if (requestImpl.getKeepAlive()) {
+            if (!reservedKeepAlive)
+              responseImpl.setKeepAlive(reservedKeepAlive = transManager.reserveKeepAlive());
+          } 
+          else if (reservedKeepAlive) {
+            transManager.releaseKeepAlive();
+            reservedKeepAlive = false;
+          }          
 
-          final String method = request.getMethod();
-          final String uri = request.getRequestURI();
+          final String method = requestImpl.getMethod();
+          final String uri = requestImpl.getRequestURI();
+          if (Activator.log.doDebug())
+            Activator.log.debug(Thread.currentThread().getName() + " - requesting: " + uri);
+          
           final RequestDispatcherImpl dispatcher =
             registrations.getRequestDispatcher(uri);
 
           if ("TRACE".equals(method) && !httpConfig.isTraceEnabled()) {
-            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            responseImpl.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
           } else if (dispatcher == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            responseImpl.setKeepAlive(false);
+            responseImpl.sendError(HttpServletResponse.SC_NOT_FOUND);
           } else {
             // HACK SMA Expect: 100-Continue
-            final String expect = request.getHeader(HeaderBase.EXPECT_HEADER_KEY);
+            final String expect = requestImpl.getHeader(HeaderBase.EXPECT_HEADER_KEY);
             if (expect != null) {
               // case-insensitive
               if (HeaderBase.EXPECT_100_CONTINUE_VALUE
                   .compareToIgnoreCase(expect) == 0) {
-                response.sendContinue();
+                responseImpl.sendContinue();
                 // create a new response
-                response.init(os, request, httpConfig);
+                responseImpl.init(os, requestImpl, httpConfig);
               } else {
-                response.sendError(HttpServletResponse.SC_EXPECTATION_FAILED);
+                responseImpl.sendError(HttpServletResponse.SC_EXPECTATION_FAILED);
               }
             }
             // TODO to be fully compliant the header should
@@ -156,59 +173,82 @@ public class Transaction
 
             // END HACK
             try {
-              request.setServletPath(dispatcher.getServletPath());
-              dispatcher.forward(request, response);
+              requestImpl.setServletPath(dispatcher.getServletPath());
+              dispatcher.forward(requestImpl, responseImpl);
             } catch (final ServletException se) {
-              response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+              responseImpl.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
           }
 
         } catch (final HttpException he) {
-          response.init(os, httpConfig);
-          response.sendError(he.getCode(), he.getMessage());
+          responseImpl.setKeepAlive(false);
+          responseImpl.sendError(he.getCode(), he.getMessage());
+          
         }
 
-        response.commit();
-
-        if (response.getKeepAlive()) {
-          final InputStream is = request.getRawInputStream();
+        responseImpl.commit();
+        // Activator.log.debug(Thread.currentThread().getName() + " - response.KeepAlive: " + responseImpl.getKeepAlive());
+        
+        if (responseImpl.getKeepAlive()) {
+          // Activator.log.info(Thread.currentThread().getName() + " - we are trying to keep-alive");
+          
+          final InputStream is = requestImpl.getRawInputStream();
+          // Activator.log.info(Thread.currentThread().getName() + " markSupported()=" + is.markSupported()); 
           if (is != null && is.markSupported()) {
             is.mark(4);
-            if (is.read() != '\r' || is.read() != '\n') {
+            int i = is.read();
+            if (i == -1) {
+              // Activator.log.info(Thread.currentThread().getName() + " - EOF on keep alive connection, giving up");
+              break;
+            }
+            //if (is.read() != '\r' || is.read() != '\n') {
+            if (i != '\r' || i != '\n') {
               is.reset();
             }
+            else {
+            }
           }
+          requestImpl.reset(true);
+          responseImpl.resetHard();
         } else {
           break;
         }
 
-        request.destroy();
-        response.destroy();
       }
 
     } catch (final SocketException se) {
       // ignore: client closed socket
+      if (log.doDebug())
+        Activator.log.debug(Thread.currentThread().getName() + "SocketException=" + se);
     } catch (final InterruptedIOException iioe) {
       // ignore: keep alive socket timeout
+      if (log.doDebug())  
+        Activator.log.debug(Thread.currentThread().getName() + "InterrupterIOException=" + iioe);
     } catch (final IOException ioe) {
       // ignore: broken pipe
+      if (log.doDebug())
+        Activator.log.error(Thread.currentThread().getName() + " - IOException:" + ioe, ioe);
     } catch (final ThreadDeath td) {
+      Activator.log.info(Thread.currentThread().getName() + "ThreadDeath=" + td);
       throw td;
     } catch (final Throwable t) {
       if (log.doError()) {
         log.error("Internal error: " + t, t);
       }
       try {
-        response.init(os, request, httpConfig);
-        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+        responseImpl.init(os, requestImpl, httpConfig);
+        responseImpl.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                            "Internal error: " + t);
       } catch (final IOException ignore) {
       }
     } finally {
-
-      requestPool.put(request);
-      responsePool.put(response);
-
+      long duration = System.currentTimeMillis() - startTime;
+      if (Activator.log.doDebug())
+        Activator.log.debug(Thread.currentThread().getName() + " - finally(), count=" + requestCount + " duration=" + duration);
+      
+      if (reservedKeepAlive)
+        transManager.releaseKeepAlive();
+      
       if (is != null) {
         try {
           is.close();
@@ -217,7 +257,6 @@ public class Transaction
       }
       if (os != null) {
         try {
-          // os.flush();
           os.close();
         } catch (final Exception ignore) {
         }
@@ -231,18 +270,26 @@ public class Transaction
     }
   }
 
-  // implements PoolableObject
-
-  public void init()
+  public void init(RequestImpl requestImpl, ResponseImpl responseImpl)
   {
+    this.requestImpl = requestImpl;
+    this.responseImpl = responseImpl;
+    
   }
 
-  public void destroy()
+  public int getRequestCount()
   {
-
-    client = null;
-    is = null;
-    os = null;
+    return requestCount;
   }
+  
+  public void closeConnection() {
+    if (client != null)
+      try {
+        client.close();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
 
 } // Transaction

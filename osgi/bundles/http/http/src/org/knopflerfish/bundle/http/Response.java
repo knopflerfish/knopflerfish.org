@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@
 
 package org.knopflerfish.bundle.http;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletResponse;
@@ -45,5 +47,7 @@ interface Response
   // public methods
 
   public OutputStream getRawOutputStream();
+  
+  public void copy(InputStream is) throws IOException;
 
 } // Response

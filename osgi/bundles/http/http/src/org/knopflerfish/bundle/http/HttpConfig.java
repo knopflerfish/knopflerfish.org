@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013 KNOPFLERFISH project
+ * Copyright (c) 2003-2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,7 +78,28 @@ public class HttpConfig
     "org.knopflerfish.http.limit.postsize";
   public final static String LIMIT_REQUEST_HEADERS =
     "org.knopflerfish.http.limit.requestheaders";
-
+  
+  // Maximum number of request worker threads
+  public final static String MAX_WORKER_THREADS_KEY = "org.knopflerfish.http.threads.max";
+  private final static int DEFAULT_THREADS_MAX = 5;
+  private int threadsMax = DEFAULT_THREADS_MAX;
+  
+//Maximum number of keep-alive worker threads. Should always be at least one less than max threads
+  public final static String KEEP_ALIVE_THREADS_KEY = "org.knopflerfish.http.threads.keep_alive";
+  private final static int DEFAULT_THREADS_KEEP_ALIVE = 4;
+  private int threadsKeepAlive = DEFAULT_THREADS_KEEP_ALIVE;
+  
+  //  Timeout in milliseconds after which an idle thread stops
+  public final static String IDLE_WORKER_THREAD_TIMEOUT_KEY = "org.knopflerfish.http.threads.idle_timeout";
+  private final static int DEFAULT_THREADS_IDLE_TIMEOUT = 15000;  
+  private int threadsIdleTimeout = DEFAULT_THREADS_IDLE_TIMEOUT;
+  
+  // Comma-separated list of mime types that will always be compressed.  
+  // Just specifying the type and leaving out the subtype applies compression to all subtypes
+  // E.g. "text" will apply to text/html, text/plain etc
+  public final static String ALWAYS_ZIP_MIME_TYPES_KEY = "org.knopflerfish.http.always_compress.mime_types";
+  private final static String DEFAULT_ALWAYS_ZIP_MIME_TYPES = "text";
+  private final Hashtable<String, String> compressMimeTypes = new Hashtable<String, String>(10);
   //
   public HttpConfigWrapper HTTP = new HttpConfigWrapper(false, this);
   public HttpConfigWrapper HTTPS = new HttpConfigWrapper(true, this);
@@ -94,8 +115,8 @@ public class HttpConfig
   private int connectionTimeout = 30;
   private int connectionMax = 50;
   private boolean dnsLookup = true;
-  private int defaultResponseBufferSize = 16384;
-
+  private int defaultResponseBufferSize = 8192;
+  
   // private int serviceRanking = 1000; // NYI
   private boolean httpsEnabled = true;
   private boolean httpEnabled = true;
@@ -211,7 +232,15 @@ public class HttpConfig
                getPropertyAsBoolean(bc,
                                     "org.knopflerfish.http.req.client.auth",
                                     "false"));
-
+    config.put(HttpConfig.MAX_WORKER_THREADS_KEY,
+               getPropertyAsInteger(bc, HttpConfig.MAX_WORKER_THREADS_KEY, DEFAULT_THREADS_MAX));
+    config.put(HttpConfig.KEEP_ALIVE_THREADS_KEY,
+               getPropertyAsInteger(bc, HttpConfig.KEEP_ALIVE_THREADS_KEY, DEFAULT_THREADS_KEEP_ALIVE));
+    config.put(HttpConfig.IDLE_WORKER_THREAD_TIMEOUT_KEY,
+               getPropertyAsInteger(bc, HttpConfig.IDLE_WORKER_THREAD_TIMEOUT_KEY, DEFAULT_THREADS_IDLE_TIMEOUT));
+    config.put(HttpConfig.ALWAYS_ZIP_MIME_TYPES_KEY,
+               getPropertyAsString(bc, HttpConfig.ALWAYS_ZIP_MIME_TYPES_KEY, DEFAULT_ALWAYS_ZIP_MIME_TYPES));
+               
     return config;
   }
 
@@ -292,6 +321,18 @@ public class HttpConfig
           this.configuration.put(key, value);
         } else if (key.equals(REQ_CLIENT_AUTH_KEY)) {
           this.requireClientAuth = ((Boolean) value).booleanValue();
+          this.configuration.put(key, value);
+        } else if (key.equals(MAX_WORKER_THREADS_KEY)) {
+          this.threadsMax = ((Integer) value).intValue();
+          this.configuration.put(key, value);
+        } else if (key.equals(KEEP_ALIVE_THREADS_KEY)) {
+          this.threadsKeepAlive = ((Integer) value).intValue();
+          this.configuration.put(key, value);
+        } else if (key.equals(IDLE_WORKER_THREAD_TIMEOUT_KEY)) {
+          this.threadsIdleTimeout = ((Integer) value).intValue();
+          this.configuration.put(key, value);
+        } else if (key.equals(ALWAYS_ZIP_MIME_TYPES_KEY)) {
+          parseCompressMimeTypes((String)value);
           this.configuration.put(key, value);
         } else {
           this.configuration.put(key, value);
@@ -414,12 +455,35 @@ public class HttpConfig
     return defaultCharEncoding;
   }
 
+  public int getMaxThreads() {
+    return threadsMax;
+  }
+  
+  public int getKeepAliveThreads() {
+    return threadsKeepAlive;
+  }
+  
+  public int getThreadIdleTimeout() {
+    return threadsIdleTimeout;
+  }
+  
   public void updated(Dictionary<String, ?> configuration)
       throws ConfigurationException
   {
     mergeConfiguration(configuration);
   }
 
+  
+  public boolean checkCompressMimeType(String type) {
+    
+    if (compressMimeTypes.containsKey(type))
+      return true;
+    final int ix = type.indexOf('/');
+    if (ix == -1)
+      return false;
+    return compressMimeTypes.containsKey(type.substring(0,ix));
+  }
+  
   // private helper methods
   private static Boolean getPropertyAsBoolean(BundleContext bc,
                                               String name,
@@ -443,6 +507,14 @@ public class HttpConfig
   {
     final String val = bc.getProperty(name);
     return val == null ? defVal : val;
+  }
+  
+  private void parseCompressMimeTypes(String value) {
+    compressMimeTypes.clear();
+    String[] types = value.split("\\s*,\\s*");
+    for (int i = 0; i < types.length; i++) {
+      compressMimeTypes.put(types[i], types[i]);
+    }
   }
 
 } // HttpConfig

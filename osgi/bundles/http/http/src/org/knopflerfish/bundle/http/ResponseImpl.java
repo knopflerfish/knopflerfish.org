@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2013,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.http;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -52,10 +53,11 @@ import java.util.Vector;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 public class ResponseImpl
-  implements Response, PoolableObject
+  implements Response 
 {
   // private fields
 
@@ -66,6 +68,8 @@ public class ResponseImpl
   private String statusMsg = null;
 
   private boolean keepAlive = false;
+  
+  private boolean chunked = false;
 
   private final Hashtable<String, List<String>> headers =
     new Hashtable<String, List<String>>();
@@ -74,7 +78,7 @@ public class ResponseImpl
 
   private RequestImpl request = null;
 
-  private BodyOutputStream bodyOut = null;
+  private BodyOutputStreamZip bodyOut = null;
 
   private ServletOutputStream sos = null;
 
@@ -88,16 +92,27 @@ public class ResponseImpl
 
   private Locale locale;
 
+  private boolean useGzip = false;
+    
+  private boolean emptyBody = false;
+  
+  byte[] copyBuffer = new byte[4096];
+  
+  
   // private methods
 
-  private void reset(boolean reset_headers)
+  void reset(boolean reset_headers)
   {
+    
     if (isCommitted()) {
       throw new IllegalStateException("Cannot reset committed buffer");
     }
 
-    bodyOut.reset();
-
+    bodyOut.reset(false);
+    
+    emptyBody = false;
+    useGzip = false;
+    
     if (reset_headers) {
       statusCode = SC_OK;
       statusMsg = null;
@@ -111,6 +126,25 @@ public class ResponseImpl
       sos = null;
       pw = null;
     }
+  }
+  
+  void resetHard() {
+    bodyOut.reset(false);
+    useGzip = false;
+    
+    statusCode = SC_OK;
+    statusMsg = null;
+
+    headers.clear();
+    cookies.removeAllElements();
+
+    contentTypeBare = null;
+    charEncoding = null;
+    locale = null;
+    sos = null;
+    pw = null;
+    emptyBody = false;
+    
   }
 
   // public methods
@@ -126,12 +160,24 @@ public class ResponseImpl
   {
     this.httpConfig = httpConfig;
     this.request = request;
-
-    if (request != null) {
-      keepAlive = request.getKeepAlive();
+    useGzip = false;
+    
+    if (bodyOut == null)
+      try {
+        bodyOut = new BodyOutputStreamZip(os, this, httpConfig.getDefaultBufferSize());
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    else {
+      bodyOut.init(os, this);
     }
 
-    bodyOut = new BodyOutputStream(os, this, httpConfig.getDefaultBufferSize());
+  }
+  
+  public void handle() {
+    keepAlive = request.getKeepAlive();
+    chunked = request.isHTTP_1_1();
   }
 
   public String getContentType()
@@ -144,6 +190,10 @@ public class ResponseImpl
     reset(false);
   }
 
+  public void setKeepAlive(boolean b) {
+    keepAlive = b;
+  }
+
   public boolean getKeepAlive()
   {
     return keepAlive;
@@ -154,19 +204,42 @@ public class ResponseImpl
     if (statusMsg == null) {
       setStatus(statusCode);
     }
-
-    if (keepAlive && containsHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY)) {
-      // Connection: Keep-Alive should only be set for HTTP/1.0 clients?
-      setHeader(HeaderBase.CONNECTION_HEADER_KEY, "Keep-Alive");
-      keepAlive = true;
-    } else {
-      setHeader(HeaderBase.CONNECTION_HEADER_KEY, "Close");
-      keepAlive = false;
+    
+    if (statusCode == SC_NOT_MODIFIED) {
+      chunked = false;
     }
 
+    // We only set keep-alive for OK and NOT_MODIFIED. Not for errors
+    if (keepAlive) {
+      if (statusCode >= 200 && statusCode < 300) {
+        if (chunked || containsHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY)) {
+          keepAlive = true;
+        }
+      }
+      else if (statusCode == SC_NOT_MODIFIED) { // No body response
+        keepAlive = true;
+      }
+    }
+    
+    // Only set Keep-Alive for HTTP/1.0 clients. HTTP/1.1 assumes it's the default
+    // Also in HTTP/1.1 close is set to indicate we will close the connection
+    if (!keepAlive) {
+      setHeader(HeaderBase.CONNECTION_HEADER_KEY, "Close");
+    }
+    else if (!request.isHTTP_1_1()) {
+      setHeader(HeaderBase.CONNECTION_HEADER_KEY, "Keep-Alive");
+    }
+    
+    if (useGzip)
+      setHeader(HeaderBase.CONTENT_ENCODING, "Gzip");
+    
     setDateHeader(HeaderBase.DATE_HEADER_KEY, System.currentTimeMillis());
     setHeader("MIME-Version", "1.0");
     setHeader("Server", httpConfig.getServerInfo());
+    
+    if (chunked) {
+      setHeader(HeaderBase.TRANSFER_ENCODING_KEY, HeaderBase.TRANSFER_ENCODING_VALUE_CHUNKED);
+    }
 
     // set session cookie
     HttpSession session = null;
@@ -288,18 +361,13 @@ public class ResponseImpl
       pw.flush();
     }
 
-    if (!containsHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY) && !isCommitted()) {
+    if (!isChunked() && !containsHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY) && !isCommitted()) {
       setContentLength(bodyOut.getBufferByteCount());
     }
 
-    flushBuffer();
+    bodyOut.flushBuffer(true);
   }
 
-  // implements PoolableObject
-
-  public void init()
-  {
-  }
 
   public void destroy()
   {
@@ -311,7 +379,15 @@ public class ResponseImpl
     cookies.removeAllElements();
 
     request = null;
+   
+    try {
+      bodyOut.close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     bodyOut = null;
+    
     sos = null;
     pw = null;
     charEncoding = null;
@@ -319,12 +395,6 @@ public class ResponseImpl
     locale = null;
   }
 
-  // implements Response
-
-  public OutputStream getRawOutputStream()
-  {
-    return bodyOut;
-  }
 
   // implements HttpServletResponse
 
@@ -460,8 +530,9 @@ public class ResponseImpl
   public void sendError(int statusCode, String statusMsg)
       throws IOException
   {
+    Activator.log.info(Thread.currentThread().getName() + " send error: " + statusMsg);
     reset(false);
-
+    
     setStatus(statusCode, statusMsg);
     setContentType("text/html");
 
@@ -497,7 +568,7 @@ public class ResponseImpl
   public void sendRedirect(String url)
       throws IOException
   {
-
+    // Activator.log.info("sendRedirect() url=" + url);
     setHeader("Location", url);
     sendError(SC_MOVED_TEMPORARILY);
   }
@@ -509,20 +580,26 @@ public class ResponseImpl
 
   public void setStatus(int statusCode, String statusMsg)
   { // deprecated
-
+    // Activator.log.info("setStatus() statusCode=" + statusCode);
     if (statusMsg == null) {
       statusMsg = HttpUtil.getStatusMessage(statusCode);
     }
 
     this.statusCode = statusCode;
     this.statusMsg = statusMsg;
+    
+    updateResponseFromStatus();
   }
 
   // implements ServletResponse
 
   public void setContentLength(int contentLength)
   {
-
+     // Activator.log.info("setContentLength(), length=" + contentLength);
+    chunked = false;
+    useGzip = false;
+    bodyOut.reset(false);
+    
     if (contentLength < 0) {
       setHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY, null);
     } else {
@@ -559,6 +636,7 @@ public class ResponseImpl
       throws IOException
   {
     bodyOut.flushBuffer();
+    // responseBody.flushBuffer();
   }
 
   public ServletOutputStream getOutputStream()
@@ -570,6 +648,7 @@ public class ResponseImpl
 
     if (sos == null) {
       sos = new ServletOutputStreamImpl(bodyOut);
+      // sos = new ServletOutputStreamImpl(bodyOut);
     }
 
     return sos;
@@ -635,6 +714,13 @@ public class ResponseImpl
                 HttpUtil.buildContentType(contentTypeBare,
                                           getCharacterEncoding()));
     }
+    
+    if (!bodyOut.inProgress() &&
+        httpConfig.checkCompressMimeType(contentTypeBare) &&
+        HttpUtil.useGZIPEncoding(request)) {
+      useGzip = true;
+      bodyOut.useGzip();
+    }
   }
 
   public void setCharacterEncoding(String enc)
@@ -659,5 +745,55 @@ public class ResponseImpl
     }
     return charEncoding;
   }
+  
+  public boolean isChunked() {
+    return chunked;
+  }
 
+  private void log(String s) {
+    Activator.log.info(Thread.currentThread().getName() + " - " + s);
+  }
+
+  public void setEmptyBody(boolean b) {
+    this.emptyBody = b;
+    if (emptyBody) {
+      useGzip = false;
+      chunked = false;
+      bodyOut.reset(false);
+    }
+  }
+  
+  public boolean useGzip()
+  {
+    return false;
+    // return useGzip;
+  }
+  
+  private void updateResponseFromStatus() {
+    if (isEmptyBodyStatus()) {
+      setEmptyBody(true);
+    }
+  }
+  
+  private boolean isEmptyBodyStatus() {
+    if (statusCode == SC_NOT_MODIFIED)
+      return true;
+    return false;
+  }
+  
+  
+  // Implements Response
+  @Override
+  public OutputStream getRawOutputStream() {
+    return bodyOut;
+  }
+  
+  @Override
+  public void copy(InputStream is) throws IOException {
+    int bytesRead;
+    
+    while ((bytesRead = is.read(copyBuffer)) != -1) {
+      bodyOut.write(copyBuffer, 0, bytesRead);
+    }
+  }
 } // ResponseImpl

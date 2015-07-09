@@ -148,8 +148,8 @@ public class HttpCommandGroup
         final TransactionManager transManager = httpServer.getTransactionManager();
         out.println("    " + "Thread Group: " + transManager.getName());
         out.println("    " + "Active Threads: " + transManager.activeCount());
-        out.println("    " + "Transactions Handled: "
-                    + transManager.getTransactionCount());
+        out.println("    " + "Transactions Handled: " + transManager.getTransactionCount());
+        out.println("    " + "Requests Handled    : " + transManager.getRequestCount());
       }
     }
     return 0;

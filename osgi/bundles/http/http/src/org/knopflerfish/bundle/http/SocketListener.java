@@ -337,6 +337,7 @@ public class SocketListener
 
     final String sch = httpConfig.getScheme().toUpperCase();
 
+    transactionManager.initialize();
     if (log.doInfo()) {
       log.info(sch + " server started on port " + port);
     }
@@ -350,28 +351,30 @@ public class SocketListener
   {
     done = true;
 
-    Thread[] threads = new Thread[transactionManager.activeCount()];
-    transactionManager.enumerate(threads);
-    for (final Thread thread2 : threads) {
-      if (thread2 != null) {
-        thread2.interrupt();
-      }
-    }
-
-    threads = new Thread[transactionManager.activeCount()];
-    transactionManager.enumerate(threads);
-    for (final Thread thread2 : threads) {
-      if (thread2 != null) {
-        try {
-          thread2.join(5000);
-        } catch (final InterruptedException ignore) {
-        }
-        if (thread2.isAlive()) {
-          // TBD, threads[i].stop();
-          log.error("Thread " + thread2 + ", refuse to stop");
-        }
-      }
-    }
+    transactionManager.shutdown();
+    
+//    Thread[] threads = new Thread[transactionManager.activeCount()];
+//    transactionManager.enumerate(threads);
+//    for (final Thread thread2 : threads) {
+//      if (thread2 != null) {
+//        thread2.interrupt();
+//      }
+//    }
+//
+//    threads = new Thread[transactionManager.activeCount()];
+//    transactionManager.enumerate(threads);
+//    for (final Thread thread2 : threads) {
+//      if (thread2 != null) {
+//        try {
+//          thread2.join(5000);
+//        } catch (final InterruptedException ignore) {
+//        }
+//        if (thread2.isAlive()) {
+//          // TBD, threads[i].stop();
+//          log.error("Thread " + thread2 + ", refuse to stop");
+//        }
+//      }
+//    }
 
     if (thread != null) {
       thread.interrupt();
@@ -443,7 +446,8 @@ public class SocketListener
   {
     ServerSocket socket = this.socket;
     Socket client = null;
-
+    System.out.println("starting up");
+    
     while (!done) {
 
       try {
@@ -466,7 +470,7 @@ public class SocketListener
             break;
           }
         }
-
+        
         transactionManager.startTransaction(client, httpConfig);
 
       } catch (final InterruptedIOException iioe) {
