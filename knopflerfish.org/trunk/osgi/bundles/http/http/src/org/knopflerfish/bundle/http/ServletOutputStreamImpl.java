@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,12 +46,14 @@ public class ServletOutputStreamImpl
   // private fields
 
   private final OutputStream out;
+  private boolean isClosed;
 
   // constructors
 
   public ServletOutputStreamImpl(final OutputStream out)
   {
     this.out = out;
+    this.isClosed = false;
   }
 
   // extends ServletOutputStream
@@ -60,9 +62,22 @@ public class ServletOutputStreamImpl
   public void write(final int b)
       throws IOException
   {
+    if (isClosed)
+      throw new IllegalStateException("Stream is closed");
+    
     out.write(b);
   }
 
+  @Override
+  public void write(byte b[], int off, int len)
+      throws IOException
+  {
+    if (isClosed)
+      throw new IllegalStateException("Stream is closed");
+    
+    out.write(b, off, len);
+  }
+  
   @Override
   public void flush()
       throws IOException
@@ -70,4 +85,12 @@ public class ServletOutputStreamImpl
     out.flush();
   }
 
+  @Override
+  public void close()
+      throws IOException
+  {
+    // flush and set stream to closed
+    flush();
+    isClosed = true;
+  }
 } // ServletOutputStreamImpl

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2011, KNOPFLERFISH project
+ * Copyright (c) 2004-2015, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -147,6 +147,11 @@ public class HttpConfigWrapper
   public boolean requireClientAuth()
   {
     return config.requireClientAuth();
+  }
+
+  public boolean checkCompressMimeType(String type)
+  {
+    return config.checkCompressMimeType(type);
   }
 
 }

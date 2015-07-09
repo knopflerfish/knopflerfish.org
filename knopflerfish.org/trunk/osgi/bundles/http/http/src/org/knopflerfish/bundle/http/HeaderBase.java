@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2011,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,10 +112,14 @@ public class HeaderBase
 
   // public methods
 
-  public void init(ServletInputStreamImpl in, HttpConfigWrapper httpConfig)
+  public void init(/* ServletInputStreamImpl in,*/ HttpConfigWrapper httpConfig)
       throws HttpException, IOException
   {
     this.httpConfig = httpConfig;
+    // parseHeaders(in);
+  }
+  
+  public void handle(ServletInputStreamImpl in) throws HttpException, IOException {
     parseHeaders(in);
   }
 
@@ -131,6 +135,18 @@ public class HeaderBase
     locales.clear();
   }
 
+  public void reset()
+  {
+    headers.clear();
+
+    contentType = null;
+    contentLength = NO_VALUE;
+    characterEncoding = null;
+
+    cookies.clear();
+    locales.clear();
+  }
+  
   public String getHeader(String name)
   {
     final ArrayList<?> values = (ArrayList<?>) headers.get(name.toLowerCase());
@@ -235,7 +251,7 @@ public class HeaderBase
 
     String line = in.readLine();
     while (line != null && line.length() > 0) {
-
+//      Activator.log.info(Thread.currentThread().getName() + " - Attempting to parse: " + line);
       if (headers.size() > limit) {
         throw new HttpException(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE);
       }

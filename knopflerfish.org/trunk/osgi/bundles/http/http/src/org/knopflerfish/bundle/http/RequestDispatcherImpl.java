@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2013,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@
 package org.knopflerfish.bundle.http;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,8 +49,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Stack;
-import java.util.zip.GZIPOutputStream;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -65,9 +62,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.service.http.HttpContext;
-
 import org.knopflerfish.service.log.LogRef;
+import org.osgi.service.http.HttpContext;
 
 public class RequestDispatcherImpl
   implements RequestDispatcher
@@ -93,12 +89,14 @@ public class RequestDispatcherImpl
 
   private String pathInfo = null;
 
+  private URL resourceURL = null;
+  
   /**
    * HACK CSM
    */
   private final long lastModificationDate;
-
-  // constructors
+  
+   // constructors
 
   /**
    * HACK CSM
@@ -106,7 +104,7 @@ public class RequestDispatcherImpl
   RequestDispatcherImpl(final String servletPath, final Servlet servlet,
                         final HttpContext httpContext, long newDate)
   {
-    this(servletPath, servlet, httpContext, null, newDate);
+    this(servletPath, servlet, httpContext, null, newDate, null);
   }
 
   /**
@@ -114,18 +112,19 @@ public class RequestDispatcherImpl
    */
   RequestDispatcherImpl(final String servletPath, final Servlet servlet,
                         final HttpContext httpContext,
-                        final ServletConfig config, long newDate)
+                        final ServletConfig config, long newDate, URL resourceURL)
   {
     this.servletPath = servletPath;
     this.servlet = servlet;
     this.httpContext = httpContext;
     this.config = config;
     lastModificationDate = newDate;
+    this.resourceURL = resourceURL;
   }
 
   // private methods
 
-  private void service(HttpServletRequest request, HttpServletResponse response)
+  private void service(Request request, Response response)
       throws IOException, ServletException
   {
     if (httpContext.handleSecurity(request, response)) {
@@ -150,14 +149,18 @@ public class RequestDispatcherImpl
         if (servlet instanceof SingleThreadModel) {
           synchronized (servlet) {
             if (config == null) {
+              // Activator.log.info("Serving: " + uri);
               servlet.service(request, response);
+              // Activator.log.info("Served: " + uri);
             } else {
               serviceResource(request, response, config);
             }
           }
         } else {
           if (config == null) {
+            // Activator.log.info(Thread.currentThread().getName() + " Serving: " + uri);
             servlet.service(request, response);
+            // Activator.log.info(Thread.currentThread().getName() + " Served: " + uri);
           } else {
             serviceResource(request, response, config);
           }
@@ -172,8 +175,8 @@ public class RequestDispatcherImpl
     }
   }
 
-  private void serviceResource(HttpServletRequest request,
-                               HttpServletResponse response,
+  private void serviceResource(Request request,
+                               Response response,
                                ServletConfig config)
       throws IOException, ServletException
   {
@@ -192,11 +195,12 @@ public class RequestDispatcherImpl
     }
   }
 
-  private void serviceGet(HttpServletRequest request,
-                          HttpServletResponse response,
+  private void serviceGet(Request request,
+                          Response response,
                           ServletConfig config)
       throws IOException
   {
+    // Activator.log.info("serviceGet()");
     String uri =
       (String) request.getAttribute("javax.servlet.include.request_uri");
     if (uri == null) {
@@ -208,11 +212,15 @@ public class RequestDispatcherImpl
     if (uri.endsWith(".shtml")) {
       serviceSSIResource(uri, response, config, useGzip);
     } else {
+
+
       final String target = HttpUtil.makeTarget(uri, servletPath);
       final ServletContext context = config.getServletContext();
-      final URL url = context.getResource(target);
+      // final URL url = context.getResource(target);
+      final URLConnection resource = resourceURL.openConnection();
+
       // HACK CSM
-      final long date = getLastModified(url);
+      final long date = getLastModified(resource);
       if (date > -1) {
         try {
           final long if_modified = request.getDateHeader("If-Modified-Since");
@@ -232,12 +240,13 @@ public class RequestDispatcherImpl
         response.setDateHeader("Last-Modified", date);
       }
       // END HACK CSM
-      final URLConnection resource = url.openConnection();
-
+      
       String contentType = context.getMimeType(target);
+      
       if (contentType == null) {
         contentType = resource.getContentType();
       }
+      
       if (contentType != null) {
         final String encoding = resource.getContentEncoding();
         if (encoding != null) {
@@ -246,62 +255,8 @@ public class RequestDispatcherImpl
         response.setContentType(contentType);
       }
 
-      // NOTE: When useGzip is true (Content-Encoding gzip) buffering
-      // is required, since the actual content-length is not
-      // available until after gzip:ing the contents.
-
-      // HACK CSM for Linux: contentLength will always be 0. To
-      // handle that, we must also buffer the data read from
-      // the URL-connection.
-
-      int totalBytesRead = 0;
-      // Output stream to write to when buffering is needed.
-      OutputStream buos = null;
-      // The buffer.
-      ByteArrayOutputStream baos = null;
-      // Filter on top of the buffer when gzip:ing.
-      @SuppressWarnings("resource")
-      GZIPOutputStream gzos = null;
-
-      final int contentLength = resource.getContentLength();
-      if (contentLength > 0 && !useGzip) {
-        response.setContentLength(contentLength);
-      } else {
-        final int size = contentLength > 0 ? contentLength + 25 : 512;
-        buos = baos = new ByteArrayOutputStream(size);
-        if (useGzip) {
-          gzos = new GZIPOutputStream(baos);
-          buos = gzos;
-        }
-      }
-
       final InputStream is = resource.getInputStream();
-      final OutputStream os = response.getOutputStream();
-
-      int bytesRead = 0;
-      final byte buffer[] = new byte[512];
-      while ((bytesRead = is.read(buffer)) != -1) {
-        if (null == buos) {
-          os.write(buffer, 0, bytesRead);
-        } else {
-          // Buffer data to be able to compute the true content length
-          buos.write(buffer, 0, bytesRead);
-          totalBytesRead += bytesRead;
-        }
-      }
-      if (null != buos) {
-        if (null != gzos) { // Content-Encoding: gzip
-          gzos.finish();
-          response.addHeader(HeaderBase.CONTENT_ENCODING, "gzip");
-          response.setContentLength(baos.size());
-          baos.writeTo(os);
-        } else { // Initially unknown content length.
-          if (totalBytesRead > 0) {
-            response.setContentLength(totalBytesRead);
-            baos.writeTo(os);
-          }
-        }
-      }
+      response.copy(is);
       is.close();
     }
   }
@@ -488,6 +443,7 @@ public class RequestDispatcherImpl
 
   // implements RequestDispatcher
 
+  @Override
   public void forward(ServletRequest request, ServletResponse response)
       throws IOException, ServletException
   {
@@ -502,11 +458,12 @@ public class RequestDispatcherImpl
     }
     response.reset();
 
-    service((HttpServletRequest) request, (HttpServletResponse) response);
+    service((RequestImpl) request, (ResponseImpl) response);
 
     response.flushBuffer();
   }
 
+  @Override
   public void include(ServletRequest request, ServletResponse response)
       throws IOException, ServletException
   {
@@ -515,9 +472,9 @@ public class RequestDispatcherImpl
       throw new ServletException("Must be http request");
     }
 
-    final HttpServletRequest wrappedRequest =
+    final RequestWrapper wrappedRequest =
       new RequestWrapper((HttpServletRequest) request);
-    final HttpServletResponse wrappedResponse =
+    final ResponseWrapper wrappedResponse =
       new ResponseWrapper((HttpServletResponse) response);
 
     wrappedRequest.setAttribute("javax.servlet.include.request_uri", uri);
@@ -553,14 +510,17 @@ public class RequestDispatcherImpl
    * time.
    *
    */
-  protected long getLastModified(URL resUrl)
+  protected long getLastModified(URLConnection conn)
   {
     long lastModified = 0;
 
+     
     try {
       // Get last modified time
-      final URLConnection conn = resUrl.openConnection();
+      // final URLConnection conn = resUrl.openConnection();
       lastModified = conn.getLastModified();
+      //conn.getInputStream().close();
+      //((HttpURLConnection)conn).disconnect();
     } catch (final Exception e) {
       // do nothing
     }
@@ -569,8 +529,8 @@ public class RequestDispatcherImpl
       // Arguably a bug in the JRE will not set the lastModified
       // for file URLs, and always return 0. This is a
       // workaround for that problem.
-      final String filepath = resUrl.getPath();
-
+      //final String filepath = resUrl.getPath();
+      final String filepath = conn.getURL().getPath();
       if (filepath != null) {
         final File f = new File(filepath);
         if (f.exists()) {
@@ -602,15 +562,15 @@ public class RequestDispatcherImpl
  */
 // file private
 class NoBodyResponse
-  implements HttpServletResponse
+  implements Response
 {
-  private final HttpServletResponse resp;
+  private final Response resp;
   private final NoBodyOutputStream noBody;
   private PrintWriter writer;
   private boolean didSetContentLength;
 
   // file private
-  NoBodyResponse(HttpServletResponse r)
+  NoBodyResponse(Response r)
   {
     resp = r;
     noBody = new NoBodyOutputStream();
@@ -626,38 +586,45 @@ class NoBodyResponse
 
   // SERVLET RESPONSE interface methods
 
+  @Override
   public void setContentLength(int len)
   {
     resp.setContentLength(len);
     didSetContentLength = true;
   }
 
+  @Override
   public void setCharacterEncoding(String charset)
   {
     resp.setCharacterEncoding(charset);
   }
 
+  @Override
   public void setContentType(String type)
   {
     resp.setContentType(type);
   }
 
+  @Override
   public String getContentType()
   {
     return resp.getContentType();
   }
 
+  @Override
   public ServletOutputStream getOutputStream()
       throws IOException
   {
     return noBody;
   }
 
+  @Override
   public String getCharacterEncoding()
   {
     return resp.getCharacterEncoding();
   }
 
+  @Override
   public PrintWriter getWriter()
       throws UnsupportedEncodingException
   {
@@ -670,45 +637,53 @@ class NoBodyResponse
     return writer;
   }
 
+  @Override
   public void setBufferSize(int size)
       throws IllegalStateException
   {
     resp.setBufferSize(size);
   }
 
+  @Override
   public int getBufferSize()
   {
     return resp.getBufferSize();
   }
 
+  @Override
   public void reset()
       throws IllegalStateException
   {
     resp.reset();
   }
 
+  @Override
   public void resetBuffer()
       throws IllegalStateException
   {
     resp.resetBuffer();
   }
 
+  @Override
   public boolean isCommitted()
   {
     return resp.isCommitted();
   }
 
+  @Override
   public void flushBuffer()
       throws IOException
   {
     resp.flushBuffer();
   }
 
+  @Override
   public void setLocale(Locale loc)
   {
     resp.setLocale(loc);
   }
 
+  @Override
   public Locale getLocale()
   {
     return resp.getLocale();
@@ -716,93 +691,120 @@ class NoBodyResponse
 
   // HTTP SERVLET RESPONSE interface methods
 
+  @Override
   public void addCookie(Cookie cookie)
   {
     resp.addCookie(cookie);
   }
 
+  @Override
   public boolean containsHeader(String name)
   {
     return resp.containsHeader(name);
   }
 
   /* @deprecated */
+  @Override
   public void setStatus(int sc, String sm)
   {
     resp.setStatus(sc, sm);
   }
 
+  @Override
   public void setStatus(int sc)
   {
     resp.setStatus(sc);
   }
 
+  @Override
   public void setHeader(String name, String value)
   {
     resp.setHeader(name, value);
   }
 
+  @Override
   public void setIntHeader(String name, int value)
   {
     resp.setIntHeader(name, value);
   }
 
+  @Override
   public void setDateHeader(String name, long date)
   {
     resp.setDateHeader(name, date);
   }
 
+  @Override
   public void sendError(int sc, String msg)
       throws IOException
   {
     resp.sendError(sc, msg);
   }
 
+  @Override
   public void sendError(int sc)
       throws IOException
   {
     resp.sendError(sc);
   }
 
+  @Override
   public void sendRedirect(String location)
       throws IOException
   {
     resp.sendRedirect(location);
   }
 
+  @Override
   public String encodeURL(String url)
   {
     return resp.encodeURL(url);
   }
 
+  @Override
   public String encodeRedirectURL(String url)
   {
     return resp.encodeRedirectURL(url);
   }
 
+  @Override
   public void addHeader(String name, String value)
   {
     resp.addHeader(name, value);
   }
 
+  @Override
   public void addDateHeader(String name, long value)
   {
     resp.addDateHeader(name, value);
   }
 
+  @Override
   public void addIntHeader(String name, int value)
   {
     resp.addIntHeader(name, value);
   }
 
+  @Override
   public String encodeUrl(String url)
   {
     return this.encodeURL(url);
   }
 
+  @Override
   public String encodeRedirectUrl(String url)
   {
     return this.encodeRedirectURL(url);
+  }
+  
+  @Override
+  public OutputStream getRawOutputStream() {
+    return null;
+  }
+  
+  @Override
+  public void copy(InputStream is) throws IOException {
+    ; // DOES NOTHING
   }
 
 }

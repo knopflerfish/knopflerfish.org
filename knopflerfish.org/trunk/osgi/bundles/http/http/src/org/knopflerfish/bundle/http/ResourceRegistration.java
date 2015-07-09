@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2012,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.http;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Hashtable;
 
 import javax.servlet.ServletConfig;
@@ -84,31 +85,32 @@ public class ResourceRegistration
 
   // private methods
 
-  private boolean exists(String path)
+  private URL getResource(String path)
   {
     if (path.startsWith(alias)) {
       try {
-        return context.getResource(HttpUtil.makeTarget(path, alias)) != null;
+        return context.getResource(HttpUtil.makeTarget(path, alias));
       } catch (final MalformedURLException ignore) {
       }
     }
 
-    return false;
+    return null;
   }
 
   // implements Registration
-
+  @Override
   public RequestDispatcherImpl getRequestDispatcher(String uri)
   {
-    if (!exists(uri)) {
+    final URL url = getResource(uri);
+    
+    if (url == null)
       return null;
-    }
-
+    
     final RequestDispatcherImpl dispatcher =
       new RequestDispatcherImpl(alias, null, httpContext, config,
-                                lastModificationDate);
+                                lastModificationDate, url);
     dispatcher.setURI(uri);
-
+    
     return dispatcher;
   }
 
@@ -118,16 +120,19 @@ public class ResourceRegistration
     return lastModificationDate;
   }
 
+  @Override
   public void destroy()
   {
     contextManager.ungetServletContext(context);
   }
 
+  @Override
   public void setOwner(Object o)
   {
     this.owner = o;
   }
 
+  @Override
   public Object getOwner()
   {
     return owner;

@@ -245,6 +245,43 @@ Usage: list [-help] [-c] [-r] [-t] [-l]
     <td>int</td>
     <td>-1</td>
   </tr>
+  <tr>
+    <td>org.knopflerfish.http.threads.max</td>
+    <td>
+      Defines the maximum number of worker threads for handling HTTP requests
+    </td>
+    <td>int</td>
+    <td>5</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.threads.keep_alive</td>
+    <td>
+      Defines the maximum number of worker threads that are allowed to maintain an open connection.
+      Should always be at least one less than max threads.
+    </td>
+    <td>int</td>
+    <td>4</td>
+  </tr>
+   <tr>
+    <td>org.knopflerfish.http.threads.idle_timeout</td>
+    <td>
+      Defines the timeout in milliseconds after which an idle thread stops.
+    </td>
+    <td>int</td>
+    <td>15 000</td>
+  </tr>
+   <tr>
+    <td>org.knopflerfish.http.always_compress.mime_types</td>
+    <td>
+      Defines a comma-separated list of mime types whos response always will be compressed automatically.  
+      Just specifying the type and leaving out the subtype applies compression to all subtypes
+      E.g. "text" will apply to text/html, text/plain etc. Compressing all text resources is the default.
+      Setting this value to blank ("") means no automatic compression.
+    </td>
+    <td>String</td>
+    <td>text</td>
+  </tr>
+
 </table>
 
 

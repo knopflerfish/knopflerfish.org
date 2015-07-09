@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2013,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,7 @@ public class HttpServer
 
     sessionManager = new HttpSessionManager(httpConfig);
     transactionManager =
-      new TransactionManager(log, registrations, sessionManager);
+      new TransactionManager(httpConfig, log, registrations, sessionManager);
 
     httpSocketListener =
       new SocketListener(httpConfig.HTTP, log, transactionManager, bc, this);

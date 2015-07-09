@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,5 +45,7 @@ interface Request
   // public methods
 
   public InputStream getRawInputStream();
+  
+  public boolean isHTTP_1_1();
 
 } // Request

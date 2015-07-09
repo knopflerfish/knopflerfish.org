@@ -38,8 +38,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class BodyOutputStream
-  extends BufferedOutputStream
+public class BodyOutputStream extends BufferedOutputStream 
 {
 
   // private fields
@@ -49,18 +48,17 @@ public class BodyOutputStream
   private int maxCount = Integer.MAX_VALUE;
 
   private boolean committed = false;
-
-  private ResponseImpl response = null;
+  
+   private ResponseImpl response = null;
 
   // constructors
 
   BodyOutputStream(OutputStream out, ResponseImpl response, int size)
   {
-    super(out);
+    super(out, size);
 
     this.response = response;
-
-    setBufferSize(size);
+     
   }
 
   // package methods
@@ -101,15 +99,31 @@ public class BodyOutputStream
 
   public synchronized void reset()
   {
+    // log(Thread.currentThread().getName() + " BodyOutPutStream.reset() - called");
     totalCount = 0;
     count = 0;
+    committed = false;
+    maxCount = Integer.MAX_VALUE;
   }
+  
+  public synchronized void init(OutputStream os, ResponseImpl response)
+  {
+    // log("init() - called");
+    this.out = os;
+    this.response = response;
+
+  }
+
 
   public synchronized boolean isCommitted()
   {
     return committed;
   }
 
+  public boolean inProgress() {
+    return isCommitted() || totalCount > 0;
+  }
+  
   synchronized void flush(boolean commit)
       throws IOException
   {
@@ -122,18 +136,26 @@ public class BodyOutputStream
 
   // protected methods
 
-  protected void flushBuffer()
+  public void flushBuffer()
       throws IOException
   {
-    if (!committed && response != null) {
-      out.write(response.getHeaders());
-      committed = true;
-    }
-
-    out.write(buf, 0, count);
-    count = 0;
+    flushBuffer(false);
   }
 
+  public void flushBuffer(boolean lastChunk)
+      throws IOException
+  {
+    // log("flushBuffer() - committed=" + committed + " lastChunk=" + lastChunk + " count=" + count);
+    if (!committed && response != null) {
+      byte b[] = response.getHeaders();
+      out.write(b);
+      committed = true;
+    }
+    writeOutputBuffer(buf, 0, count, lastChunk);
+    
+    count = 0;
+    super.flush();
+  }
   // extends BufferedOutputStream
 
   @Override
@@ -155,9 +177,12 @@ public class BodyOutputStream
   public synchronized void write(byte b[], int off, int len)
       throws IOException
   {
+    // log("write(): "  + " off=" + off + " len: " + len);
+   
     if (len >= buf.length) {
       flushBuffer();
-      out.write(b, off, len);
+      // out.write(b, off, len);
+      writeOutputBuffer(b, off, len, false);
     } else {
       if (len > buf.length - count) {
         flushBuffer();
@@ -166,16 +191,44 @@ public class BodyOutputStream
       totalCount += len;
       count += len;
     }
+    // log("write() before return: "  + " count=" + count);
+  }
+  
+  @Override
+  public void flush() throws IOException  {
+    // log("flush()");
+    out.flush();
   }
 
   @Override
-  public void flush()
-  {
+  public void close() throws IOException {
+    // log("close()");
+    flush();
+    // this.out.close();
+    // (new IOException()).printStackTrace();
+    // super.close();
   }
 
-  @Override
-  public void close()
-  {
+  private void log(String s) {
+    Activator.log.info(Thread.currentThread().getName() + " - " + s);
+  }
+
+  private void writeOutputBuffer(byte[] b, int off, int len, boolean lastChunk) throws IOException {
+    // log("writeOutputBuffer(): committed=" + committed + " lastChunk=" + lastChunk + " bytes: " + len);
+    if (response.isChunked()) {
+      if (count > 0) {
+        out.write((Integer.toString(count,16) + "\r\n").getBytes());
+        out.write(b, 0, len);
+        out.write("\r\n".getBytes());
+      }
+      if (lastChunk)
+        out.write("0\r\n\r\n".getBytes());
+        out.flush();
+    }
+    else {
+      out.write(b, 0, len);
+    }
   }
 
 } // BodyOutputStream
+
