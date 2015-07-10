@@ -43,7 +43,7 @@
   <!-- The release date of this release -->
   <!-- *** Un-comment and set here on release branch. *** -->
   <!-- Defaults to current date, set here if another value is wanted. -->
-  <property name="release.date"     value="2014-07-10" />
+  <property name="release.date"     value="2015-07-10" />
 
   <!-- The previous official release version for this build -->
   <property name="version.previous"   value="5.1.0"/>
