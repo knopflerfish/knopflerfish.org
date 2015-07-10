@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: repository xml
+Bundle-SymbolicName: org.knopflerfish.bundle.repository.xml
+Bundle-Version: 1.0.2
+Bundle-Category: utility
+Bundle-Description: Xml Backed Repository
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
+ description="BSD 3-clause";
+ link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/repository/repository_xml
+Provide-Capability: osgi.service;
+ objectClass:List<String>="org.osgi.service.Repository",
+ osgi.service;
+ objectClass:List<String>="org.knopflerfish.service.repository.XmlBackedRepositoryFactory"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"

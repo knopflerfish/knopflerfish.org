@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-Version: 1.0.0
+Bundle-Name: CPA caller example
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.knopflerfish.cpaexample.caller
+Bundle-Category: example
+Bundle-Description: Condition Permission Admin caller example
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_examples/cpa/caller/

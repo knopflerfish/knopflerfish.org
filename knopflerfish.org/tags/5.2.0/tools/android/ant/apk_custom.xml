@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+  <!-- Internal details for building an Android .apk with Knopflerfish
+       framework and a set of bundles, hidden here and imported by
+       custom_rules.xml in order to keep that file less cluttered -->
+
+<project name="apk.custom" default="help">
+  <dirname  property="apk.custom.dir" file="${ant.file.apk.custom}"/>
+
+  <property name="kf.ant.dir"
+            location="${apk.custom.dir}/../../../ant"/>
+  <property name="osgi.dir"
+            location="${kf.ant.dir}/../osgi"/>
+  <property name="servicelib.dir"
+            location="${android.library.reference.1}"/>
+  <available property="framework.jar.exists"
+             file="${servicelib.dir}/libs/framework.jar"/>  
+
+  <property name="ANDROID_HOME" location="${sdk.dir}"/>
+  <import file="${kf.ant.dir}/android.xml"/>
+
+  <!-- -pre-* and -post* are targets picked up by the android build -->
+
+  <!-- build bundles before android build, see custom_rules.xml -->
+  <target name="-pre-build" depends="bundle_dexify"/>
+
+  <!-- adds 'META-INF/services/org.osgi.framework.launch' (it is
+       not included from framework.jar when it is added to the .apk) -->
+
+  <!-- unsure if signing works when framework is 'pathed'
+  <target name="-post-package" depends="framework_services"/>
+  -->
+  <target name="framework_services">
+    <jar jarfile="${out.packaged.file}" update="true">
+      <zipfileset dir="${osgi.dir}/framework/resources"
+                  includes="META-INF/services/**"/>
+    </jar>
+  </target>
+
+  <!-- remove 'assets/jars' folder at clean -->
+  <target name="-pre-clean" depends="bundle_clean"/>
+  <target name="bundle_clean">
+    <delete dir="${assets.jars.dir}" failonerror="false"/>
+  </target>
+
+
+  <!-- make sure that framework.jar in KfServiceLib is built, it is
+       build as a dependecy but it is not properly dexed unless
+       it exists before the build -->
+  <target name="-post-compile" depends="check_framework"/>
+  <target name="check_framework">
+    <fail unless="framework.jar.exists">
+      framework.jar was not found at beginning of build, build again.
+    </fail>
+  </target>
+
+</project>

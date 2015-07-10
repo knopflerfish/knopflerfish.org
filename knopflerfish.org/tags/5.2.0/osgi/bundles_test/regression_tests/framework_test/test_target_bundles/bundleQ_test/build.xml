@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<project name="bundleQ_test" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.bundleQ_test}"/>
+  <import  file="${proj.dir}/../../../test_import.xml"/>
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"   value=""/>
+
+  <!-- Version in the manifest is 0.0.0 -->
+  <property name="all.suffix"        value="${all.suffix.name}-1.0.0"/>
+  <!-- Create an OSGi R3 manifest since the bundle will be installed -->
+  <!-- twice using different locations. -->
+  <property name="bmfa.Bundle-ManifestVersion" value="1"/>
+  <property name="bmfa.Bundle-SymbolicName"    value="[bundle.emptystring]"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"
+            value="org/knopflerfish/service/**"/>
+
+  <path id="bundle.compile.path">
+  </path>
+
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="trayicon_fw" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.trayicon_fw}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.doc"   value = "true"/>
+
+  <property name="all.suffix.name" value=""/>
+
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <!-- Needs java.awt outside of ee.minimum -->
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.6"/>
+
+  <!-- Dex disabled, Uses java.awt -->
+  <property name="no.dex" value="true"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/**"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

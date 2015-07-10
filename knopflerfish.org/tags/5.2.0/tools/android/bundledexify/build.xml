@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="bundledexify" default="all">
+  <dirname  property="bundledexify.dir" file="${ant.file.apk.custom}"/>
+
+  <property name="kf.ant.dir"
+            location="${bundledexify.dir}/../../../ant"/>
+
+  <property name="outdir"    location="${bundledexify.dir}"/>
+  <property name="classout"  location="${outdir}/classes"/>
+
+  <property name="src.dir"   location="src"/>
+
+  <import file="${kf.ant.dir}/android.xml"/>
+
+  <path id="dexify.path">
+    <pathelement location="${android.tool.dx}"/>
+  </path>
+
+  <target name="all" depends="jar">
+  </target>
+
+  <target name="compile" description="compiles all java sources">
+    <mkdir dir="${classout}"/>
+
+    <javac destdir="${classout}" 
+           srcdir="${src.dir}" 
+           debug="on"
+           classpathref="dexify.path"
+           includeAntRuntime="false"
+           includes="**/*.java">
+    </javac>
+  </target>
+
+  <target name="jar" depends="compile">
+    <jar destfile="${outdir}/bundledexify.jar"
+         compress="true">
+      <manifest/>
+      <zipfileset dir="${classout}" prefix="">
+        <include   name="**/*.class"/>
+      </zipfileset>
+    </jar>
+  </target>
+
+  <target name="clean" description="removes all generated files">
+    <delete dir="${classout}"/>
+  </target>
+
+</project>

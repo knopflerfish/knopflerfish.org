@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   ** Copyright (c) 2011-2015, KNOPFLERFISH project
+   ** All rights reserved.
+   **
+   ** Redistribution and use in source and binary forms, with or without
+   ** modification, are permitted provided that the following conditions
+   ** are met:
+   **
+   ** - Redistributions of source code must retain the above copyright notice,
+   **   this list of conditions and the following disclaimer.
+   **
+   ** - Redistributions in binary form must reproduce the above copyright
+   **   notice, this list of conditions and the following disclaimer in
+   **   the documentation and/or other materials provided with the
+   **   distribution.
+   **
+   ** - Neither the name of the KNOPFLERFISH project nor the names of its
+   **   contributors may be used to endorse or promote products derived
+   **   from this software without specific prior written permission.
+   **
+   ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   ** FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   ** COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+   ** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   ** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   ** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   ** HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   ** STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   ** OF THE POSSIBILITY OF SUCH DAMAGE.
+  -->
+<!-- ============================================================ -->
+<!--  Android instrumentation support,                            -->
+<!--  adds a .dex-file to a bundle jar-file                       -->
+<!-- ============================================================ -->
+<project name="android_instrumentation" xmlns:if="ant:if" xmlns:unless="ant:unless">
+
+  <!-- Are we building for Dalvik/Android? -->
+  <available property="android.exists" file="${ANDROID_HOME}"/>
+
+  <macrodef name="android.init.path">
+    <!-- look for dx.jar in Android sdk -->
+    <sequential>
+      <first id="first.dx">
+        <fileset dir="${ANDROID_HOME}"
+                 includes="**/dx.jar"
+                 erroronmissingdir="false"/>
+      </first>
+      <property name="android.tool.dx" value="${toString:first.dx}" />
+      <property name="android.path.checked" value="true"/>
+    </sequential>
+  </macrodef>
+
+  <dirname property="ant.dir" file="${ant.file.android_instrumentation}"/>
+  <property name="bundledexify" location="${ant.dir}/../tools/android/bundledexify" />
+
+
+  <macrodef name="dexify_bundle"
+    description="Creates Android/Dalvik dexified bundle.">
+    <attribute name="targetApiLevel" default="12"
+      description="Android target API level to use when dexifing"/>
+    <attribute name="bundle"
+      description="Path to bundle to convert"/>
+
+    <sequential>
+      <android.init.path unless:true="android.path.checked"/>
+      <echo message="Dexify: @{bundle}"/>
+      <java fork="true" classname="org.knopflerfish.tools.bundledexify.Main">
+        <classpath>
+          <pathelement location="${bundledexify}/bundledexify.jar"/>
+          <pathelement location="${android.tool.dx}"/>
+        </classpath>
+        <arg value="-apilevel"/>
+        <arg value="@{targetApiLevel}"/>
+        <arg line="@{bundle}"/>
+      </java>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="dexify_bundles"
+    description="Creates Android/Dalvik dexified bundles for all listed files into a directory.">
+    <attribute name="targetApiLevel" default="12"
+      description="Android target API level to use when dexifing"/>
+    <attribute name="dir"
+      description="The output directory"/>
+    <attribute name="bundles.ref"
+      description="Ref to pathset of bundles to convert"/>
+
+    <sequential>
+      <android.init.path unless:true="android.path.checked"/>
+      <local name="bundles"/>
+      <pathconvert property="bundles" refid="@{bundles.ref}" pathsep=" " />
+      <echo message="Dexify: ${bundles}"/>
+      <java fork="true" classname="org.knopflerfish.tools.bundledexify.Main">
+        <classpath>
+          <pathelement location="${bundledexify}/bundledexify.jar"/>
+          <pathelement location="${android.tool.dx}"/>
+        </classpath>
+        <arg value="-apilevel"/>
+        <arg value="@{targetApiLevel}"/>
+        <arg value="-outdir"/>
+        <arg value="@{dir}"/>
+        <arg line="${bundles}"/>
+      </java>
+    </sequential>
+  </macrodef>
+
+</project>

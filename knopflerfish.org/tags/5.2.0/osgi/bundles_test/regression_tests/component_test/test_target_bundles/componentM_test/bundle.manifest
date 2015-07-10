@@ -1,0 +1,11 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: componentM_test
+Bundle-SymbolicName: org.knopflerfish.bundle.componentM_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for SCR, target filter tests
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: testing
+Import-Package: org.osgi.framework, org.osgi.service.component
+Service-Component: service.xml

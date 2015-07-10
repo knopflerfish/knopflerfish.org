@@ -1,0 +1,26 @@
+To build Knopflerfish from scratch you need:
+
+ Java SE 6 (or 5).
+    To build bundles compatible with JDK 1.4 and later. Bundles built
+    this way will run on jdk 1.7 but it will not work to put classes
+    using generics from these builds on the classpath when compiling
+    other Java code using the 1.7 javac.
+
+
+ Java SE 7 (or later)
+    To build bundles for Java SE 5 and later. Bundles built with 
+    javac from Java 7 requires a Java 5 JRE to run.
+
+
+ Ant 1.8.1 (or later)
+
+
+ [OPTIONAL] Proguard 5.2 (or later)
+    Proguard is only used when building the compact version of
+    framework.
+    
+Type "ant all" in this directory to build all bundles and test bundles.
+
+
+See htdocs/html_src/building.html for more details, or visit 
+http://www.knopflerfish.org/releases/current/docs/building.html
