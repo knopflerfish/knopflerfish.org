@@ -3,7 +3,7 @@
 <project name="KFtoMaven" default="all">
 
   <!-- The KF- version to use in the update-target. -->
-  <property name="kf.version" value="5.1.0"/>
+  <property name="kf.version" value="5.2.0"/>
 
   <dirname property="projdir"   file="${ant.file.KFtoMaven}"/>
   <property name="topdir"       location="${projdir}/../.."/>
