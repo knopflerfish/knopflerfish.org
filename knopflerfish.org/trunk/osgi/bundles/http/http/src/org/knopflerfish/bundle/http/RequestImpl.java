@@ -148,6 +148,7 @@ public class RequestImpl implements Request
     return localPort;
   }
 
+  /*
   public void reinit(final InputStream is, final HttpConfigWrapper httpConfig)
       throws HttpException, IOException
   {
@@ -155,7 +156,8 @@ public class RequestImpl implements Request
     base.init(is, httpConfig);
     // do_init();
   }
-
+*/
+  
   public void init(final InputStream is,
                    final InetAddress localAddress,
                    final int localPort,
@@ -325,15 +327,17 @@ public class RequestImpl implements Request
     cookies = null;
   }
 
+  // resets request, used for keep-alive. 
+  // Local and remote address are the same, i.e. not changed 
   public void reset(boolean keepAlive)
   {
     base.reset(keepAlive);
 
-    localAddress = null;
-    remoteAddress = null;
+    // localAddress = null;
+    // remoteAddress = null;
 
-    localPort = 0;
-    remotePort = 0;
+    // localPort = 0;
+    // remotePort = 0;
 
     attributes.removeAll();
 
@@ -347,7 +351,6 @@ public class RequestImpl implements Request
     servletPath = null;
 
     cookies = null;
-    // TODO Auto-generated method stub
   }
 
   // implements Request
