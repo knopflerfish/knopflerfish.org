@@ -30,6 +30,19 @@
 <h2 class="filled">Knopflerfish Framework - OSGi Core Specification</h2>
 <div class="release_notes">
 
+  <div class="note_group">
+    <div class="note_name">Framework 7.2.1</div>
+    <div class="note_item">
+    Added some packages from org.apache.commons... to be exported package
+    on Android systems by default.
+    </div>
+    <div class="note_item">
+    Set default value to true for the property 
+    <code>org.knopflerfish.framework.is_doublechecked_locking_safe</code>
+    on Android systems.
+    </div>
+  </div>
+
 </div>
 
 
@@ -49,10 +62,30 @@
 <h2 class="filled">Knopflerfish Services</h2>
 <div class="release_notes">
 
+  <div class="note_group">
+    <div class="note_name">HttpClientConnector 3.1.3.kf5-001</div>
+    <div class="note_item">
+    Re-packaged the bundle to avoid classloader problems on Android systems.
+    </div>
+    <div class="note_item">
+    Export org.apache.commons.codec packages.
+    </div>
+  </div>
+
 </div>
 
 
 <h2 class="filled">Misc, start scripts, build system etc </h2>
 <div class="release_notes">
+
+  <div class="note_group">
+    <div class="note_name">BundleDexifier 1.0.0</div>
+    <div class="note_item">
+    Added version number to bundledexifier.
+    </div>
+    <div class="note_item">
+    Don't add classes.dex when bundle doesn't contain java classes.
+    </div>
+  </div>
 
 </div>

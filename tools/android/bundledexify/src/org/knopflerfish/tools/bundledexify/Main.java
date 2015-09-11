@@ -51,11 +51,9 @@ public class Main {
     return dexifier;
   }
 
-
   private String [] getBundles() {
     return bundles;
   }
-
 
   void printHelp(PrintStream out) {
     out.println("Usage: bundledexify [options] <bundle.jar>...\n\n" +
@@ -66,6 +64,7 @@ public class Main {
                 " -outdir <dir>    Set output directory to <dir>\n" +
                 " -replace         Replace original bundle with result\n" +
                 " -verbose         Be verbose\n" +
+                " -version         Print version\n" +
                 "");
   }
 
@@ -75,12 +74,16 @@ public class Main {
       if ("-help".equals(argv[i])) {
         printHelp(System.out);
         exit("", null);
+      } else if ("-force".equals(argv[i])) {
+        getDexifier().setForce(true);
       } else if ("-apilevel".equals(argv[i]) && i+1 < argv.length) {
         getDexifier().setApiLevel(Integer.parseInt(argv[++i]));
       } else if ("-keepclassfiles".equals(argv[i])) {
         getDexifier().setKeepClassFiles(true);
       } else if ("-verbose".equals(argv[i])) {
         getDexifier().setVerbose(true);
+      } else if ("-version".equals(argv[i])) {
+        System.out.println("Bundle dexifier version " + Dexifier.VERSION);
       } else if ("-outdir".equals(argv[i]) && i+1 < argv.length) {
         getDexifier().setDestDir(argv[++i]);
       } else if (argv[i].startsWith("-")){
