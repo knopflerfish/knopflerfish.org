@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="bundledexify" default="all">
+<project name="bundledexify" default="all" xmlns:if="ant:if" xmlns:unless="ant:unless">
   <dirname  property="bundledexify.dir" file="${ant.file.apk.custom}"/>
 
   <property name="kf.ant.dir"
@@ -13,20 +13,16 @@
 
   <import file="${kf.ant.dir}/android.xml"/>
 
-  <path id="dexify.path">
-    <pathelement location="${android.tool.dx}"/>
-  </path>
-
   <target name="all" depends="jar">
   </target>
 
   <target name="compile" description="compiles all java sources">
     <mkdir dir="${classout}"/>
-
+    <android.init.path unless:true="android.path.checked"/>
     <javac destdir="${classout}" 
            srcdir="${src.dir}" 
            debug="on"
-           classpathref="dexify.path"
+           classpath="${android.tool.dx}"
            includeAntRuntime="false"
            includes="**/*.java">
     </javac>
@@ -35,7 +31,9 @@
   <target name="jar" depends="compile">
     <jar destfile="${outdir}/bundledexify.jar"
          compress="true">
-      <manifest/>
+      <manifest>
+        <attribute name="Main-Class" value="org.knopflerfish.tools.bundledexify.Main"/>
+      </manifest>
       <zipfileset dir="${classout}" prefix="">
         <include   name="**/*.class"/>
       </zipfileset>

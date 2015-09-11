@@ -499,8 +499,8 @@ public class FWProps {
     setPropertyDefault(SYSTEM_PACKAGES_FILE_PROP, "");
     setPropertyDefault(SYSTEM_PACKAGES_VERSION_PROP, Integer.toString(javaVersionMajor) + "."
         + javaVersionMinor);
-    setPropertyDefault(IS_DOUBLECHECKED_LOCKING_SAFE_PROP, javaVersionMajor >= 1
-        && javaVersionMinor >= 5 ? TRUE : FALSE);
+    setPropertyDefault(IS_DOUBLECHECKED_LOCKING_SAFE_PROP, (javaVersionMajor >= 1
+        && javaVersionMinor >= 5) || androidApiLevel >= 0 ? TRUE : FALSE);
     setPropertyDefault(LDAP_NOCACHE_PROP, FALSE);
     setPropertyDefault(MAIN_CLASS_ACTIVATION_PROP, "");
     setPropertyDefault(STRICTBOOTCLASSLOADING_PROP, FALSE);

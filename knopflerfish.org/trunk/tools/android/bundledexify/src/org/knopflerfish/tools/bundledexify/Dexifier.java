@@ -62,6 +62,8 @@ import com.android.dx.dex.file.DexFile;
 
 public class Dexifier {
 
+  public static final String VERSION = "1.0";
+
   private static final String BUNDLE_CLASS_PATH = "Bundle-ClassPath";
   private static final String BUNDLE_DEXIFY_PATH = "Bundle-Dexify-Path";
   private static final String REQUIRE_CAPABILITY = "Require-Capability";
@@ -292,11 +294,13 @@ public class Dexifier {
   }
 
   private void saveDexFile(DexFile dexFile, int idx, JarOutputStream outJar) throws IOException {
-    String cn = "classes" + (idx > 1 ? Integer.toString(idx) : "") + ".dex";
-    ZipEntry je = new JarEntry(cn);
-    outJar.putNextEntry(je);
-    dexFile.writeTo(outJar, null, false);
-    outJar.closeEntry();
+    if (!dexFile.isEmpty()) {
+      String cn = "classes" + (idx > 1 ? Integer.toString(idx) : "") + ".dex";
+      ZipEntry je = new JarEntry(cn);
+      outJar.putNextEntry(je);
+      dexFile.writeTo(outJar, null, false);
+      outJar.closeEntry();
+    }
   }
 
   private DexFile getDexFile() {
@@ -368,19 +372,22 @@ public class Dexifier {
   private String getAndroidRequirement(String reqs) {
     String ar = "(&(osgi.ee=Android)(version>=" + dexOptions.targetApiLevel + "))";
     String eeReq = extractEERequirementFilter(reqs);
-    if (isKeepClassFiles()) {
-      if (eeReq == null) {
-        return (reqs != null ? reqs + "," : "") + OSGI_EE_REQUIREMENT  + "(&" + ar + DEFAULT_EE_REQUIREMENT + ")\"";
-      } else if (eeReq.contains("Android")){
-        return reqs;
-      } else {
-        return reqs.replace(eeReq, "(|" + eeReq + ar + ")");
-      }
+    if (eeReq != null && eeReq.contains("Android")) {
+      // We assume we want to keep it if already contains Android
+      return reqs;
     } else {
-      if (eeReq == null) {
-        return (reqs != null ? reqs + "," : "") + OSGI_EE_REQUIREMENT  + ar + "\"";
+      if (isKeepClassFiles()) {
+        if (eeReq == null) {
+          return (reqs != null ? reqs + "," : "") + OSGI_EE_REQUIREMENT  + "(&" + ar + DEFAULT_EE_REQUIREMENT + ")\"";
+        } else {
+          return reqs.replace(eeReq, "(|" + eeReq + ar + ")");
+        }
       } else {
-        return reqs.replace(eeReq, ar);
+        if (eeReq == null) {
+          return (reqs != null ? reqs + "," : "") + OSGI_EE_REQUIREMENT  + ar + "\"";
+        } else {
+          return reqs.replace(eeReq, ar);
+        }
       }
     }
   }
