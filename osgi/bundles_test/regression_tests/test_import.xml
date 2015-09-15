@@ -12,13 +12,16 @@
 
   <property name="condperm_warnings.file" location="${osgi.dir}/WARNING-condpermadmin.txt"/>
 
+  <!-- Dex disabled, not used by tests -->
+  <property name="no.dex" value="true"/>
+
   <!--
     || Checks and warns if the openssl program is not installed
     || Used to skip building the condpermadmin tests int that case
     -->
   <target name="check_warn_openssl"
-	  depends="clear_openssl_warning, check_openssl"
-	  unless="openssl_exist">
+          depends="clear_openssl_warning, check_openssl"
+          unless="openssl_exist">
     <echo message="Warning, no openssl program found. CPA can not be tested"/>
     <echo file="${condperm_warnings.file}">WARNING
 Can not find an openssl program
@@ -35,8 +38,8 @@ Please install the openssl program to enable condpermadmin testing.
 
   <target name="check_openssl">
     <exec executable="openssl" 
-	  failifexecutionfails="false"
-	  resultproperty="openssl_return_code">
+          failifexecutionfails="false"
+          resultproperty="openssl_return_code">
       <arg value="version" />
     </exec>
     <condition property="openssl_exist">
