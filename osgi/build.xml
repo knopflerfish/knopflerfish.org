@@ -430,6 +430,21 @@
    </java>
  </target>
 
+ <target name="run-test-standalone" >
+   <echo message="Running test standalone"/>
+   <mkdir dir="${junit.out.dir}"/>
+   <java fork="true"
+         dir="${run.test.dir}"
+         jar="${run.test.dir}/framework.jar">
+     <arg value="-Forg.osgi.framework.security=osgi"/>
+     <arg value="-Forg.osgi.framework.storage=${junit.out.dir}/test_fwdir"/>
+     <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>
+     <arg value="-xargs"/>
+     <arg value="init-tests.xargs"/>
+     <arg value="-Forg.knopflerfish.prefs.dir=${junit.out.dir}/prefs"/>
+   </java>
+ </target>
+
  <target name="run-kf-tests-bare-main">
    <antcall target="run-test">
      <param name="run.test.msg"    value="Running the main test suite..."/>

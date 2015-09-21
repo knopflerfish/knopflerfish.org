@@ -8,6 +8,7 @@
     <ant dir="constants_test"           target="all"/>
     <ant dir="servicetracker_test"      target="all"/>
     <ant dir="http_test"                target="all"/>
+    <ant dir="http_servlet_test"        target="all"/>
     <ant dir="registryperformance_test" target="all"/>
     <ant dir="restart_test"             target="all"/>
     <ant dir="eventadmin_test"          target="all"/>

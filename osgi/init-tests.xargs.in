@@ -6,6 +6,7 @@
 #-Forg.knopflerfish.junit_runner.tests=PerformanceRegistryTestSuite
 -Forg.knopflerfish.junit_runner.tests=filter:(objectclass=junit.framework.TestSuite)
 #-Forg.knopflerfish.junit_runner.tests=FrameworkTestSuite ServiceTrackerTestSuite ConstantsTestSuite FilterTestSuite
+#-Forg.knopflerfish.junit_runner.tests=HttpServletTestSuite
 
 
 -Forg.knopflerfish.bundle.perf.servicereg.nlisteners=100
@@ -46,7 +47,8 @@
 -Forg.osgi.framework.system.packages.extra=
 
 # Web server properties
--Forg.knopflerfish.http.dnslookup=false
+# Setting dnslookup to true for servlet tests
+-Forg.knopflerfish.http.dnslookup=true
 -Forg.osgi.service.http.port=0
 
 -Forg.knopflerfish.startlevel.use=true
@@ -104,6 +106,7 @@
 ## eventadmin_tests are disabled because of timing problems on Linux!?
 #-istart @eventadmin_test-N.N.N.jar@
 -istart @http_test-N.N.N.jar@
+-istart @http_servlet_test-N.N.N.jar@
 -istart @io_test-N.N.N.jar@
 -istart @preferences_test-N.N.N.jar@
 -istart @startlevel_test-N.N.N.jar@
