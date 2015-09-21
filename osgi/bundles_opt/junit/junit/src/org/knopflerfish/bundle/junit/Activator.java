@@ -76,11 +76,11 @@ public class Activator implements BundleActivator {
 
   class LogRef {
     public void info(String msg) {
-      System.out.println("INFO: " + msg);
+      System.out.println("junit [INFO] : " + msg);
     }
 
     public void error(String msg, Throwable t) {
-      System.out.println("ERROR: " + msg);
+      System.out.println("junit [ERROR]: " + msg);
       if(t != null) {
         t.printStackTrace();
       }

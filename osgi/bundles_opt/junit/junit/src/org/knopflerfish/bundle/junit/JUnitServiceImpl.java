@@ -40,11 +40,18 @@ import java.io.*;
 import org.knopflerfish.service.junit.*;
 import org.osgi.framework.*;
 import org.osgi.util.tracker.ServiceTracker;
+
 import junit.framework.*;
+
 import java.lang.reflect.*;
 
 public class JUnitServiceImpl implements JUnitService {
 
+  private HashMap<String,JUnitResult> collectedResults = new HashMap<String,JUnitResult>();
+  private HashMap<String,Vector<JUnitResult>> referencedResults = new HashMap<String,Vector<JUnitResult>>();
+  
+  private Vector<TestSuite> subsuites = new Vector();
+  
   JUnitServiceImpl() {
   }
 
@@ -169,8 +176,15 @@ public class JUnitServiceImpl implements JUnitService {
       long start = System.currentTimeMillis();
       suite.run(tr);
       long stop  = System.currentTimeMillis();
-
-      toXMLSuite(suite, tr, stop - start, out, 2);
+      
+      collectRegisteredTestReults();
+      toXMLSuite(suite, tr, stop - start, out, 2, true, true);
+      for (Iterator<JUnitResult> it = collectedResults.values().iterator(); it.hasNext(); ) {
+        toXMLSuite(it.next().getTestSuite(), tr, 0, out, 2, true, true);
+      }
+      for (Iterator<TestSuite> it = subsuites.iterator(); it.hasNext(); ) {
+        toXMLSuite(it.next(), tr, 0, out, 2, false, false);
+      }
       toXMLResult(tr, out);
       testListenerTracker.close();
     } finally {
@@ -179,6 +193,45 @@ public class JUnitServiceImpl implements JUnitService {
         testListenerTracker.close();
       }
     }
+  }
+
+  private void collectRegisteredTestReults()
+  {
+    Activator.log.info("Collecting Registered Test Results");
+    Collection<ServiceReference<JUnitResult>> resultServices;
+    try {
+      resultServices = Activator.bc.getServiceReferences(JUnitResult.class, 
+                                                         null);
+    
+      for (Iterator<ServiceReference<JUnitResult>> it = resultServices.iterator(); it.hasNext(); ) {
+        JUnitResult res = Activator.bc.getService(it.next());
+        collectedResults.put(res.getTestSuite().getName(), res);
+        
+        Vector<JUnitResult> v = referencedResults.get(getTestName(res.getParentTest()));
+        if (v == null) {
+          v = new Vector<JUnitResult>();
+          v.add(res);
+          referencedResults.put(getTestName(res.getParentTest()), v);
+        }
+        else {
+          v.add(res);
+        }
+        // referencedResults.put(getTestName(res.getParentTest()), res);
+        Activator.log.info("Collected test suite: " + res.getTestSuite().getName());
+      }
+    } catch (InvalidSyntaxException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+
+  private String getTestName(Test test)  {
+    if (test instanceof TestSuite)
+      return ((TestSuite)test).getName();
+    else if (test instanceof TestCase)
+      return ((TestCase)test).getName();
+    else
+      throw new IllegalArgumentException("Unexpected Test type");
   }
 
   public TestSuite getTestSuite(final String id,
@@ -292,7 +345,9 @@ public class JUnitServiceImpl implements JUnitService {
                             TestResult tr,
                             long time,
                             PrintWriter out,
-                            int n) throws IOException {
+                            int n,
+                            boolean collect,
+                            boolean recursive) throws IOException {
     out.print(indent(n) + "  <suite class = \"" +
               suite.getClass().getName() + "\"");
     out.print(" name  = \"" + suite.getName() + "\"");
@@ -306,22 +361,47 @@ public class JUnitServiceImpl implements JUnitService {
       if(test instanceof TestCase) {
         name = ((TestCase)test).getName();
       }
+      if (test instanceof TestSuite) {
+        name = ((TestSuite)test).getName();
+      }
       if(name == null) {
         name = clazz;
       }
       if(test instanceof TestSuite) {
-        toXMLSuite((TestSuite)test, tr, 0, out, n + 1);
-      } else {
-        out.print(indent(n) + "   <case class = \"" + clazz + "\"");
+        out.print(indent(n) + "   <suitecase class = \"" + clazz + "\"");
         out.print(" name  = \"" + name + "\"");
         out.print(" status = \"" + getTestCaseStatus(tr, test) + "\"");
         out.println(">");
-
         String desc   = getBeanString(test, "getDescription", "");
         out.print("  <description>");
         out.print("<![CDATA[" + desc + "]]>");
         out.println("</description>");
-
+        
+        out.println("</suitecase>");
+        
+        if (collect)
+          subsuites.add((TestSuite) test);
+        if (recursive)
+          toXMLSuite((TestSuite)test, tr, 0, out, n + 1, true, true);
+      } else {
+        Vector<JUnitResult> linkedTest = referencedResults.get(name);
+        out.print(indent(n) + "   <case class = \"" + clazz + "\"");
+        out.print(" name  = \"" + name + "\"");
+        out.print(" status = \"" + getTestCaseStatus(tr, test) + "\"");
+        
+        out.println(">");
+        if (linkedTest != null) {
+          for (Iterator<JUnitResult> it = linkedTest.iterator(); it.hasNext(); ) {
+            JUnitResult jres = it.next();
+            out.print(indent(n) + "   <ref refname = \"" + jres.getTestSuite().getName() +  "\" />"); 
+          }
+          // out.print(" ref = \"" + linkedTest.getTestSuite().getName() + "\"");
+        }
+        String desc   = getBeanString(test, "getDescription", "");
+        out.print("  <description>");
+        out.print("<![CDATA[" + desc + "]]>");
+        out.println("</description>");
+        
         out.println("</case>");
       }
     }
