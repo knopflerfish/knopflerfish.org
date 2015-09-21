@@ -1,0 +1,17 @@
+Bundle-Name: http_test
+Bundle-SymbolicName: http_servlet_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for the HTTP server
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.http_servlet_test.BundleActivator
+Bundle-Category: testing
+Export-Package: org.knopflerfish.service.http_servlet_test
+Import-Package: javax.servlet,
+  javax.servlet.http,
+  junit.framework,
+  org.knopflerfish.service.console,
+  org.knopflerfish.service.http_servlet_test,
+  org.osgi.framework,org.osgi.service.http,
+  org.knopflerfish.service.junit
