@@ -1,12 +1,44 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <xsl:stylesheet version="1.0"
-xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+		xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
-<!-- 
-  This is a semi-naive JUnit XML formatting stylesheet.
+  <!-- 
+       This is a semi-naive JUnit XML formatting stylesheet.
   -->
 
 <xsl:template match="/">
+
+<!--
+  <xsl:template match="suite">
+    <pre>
+      Class: <xsl:value-of select="@class"/>
+      Time:  <xsl:value-of select="@time"/>ms
+    </pre>
+    
+    <h4 class="shadow">Test cases</h4>
+    <table>
+      <tr>
+	<th>Name</th>
+	<th>Status</th>
+      </tr>
+      
+      <tr>
+	<td>
+	  <xsl:choose>
+	    <xsl:when test="@status != 'passed'">
+	      <a href="#{@name}"><xsl:value-of select="@name"/></a>
+	    </xsl:when>
+	    <xsl:otherwise>
+	      <xsl:value-of select="@name"/>
+	    </xsl:otherwise>
+	  </xsl:choose>
+	</td>	
+	<td class="{@status}"><xsl:value-of select="@status"/></td>
+	<td><xsl:value-of select="description"/></td>
+      </tr>
+    </table>
+  </xsl:template>
+-->
 
 <html>
 
@@ -81,6 +113,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 </p>
 
   <xsl:for-each select="suite">
+    <a name="{@name}"></a>
+    <h3 class="shadow">Test Suite: <xsl:value-of select="@name"/></h3>
    <pre>
 Class: <xsl:value-of select="@class"/>
 Time:  <xsl:value-of select="@time"/>ms
@@ -91,6 +125,8 @@ Time:  <xsl:value-of select="@time"/>ms
     <tr>
      <th>Name</th>
      <th>Status</th>
+     <th>Reference</th>
+     <th>Description</th>
     </tr>
     <xsl:for-each select="case">
      <tr>
@@ -105,7 +141,26 @@ Time:  <xsl:value-of select="@time"/>ms
 </xsl:choose>
 </td>	
       <td class="{@status}"><xsl:value-of select="@status"/></td>
-      <td><xsl:value-of select="description"/></td>
+      <td>
+      	<xsl:for-each select="ref">
+	  <a href="#{@refname}"><xsl:value-of select="@refname"/></a><br/>
+	</xsl:for-each>
+      </td>
+      <!-- <a href="#{@ref}"><xsl:value-of select="@ref"/></a></td> -->
+      <td><xsl:value-of select="@description"/></td>
+     </tr>
+    </xsl:for-each>
+
+    <xsl:for-each select="suitecase">
+     <tr>
+      <td><a href="#{@name}">	<xsl:value-of select="@name"/></a></td>	
+      <td>suite</td>
+      <td>
+	<xsl:for-each select="ref">
+	  <a href="#{@refname}"><xsl:value-of select="@refname"/></a><br/>
+	</xsl:for-each>
+      </td>
+      <td><xsl:value-of select="@description"/></td>
      </tr>
     </xsl:for-each>
    </table> 
