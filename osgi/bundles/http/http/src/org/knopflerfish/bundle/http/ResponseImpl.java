@@ -53,7 +53,6 @@ import java.util.Vector;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 public class ResponseImpl
@@ -180,11 +179,13 @@ public class ResponseImpl
     chunked = request.isHTTP_1_1();
   }
 
+  @Override
   public String getContentType()
   {
     return getHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY);
   }
 
+  @Override
   public void resetBuffer()
   {
     reset(false);
@@ -398,21 +399,25 @@ public class ResponseImpl
 
   // implements HttpServletResponse
 
+  @Override
   public boolean containsHeader(String name)
   {
     return headers.get(name) != null;
   }
 
+  @Override
   public void setIntHeader(String name, int value)
   {
     setHeader(name, Integer.toString(value));
   }
 
+  @Override
   public void setDateHeader(String name, long value)
   {
     setHeader(name, HttpUtil.formatDate(value));
   }
 
+  @Override
   public void setHeader(String name, String value)
   {
     if (value == null) { // NYI: is this allowed?
@@ -439,16 +444,19 @@ public class ResponseImpl
     return null;
   }
 
+  @Override
   public void addIntHeader(String name, int value)
   {
     addHeader(name, Integer.toString(value));
   }
 
+  @Override
   public void addDateHeader(String name, long value)
   {
     addHeader(name, HttpUtil.formatDate(value));
   }
 
+  @Override
   public void addHeader(String name, String value)
   {
     final List<String> values = headers.get(name);
@@ -459,11 +467,13 @@ public class ResponseImpl
     }
   }
 
+  @Override
   public void addCookie(Cookie cookie)
   {
     cookies.addElement(cookie);
   }
 
+  @Override
   public String encodeRedirectURL(String url)
   {
     // Only encodes relative URLs.
@@ -474,11 +484,13 @@ public class ResponseImpl
     }
   }
 
+  @Override
   public String encodeRedirectUrl(String url)
   {
     return encodeRedirectURL(url); // deprecated
   }
 
+  @Override
   public String encodeURL(String url)
   {
     // Append session id ";jsessionid=1234" to path of the URL when
@@ -516,21 +528,24 @@ public class ResponseImpl
     return url; // No rewrite needed.
   }
 
+  @Override
   public String encodeUrl(String url)
   {
     return encodeURL(url); // deprecated
   }
 
+  @Override
   public void sendError(int statusCode)
       throws IOException
   {
     sendError(statusCode, null);
   }
 
+  @Override
   public void sendError(int statusCode, String statusMsg)
       throws IOException
   {
-    Activator.log.info(Thread.currentThread().getName() + " send error: " + statusMsg);
+    // Activator.log.info(Thread.currentThread().getName() + " send error: " + statusMsg);
     reset(false);
     
     setStatus(statusCode, statusMsg);
@@ -565,6 +580,7 @@ public class ResponseImpl
     sendError(SC_CONTINUE);
   }
 
+  @Override
   public void sendRedirect(String url)
       throws IOException
   {
@@ -573,11 +589,13 @@ public class ResponseImpl
     sendError(SC_MOVED_TEMPORARILY);
   }
 
+  @Override
   public void setStatus(int statusCode)
   {
     setStatus(statusCode, null);
   }
 
+  @Override
   public void setStatus(int statusCode, String statusMsg)
   { // deprecated
     // Activator.log.info("setStatus() statusCode=" + statusCode);
@@ -593,6 +611,7 @@ public class ResponseImpl
 
   // implements ServletResponse
 
+  @Override
   public void setContentLength(int contentLength)
   {
      // Activator.log.info("setContentLength(), length=" + contentLength);
@@ -607,21 +626,25 @@ public class ResponseImpl
     }
   }
 
+  @Override
   public boolean isCommitted()
   {
     return bodyOut.isCommitted();
   }
 
+  @Override
   public void reset()
   {
     reset(true);
   }
 
+  @Override
   public int getBufferSize()
   {
     return bodyOut.getBufferSize();
   }
 
+  @Override
   public void setBufferSize(int size)
   {
 
@@ -632,6 +655,7 @@ public class ResponseImpl
     bodyOut.setBufferSize(size);
   }
 
+  @Override
   public void flushBuffer()
       throws IOException
   {
@@ -639,6 +663,7 @@ public class ResponseImpl
     // responseBody.flushBuffer();
   }
 
+  @Override
   public ServletOutputStream getOutputStream()
   {
 
@@ -654,6 +679,7 @@ public class ResponseImpl
     return sos;
   }
 
+  @Override
   public PrintWriter getWriter()
       throws IOException
   {
@@ -670,11 +696,16 @@ public class ResponseImpl
     return pw;
   }
 
+  @Override
   public Locale getLocale()
   {
-    return locale;
+    if (locale != null)
+      return locale;
+    else
+      return Locale.getDefault();
   }
 
+  @Override
   public void setLocale(Locale locale)
   {
     if (isCommitted()) {
@@ -696,6 +727,7 @@ public class ResponseImpl
     }
   }
 
+  @Override
   public void setContentType(String contentType)
   {
     if (isCommitted()) {
@@ -723,6 +755,7 @@ public class ResponseImpl
     }
   }
 
+  @Override
   public void setCharacterEncoding(String enc)
   {
     charEncoding = enc;
@@ -733,6 +766,7 @@ public class ResponseImpl
     }
   }
 
+  @Override
   public String getCharacterEncoding()
   {
     // Use response specified encoding if present
@@ -748,10 +782,6 @@ public class ResponseImpl
   
   public boolean isChunked() {
     return chunked;
-  }
-
-  private void log(String s) {
-    Activator.log.info(Thread.currentThread().getName() + " - " + s);
   }
 
   public void setEmptyBody(boolean b) {

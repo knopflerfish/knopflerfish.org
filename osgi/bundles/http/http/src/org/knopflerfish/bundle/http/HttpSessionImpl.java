@@ -86,6 +86,7 @@ public class HttpSessionImpl implements HttpSession {
     inactivityTime = Timer.timeMillis();
   }
 
+  @Override
   public ServletContext getServletContext()
   {
     System.err.println("***NYI." + getClass().getName());
@@ -112,11 +113,13 @@ public class HttpSessionImpl implements HttpSession {
 
   // implements HttpSession
 
+  @Override
   public String getId()
   {
     return id;
   }
 
+  @Override
   public boolean isNew()
   {
     if (invalid) {
@@ -126,6 +129,7 @@ public class HttpSessionImpl implements HttpSession {
     return lastAccessedTime == -1;
   }
 
+  @Override
   public long getCreationTime()
   {
     if (invalid) {
@@ -135,21 +139,25 @@ public class HttpSessionImpl implements HttpSession {
     return creationTime;
   }
 
+  @Override
   public long getLastAccessedTime()
   {
     return lastAccessedTime;
   }
 
+  @Override
   public int getMaxInactiveInterval()
   {
     return maxInactiveInterval;
   }
 
+  @Override
   public void setMaxInactiveInterval(int maxInactiveInterval)
   {
     this.maxInactiveInterval = maxInactiveInterval;
   }
 
+  @Override
   public void invalidate()
   {
     if (invalid) {
@@ -164,6 +172,7 @@ public class HttpSessionImpl implements HttpSession {
     invalid = true;
   }
 
+  @Override
   public Object getAttribute(String name)
   {
     if (invalid) {
@@ -173,6 +182,7 @@ public class HttpSessionImpl implements HttpSession {
     return attributes.getAttribute(name);
   }
 
+  @Override
   public synchronized Enumeration<String> getAttributeNames()
   {
     if (invalid) {
@@ -182,6 +192,7 @@ public class HttpSessionImpl implements HttpSession {
     return attributes.getAttributeNames();
   }
 
+  @Override
   public synchronized void setAttribute(String name, Object value)
   {
     if (invalid) {
@@ -196,6 +207,7 @@ public class HttpSessionImpl implements HttpSession {
     }
   }
 
+  @Override
   public synchronized void removeAttribute(String name)
   {
     if (invalid) {
@@ -210,11 +222,13 @@ public class HttpSessionImpl implements HttpSession {
     }
   }
 
+  @Override
   public synchronized Object getValue(String name)
   {
     return getAttribute(name); // deprecated
   }
 
+  @Override
   public synchronized String[] getValueNames()
   { // deprecated
     final Vector<String> v = new Vector<String>();
@@ -229,16 +243,19 @@ public class HttpSessionImpl implements HttpSession {
     return names;
   }
 
+  @Override
   public void putValue(String name, Object value)
   {
     setAttribute(name, value); // deprecated
   }
 
+  @Override
   public void removeValue(String name)
   {
     removeAttribute(name); // deprecated
   }
 
+  @Override
   public HttpSessionContext getSessionContext()
   {
     return null; // deprecated

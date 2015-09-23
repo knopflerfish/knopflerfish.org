@@ -115,7 +115,10 @@ public class HttpConfig
   private int defaultSessionTimeout = 1200;
   private int connectionTimeout = 30;
   private int connectionMax = 50;
-  private boolean dnsLookup = true;
+  
+  private final static boolean DNS_LOOKUP_DEFAULT = false;
+  private boolean dnsLookup = DNS_LOOKUP_DEFAULT;
+  
   private int defaultResponseBufferSize = 8192;
   
   // private int serviceRanking = 1000; // NYI
@@ -144,10 +147,10 @@ public class HttpConfig
 
     config
         .put(HttpConfig.HTTP_ENABLED_KEY,
-             getPropertyAsBoolean(bc, "org.knopflerfish.http.enabled", "true"));
+             getPropertyAsBoolean(bc, "org.knopflerfish.http.enabled", true));
     config.put(HttpConfig.HTTPS_ENABLED_KEY,
                getPropertyAsBoolean(bc, "org.knopflerfish.http.secure.enabled",
-                                    "true"));
+                                    true));
     config.put(HttpConfig.HTTP_PORT_KEY,
                getPropertyAsInteger(bc, "org.osgi.service.http.port",
                                     HTTP_PORT_DEFAULT));
@@ -209,7 +212,7 @@ public class HttpConfig
 
     config.put(HttpConfig.DNS_LOOKUP_KEY,
                getPropertyAsBoolean(bc, "org.knopflerfish.http.dnslookup",
-                                    "false"));
+                                    DNS_LOOKUP_DEFAULT));
     config
         .put(HttpConfig.RESPONSE_BUFFER_SIZE_DEFAULT_KEY,
              getPropertyAsInteger(bc,
@@ -221,7 +224,7 @@ public class HttpConfig
                                    "ISO-8859-1"));
 
     config.put(HttpConfig.TRACE_ENABLED,
-               getPropertyAsBoolean(bc, HttpConfig.TRACE_ENABLED, "false"));
+               getPropertyAsBoolean(bc, HttpConfig.TRACE_ENABLED, false));
 
     config.put(HttpConfig.LIMIT_REQUEST_LINE,
                getPropertyAsInteger(bc, HttpConfig.LIMIT_REQUEST_LINE, 8190));
@@ -232,7 +235,7 @@ public class HttpConfig
     config.put(HttpConfig.REQ_CLIENT_AUTH_KEY,
                getPropertyAsBoolean(bc,
                                     "org.knopflerfish.http.req.client.auth",
-                                    "false"));
+                                    false));
     config.put(HttpConfig.MAX_WORKER_THREADS_KEY,
                getPropertyAsInteger(bc, HttpConfig.MAX_WORKER_THREADS_KEY, DEFAULT_THREADS_MAX));
     config.put(HttpConfig.KEEP_ALIVE_THREADS_KEY,
@@ -488,10 +491,10 @@ public class HttpConfig
   // private helper methods
   private static Boolean getPropertyAsBoolean(BundleContext bc,
                                               String name,
-                                              String defVal)
+                                              boolean defVal)
   {
     final String val = bc.getProperty(name);
-    return Boolean.valueOf(val == null ? defVal : val);
+    return val == null ? defVal : Boolean.valueOf(val);
   }
 
   private static Integer getPropertyAsInteger(BundleContext bc,

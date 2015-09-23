@@ -128,6 +128,7 @@ public class RequestImpl implements Request
   @Override
   public String getLocalName()
   {
+    
     if (httpConfig.getDNSLookup()) {
       return localAddress.getHostName();
     }
@@ -147,16 +148,6 @@ public class RequestImpl implements Request
   {
     return localPort;
   }
-
-  /*
-  public void reinit(final InputStream is, final HttpConfigWrapper httpConfig)
-      throws HttpException, IOException
-  {
-    destroy();
-    base.init(is, httpConfig);
-    // do_init();
-  }
-*/
   
   public void init(final InputStream is,
                    final InetAddress localAddress,
@@ -332,12 +323,6 @@ public class RequestImpl implements Request
   public void reset(boolean keepAlive)
   {
     base.reset(keepAlive);
-
-    // localAddress = null;
-    // remoteAddress = null;
-
-    // localPort = 0;
-    // remotePort = 0;
 
     attributes.removeAll();
 
