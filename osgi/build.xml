@@ -431,7 +431,7 @@
  </target>
 
  <target name="run-test-standalone" >
-   <echo message="Running test standalone"/>
+   <echo message="Running kf tests standalone"/>
    <mkdir dir="${junit.out.dir}"/>
    <java fork="true"
          dir="${run.test.dir}"
@@ -442,6 +442,7 @@
      <arg value="-xargs"/>
      <arg value="init-tests.xargs"/>
      <arg value="-Forg.knopflerfish.prefs.dir=${junit.out.dir}/prefs"/>
+     <arg value="-Forg.knopflerfish.junit_runner.tests=${org.knopflerfish.junit_runner.tests}"/>
    </java>
  </target>
 
