@@ -34,6 +34,12 @@
 
 package org.knopflerfish.bundle.http_servlet_test;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.knopflerfish.service.http_servlet_test.*;
 
 import java.io.*;
@@ -44,6 +50,7 @@ import org.osgi.framework.*;
 import org.osgi.service.http.*;
 
 import javax.servlet.*;
+
 import junit.framework.*;
 
 import org.knopflerfish.service.junit.*;
@@ -81,12 +88,16 @@ public class HttpServletTestSuite extends TestSuite  {
 
   private TestSuite postResponseTests;
 
+  private HttpClient httpclient;
+
+  private static HttpMethod currentHttpMethod;
+
   // private TestSuite responseTests;
   
   static HttpService httpService;
   /* common resource/servlet references */
 
-  private static HttpURLConnection currentRequestConnection;
+  // private static HttpURLConnection currentRequestConnection;
 
   public HttpServletTestSuite (BundleContext bc) {
     super ("HttpServletTestSuite");
@@ -99,6 +110,7 @@ public class HttpServletTestSuite extends TestSuite  {
       // the response received
       getRequestTestSuite = new TestSuite("GetRequestTestSuite");
       getRequestTestSuite.addTestSuite(HttpServletRequestTestCase.class);
+      getRequestTestSuite.addTestSuite(HttpServletResponseTestsDefaultValues.class);
       getRequestTestSuite.addTestSuite(HttpServletResponseTests.class);
       getRequestTestSuite.addTestSuite(SendGetResponseTests.class);
       
@@ -106,6 +118,7 @@ public class HttpServletTestSuite extends TestSuite  {
       // the response received
       postRequestTestSuite = new TestSuite("PostRequestTestSuite");
       postRequestTestSuite.addTestSuite(HttpServletRequestTestCase.class);
+      postRequestTestSuite.addTestSuite(HttpServletResponseTestsDefaultValues.class);
       postRequestTestSuite.addTestSuite(HttpServletResponseTests.class);
       postRequestTestSuite.addTestSuite(PostRequestTests.class);
       postRequestTestSuite.addTestSuite(SendPostResponseTests.class);
@@ -130,7 +143,7 @@ public class HttpServletTestSuite extends TestSuite  {
        */
 
       addTest(new Setup());
-      addTest(new GetRequestSuiteProxy());
+      addTest(new GetRequestSuiteProxy(5));
       addTest(new PostRequestSuiteProxy());
       addTest(new Cleanup());
     }
@@ -292,10 +305,17 @@ public class HttpServletTestSuite extends TestSuite  {
   }
 
   class GetRequestSuiteProxy extends FWTestCase {
+    private int num_calls = 1;
+    
+    GetRequestSuiteProxy(int count) {
+      super();
+      num_calls = count;
+    }
     
     @Override
     public void runTest() throws Throwable {
       out.println("HttpTestSuite - starting: " + getName());
+     httpclient = new HttpClient();
       
       URL url = getUrl(TEST_SERVLET_ALIAS);
       // Set expected values
@@ -305,17 +325,21 @@ public class HttpServletTestSuite extends TestSuite  {
       TestData.requestURL = url.toString();
       
       runThisSuite = getRequestTestSuite;
-      HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-      currentRequestConnection = conn;
+
+      currentHttpMethod = new GetMethod(url.toString());
       
-      HttpServletTestSuite.this.runTestSuite(getResponseTests, null);
-      conn.disconnect();
+      for (int i = 0; i < num_calls; i++) {
+        httpclient.executeMethod(currentHttpMethod);
+        HttpServletTestSuite.this.runTestSuite(getResponseTests, null);
+      }
+      
+      currentHttpMethod.releaseConnection();
+      currentHttpMethod = null;
       
       // read and check result
       if (!passed) {
         fail(failMessage);
       }
-      
     }
   }
   
@@ -333,28 +357,41 @@ public class HttpServletTestSuite extends TestSuite  {
       TestData.requestURL = url.toString();
       runThisSuite = postRequestTestSuite;
       
-      HttpURLConnection conn = (HttpURLConnection)url.openConnection();
-      conn.setDoOutput(true);
-      conn.setRequestMethod("POST");
-      conn.setRequestProperty("Content-Type", "text/plain");
+//      HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+//      conn.setDoOutput(true);
+//      conn.setRequestMethod("POST");
+//      conn.setRequestProperty("Content-Type", "text/plain");
       
-      byte[] postbuf = TestData.postRequestBody.getBytes("UTF-8");
+      // byte[] postbuf = TestData.postRequestBody.getBytes("UTF-8");
+      RequestEntity requestEntity = new StringRequestEntity(TestData.postRequestBody,
+                                                            "text/plain",
+                                                            "UTF-8");
+      
       // conn.setRequestProperty("Content-Length", String.valueOf(postbuf.length));
+      // currentHttpMethod = 
+      PostMethod postMethod = new PostMethod(url.toString());
+      currentHttpMethod = postMethod;
+      postMethod.setRequestEntity(requestEntity);
       
-      conn.connect();
-      OutputStream os = conn.getOutputStream();
-      os.write(postbuf, 0, postbuf.length);
-      os.close();
-      currentRequestConnection = conn;
+//      currentHttpMethod.setRe
+//      conn.connect();
+//      OutputStream os = conn.getOutputStream();
+//      os.write(postbuf, 0, postbuf.length);
+//      os.close();
+//      currentRequestConnection = conn;
 
+      httpclient.executeMethod(currentHttpMethod);
       HttpServletTestSuite.this.runTestSuite(postResponseTests, null);
       
-      conn.disconnect();
+      // conn.disconnect();
       
       // OutputStreamWriter osw = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
       // osw.write(TestData.postRequestBody);
       
       // read and check result
+      currentHttpMethod.releaseConnection();
+      currentHttpMethod = null;
+      
       if (!passed) {
         fail(failMessage);
       }
@@ -455,8 +492,12 @@ public class HttpServletTestSuite extends TestSuite  {
     System.out.println("HttpServletTestSuite: " + s);
   }
 
-  public static HttpURLConnection getRequestConnection()  {
-    return currentRequestConnection;
+//  public static HttpURLConnection getRequestConnection()  {
+//    return currentRequestConnection;
+//  }
+
+  public static HttpMethod getCurrentHttpMethod() {
+    return currentHttpMethod;
   }
 
 }

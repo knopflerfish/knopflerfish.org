@@ -37,6 +37,7 @@ package org.knopflerfish.service.http_servlet_test;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
+import org.apache.commons.httpclient.HttpMethod;
 import org.knopflerfish.bundle.http_servlet_test.HttpServletTestSuite;
 
 import junit.framework.TestCase;
@@ -46,8 +47,8 @@ import junit.framework.TestCase;
  * 
  */
 public class PostResponseTests extends TestCase {
-
-  private HttpURLConnection conn;
+  HttpMethod method;
+  // private HttpURLConnection conn;
     
   public PostResponseTests() {
     super();
@@ -55,15 +56,15 @@ public class PostResponseTests extends TestCase {
     
   @Override
   public void setUp() {
-    conn = HttpServletTestSuite.getRequestConnection();
+    method = HttpServletTestSuite.getCurrentHttpMethod();
   }
 
   public void testResponseCode() throws IOException {
-    assertEquals(200, conn.getResponseCode());
+    assertEquals(200, method.getStatusCode());
   }
 
   public void testRequestMethod() {
-    assertEquals("POST", conn.getRequestMethod());
+    assertEquals("POST", method.getName());
   }
   
   public void testPostResponseBody() {

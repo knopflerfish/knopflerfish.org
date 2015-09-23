@@ -56,7 +56,7 @@ public class HttpServletResponseTests extends TestCase
   
   @Override
   public void setUp() {
-    System.out.println("setUp() called");
+    System.out.println(getName() + " - setUp() called");
     response = HttpTestServlet.activeResponse;
   }
   
@@ -76,15 +76,21 @@ public class HttpServletResponseTests extends TestCase
     
   }
    // TODO add test for type without charset. There may be a bug in the HTTP server
-  public void testContentType() {
-    assertNull(response.getContentType());
-    String type = "text/html;charset=UTF-8";
+  public void testContentTypeAndCharacterEncoding() {
+    String basetype = "text/html";
+    String type = basetype;
+    String utf8_encoding="UTF-8";
+    
+    // The server seem to append the default charset, we assuem this is OK
+    response.setContentType(type);
+    type += ";charset=" + TestData.ISO_ENCODING;
+    assertEquals(type, response.getContentType());
+    
+    assertEquals(TestData.ISO_ENCODING, response.getCharacterEncoding());
+    type = basetype + ";charset=" + utf8_encoding;
     response.setContentType(type);
     assertEquals(type, response.getContentType());
+    assertEquals(utf8_encoding, response.getCharacterEncoding());
   }
-    
-  public void testCharacterEncoding() {
-    assertEquals("ISO-8859-1", response.getCharacterEncoding());
-  }
-  
+      
 }
