@@ -15,4 +15,5 @@ public class TestData {
   public final static String postRequestBody = "THE POSTMAN ALWAYS RINGS TWICE\n\tNOVEL AND MOVIE";
   public final static String postResponseBody = "1946;\n\tLANA TURNER";
     
+  public final static String ISO_ENCODING = "ISO-8859-1";
 }
