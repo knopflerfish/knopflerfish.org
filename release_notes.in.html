@@ -48,7 +48,16 @@
 
 <h2 class="filled">OSGi Compendium Specification</h2>
 <div class="release_notes">
+
   <div class="note_group">
+    <div class="note_name">HTTP 5.1.2</div>
+    <div class="note_item">
+      Removed debug printout that incorrectly indicated a NPE problem.
+    </div>
+    <div class="note_item">
+      HttpServletResponse.getLocale() incorrectly returned null if no locale had been set.
+      Corrected to return the default locale.
+    </div>
     <div class="note_name">HTTP 5.1.1</div>
     <div class="note_item">
       Corrected issues in the HttpServletRequest class. Some methods
@@ -89,6 +98,11 @@
   </div>
 
   <div class="note_group">
+    <div class="note_name">junit 3.8.1.kf4-003</div>
+    <div class="note_item">
+      Corrected issue with published JUntiResult being included every test suite result even they were not related.
+    </div>
+
     <div class="note_name">junit 3.8.1.kf4-002</div>
     <div class="note_item">
       New support interface for distributed testing and publishing JUnitTestResults services in the registry.
@@ -104,6 +118,11 @@
   </div>
 
   <div class="note_group">
+    <div class="note_name">http_servlet_test 1.1.0</div>
+    <div class="note_item">
+      Update to use HttpClient / httpclient_connector for all request testing. More test cases added.
+    </div>
+    
     <div class="note_name">http_servlet_test 1.0.0</div>
     <div class="note_item">
       New regression test: http_servlet_test for testing the Servlet API from within a test servlet,
