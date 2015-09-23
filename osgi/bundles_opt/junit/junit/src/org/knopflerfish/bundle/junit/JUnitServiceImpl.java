@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2013, KNOPFLERFISH project
+ * Copyright (c) 2004-2013,2015 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ public class JUnitServiceImpl implements JUnitService {
   private HashMap<String,JUnitResult> collectedResults = new HashMap<String,JUnitResult>();
   private HashMap<String,Vector<JUnitResult>> referencedResults = new HashMap<String,Vector<JUnitResult>>();
   
-  private Vector<TestSuite> subsuites = new Vector();
+  private LinkedHashMap<String,TestSuite> subsuites = new LinkedHashMap<String,TestSuite>();
   
   JUnitServiceImpl() {
   }
@@ -177,12 +177,22 @@ public class JUnitServiceImpl implements JUnitService {
       suite.run(tr);
       long stop  = System.currentTimeMillis();
       
+      // Clear tables
+      collectedResults.clear();
+      referencedResults.clear();
+      subsuites.clear();
+      
       collectRegisteredTestReults();
       toXMLSuite(suite, tr, stop - start, out, 2, true, true);
-      for (Iterator<JUnitResult> it = collectedResults.values().iterator(); it.hasNext(); ) {
-        toXMLSuite(it.next().getTestSuite(), tr, 0, out, 2, true, true);
+      
+      TestSuite[] suites = subsuites.values().toArray(new TestSuite[0]);
+      for (int i = 0; i < suites.length; i++) {
+        collectReferencedSuites(suites[i]);
       }
-      for (Iterator<TestSuite> it = subsuites.iterator(); it.hasNext(); ) {
+//      for (Iterator<JUnitResult> it = collectedResults.values().iterator(); it.hasNext(); ) {
+//        toXMLSuite(it.next().getTestSuite(), tr, 0, out, 2, false, true);
+//      }
+      for (Iterator<TestSuite> it = subsuites.values().iterator(); it.hasNext(); ) {
         toXMLSuite(it.next(), tr, 0, out, 2, false, false);
       }
       toXMLResult(tr, out);
@@ -225,7 +235,7 @@ public class JUnitServiceImpl implements JUnitService {
     }
   }
 
-  private String getTestName(Test test)  {
+  private static String getTestName(Test test)  {
     if (test instanceof TestSuite)
       return ((TestSuite)test).getName();
     else if (test instanceof TestCase)
@@ -379,10 +389,10 @@ public class JUnitServiceImpl implements JUnitService {
         
         out.println("</suitecase>");
         
-        if (collect)
-          subsuites.add((TestSuite) test);
+//        if (collect)
+//          subsuites.add((TestSuite) test);
         if (recursive)
-          toXMLSuite((TestSuite)test, tr, 0, out, n + 1, true, true);
+          toXMLSuite((TestSuite)test, tr, 0, out, n + 1, collect, recursive);
       } else {
         Vector<JUnitResult> linkedTest = referencedResults.get(name);
         out.print(indent(n) + "   <case class = \"" + clazz + "\"");
@@ -394,6 +404,10 @@ public class JUnitServiceImpl implements JUnitService {
           for (Iterator<JUnitResult> it = linkedTest.iterator(); it.hasNext(); ) {
             JUnitResult jres = it.next();
             out.print(indent(n) + "   <ref refname = \"" + jres.getTestSuite().getName() +  "\" />"); 
+            if (collect) {
+              if (!subsuites.containsKey(jres.getTestSuite().getName()))
+              subsuites.put(jres.getTestSuite().getName(), jres.getTestSuite());
+            }
           }
           // out.print(" ref = \"" + linkedTest.getTestSuite().getName() + "\"");
         }
@@ -408,6 +422,26 @@ public class JUnitServiceImpl implements JUnitService {
     out.println(indent(n) + "  </suite>");
   }
 
+  private void collectReferencedSuites(TestSuite suite) {
+    for(int i = 0; i < suite.testCount(); i++) {
+      Test test = suite.testAt(i);
+      if (test instanceof TestSuite) {
+        TestSuite ts = (TestSuite)test;
+        subsuites.put(ts.getName(), ts);
+        collectReferencedSuites(ts);
+      }
+      else if (test instanceof TestCase) {
+        TestCase tc = (TestCase)test;
+        Vector<JUnitResult> linkedTest = referencedResults.get(getTestName(test));
+        if (linkedTest != null) {
+          for (Iterator<JUnitResult> it = linkedTest.iterator(); it.hasNext(); ) {
+            JUnitResult jres = it.next();
+            subsuites.put(jres.getTestSuite().getName(), jres.getTestSuite());
+          }
+        }
+      }
+    }
+  }
 
   String getTestCaseStatus(TestResult tr, Test test) {
     for(Enumeration e = tr.failures(); e.hasMoreElements(); ) {
