@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: HTTP-Server
 Bundle-SymbolicName: org.knopflerfish.bundle.http
-Bundle-Version: 5.1.1
+Bundle-Version: 5.1.2
 Bundle-Description: HTTP/HTTPS Server
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
