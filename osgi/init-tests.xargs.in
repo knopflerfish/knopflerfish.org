@@ -97,6 +97,10 @@
 -install @io_all-N.N.N.jar@
 -install @prefs_all-N.N.N.jar@
 
+# Needed by http_servlet_test
+-install @commons-logging_all-N.N.N.jar@
+-install @httpclient_connector-N.N.N.jar@
+
 # the test cases
 -istart @framework_test-N.N.N.jar@
 -istart @filter_test-N.N.N.jar@
