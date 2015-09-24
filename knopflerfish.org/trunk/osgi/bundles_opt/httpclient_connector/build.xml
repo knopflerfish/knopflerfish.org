@@ -6,7 +6,7 @@
 
   <!-- Build for OSGi Minimum Execution Environment. -->
   <!-- Uses String.matches(), Interger.valueOf(String) -->
-  <property name="bundle.compile.EE" value="ee.minimum"/>
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
 
   <property name="bundle.build.api"  value="false"/>
   <property name="bundle.build.impl" value="false"/>
