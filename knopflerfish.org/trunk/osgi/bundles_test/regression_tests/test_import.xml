@@ -30,7 +30,7 @@ The openssl program is needed to run the condpermadmin tests. This test will the
 
 Please install the openssl program to enable condpermadmin testing.
     </echo>
-  </target>      
+  </target>
 
   <target name="clear_openssl_warning">
     <delete file="${condperm_warnings.file}"  quiet="true" />
@@ -46,6 +46,5 @@ Please install the openssl program to enable condpermadmin testing.
       <isset property="openssl_return_code"/>
     </condition>
   </target>
-  
+
 </project>
- 

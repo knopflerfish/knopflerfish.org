@@ -1102,11 +1102,17 @@
 
   <target name="clean" description="Deletes all generated files.">
     <delete dir="${outdir}" failonerror="false"/>
-    <delete includeEmptyDirs="true" verbose="true" failonerror="false">
+    <delete includeEmptyDirs="true" failonerror="false">
       <fileset dir="${jardir}" erroronmissingdir="false">
         <patternset refid="jars.pattern"/>
       </fileset>
       <dirset dir="${jardir}" excludes="*,**/*"/>
+    </delete>
+    <delete includeEmptyDirs="true" failonerror="false">
+      <fileset dir="${dexdir}" erroronmissingdir="false">
+        <patternset refid="jars.pattern"/>
+      </fileset>
+      <dirset dir="${dexdir}" excludes="*,**/*"/>
     </delete>
   </target>
 
