@@ -714,10 +714,14 @@ class Resolver {
       List<ExportPkg> possibleProvider = new LinkedList<ExportPkg>();
       for (ExportPkg ep : ip.pkg.exporters) {
         if (ip.checkAttributes(ep)) {
-          if (ip.bpkgs == ep.bpkgs || ip.checkPermission(ep)) {
-            possibleProvider.add(ep);
-          } else if (pkgFail != null) {
-            newFailReason(pkgFail, "No import permission", ep);
+          if (tempBlackList.contains(ep)) {
+            tempBlackListHits++;
+          } else {
+            if (ip.bpkgs == ep.bpkgs || ip.checkPermission(ep)) {
+              possibleProvider.add(ep);
+            } else if (pkgFail != null) {
+              newFailReason(pkgFail, "No import permission", ep);
+            }
           }
         } else if (pkgFail != null) {
           newFailReason(pkgFail, "Attributes don't match", ep);
@@ -1040,8 +1044,15 @@ class Resolver {
                                   " with provider, " + ip.provider);
         }
         if (ep == null) {
-          tempProvider.put(ip.pkg.pkg, ip.provider);
-          checkList.add(ip.provider);
+          if (tempBlackList.contains(ip.provider)) {
+            if (framework.debug.resolver) {
+              framework.debug.println("checkUses: black listed provider for, " + ip.pkg.pkg);
+            }
+            return false;
+          } else {
+            tempProvider.put(ip.pkg.pkg, ip.provider);
+            checkList.add(ip.provider);
+          }
         } else if (ep != ip.provider) {
           if (framework.debug.resolver) {
             framework.debug.println("checkUses: mismatch in providers for, " + ip.pkg.pkg);
