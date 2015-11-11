@@ -1425,7 +1425,7 @@ class Resolver {
     }
     for (BundleGeneration bg : tempResolved) {
       if (bg.bundle.isBundleThread(t)) {
-		    throw new BundleException("Can not resolve a bundle inside current BundleListener." +
+        throw new BundleException("Can not resolve a bundle inside current BundleListener." +
                                   "Will cause a dead-lock. BID=" + bg.bundle.id);
       }
     }
