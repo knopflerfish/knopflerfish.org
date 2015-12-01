@@ -1,9 +1,11 @@
 # Travis CI <http://travis-ci.org>
 
-language; java
+language: java
 
 notifications:
-  janste63:
+  email:
+    recipients:
+    - jan@makewave.com
     on_success: always
 
 before_install:
