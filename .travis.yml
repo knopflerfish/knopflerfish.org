@@ -1,6 +1,8 @@
 # Travis CI <http://travis-ci.org>
 
 language: java
+sudo: required
+dist: trusty
 
 notifications:
   email:
