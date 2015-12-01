@@ -8,10 +8,6 @@ notifications:
     - jan@makewave.com
     on_success: always
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y ant
-
 install: true
 
-script: bundle exec ant distrib
+script: ant distrib
