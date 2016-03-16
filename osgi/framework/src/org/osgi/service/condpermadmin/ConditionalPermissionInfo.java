@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.osgi.service.condpermadmin;
 
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.service.permissionadmin.PermissionInfo;
 
 /**
@@ -24,9 +25,9 @@ import org.osgi.service.permissionadmin.PermissionInfo;
  * Permission Admin service.
  * 
  * @Immutable
- * @noimplement
- * @version $Id: c4222b04d7ab4f8ccdb5def2bf5423c2e1d31f20 $
+ * @author $Id: 1630bc4c55d27a5f5df313fa427e9b07c7d8ce90 $
  */
+@ProviderType
 public interface ConditionalPermissionInfo {
 	/**
 	 * This string is used to indicate that a row in the Conditional Permission
@@ -132,11 +133,10 @@ public interface ConditionalPermissionInfo {
 	 * 
 	 * <p>
 	 * <i>name</i> is optional. If <i>name</i> is present in the encoded string,
-	 * it must quoted, beginning and ending with {@code &quot;}. The <i>name</i>
-	 * value must be encoded for proper parsing. Specifically, the
-	 * {@code &quot;}, {@code \}, carriage return, and line feed characters must
-	 * be escaped using {@code \&quot;}, {@code \\}, {@code \r}, and {@code \n},
-	 * respectively.
+	 * it must quoted, beginning and ending with {@code "}. The <i>name</i>
+	 * value must be encoded for proper parsing. Specifically, the {@code "},
+	 * {@code \}, carriage return, and line feed characters must be escaped
+	 * using {@code \"}, {@code \\}, {@code \r}, and {@code \n}, respectively.
 	 * 
 	 * <p>
 	 * The encoded string contains no leading or trailing whitespace characters.

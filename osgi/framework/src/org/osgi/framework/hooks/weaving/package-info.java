@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /**
- * Framework Weaving Hooks Package Version 1.0.
+ * Framework Weaving Hooks Package Version 1.1.
  * 
  * <p>
  * Bundles wishing to use this package must list the package in the
@@ -26,10 +26,13 @@
  * Example import for consumers using the API in this package:
  * </p>
  * <p>
- * {@code  Import-Package: org.osgi.framework.hooks.weaving; version="[1.0,2.0)"}
+ * {@code  Import-Package: org.osgi.framework.hooks.weaving; version="[1.1,2.0)"}
  * </p>
- * @version $Id: 8b788094aec5fd8ca4d2dfe6a8e4afc04a461290 $
+ * @author $Id: 5b48f041a1764e8b2979cdbbb528082054ab3e7f $
  */
 
+@Version("1.1")
 package org.osgi.framework.hooks.weaving;
+
+import org.osgi.annotation.versioning.Version;
 

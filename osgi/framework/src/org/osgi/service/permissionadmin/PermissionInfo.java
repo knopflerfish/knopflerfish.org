@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ package org.osgi.service.permissionadmin;
  * Permission class has been exported by a bundle.
  * 
  * @Immutable
- * @version $Id: d904a01a7ff64b702e8d92071d063ff6927bef14 $
+ * @author $Id: b6cc8440e07c61e1d4d53a58ac3610c99e5c34f7 $
  */
 public class PermissionInfo {
 	private final String	type;
@@ -217,9 +217,9 @@ public class PermissionInfo {
 	 * </pre>
 	 * 
 	 * where <i>name</i> and <i>actions</i> are strings that must be encoded for
-	 * proper parsing. Specifically, the {@code &quot;},{@code \}, carriage
-	 * return, and line feed characters must be escaped using {@code \&quot;},
-	 * {@code \\},{@code \r}, and {@code \n}, respectively.
+	 * proper parsing. Specifically, the {@code "},{@code \}, carriage return,
+	 * and line feed characters must be escaped using {@code \"}, {@code \\},
+	 * {@code \r}, and {@code \n}, respectively.
 	 * 
 	 * <p>
 	 * The encoded string contains no leading or trailing whitespace characters.
@@ -253,6 +253,7 @@ public class PermissionInfo {
 	 * 
 	 * @return The string representation of this {@code PermissionInfo}.
 	 */
+	@Override
 	public String toString() {
 		return getEncoded();
 	}
@@ -304,6 +305,7 @@ public class PermissionInfo {
 	 *         the same type, name and actions as this {@code PermissionInfo}
 	 *         object; {@code false} otherwise.
 	 */
+	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) {
 			return true;
@@ -331,6 +333,7 @@ public class PermissionInfo {
 	 * 
 	 * @return A hash code value for this object.
 	 */
+	@Override
 	public int hashCode() {
 		int h = 31 * 17 + type.hashCode();
 		if (name != null) {
