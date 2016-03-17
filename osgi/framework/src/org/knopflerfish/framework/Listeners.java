@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,11 @@ class Listeners {
   HashSet<ListenerEntry> syncBundleListeners = new HashSet<ListenerEntry>();
 
   /**
+   * Init framework event listeners.
+   */
+  private FrameworkListener [] initListeners;
+
+  /**
    * All framework event listeners.
    */
   private final HashSet<ListenerEntry> frameworkListeners = new HashSet<ListenerEntry>();
@@ -106,20 +111,22 @@ class Listeners {
   volatile boolean quit = false;
 
 
-  Listeners(FrameworkContext framework, PermissionOps perm) {
+  Listeners(FrameworkContext framework, PermissionOps perm, FrameworkListener... initListeners) {
     this.fwCtx = framework;
     secure = perm;
     nocacheldap = framework.props.getBooleanProperty(FWProps.LDAP_NOCACHE_PROP);
     serviceListeners = new ServiceListenerState(this);
     final String ets = framework.props.getProperty(FWProps.LISTENER_N_THREADS_PROP);
     int n_threads = 1;
+    Throwable error = null;
     if (ets != null) {
       try {
         n_threads = Integer.parseInt(ets);
       } catch (final NumberFormatException nfe) {
-        // NYI, report error
+        error = nfe;
       }
     }
+    this.initListeners = initListeners;
     if (n_threads > 0) {
       asyncEventQueue = new LinkedList<AsyncEvent>();
       threads = new AsyncEventThread[n_threads];
@@ -129,6 +136,10 @@ class Listeners {
       }
       if (n_threads > 1) {
         activeListeners = new HashMap<ListenerEntry, Thread>();
+      }
+      if (error != null) {
+        Throwable t = new Exception("Failed to parse " + FWProps.LISTENER_N_THREADS_PROP, error);
+        framework.frameworkWarning(framework.systemBundle, t);
       }
     }
   }
@@ -140,8 +151,15 @@ class Listeners {
     syncBundleListeners.clear();
     frameworkListeners.clear();
     serviceListeners.clear();
+    initListeners = null;
     secure = null;
     fwCtx = null;
+  }
+
+
+  void initDone()
+  {
+    initListeners = null;
   }
 
 
@@ -355,6 +373,11 @@ class Listeners {
           frameworkEvent(new ListenerEntry(null, ofl), evt);
         }
       }
+      if (initListeners != null) {
+        for (FrameworkListener il : initListeners) {
+          frameworkEvent(new ListenerEntry(null, il), evt);
+        }
+      }
       ListenerEntry [] fl;
       synchronized (frameworkListeners) {
         fl = new ListenerEntry[frameworkListeners.size()];
@@ -467,7 +490,7 @@ class Listeners {
     } catch (final Exception pe) {
       // Don't report Error events again, since probably would go into an infinite loop.
       if (evt.getType() != FrameworkEvent.ERROR) {
-        fwCtx.frameworkError(le.bc, pe);
+        fwCtx.frameworkError(le != null ? le.bc : null, pe);
       }
     }
   }

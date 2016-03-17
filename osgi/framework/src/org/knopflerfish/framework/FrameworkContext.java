@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -282,7 +282,7 @@ public class FrameworkContext  {
    * Initialize the framework, see spec v4.2 sec 4.2.4
    *
    */
-  void init()
+  void init(FrameworkListener... initListeners)
   {
     log("initializing");
     initCount++;
@@ -301,6 +301,8 @@ public class FrameworkContext  {
       systemBundle.secure = perm;
     }
     perm.init();
+
+    listeners = new Listeners(this, perm, initListeners);
 
     final String v = props.getProperty(FWProps.VALIDATOR_PROP);
     if (!v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
@@ -337,6 +339,7 @@ public class FrameworkContext  {
             debug.printStackTrace
               ("Cannot set global content handlers, "
                +"continuing without OSGi service content handler (" +e +")", e);
+            frameworkError(systemBundle, e);
           }
         }
       } else {
@@ -375,8 +378,10 @@ public class FrameworkContext  {
         // Use the nested exception as cause in this case.
         cause = ((InvocationTargetException)e).getTargetException();
       }
-      throw new RuntimeException("Failed to initialize storage "
-                                 + storageClass, cause);
+      RuntimeException re = new RuntimeException("Failed to initialize storage "
+                                                 + storageClass, cause);
+      frameworkError(systemBundle, re);
+      throw re;
     }
     if (props.getBooleanProperty(FWProps.READ_ONLY_PROP)) {
       dataStorage = null;
@@ -388,7 +393,6 @@ public class FrameworkContext  {
     bundleThreads = new LinkedList<BundleThread>();
 
     resolver  = new Resolver(this);
-    listeners = new Listeners(this, perm);
     services  = new Services(this, perm);
 
     // Add this framework to the bundle URL handle
@@ -417,20 +421,20 @@ public class FrameworkContext  {
                       classes,
                       packageAdmin,
                       null);
-
     registerStartLevel();
-
     bundles.load();
-
+    listeners.initDone();
     log("inited");
-
-    log("Installed bundles:");
-    // Use the ordering in the bundle storage to get a sorted list of bundles.
-    final BundleArchive [] allBAs = storage.getAllBundleArchives();
-    for (final BundleArchive ba : allBAs) {
-      final Bundle b = bundles.getBundle(ba.getBundleLocation());
-      log(" #" +b.getBundleId() +" " +b.getSymbolicName() +":"
-          +b.getVersion() +" location:" +b.getLocation());
+    
+    if (debug.framework) {
+      log("Installed bundles:");
+      // Use the ordering in the bundle storage to get a sorted list of bundles.
+      final BundleArchive [] allBAs = storage.getAllBundleArchives();
+      for (final BundleArchive ba : allBAs) {
+        final Bundle b = bundles.getBundle(ba.getBundleLocation());
+        log(" #" +b.getBundleId() +" " +b.getSymbolicName() +":"
+            +b.getVersion() +" location:" +b.getLocation());
+      }
     }
   }
 

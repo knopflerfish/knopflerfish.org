@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -105,8 +105,8 @@ public class Bundles {
     synchronized (this) {
       b = bundles.get(location);
       if (b != null) {
-        b = (BundleImpl)b.fwCtx.bundleHooks.filterBundle(b.bundleContext, b);
-        if(b == null) {
+        if (fwCtx.bundleHooks.filterBundle(b.bundleContext, b) == null &&
+            caller != fwCtx.systemBundle) {
           throw new BundleException("Rejected by a bundle hook",
                                     BundleException.REJECTED_BY_HOOK);
         } else {

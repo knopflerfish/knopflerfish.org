@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2015, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,7 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
 import org.osgi.framework.launch.Framework;
@@ -128,12 +129,22 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
-   * Initialize this framework.
+   * Initialize this framework and call listeners.
    *
-   * @see org.osgi.framework.Framework#init
+   * @see org.osgi.framework.launch.Framework#init()
    */
   @Override
   public void init() throws BundleException {
+    init(new FrameworkListener [0]);
+  }
+
+  /**
+   * Initialize this framework and call listeners.
+   *
+   * @see org.osgi.framework.launch.Framework#init(FrameworkListener...)
+   */
+  @Override
+  public void init(FrameworkListener... listeners) throws BundleException {
     secure.checkExecuteAdminPerm(this);
 
     synchronized (lock) {
@@ -149,7 +160,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       default:
         throw new IllegalStateException("INTERNAL ERROR, Illegal state, " + state);
       }
-      doInit();
+      doInit(listeners);
     }
   }
 
@@ -616,10 +627,10 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    *
    */
-  private void doInit() throws BundleException {
+  private void doInit(FrameworkListener... listeners) throws BundleException {
     state = STARTING;
     bootClassPathHasChanged = false;
-    fwCtx.init();
+    fwCtx.init(listeners);
   }
 
 

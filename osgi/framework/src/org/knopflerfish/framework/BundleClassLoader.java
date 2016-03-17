@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2015, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -949,15 +949,17 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
                 throw cfe;
               }
             }
-            if (cl.protectionDomain == null) {
-              // Kaffe can't handle null protectiondomain
-              c = cl.defineClass(name, bytes, 0, bytes.length);
-            } else {
-              c = cl.defineClass(name, bytes, 0, bytes.length, cl.protectionDomain);
-            }
-
-            if (wc != null) {
-              wc.setDefinedClass(c);
+            try {
+              if (cl.protectionDomain == null) {
+                // Kaffe can't handle null protectiondomain
+                c = cl.defineClass(name, bytes, 0, bytes.length);
+              } else {
+                c = cl.defineClass(name, bytes, 0, bytes.length, cl.protectionDomain);
+              }
+            } finally {
+              if (wc != null) {
+                wc.setDefinedClass(c);
+              }
             }
           }
           return c;

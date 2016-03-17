@@ -184,10 +184,12 @@
 
   <!-- Compile and pack the Knopflerfish bundle tasks.  -->
   <property name="bundle_tasks.jar" location="${ant.lib}/bundle_tasks.jar"/>
+  <property name="osgi_annotation.jar" location="${osgi.dir}/annotations/osgi.annotation-6.0.1.jar"/>
 
   <path id="bundle_tasks.path">
     <pathelement location="${antclasses}"/>
     <pathelement location="${bundle_tasks.jar}"/>
+    <pathelement location="${osgi_annotation.jar}"/>
     <path refid="asm.path"/>
   </path>
 

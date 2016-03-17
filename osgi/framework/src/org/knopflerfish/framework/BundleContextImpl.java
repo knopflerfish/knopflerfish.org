@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,9 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceObjects;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 
@@ -149,7 +151,13 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundle
    */
   public Bundle getBundle(long id) {
-    return bundle.fwCtx.bundleHooks.filterBundle(this, bundle.fwCtx.bundles.getBundle(id));
+    Bundle res = bundle.fwCtx.bundles.getBundle(id);
+    if (bundle.fwCtx.systemBundle == bundle) {
+      bundle.fwCtx.bundleHooks.filterBundle(this, res);
+    } else {
+      res = bundle.fwCtx.bundleHooks.filterBundle(this, res);
+    }
+    return res;
   }
 
 
@@ -160,10 +168,16 @@ public class BundleContextImpl
    */
   public Bundle[] getBundles() {
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    final
-    List<Bundle> bl = (List) bundle.fwCtx.bundles.getBundles();
+    final List<Bundle> bl = (List) bundle.fwCtx.bundles.getBundles();
+    Bundle [] res = null;
+    if (bundle.fwCtx.systemBundle == bundle) {
+      res = bl.toArray(new Bundle [bl.size()]);
+    }
     bundle.fwCtx.bundleHooks.filterBundles(this, bl);
-    return bl.toArray(new Bundle [bl.size()]);
+    if (res == null) {
+      res = bl.toArray(new Bundle [bl.size()]);
+    }
+    return res; 
   }
 
 
@@ -278,6 +292,42 @@ public class BundleContextImpl
 
 
   /**
+   * Registers the specified service object with the specified
+   * properties under the name of the specified class with the Framework.
+   *
+   * @see org.osgi.framework.BundleContext#registerService
+   */
+  public <S> ServiceRegistration<S> registerService(Class<S> clazz,
+                                                    S service,
+                                                    Dictionary<String, ?> properties)
+  {
+    @SuppressWarnings("unchecked")
+    final ServiceRegistration<S> res = (ServiceRegistration<S>)
+        registerService(clazz == null ? null
+                                      : clazz.getName(),service,properties);
+    return res;
+  }
+
+
+  /**
+   * Registers the specified service factory object with the specified
+   * properties under the name of the specified class with the Framework.
+   *
+   * @see org.osgi.framework.BundleContext#registerService
+   */
+  public <S> ServiceRegistration<S> registerService(Class<S> clazz,
+                                                    ServiceFactory<S> factory,
+                                                    Dictionary<String, ?> properties)
+  {
+    @SuppressWarnings("unchecked")
+    final ServiceRegistration<S> res = (ServiceRegistration<S>)
+        registerService(clazz == null ? null
+                                      : clazz.getName(),factory,properties);
+    return res;
+  }
+
+
+  /**
    * Get a list of service references.
    *
    * @see org.osgi.framework.BundleContext#getServiceReferences
@@ -286,7 +336,7 @@ public class BundleContextImpl
       throws InvalidSyntaxException
   {
     checkValid();
-    return bundle.fwCtx.services.get(clazz, filter, bundle);
+    return bundle.fwCtx.services.get(clazz, filter, bundle, true);
   }
 
   /**
@@ -299,7 +349,7 @@ public class BundleContextImpl
       throws InvalidSyntaxException
   {
     checkValid();
-    return bundle.fwCtx.services.get(clazz, filter, null);
+    return bundle.fwCtx.services.get(clazz, filter, bundle, false);
   }
 
 
@@ -311,7 +361,7 @@ public class BundleContextImpl
   public ServiceReference<?> getServiceReference(String clazz)
   {
     checkValid();
-    return bundle.fwCtx.services.get(bundle, clazz);
+    return bundle.fwCtx.services.get(bundle, clazz, true);
   }
 
 
@@ -333,7 +383,7 @@ public class BundleContextImpl
     }
 
     final ServiceReferenceImpl<S> sri = (ServiceReferenceImpl<S>) reference;
-    return sri.getService(bundle);
+    return sri.getService(bundle, false);
   }
 
 
@@ -354,7 +404,23 @@ public class BundleContextImpl
       throw new NullPointerException("null ServiceReference is not valid input to ungetService()");
     }
 
-    return ((ServiceReferenceImpl<?>)reference).ungetService(bundle);
+    return ((ServiceReferenceImpl<?>)reference).ungetService(bundle, null);
+  }
+
+
+  /**
+   * Returns the {@link ServiceObjects} object for the service referenced by
+   * the specified {@code ServiceReference} object.
+   *
+   * @see  org.osgi.framework.BundleContext#getServiceObjects
+   */
+  public <S> ServiceObjects<S> getServiceObjects(ServiceReference<S> reference) {
+    checkValid();
+    ServiceReferenceImpl<S> sr = (ServiceReferenceImpl<S>)reference;
+    if (sr.isAvailable()) {
+      return new ServiceObjectsImpl(this, sr);
+    }
+    return null;
   }
 
 
@@ -392,19 +458,6 @@ public class BundleContextImpl
   public Filter createFilter(String filter) throws InvalidSyntaxException {
     checkValid();
     return FrameworkUtil.createFilter(filter);
-  }
-
-
-  public <S> ServiceRegistration<S>
-    registerService(Class<S> clazz,
-                    S service,
-                    Dictionary<String, ?> properties)
-  {
-    @SuppressWarnings("unchecked")
-    final ServiceRegistration<S> res = (ServiceRegistration<S>)
-        registerService(clazz == null ? null
-                                      : clazz.getName(),service,properties);
-    return res;
   }
 
 
@@ -462,17 +515,13 @@ public class BundleContextImpl
   }
 
 
-  //
-  // Private methods
-  //
-
   /**
    * Check that the bundle is still valid.
    *
    * @return true if valid.
    * @exception IllegalStateException, if bundle isn't active.
    */
-  private void checkValid() {
+  void checkValid() {
     if (!valid) {
       throw new IllegalStateException("This bundle context is no longer valid");
     }

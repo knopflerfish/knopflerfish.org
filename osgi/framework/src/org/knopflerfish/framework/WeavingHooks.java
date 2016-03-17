@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.hooks.weaving.WeavingException;
 import org.osgi.framework.hooks.weaving.WeavingHook;
 import org.osgi.framework.hooks.weaving.WovenClass;
+import org.osgi.framework.hooks.weaving.WovenClassListener;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
@@ -53,6 +54,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 class WeavingHooks {
   final private FrameworkContext fwCtx;
   ServiceTracker<WeavingHook, TrackedWeavingHook> weavingHookTracker;
+  ServiceTracker<WovenClassListener,WovenClassListener> listenerTracker;
 
   WeavingHooks(FrameworkContext fwCtx) {
     this.fwCtx = fwCtx;
@@ -66,8 +68,12 @@ class WeavingHooks {
     weavingHookTracker = new ServiceTracker<WeavingHook, TrackedWeavingHook>(
         fwCtx.systemBundle.bundleContext, WeavingHook.class,
         new ServiceTrackerCustomizer<WeavingHook, TrackedWeavingHook>() {
+          int cnt = 0;
           public TrackedWeavingHook addingService(
               ServiceReference<WeavingHook> reference) {
+            if (cnt++ == 0) {
+              openListener();
+            }
             return new TrackedWeavingHook(
                 fwCtx.systemBundle.bundleContext
                     .getService(reference), reference);
@@ -75,15 +81,23 @@ class WeavingHooks {
 
           public void modifiedService(ServiceReference<WeavingHook> reference,
               TrackedWeavingHook service) {
-
           }
 
           public void removedService(ServiceReference<WeavingHook> reference,
               TrackedWeavingHook service) {
+            if (--cnt == 0) {
+              closeListener();
+            }
           }
         });
 
     weavingHookTracker.open();
+  }
+
+  private void openListener() {
+    listenerTracker = new ServiceTracker<WovenClassListener,WovenClassListener>
+      (fwCtx.systemBundle.bundleContext, WovenClassListener.class, null);
+    listenerTracker.open();
   }
 
   synchronized void close() {
@@ -91,11 +105,17 @@ class WeavingHooks {
     weavingHookTracker = null;
   }
 
+  private void closeListener() {
+    listenerTracker.close();
+    listenerTracker = null;
+  }
+
   synchronized public boolean isOpen() {
     return weavingHookTracker != null;
   }
 
   synchronized void callHooks(WovenClassImpl wc) throws Exception {
+    boolean ok = false;
     if (!isOpen()) {
       return;
     }
@@ -129,10 +149,28 @@ class WeavingHooks {
           throw cfe;
         }
       }
+      ok = true;
     } finally {
-      wc.markAsComplete();
+      wc.markAsComplete(ok);
     }
   }
+
+  synchronized void callListeners(WovenClassImpl wc) {
+    if (listenerTracker == null) {
+      return;
+    }
+    ServiceReference<WovenClassListener> [] srs = listenerTracker.getServiceReferences();
+    if (srs != null) {
+      for (ServiceReference<WovenClassListener> wlsr : srs) {
+        try {
+          fwCtx.systemBundle.bundleContext.getService(wlsr).modified(wc);
+        } catch (final Throwable t) {
+          fwCtx.frameworkWarning(wlsr.getBundle(), t);
+        }
+      }
+    }
+  }
+
 
   static class TrackedWeavingHook implements WeavingHook {
     final WeavingHook tracked;
@@ -161,8 +199,8 @@ class WeavingHooks {
   static class WovenClassImpl implements WovenClass {
     final BundleImpl bundle;
     final String name;
-    byte[] current = null;
-    boolean complete = false;
+    byte[] current;
+    int state = WovenClass.TRANSFORMING;
     Class<?> c = null;
     final List<String> dynamicImports = new DynamicImportList<String>(this);
   
@@ -174,23 +212,26 @@ class WeavingHooks {
   
     public byte[] getBytes() {
       bundle.fwCtx.perm.checkWeaveAdminPerm(bundle);
-      if (complete) {
+      if (state == WovenClass.TRANSFORMING) {
+        return current;
+      } else {
         final byte[] r = new byte[current.length];
         System.arraycopy(current, 0, r, 0, current.length);
         return r;
-      } else {
-        return current;
       }
     }
   
     public void setBytes(byte[] newBytes) {
       bundle.fwCtx.perm.checkWeaveAdminPerm(bundle);
-      if (complete)
+      if ((state & (WovenClass.TRANSFORMED | WovenClass.DEFINED |
+                    WovenClass.TRANSFORMING_FAILED | WovenClass.DEFINE_FAILED)) != 0) {
         throw new IllegalStateException(
             "Trying to call WovenClass.setBytes(byte[]) after weaving is complete");
-      if (newBytes == null)
+      }
+      if (newBytes == null) {
         throw new NullPointerException(
             "Trying to call WovenClass.setBytes(byte[]) with null newBytes");
+      }
       current = newBytes;
     }
   
@@ -199,7 +240,7 @@ class WeavingHooks {
     }
   
     public boolean isWeavingComplete() {
-      return complete;
+      return (state & (WovenClass.DEFINED | WovenClass.TRANSFORMING_FAILED | WovenClass.DEFINE_FAILED)) != 0;
     }
   
     public String getClassName() {
@@ -217,14 +258,20 @@ class WeavingHooks {
     public BundleWiring getBundleWiring() {
       return bundle.current().bundleRevision.getWiring();
     }
-  
-    void markAsComplete() {
-      complete = true;
+
+    public int getState() {
+      return state;
+    }
+
+    void markAsComplete(boolean ok) {
+      state = ok ? WovenClass.TRANSFORMED : WovenClass.TRANSFORMING_FAILED;
+      bundle.fwCtx.weavingHooks.callListeners(this);
     }
   
     void setDefinedClass(Class<?> c) {
-      markAsComplete();
+      state = c != null ? WovenClass.DEFINED : WovenClass.DEFINE_FAILED;
       this.c = c;
+      bundle.fwCtx.weavingHooks.callListeners(this);
     }
   
     @Override

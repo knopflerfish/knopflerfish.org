@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.osgi.framework.Bundle;
@@ -58,7 +59,7 @@ class BundleHooks {
 
   Bundle filterBundle(BundleContextImpl bc,
                       Bundle bundle) {
-    if(bundle == null) {
+    if (bundle == null) {
       return bundle;
     }
     final List<ServiceRegistrationImpl<?>> srl = fwCtx.services.get(FindHook.class.getName());
@@ -81,7 +82,7 @@ class BundleHooks {
 
       for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : srl) {
         final ServiceReferenceImpl<?> sr = serviceRegistrationImpl.reference;
-        final FindHook fh = (FindHook) sr.getService(fwCtx.systemBundle);
+        final FindHook fh = (FindHook) sr.getService();
         if (fh != null) {
           try {
             fh.find(bc, filtered);
@@ -129,7 +130,7 @@ class BundleHooks {
 
       for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : eventHooks) {
         final ServiceReferenceImpl<?> sr = serviceRegistrationImpl.reference;
-        final EventHook eh = (EventHook)sr.getService(fwCtx.systemBundle);
+        final EventHook eh = (EventHook)sr.getService();
         if (eh != null) {
           try {
             eh.event(evt, filtered);
@@ -142,15 +143,18 @@ class BundleHooks {
       }
 
       if (unfilteredSize != bundleContexts.size()) {
-        for (final ListenerEntry le : syncBundleListeners) {
+        bundleContexts.add(fwCtx.systemBundle.bundleContext);
+        for (Iterator<ListenerEntry> i = syncBundleListeners.iterator(); i.hasNext(); ) {
+          ListenerEntry le = i.next();
           if(!bundleContexts.contains(le.bc)) {
-            syncBundleListeners.remove(le);
+            i.remove();
           }
         }
         if(bundleListeners != null) {
-          for (final ListenerEntry le : bundleListeners) {
+          for (Iterator<ListenerEntry> i = bundleListeners.iterator(); i.hasNext(); ) {
+            ListenerEntry le = i.next();
             if(!bundleContexts.contains(le.bc)) {
-              bundleListeners.remove(le);
+              i.remove();
             }
           }
         }
@@ -168,7 +172,7 @@ class BundleHooks {
 
       for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : srl) {
         final ServiceReferenceImpl<?> sr = serviceRegistrationImpl.reference;
-        final CollisionHook ch = (CollisionHook) sr.getService(fwCtx.systemBundle);
+        final CollisionHook ch = (CollisionHook) sr.getService();
         if (ch != null) {
           try {
             ch.filterCollisions(mode, b, filtered);

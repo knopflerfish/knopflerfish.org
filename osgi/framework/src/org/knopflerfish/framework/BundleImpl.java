@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1894,7 +1894,7 @@ public class BundleImpl implements Bundle {
     }
     final Set<ServiceRegistrationImpl<?>> s = fwCtx.services.getUsedByBundle(this);
     for (final ServiceRegistrationImpl<?> sri : s) {
-      sri.ungetService(this, false);
+      sri.ungetService(this, false, null);
     }
   }
 
