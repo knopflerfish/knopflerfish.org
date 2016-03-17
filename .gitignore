@@ -19,6 +19,7 @@ osgi/bundles_test/regression_tests/servicetracker_test/resources/
 osgi/bundles_test/regression_tests/startlevel_test/resources/
 osgi/framework.jar
 osgi/framework/resources/exports
+osgi/framework/resources/release
 osgi/framework/resources/tstamp
 osgi/framework/resources/version
 osgi/fwdir/
@@ -33,3 +34,4 @@ osgi/remote-init.xargs
 osgi/test-restart1.xargs
 osgi/test-restart2.xargs
 osgi/test_jars/
+out/

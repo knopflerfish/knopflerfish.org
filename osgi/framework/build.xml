@@ -55,6 +55,9 @@
     <isset property="jdk1.7+"/>
   </condition>
 
+  <!-- OSGi annotations -->
+  <property name="osgi.annotation.jar" location="${topdir}/annotations/osgi.annotation-6.0.1.jar"/>
+
   <property name="src.dir" location="src"/>
 
   <property name="printClasses" location="true"/>
@@ -83,7 +86,7 @@
 
   <path id="compile.path">
     <pathelement location="${topdir}/framework/resources"/>
-    <pathelement location="${topdir}/annotations/osgi.annotation-6.0.1.jar"/>
+    <pathelement location="${osgi.annotation.jar}"/>
     <pathelement location="libs/asm-3.2.jar"/>
   </path>
 
@@ -300,6 +303,7 @@
       <injar  file="${jarfile_compact}.tmp.jar" />
       <outjar file="${jarfile_compact}" />
       <libraryjar file="${proguard.libraryjar}" />
+      <libraryjar file="${osgi.annotation.jar}" />
 
       <!-- Preserve Main. -->
       <keepclasseswithmembers access="public">
