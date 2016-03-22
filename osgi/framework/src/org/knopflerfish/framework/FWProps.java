@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2015, KNOPFLERFISH project
+ * Copyright (c) 2009-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,11 @@ package org.knopflerfish.framework;
 
 import java.net.URLClassLoader;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.osgi.framework.Constants;
@@ -178,13 +180,13 @@ public class FWProps {
   /**
    * The properties for this framework instance.
    */
-  protected Map<String, String> props = new Hashtable<String, String>();
+  protected Hashtable<String, String> props = new Hashtable<String, String>();
 
   /**
    * The default properties for this framework instance. TBD, maybe we should
    * make this JVM global!?
    */
-  protected Map<String, String> props_default = new Hashtable<String, String>();
+  protected Hashtable<String, String> props_default = new Hashtable<String, String>();
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
@@ -511,6 +513,11 @@ public class FWProps {
     setPropertyDefault(STARTLEVEL_COMPAT_PROP, FALSE);
     setPropertyDefault(STARTLEVEL_USE_PROP, TRUE);
     setPropertyDefault(READ_ONLY_PROP, FALSE);
+  }
+
+
+  Map<String,Object> getFWProperties() {
+    return new HashMap(props);
   }
 
 }

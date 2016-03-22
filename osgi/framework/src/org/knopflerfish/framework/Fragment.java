@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ import org.osgi.framework.wiring.BundleRevision;
  * Fragment information
  */
 class Fragment
+  extends DTOId
   implements BundleRequirement
 {
   final BundleGeneration gen;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 
-public class BundleNameVersionCapability implements BundleCapability {
+public class BundleNameVersionCapability extends DTOId implements BundleCapability {
 
   final BundleGeneration gen;
   final String namespace;

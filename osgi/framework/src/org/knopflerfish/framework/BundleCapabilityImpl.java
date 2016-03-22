@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,15 +46,17 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.resource.dto.CapabilityDTO;
+import org.osgi.resource.dto.CapabilityRefDTO;
 
 /**
  * Implementation of bundle capability for generic capabilities specified in the
  * Bundle-Capability header.
  */
-public class BundleCapabilityImpl implements BundleCapability {
+public class BundleCapabilityImpl extends DTOId implements BundleCapability {
   private final BundleGeneration gen;
   private final BundleGeneration owner;
-  private final String nameSpace;
+  private final String namespace;
   private final Map<String,Object> attributes;
   private final Map<String,String> directives;
   private Vector<BundleWireImpl> wires = new Vector<BundleWireImpl>(2);
@@ -72,13 +74,13 @@ public class BundleCapabilityImpl implements BundleCapability {
   {
     this.gen = gen;
     owner = gen;
-    nameSpace = he.getKey();
+    namespace = he.getKey();
     for (final String ns : Arrays
         .asList(new String[] { BundleRevision.BUNDLE_NAMESPACE,
                                BundleRevision.HOST_NAMESPACE,
                                BundleRevision.PACKAGE_NAMESPACE,
                                IdentityNamespace.IDENTITY_NAMESPACE})) {
-      if (ns.equals(nameSpace)) {
+      if (ns.equals(namespace)) {
         throw new IllegalArgumentException("Capability with name-space '" + ns
                                            + "' must not be provided in the "
                                            + Constants.PROVIDE_CAPABILITY
@@ -93,15 +95,15 @@ public class BundleCapabilityImpl implements BundleCapability {
   public BundleCapabilityImpl(BundleCapability bc, BundleGeneration bg) {
     gen = bg;
     owner = ((BundleCapabilityImpl)bc).owner;
-    nameSpace = bc.getNamespace();
-    attributes = bc.getAttributes();
-    directives = bc.getDirectives();
+    namespace = bc.getNamespace();
+    attributes = Collections.unmodifiableMap(bc.getAttributes());
+    directives = Collections.unmodifiableMap(bc.getDirectives());
   }
 
   public BundleCapabilityImpl(BundleGeneration bg) {
     gen = bg;
     owner = gen;
-    nameSpace = IdentityNamespace.IDENTITY_NAMESPACE;
+    namespace = IdentityNamespace.IDENTITY_NAMESPACE;
     Map<String,Object> attrs = new HashMap<String, Object>();
     attrs.put(IdentityNamespace.IDENTITY_NAMESPACE, gen.symbolicName);
     attrs.put(IdentityNamespace.CAPABILITY_TYPE_ATTRIBUTE,
@@ -147,12 +149,12 @@ public class BundleCapabilityImpl implements BundleCapability {
 
   @Override
   public String getNamespace() {
-    return nameSpace;
+    return namespace;
   }
 
   @Override
   public Map<String, String> getDirectives() {
-    return Collections.unmodifiableMap(directives);
+    return directives;
   }
 
   @Override
@@ -172,7 +174,7 @@ public class BundleCapabilityImpl implements BundleCapability {
 
   @Override
   public String toString() {
-    return "BundleCapability[nameSpace=" + nameSpace + ", attributes=" + attributes +
+    return "BundleCapability[namespace=" + namespace + ", attributes=" + attributes +
         ", directives=" + directives + ", revision=" + getRevision() + "]";
   }
 
@@ -229,6 +231,23 @@ public class BundleCapabilityImpl implements BundleCapability {
       b.fwCtx.frameworkError(b, iae);
     }
     return null;
+  }
+
+  static CapabilityDTO getDTO(BundleCapability bc, BundleRevisionImpl bri) {
+    CapabilityDTO res = new CapabilityDTO();
+    res.id = ((DTOId)bc).dtoId;
+    res.namespace = bc.getNamespace();
+    res.directives = new HashMap<String, String>(bc.getDirectives());
+    res.attributes = Util.safeDTOMap(bc.getAttributes());
+    res.resource = bri.dtoId;
+    return res;
+  }
+
+  static CapabilityRefDTO getRefDTO(BundleCapability bc, BundleRevisionImpl bri) {
+    CapabilityRefDTO res = new CapabilityRefDTO();
+    res.capability = ((DTOId)bc).dtoId;
+    res.resource = bri.dtoId;
+    return res;
   }
 
 }

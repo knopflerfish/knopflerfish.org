@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,8 @@ import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.dto.BundleWireDTO;
+
 
 public class BundleWireImpl implements BundleWire {
   
@@ -156,6 +158,18 @@ public class BundleWireImpl implements BundleWire {
 
   BundleGeneration getRequirerGeneration() {
     return requirerGen;
+  }
+
+
+  BundleWireDTO getDTO() {
+    BundleWireDTO res = new BundleWireDTO();
+    res.providerWiring = providerGen.bundleRevision.getWiringImpl().dtoId;
+    res.requirerWiring = requirerGen.bundleRevision.getWiringImpl().dtoId;
+    res.capability = BundleCapabilityImpl.getRefDTO(capability, providerGen.bundleRevision);
+    res.requirement = BundleRequirementImpl.getRefDTO(requirement, requirerGen.bundleRevision);
+    res.provider = providerGen.bundleRevision.dtoId;
+    res.requirer = requirerGen.bundleRevision.dtoId;
+    return res;
   }
 
 }

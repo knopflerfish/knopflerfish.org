@@ -450,6 +450,16 @@ class Services {
   }
 
 
+  /**
+   * Get all services registered.
+   *
+   * @return A set of {@link ServiceRegistration} objects
+   */
+  synchronized Set<ServiceRegistrationImpl<?>> getAllRegistered() {
+    return new HashSet<ServiceRegistrationImpl<?>>(services.keySet());
+  }
+
+
   static final Util.Comparator<ServiceRegistrationImpl<?>,ServiceRegistrationImpl<?>> sComp
   = new Util.Comparator<ServiceRegistrationImpl<?>, ServiceRegistrationImpl<?>>() {
       /**

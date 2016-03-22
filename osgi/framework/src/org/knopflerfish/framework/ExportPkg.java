@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ import org.osgi.framework.wiring.BundleRevision;
  * @author Jan Stein, Gunnar Ekolin
  */
 class ExportPkg
+  extends DTOId
   implements BundleCapability, Comparable<ExportPkg>
 {
   // To maintain the creation order in the osgi.wiring.package name space.

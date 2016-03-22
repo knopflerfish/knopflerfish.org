@@ -45,6 +45,7 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -65,9 +66,13 @@ import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.Version;
 import org.osgi.framework.VersionRange;
+import org.osgi.framework.dto.BundleDTO;
+import org.osgi.framework.dto.FrameworkDTO;
+import org.osgi.framework.dto.ServiceReferenceDTO;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
+import org.osgi.framework.startlevel.dto.FrameworkStartLevelDTO;
 import org.osgi.framework.wiring.FrameworkWiring;
 
 /**
@@ -400,10 +405,16 @@ public class SystemBundle extends BundleImpl implements Framework {
       res = fwWiring;
     } else if (FrameworkStartLevel.class.equals(type)) {
       if (fwCtx.startLevelController != null) {
-        res = fwCtx.startLevelController.frameworkStartLevel(this);
+        res = fwCtx.startLevelController.frameworkStartLevel();
       }
     } else if (Framework.class.equals(type)) {
       res = this;
+    } else if (FrameworkStartLevelDTO.class.equals(type)) {
+      if (fwCtx.startLevelController != null) {
+        res = fwCtx.startLevelController.frameworkStartLevel().getDTO();
+      }
+    } else if (FrameworkDTO.class.equals(type)) {
+      res = getFrameworkDTO();
     } else {
       // TODO filter which adaptation we can do?!
       res = adaptSecure(type);
@@ -1068,5 +1079,22 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
   }
 
+
+  private FrameworkDTO getFrameworkDTO() {
+    FrameworkDTO res = new FrameworkDTO();
+    res.bundles = new ArrayList<BundleDTO>();
+    for (BundleImpl bi : fwCtx.bundles.getBundles()) {
+      res.bundles.add(bi.getDTO());
+    }
+    res.properties = fwCtx.props.getFWProperties();
+    res.services = new ArrayList<ServiceReferenceDTO>();
+    for (ServiceRegistrationImpl sri : fwCtx.services.getAllRegistered()) {
+      ServiceReferenceDTO srdto = sri.getDTO();
+      if (srdto != null) {
+        res.services.add(srdto);
+      }
+    }
+    return res;
+  }
 
 }

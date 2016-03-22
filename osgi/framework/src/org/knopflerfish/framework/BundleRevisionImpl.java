@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,13 @@ import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.dto.BundleRevisionDTO;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
+import org.osgi.resource.dto.CapabilityDTO;
+import org.osgi.resource.dto.CapabilityRefDTO;
+import org.osgi.resource.dto.RequirementDTO;
+import org.osgi.resource.dto.RequirementRefDTO;
 
 public class BundleRevisionImpl
   extends BundleReferenceImpl
@@ -58,7 +63,7 @@ public class BundleRevisionImpl
   static final int NS_OTHER =    16;
 
   final BundleGeneration gen;
-  private BundleWiring bundleWiring = null;
+  private BundleWiringImpl bundleWiring = null;
 
 
   BundleRevisionImpl(BundleGeneration gen) {
@@ -84,21 +89,22 @@ public class BundleRevisionImpl
     final ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
     final int ns = whichNameSpaces(namespace);
 
-    if ((ns & NS_BUNDLE) != 0) {
-      final BundleCapability bc = gen.getBundleCapability();
-      if (bc!=null) {
-        res.add(bc);
-      }
-    }
-    if ((ns & NS_HOST) != 0) {
-      final BundleCapability bc = gen.getHostCapability();
+    if ((ns & NS_IDENTITY) != 0) {
+      final BundleCapability bc = gen.identity;
       if (bc!=null) {
         res.add(bc);
       }
     }
 
-    if ((ns & NS_IDENTITY) != 0) {
-      final BundleCapability bc = gen.getIdentityCapability();
+    if ((ns & NS_BUNDLE) != 0) {
+      final BundleCapability bc = gen.bundleCapability;
+      if (bc!=null) {
+        res.add(bc);
+      }
+    }
+
+    if ((ns & NS_HOST) != 0) {
+      final BundleCapability bc = gen.hostCapability;
       if (bc!=null) {
         res.add(bc);
       }
@@ -200,6 +206,11 @@ public class BundleRevisionImpl
   }
   
 
+  BundleWiringImpl getWiringImpl() {
+    return bundleWiring;
+  }
+
+
   void setWired() {
     bundleWiring = new BundleWiringImpl(this);
   }
@@ -207,6 +218,43 @@ public class BundleRevisionImpl
 
   void clearWiring() {
     bundleWiring = null;
+  }
+
+
+  BundleRevisionDTO getDTO() {
+    BundleRevisionDTO res = new BundleRevisionDTO();
+    res.symbolicName = gen.symbolicName;
+    res.type = getTypes();
+    res.version = gen.version.toString();
+    res.bundle = gen.bundle.id;
+    res.id = dtoId;
+    res.capabilities = new ArrayList<CapabilityDTO>();
+    for (BundleCapability bc :  getDeclaredCapabilities(null)) {
+      res.capabilities.add(BundleCapabilityImpl.getDTO(bc, this));
+    }
+    res.requirements = new ArrayList<RequirementDTO>();
+    for (BundleRequirement br :  getDeclaredRequirements(null)) {
+      res.requirements.add(BundleRequirementImpl.getDTO(br, this));
+    }
+    return res;
+  }
+
+
+  List<CapabilityRefDTO> getCapabilityRefDTOs() {
+    List<CapabilityRefDTO> res = new ArrayList<CapabilityRefDTO>();
+    for (BundleCapability bc :  getDeclaredCapabilities(null)) {
+      res.add(BundleCapabilityImpl.getRefDTO(bc, this));
+    }
+    return res;
+  }
+
+
+  List<RequirementRefDTO> getRequirementRefDTOs() {
+    List<RequirementRefDTO> res = new ArrayList<RequirementRefDTO>();
+    for (BundleRequirement br :  getDeclaredRequirements(null)) {
+      res.add(BundleRequirementImpl.getRefDTO(br, this));
+    }
+    return res;
   }
 
 

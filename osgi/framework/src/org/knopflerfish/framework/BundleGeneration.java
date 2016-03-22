@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -185,7 +185,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
   final BundleRevisionImpl bundleRevision;
 
-  final private BundleCapability identity;
+  final BundleCapabilityImpl identity;
+  final BundleNameVersionCapability bundleCapability;
+  final BundleNameVersionCapability hostCapability;
 
   /**
    * Construct a new BundleGeneration for the System Bundle.
@@ -215,6 +217,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     classLoader = b.getClassLoader();
     processCapabilities(capabilityStr);
     identity = new BundleCapabilityImpl(this);
+    bundleCapability = new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);
+    hostCapability = new BundleNameVersionCapability(this, BundleRevision.HOST_NAMESPACE);
   }
 
 
@@ -401,6 +405,13 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       symbolicNameParameters = null;
     }
     identity = symbolicName != null ? new BundleCapabilityImpl(this) : null;
+    if (v2Manifest && fragment==null) {
+      bundleCapability = new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);
+      hostCapability = !attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER) ? new BundleNameVersionCapability(this, BundleRevision.HOST_NAMESPACE) : null;
+    } else {
+      bundleCapability = null;
+      hostCapability = null;
+    }
   }
 
 
@@ -430,6 +441,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     classLoader = null;
     bundleRevision = null;
     identity = null;
+    bundleCapability = null;
+    hostCapability = null;
   }
 
 
@@ -633,8 +646,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     } catch (BundleException e) {
       throw new IllegalStateException(e.getMessage());
     }
-    if (!bundle.fwCtx.resolverHooks.filterMatches(fragmentBundle.fragment,
-                                                  new BundleNameVersionCapability(this, BundleRevision.HOST_NAMESPACE))) {
+    if (!bundle.fwCtx.resolverHooks.filterMatches(fragmentBundle.fragment, hostCapability)) {
       throw new IllegalStateException("Resolver hooks vetoed attach to: " + this);      
     }
     final String failReason = bpkgs.attachFragment(fragmentBundle.bpkgs);
@@ -1105,24 +1117,6 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
-  BundleCapability getHostCapability()
-  {
-    if (v2Manifest
-        && !attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER) && fragment == null) {
-      return new BundleNameVersionCapability(this,
-                                             BundleRevision.HOST_NAMESPACE);
-    }
-    return null;
-  }
-
-  BundleNameVersionCapability getBundleCapability() {
-    if (v2Manifest && fragment==null) {
-      return new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);
-    }
-    return null;
-  }
-
-
   Vector<URL> getBundleClassPathEntries(final String name, final boolean onlyFirst) {
     BundleClassPath bcp = unresolvedBundleClassPath;
     if (bcp == null) {
@@ -1257,11 +1251,6 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       }
     }
     return res;
-  }
-
-
-  BundleCapability getIdentityCapability() {
-    return identity;
   }
 
 }

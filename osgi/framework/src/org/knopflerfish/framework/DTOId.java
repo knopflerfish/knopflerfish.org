@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,19 +33,20 @@
  */
 package org.knopflerfish.framework;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleReference;
-
-public class BundleReferenceImpl extends DTOId implements BundleReference
+public class DTOId
 {
-  final BundleImpl bundle;
+  /** Next DTO id to assign*/
+  static private int nextDTOId = 1;
 
-  BundleReferenceImpl(BundleImpl bundle) {
-    this.bundle = bundle;
+  /** DTO id */
+  final int dtoId;
+
+  DTOId() {
+    dtoId = getNextId();
   }
 
-  public Bundle getBundle() {
-    return bundle;
+  static synchronized private int getNextId() {
+    return nextDTOId++;
   }
 
 }

@@ -52,6 +52,7 @@ import org.osgi.framework.ServiceException;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.dto.ServiceReferenceDTO;
 
 
 /**
@@ -554,4 +555,25 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
     return true;
   }
 
+  ServiceReferenceDTO getDTO() {
+    ServiceReferenceDTO res = new ServiceReferenceDTO();
+    PropertiesDictionary p = properties;
+    res.id = ((Long)p.get(Constants.SERVICE_ID)).longValue();
+    res.properties = p.getDTO();
+    Bundle [] using = getUsingBundles();
+    if (using != null) {
+      res.usingBundles = new long [using.length];
+      for (int i = 0; i < using.length; i++) {
+        res.usingBundles[i] = using[i].getBundleId();
+      }
+    } else {
+      res.usingBundles = new long [0];
+    }
+    BundleImpl b = bundle;
+    if (b == null) {
+      return null;
+    }
+    res.bundle = b.id;
+    return res;
+  }
 }

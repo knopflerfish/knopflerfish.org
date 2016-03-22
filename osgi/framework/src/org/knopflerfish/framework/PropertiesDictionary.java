@@ -34,9 +34,13 @@
 
 package org.knopflerfish.framework;
 
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.osgi.dto.DTO;
 import org.osgi.framework.Constants;
 
 /**
@@ -150,4 +154,14 @@ class PropertiesDictionary extends Dictionary<String, Object>
 
   @Override
   public Object remove(Object k) { throw new UnsupportedOperationException("Not implemented"); }
+
+
+  Map<String, Object> getDTO() {
+    Map<String, Object> res = new HashMap<String, Object>();
+    for (int i = 0; i < size; i++) {
+      res.put(keys[i], Util.safeDTOObject(values[i]));
+    }
+    return res;
+  }
+
 }

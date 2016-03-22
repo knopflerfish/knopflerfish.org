@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2015, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1089,18 +1089,16 @@ class Resolver {
       final List<BundleGeneration> bl = framework.bundles.getBundleGenerations(bg.symbolicName);
       if (bl.size() > 1) {
         if (framework.resolverHooks.hasHooks()) {
-          final BundleCapability bc = bg.getBundleCapability();
           Collection<BundleCapability> candidates = new LinkedList<BundleCapability>();
           List<BundleNameVersionCapability> active = new ArrayList<BundleNameVersionCapability>(bl.size());
           for (final BundleGeneration bg2 : bl) {
             if (bg2.singleton) {
               if (bg2 != bg) {
-                BundleNameVersionCapability bc2 = bg2.getBundleCapability();
-                if (bc2 != null) {
+                if (bg2.bundleCapability != null) {
                   if (bg2.bpkgs.isActive()) {
-                    active.add(bc2);
+                    active.add(bg2.bundleCapability);
                   } else {
-                    candidates.add(bc2);
+                    candidates.add(bg2.bundleCapability);
                   }
                 }
               }
@@ -1109,9 +1107,9 @@ class Resolver {
           if (!active.isEmpty()) {
             for (BundleNameVersionCapability abc : active) {
               Collection<BundleCapability> c = new LinkedList<BundleCapability>(candidates);
-              c.add(bc);
+              c.add(bg.bundleCapability);
               framework.resolverHooks.filterSingletonCollisions(abc, c);
-              if (c.contains(bc)) {
+              if (c.contains(bg.bundleCapability)) {
                 return abc.gen;
               } else {
                 candidates.removeAll(c);
@@ -1119,7 +1117,7 @@ class Resolver {
             }
           }
           if (!candidates.isEmpty()) {
-            framework.resolverHooks.filterSingletonCollisions(bc, candidates);
+            framework.resolverHooks.filterSingletonCollisions(bg.bundleCapability, candidates);
             for (final BundleCapability bc2 : candidates) {
               BundleGeneration bg2 = ((BundleRevisionImpl)bc2.getRevision()).gen;
               if (tempResolved.contains(bg2)) {

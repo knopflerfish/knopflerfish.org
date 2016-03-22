@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -50,13 +52,22 @@ import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.dto.BundleRevisionDTO;
+import org.osgi.framework.wiring.dto.BundleWireDTO;
+import org.osgi.framework.wiring.dto.BundleWiringDTO;
+import org.osgi.framework.wiring.dto.BundleWiringDTO.NodeDTO;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Wire;
+import org.osgi.resource.dto.WireDTO;
 
-public class BundleWiringImpl implements BundleWiring {
 
+public class BundleWiringImpl
+  extends DTOId
+  implements BundleWiring
+{
   final BundleRevisionImpl bundleRevision;
+
 
   BundleWiringImpl(BundleRevisionImpl br) {
     bundleRevision = br;
@@ -87,22 +98,19 @@ public class BundleWiringImpl implements BundleWiring {
     final int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     final ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
     if ((ns & BundleRevisionImpl.NS_IDENTITY) != 0) {
-      final BundleCapability bc = gen.getIdentityCapability();
-      if (bc != null) {
-        res.add(bc);
+      if (gen.identity != null) {
+        res.add(gen.identity);
       }
     }
     if (!gen.isFragment()) {
       if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
-        final BundleCapability bc = gen.getBundleCapability();
-        if (bc != null) {
-          res.add(bc);
+        if (gen.bundleCapability != null) {
+          res.add(gen.bundleCapability);
         }
       }
       if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
-        final BundleCapability bc = gen.getHostCapability();
-        if (bc != null) {
-          res.add(bc);
+        if (gen.hostCapability != null) {
+          res.add(gen.hostCapability);
         }
       }
       if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
@@ -199,7 +207,7 @@ public class BundleWiringImpl implements BundleWiring {
         for (final Iterator<RequireBundle> irb = bp.getRequire(); irb.hasNext(); ) {
           final RequireBundle rb = irb.next();
           if (rb.bpkgs == gen.bpkgs) {
-            res.add(new BundleWireImpl(gen.getBundleCapability(), gen, rb, bp.bg));
+            res.add(new BundleWireImpl(gen.bundleCapability, gen, rb, bp.bg));
           }
         }
       }
@@ -209,7 +217,7 @@ public class BundleWiringImpl implements BundleWiring {
         @SuppressWarnings("unchecked")
         final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)gen.fragments.clone();
         for (final BundleGeneration fbg : fix) {
-          res.add(new BundleWireImpl(gen.getHostCapability(), gen, fbg.fragment, fbg));
+          res.add(new BundleWireImpl(gen.hostCapability, gen, fbg.fragment, fbg));
         }
       }
     }
@@ -255,14 +263,14 @@ public class BundleWiringImpl implements BundleWiring {
       for (final Iterator<RequireBundle> irb = gen.bpkgs.getRequire(); irb.hasNext(); ) {
         final RequireBundle rb = irb.next();
         if (null != rb.bpkgs && rb.bpkgs.isRequiredBy(gen.bpkgs)) {
-          res.add(new BundleWireImpl(rb.bpkgs.bg.getBundleCapability(), rb.bpkgs.bg, rb, gen));
+          res.add(new BundleWireImpl(rb.bpkgs.bg.bundleCapability, rb.bpkgs.bg, rb, gen));
         }
       }
     }
     if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
       if (gen.isFragment()) {
         for (final BundleGeneration hbg : gen.getHosts()) {
-          res.add(new BundleWireImpl(hbg.getHostCapability(), hbg, gen.fragment, gen));
+          res.add(new BundleWireImpl(hbg.hostCapability, hbg, gen.fragment, gen));
         }
       }
     }
@@ -373,6 +381,51 @@ public class BundleWiringImpl implements BundleWiring {
   @Override
   public BundleRevision getResource() {
     return bundleRevision;
+  }
+
+
+  BundleWiringDTO getDTO() {
+    BundleWiringDTO res = new BundleWiringDTO();
+    res.bundle = bundleRevision.gen.bundle.id;
+    res.root = dtoId;
+    Map<BundleWiringImpl, NodeDTO> nodes = new HashMap<BundleWiringImpl, NodeDTO>();
+    walkWires(nodes, null);
+    res.nodes = new HashSet<NodeDTO>(nodes.values());
+    res.resources = new HashSet<BundleRevisionDTO>();
+    for (BundleWiringImpl bwi : nodes.keySet()) {
+      res.resources.add(bwi.bundleRevision.getDTO());
+    }
+    return res;
+  }
+
+  void walkWires(Map<BundleWiringImpl, NodeDTO> nodes, BundleWireDTO wireDTO) {
+    NodeDTO dto = nodes.get(this);
+    if (dto == null) {
+      boolean isRoot = nodes.isEmpty();
+      dto = new NodeDTO();
+      dto.inUse = isInUse();
+      dto.current = isCurrent();
+      dto.id = dtoId;
+      dto.capabilities = bundleRevision.getCapabilityRefDTOs();
+      dto.requirements = bundleRevision.getRequirementRefDTOs();
+      dto.providedWires = new ArrayList<WireDTO>();
+      dto.requiredWires = new ArrayList<WireDTO>();
+      dto.resource = bundleRevision.dtoId;
+      nodes.put(this, dto);
+      for (BundleWire bw : getProvidedWires(null)) {
+        BundleWireDTO bwdto = ((BundleWireImpl)bw).getDTO();
+        dto.providedWires.add(bwdto);
+        ((BundleRevisionImpl)bw.getRequirer()).getWiringImpl().walkWires(nodes, bwdto);
+      }
+      if (isRoot) {
+        for (BundleWire bw : getRequiredWires(null)) {
+          ((BundleRevisionImpl)bw.getProvider()).getWiringImpl().walkWires(nodes, null);
+        }
+      }
+    }
+    if (wireDTO != null) {
+      dto.requiredWires.add(wireDTO);
+    }
   }
 
 }

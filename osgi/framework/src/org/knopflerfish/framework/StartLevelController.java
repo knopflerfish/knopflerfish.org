@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,8 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
+import org.osgi.framework.startlevel.dto.BundleStartLevelDTO;
+import org.osgi.framework.startlevel.dto.FrameworkStartLevelDTO;
 import org.osgi.service.startlevel.StartLevel;
 
 
@@ -544,7 +546,7 @@ public class StartLevelController
 
   }
 
-  BundleStartLevel bundleStartLevel(final BundleImpl bi) {
+  BundleStartLevelImpl bundleStartLevel(final BundleImpl bi) {
     return new BundleStartLevelImpl(this, bi);
   }
 
@@ -584,6 +586,16 @@ public class StartLevelController
       return st.isBundleActivationPolicyUsed(getBundleArchive());
     }
 
+    BundleStartLevelDTO getDTO()
+    {
+      BundleStartLevelDTO res = new BundleStartLevelDTO();
+      res.bundle = bi.id;
+      res.startLevel = getStartLevel();
+      res.activationPolicyUsed = isActivationPolicyUsed();
+      res.persistentlyStarted = isPersistentlyStarted();
+      return res;
+    }
+
     private BundleArchive getBundleArchive() {
       final BundleArchive res = bi.current().archive;
       if (res == null && bi.id != 0) {
@@ -594,9 +606,9 @@ public class StartLevelController
 
   }
 
-  FrameworkStartLevel frameworkStartLevel(final BundleImpl bi)
+  FrameworkStartLevelImpl frameworkStartLevel()
   {
-    return new FrameworkStartLevelImpl(this, bi);
+    return new FrameworkStartLevelImpl(this, fwCtx.systemBundle);
   }
 
   static class FrameworkStartLevelImpl
@@ -635,6 +647,14 @@ public class StartLevelController
     public void setInitialBundleStartLevel(int startlevel)
     {
       st.setInitialBundleStartLevel(startlevel);
+    }
+
+    FrameworkStartLevelDTO getDTO()
+    {
+      FrameworkStartLevelDTO res = new FrameworkStartLevelDTO();
+      res.startLevel = getStartLevel();
+      res.initialBundleStartLevel = getInitialBundleStartLevel();
+      return res;
     }
   }
 }
