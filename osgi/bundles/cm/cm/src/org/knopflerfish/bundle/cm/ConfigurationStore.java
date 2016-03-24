@@ -158,7 +158,7 @@ class ConfigurationStore {
       try {
         Long.parseLong(n);
         pidFiles.add(n);
-      } catch (NumberFormatException _) {
+      } catch (NumberFormatException _ignore) {
         Activator.log.warn("Found unknown file in CM data dir: " + f);
       }
     }

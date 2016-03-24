@@ -55,6 +55,14 @@
 <div class="release_notes">
 
   <div class="note_group">
+    <div class="note_name">CM 5.0.2</div>
+    <div class="note_item">
+      Fixed race condition that could cause a NullPointerException in
+      ConfigurationAdminFactory.createEvent().
+    </div>
+  </div>
+
+  <div class="note_group">
     <div class="note_name">HTTP 5.1.2</div>
     <div class="note_item">
       Removed debug printout that incorrectly indicated a NPE problem.
@@ -68,7 +76,7 @@
       Corrected issues in the HttpServletRequest class. Some methods
       caused NPE or gave incorrect results during the second GET call in a Keep-Alive connection. Methods affected: getLocalAddr(), getLocalName(), getRemteAddr(), getRemoteHost(), getLocalPort(), getRemotePort().
     </div>
-</div>
+  </div>
 
 </div>
 

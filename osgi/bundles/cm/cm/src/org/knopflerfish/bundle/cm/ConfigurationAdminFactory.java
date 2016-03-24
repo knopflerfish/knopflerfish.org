@@ -102,6 +102,9 @@ class ConfigurationAdminFactory
 
   private final ListenerEventQueue listenerEventQueue;
 
+  private ServiceReference<ConfigurationAdmin> serviceReference = null;
+
+
   // Constants
 
   static final String DYNAMIC_BUNDLE_LOCATION =
@@ -155,6 +158,19 @@ class ConfigurationAdminFactory
     listenerEventQueue.stop();
   }
 
+  private ServiceReference<ConfigurationAdmin> getServiceReference()
+  {
+    if (serviceReference == null) {
+      ServiceReference<?> [] refs = Activator.bc.getBundle().getRegisteredServices();
+      if (refs == null || !ConfigurationAdmin.class.getName().equals(((String [])refs[0].getProperty(Constants.OBJECTCLASS))[0])){
+        Activator.log.error("Could not get configuration admin service reference for configuration event creation.");
+      } else {
+        serviceReference = (ServiceReference<ConfigurationAdmin>)refs[0];
+      }
+    }
+    return serviceReference;
+  }
+  
   private void lookForAlreadyRegisteredServices()
   {
     lookForAlreadyRegisteredServices(ConfigurationPlugin.class);
@@ -1143,15 +1159,8 @@ class ConfigurationAdminFactory
      */
     private ConfigurationEvent createEvent(final int type)
     {
-      final ServiceReference<ConfigurationAdmin> reference =
-        Activator.serviceRegistration.getReference();
-      if (reference == null) {
-        Activator.log
-            .error("Could not get configuration admin "
-                   + "service reference for configuariotn event creation.");
-        return null;
-      }
-      return new ConfigurationEvent(reference, type, factoryPid, servicePid);
+      final ServiceReference<ConfigurationAdmin> ref = ConfigurationAdminFactory.this.getServiceReference();
+      return ref != null ? new ConfigurationEvent(ref, type, factoryPid, servicePid) : null;
     }
 
     private void putLocation(String l)

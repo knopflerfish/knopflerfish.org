@@ -49,78 +49,68 @@ import org.osgi.service.cm.ConfigurationAdmin;
  */
 
 public class Activator implements BundleActivator {
-    private static final String STORE_DIR_PROP = "com.gatespace.bundle.cm.store";
+  private static final String STORE_DIR_PROP = "com.gatespace.bundle.cm.store";
 
-    private static final String DEFAULT_STORE_DIR = "cm_store";
+  private static final String DEFAULT_STORE_DIR = "cm_store";
 
-    static BundleContext bc;
+  static BundleContext bc;
 
-    static LogRef log;
+  static LogRef log;
 
-    static ServiceRegistration<ConfigurationAdmin> serviceRegistration;
+  static ConfigurationAdminFactory configAdminFactory = null;
 
-    static ConfigurationAdminFactory configAdminFactory = null;
+  private ServiceRegistration<ConfigurationAdmin> serviceRegistration;
 
 
-    public void start(BundleContext bc) {
-        Activator.bc = bc;
-        throwIfBundleContextIsNull();
-        createLogRef();
-        createAndRegisterConfigurationAdminFactory();
+  public void start(BundleContext bc) {
+    Activator.bc = bc;
+    createLogRef();
+    createAndRegisterConfigurationAdminFactory();
+  }
+
+  public void stop(BundleContext bc) {
+    unregisterConfigurationAdminFactory();
+    closeLogRef();
+  }
+
+  private void createLogRef() {
+    log = new LogRef(bc);
+  }
+
+  private void closeLogRef() {
+    if (log != null) {
+      log.close();
+      log = null;
     }
+  }
 
-    public void stop(BundleContext bc) {
-        unregisterConfigurationAdminFactory();
-        closeLogRef();
-    }
+  @SuppressWarnings("unchecked")
+  private void createAndRegisterConfigurationAdminFactory() {
+    configAdminFactory = new ConfigurationAdminFactory(getStoreDir());
+    serviceRegistration = (ServiceRegistration<ConfigurationAdmin>)
+      bc.registerService(ConfigurationAdmin.class.getName(),
+                         configAdminFactory, null);
+  }
 
-    private void createLogRef() {
-        throwIfBundleContextIsNull();
-        log = new LogRef(bc);
+  private void unregisterConfigurationAdminFactory() {
+    if (serviceRegistration != null) {
+      serviceRegistration.unregister();
+      serviceRegistration = null;
     }
+    if (configAdminFactory != null) {
+      configAdminFactory.stop();
+    }
+  }
 
-    private void closeLogRef() {
-        if (log != null) {
-            log.close();
-            log = null;
-        }
+  private File getStoreDir() {
+    String storeDirName = bc.getProperty(STORE_DIR_PROP);
+    File storeDir = null;
+    if (storeDirName == null || "".equals(storeDirName)) {
+      storeDir = bc.getDataFile(DEFAULT_STORE_DIR);
+    } else {
+      storeDir = new File(storeDirName);
     }
-
-    @SuppressWarnings("unchecked")
-    private void createAndRegisterConfigurationAdminFactory() {
-        throwIfBundleContextIsNull();
-        configAdminFactory = new ConfigurationAdminFactory(getStoreDir());
-        serviceRegistration = (ServiceRegistration<ConfigurationAdmin>)
-            bc.registerService(ConfigurationAdmin.class.getName(),
-                               configAdminFactory, null);
-    }
-
-    private void unregisterConfigurationAdminFactory() {
-        if (serviceRegistration != null) {
-            serviceRegistration.unregister();
-            serviceRegistration = null;
-        }
-        if (configAdminFactory != null) {
-          configAdminFactory.stop();
-        }
-    }
-
-    private File getStoreDir() {
-        throwIfBundleContextIsNull();
-        String storeDirName = bc.getProperty(STORE_DIR_PROP);
-        File storeDir = null;
-        if (storeDirName == null || "".equals(storeDirName)) {
-            storeDir = bc.getDataFile(DEFAULT_STORE_DIR);
-        } else {
-            storeDir = new File(storeDirName);
-        }
-        return storeDir;
-    }
-
-    private void throwIfBundleContextIsNull() {
-        if (bc == null) {
-            throw new NullPointerException("Null BundleContext in Activator");
-        }
-    }
+    return storeDir;
+  }
 
 }
