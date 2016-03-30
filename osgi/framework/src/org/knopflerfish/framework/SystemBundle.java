@@ -71,6 +71,7 @@ import org.osgi.framework.dto.FrameworkDTO;
 import org.osgi.framework.dto.ServiceReferenceDTO;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
+import org.osgi.framework.namespace.NativeNamespace;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.startlevel.dto.FrameworkStartLevelDTO;
 import org.osgi.framework.wiring.FrameworkWiring;
@@ -134,7 +135,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
-   * Initialize this framework and call listeners.
+   * Initialize this framework.
    *
    * @see org.osgi.framework.launch.Framework#init()
    */
@@ -629,6 +630,15 @@ public class SystemBundle extends BundleImpl implements Framework {
         }
       }
     }
+    exportPackageString = null;
+    provideCapabilityString = null;
+    generations.clear();
+    fwWiring = null;
+  }
+
+
+  BundleCapabilityImpl getNativeCapability() {
+    return current().getDeclaredCapabilities().get(NativeNamespace.NATIVE_NAMESPACE).get(0);
   }
 
   //

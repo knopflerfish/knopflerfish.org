@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -120,7 +121,7 @@ public class BundleWiringImpl
           }
         }
       }
-      if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
+      if ((ns & (BundleRevisionImpl.NS_NATIVE|BundleRevisionImpl.NS_OTHER)) != 0) {
         final Map<String, List<BundleCapabilityImpl>> caps = gen.bpkgs.getOtherCapabilities();
         Collection<List<BundleCapabilityImpl>> clbc = null;
         if (null != namespace) {
@@ -168,6 +169,9 @@ public class BundleWiringImpl
       }
       if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
         res.addAll(gen.bpkgs.getPackageRequirements());
+      }
+      if ((ns & BundleRevisionImpl.NS_NATIVE) != 0 && gen.nativeRequirement != null) {
+        res.add(gen.nativeRequirement);
       }
       if ((ns & (BundleRevisionImpl.NS_IDENTITY|BundleRevisionImpl.NS_OTHER)) != 0) {
         final Map<String, List<BundleRequirementImpl>> reqs = gen.getOtherRequirements();
@@ -239,6 +243,25 @@ public class BundleWiringImpl
         }
       }
     }
+    if ((ns & BundleRevisionImpl.NS_NATIVE) != 0) {
+      if (bundleRevision.gen.bundle.id == 0) {
+        final FrameworkContext fc = bundleRevision.gen.bundle.fwCtx;
+        final SystemBundle sb = fc.systemBundle;
+        for (BundleImpl bi : fc.bundles.getBundles()) {
+          for (BundleGeneration bg : bi.generations) {
+            ClassLoader cl = bg.getClassLoader();
+            if (cl != null && cl instanceof BundleClassLoader) {
+              Set<BundleGeneration> nbgs = ((BundleClassLoader)cl).hasNativeRequirements();
+              if (nbgs != null) {
+                for (BundleGeneration nbg : nbgs) {
+                  res.add(new BundleWireImpl(sb.getNativeCapability(), sb.current(), nbg.nativeRequirement, nbg));
+                }
+              }
+            }
+          }
+        }
+      }
+    }
     if ((ns & (BundleRevisionImpl.NS_IDENTITY|BundleRevisionImpl.NS_OTHER)) != 0) {
       List<BundleWireImpl> other = gen.getCapabilityWires();
       if (other != null) {
@@ -302,7 +325,19 @@ public class BundleWiringImpl
         res.add(new BundleWireImpl(cip.provider, cip.provider.bpkgs.bg, cip.parent, gen));
       }
     }
-    if ((ns & (BundleRevisionImpl.NS_IDENTITY|BundleRevisionImpl.NS_OTHER)) != 0) {
+    if ((ns & BundleRevisionImpl.NS_NATIVE) != 0) {
+      ClassLoader cl = gen.getClassLoader();
+      if (cl != null && cl instanceof BundleClassLoader) {
+        Set<BundleGeneration> nbgs = ((BundleClassLoader)cl).hasNativeRequirements();
+        if (nbgs != null) {
+          final SystemBundle sb = gen.bundle.fwCtx.systemBundle;
+          for (BundleGeneration nbg : nbgs) {
+            res.add(new BundleWireImpl(sb.getNativeCapability(), sb.current(), nbg.nativeRequirement, nbg));
+          }
+        }
+      }
+    }
+    if ((ns & (BundleRevisionImpl.NS_IDENTITY|BundleRevisionImpl.NS_NATIVE|BundleRevisionImpl.NS_OTHER)) != 0) {
       List<BundleWireImpl> other = gen.getRequirementWires();
       if (other != null) {
         for (BundleWireImpl bw : other) {

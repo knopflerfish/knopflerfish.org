@@ -172,6 +172,9 @@ public class Bundles {
         throw (SecurityException)e;
       } else if (e instanceof BundleException) {
         throw (BundleException)e;
+      } else if (e instanceof IllegalArgumentException) {
+        throw new BundleException("Faulty manifest: " + e,
+                                  BundleException.MANIFEST_ERROR, e);
       } else {
         throw new BundleException("Failed to install bundle: " + e,
                                   BundleException.UNSPECIFIED, e);

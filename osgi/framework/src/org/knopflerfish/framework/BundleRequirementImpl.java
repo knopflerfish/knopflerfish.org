@@ -193,33 +193,29 @@ public class BundleRequirementImpl
   }
 
   @Override
-  public String getNamespace()
-  {
+  public String getNamespace() {
     return namespace;
   }
 
   @Override
-  public Map<String, String> getDirectives()
-  {
+  public Map<String, String> getDirectives() {
     return directives;
   }
 
   @Override
-  public Map<String, Object> getAttributes()
-  {
+  public Map<String, Object> getAttributes() {
     return attributes;
   }
 
   @Override
-  public BundleRevision getRevision()
-  {
+  public BundleRevision getRevision() {
     return gen.bundleRevision;
   }
 
 
   @Override
   public BundleRevision getResource() {
-	return gen.bundleRevision;
+    return gen.bundleRevision;
   }
 
 

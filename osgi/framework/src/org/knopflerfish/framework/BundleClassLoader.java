@@ -114,7 +114,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     protectionDomain = gen.getProtectionDomain();
     bpkgs = gen.bpkgs;
     archive = gen.archive;
-    classPath = new BundleClassPath(archive, gen.fragments, fwCtx);
+    classPath = new BundleClassPath(archive, gen);
     fwCtx.bundleClassLoaderCreated(this);
     if (debug.classLoader) {
       debug.println(this + " Created new classloader");
@@ -1070,6 +1070,13 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    */
   String findLibrary0(final String name) {
     return classPath.getNativeLibrary(name);
+  }
+
+  /**
+   * Check if we have native code
+   */
+  Set<BundleGeneration> hasNativeRequirements() {
+    return classPath.hasNativeRequirements();
   }
 
 }

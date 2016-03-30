@@ -39,6 +39,7 @@ import java.util.Map;
 
 import org.osgi.framework.Version;
 import org.osgi.framework.namespace.IdentityNamespace;
+import org.osgi.framework.namespace.NativeNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -59,8 +60,9 @@ public class BundleRevisionImpl
   static final int NS_BUNDLE =    1;
   static final int NS_HOST =      2;
   static final int NS_IDENTITY =  4;
-  static final int NS_PACKAGE =   8;
-  static final int NS_OTHER =    16;
+  static final int NS_NATIVE =    8;
+  static final int NS_PACKAGE =  16;
+  static final int NS_OTHER =    32;
 
   final BundleGeneration gen;
   private BundleWiringImpl bundleWiring = null;
@@ -114,7 +116,7 @@ public class BundleRevisionImpl
       res.addAll(gen.bpkgs.getDeclaredPackageCapabilities());
     }
 
-    if ((ns & NS_OTHER) != 0) {
+    if ((ns & (NS_NATIVE|NS_OTHER)) != 0) {
       final Map<String, List<BundleCapabilityImpl>> caps = gen.getDeclaredCapabilities();
       if (null != namespace) {
         final List<BundleCapabilityImpl> lcap = caps.get(namespace);
@@ -151,7 +153,10 @@ public class BundleRevisionImpl
       res.addAll(gen.bpkgs.getDeclaredPackageRequirements());
     }
 
-    if ((ns & (NS_IDENTITY|NS_OTHER)) != 0) {
+    if ((ns & (NS_IDENTITY|NS_NATIVE|NS_OTHER)) != 0) {
+      if ((ns & NS_NATIVE) != 0 && gen.nativeRequirement != null) {
+        res.add(gen.nativeRequirement);
+      }
       final Map<String, List<BundleRequirementImpl>> reqs = gen.getDeclaredRequirements();
       if (null != namespace) {
         final List<BundleRequirementImpl> lbr = reqs.get(namespace);
@@ -268,6 +273,8 @@ public class BundleRevisionImpl
       ns = NS_HOST;
     } else if (IdentityNamespace.IDENTITY_NAMESPACE.equals(namespace)) {
       ns = NS_IDENTITY;
+    } else if (NativeNamespace.NATIVE_NAMESPACE.equals(namespace)) {
+      ns = NS_NATIVE;
     } else if (BundleRevision.PACKAGE_NAMESPACE.equals(namespace)) {
       ns = NS_PACKAGE;
     } else {

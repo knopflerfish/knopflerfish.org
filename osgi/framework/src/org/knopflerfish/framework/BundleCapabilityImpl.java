@@ -33,17 +33,23 @@
  */
 package org.knopflerfish.framework;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
 import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
+import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
 import org.osgi.framework.namespace.IdentityNamespace;
+import org.osgi.framework.namespace.NativeNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.resource.dto.CapabilityDTO;
@@ -57,8 +63,8 @@ public class BundleCapabilityImpl extends DTOId implements BundleCapability {
   private final BundleGeneration gen;
   private final BundleGeneration owner;
   private final String namespace;
-  private final Map<String,Object> attributes;
-  private final Map<String,String> directives;
+  Map<String,Object> attributes;
+  Map<String,String> directives;
   private Vector<BundleWireImpl> wires = new Vector<BundleWireImpl>(2);
 
   /**
@@ -75,19 +81,22 @@ public class BundleCapabilityImpl extends DTOId implements BundleCapability {
     this.gen = gen;
     owner = gen;
     namespace = he.getKey();
-    for (final String ns : Arrays
-        .asList(new String[] { BundleRevision.BUNDLE_NAMESPACE,
-                               BundleRevision.HOST_NAMESPACE,
-                               BundleRevision.PACKAGE_NAMESPACE,
-                               IdentityNamespace.IDENTITY_NAMESPACE})) {
-      if (ns.equals(namespace)) {
-        throw new IllegalArgumentException("Capability with name-space '" + ns
-                                           + "' must not be provided in the "
-                                           + Constants.PROVIDE_CAPABILITY
-                                           + " manifest header.");
+    if (gen.bundle.id != 0) {
+      for (final String ns : Arrays
+             .asList(new String[] { BundleRevision.BUNDLE_NAMESPACE,
+                                    BundleRevision.HOST_NAMESPACE,
+                                    BundleRevision.PACKAGE_NAMESPACE,
+                                    ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE,
+                                    IdentityNamespace.IDENTITY_NAMESPACE,
+                                    NativeNamespace.NATIVE_NAMESPACE})) {
+        if (ns.equals(namespace)) {
+          throw new IllegalArgumentException("Capability with name-space '" + ns
+                                             + "' must not be provided in the "
+                                             + Constants.PROVIDE_CAPABILITY
+                                             + " manifest header.");
+        }
       }
     }
-
     attributes = Collections.unmodifiableMap(he.getAttributes());
     directives = Collections.unmodifiableMap(he.getDirectives());
   }
@@ -96,10 +105,13 @@ public class BundleCapabilityImpl extends DTOId implements BundleCapability {
     gen = bg;
     owner = ((BundleCapabilityImpl)bc).owner;
     namespace = bc.getNamespace();
-    attributes = Collections.unmodifiableMap(bc.getAttributes());
-    directives = Collections.unmodifiableMap(bc.getDirectives());
+    attributes = bc.getAttributes();
+    directives = bc.getDirectives();
   }
 
+  /**
+   * IdentityNamespace capability
+   */
   public BundleCapabilityImpl(BundleGeneration bg) {
     gen = bg;
     owner = gen;
@@ -145,6 +157,68 @@ public class BundleCapabilityImpl extends DTOId implements BundleCapability {
     dirs.put(Constants.SINGLETON_DIRECTIVE, gen.singleton ? "true" : "false");
     // TODO, should we try to find classfiers?
     directives = Collections.unmodifiableMap(dirs);
+  }
+
+  /**
+   * NativeNamespace capability
+   */
+  BundleCapabilityImpl(final BundleGeneration gen, final FWProps fwProps)
+  {
+    this.gen = gen;
+    owner = gen;
+    namespace = NativeNamespace.NATIVE_NAMESPACE;
+    attributes = fwProps.getFWProperties();
+    for (Iterator<Entry<String,Object>> i = attributes.entrySet().iterator(); i.hasNext(); ) {
+      if (i.next().getKey().startsWith(NativeNamespace.NATIVE_NAMESPACE + ".")) {
+        i.remove();
+      }
+    }
+    final ArrayList<String> proc = new ArrayList<String>(3);
+    final String procP = fwProps.getProperty(Constants.FRAMEWORK_PROCESSOR);
+    proc.add(procP);
+    final String procS = System.getProperty("os.arch");
+    if (!procP.equalsIgnoreCase(procS)) {
+      proc.add(procS);
+    }
+    // Handle deprecated value "arm"
+    if (procP.startsWith("arm_")) {
+      proc.add("arm");
+    }
+    for (int i = 0; i < Alias.processorAliases.length; i++) {
+      if (procP.equalsIgnoreCase(Alias.processorAliases[i][0])) {
+        for (int j = 1; j < Alias.processorAliases[i].length; j++) {
+          if (!procS.equalsIgnoreCase(Alias.processorAliases[i][j])) {
+            proc.add(Alias.processorAliases[i][j]);
+          }
+        }
+        break;
+      }
+    }
+    attributes.put(NativeNamespace.CAPABILITY_PROCESSOR_ATTRIBUTE, proc);
+    final ArrayList<String> os = new ArrayList<String>();
+    final String osP = fwProps.getProperty(Constants.FRAMEWORK_OS_NAME);
+    os.add(osP);
+    final String osS = System.getProperty("os.name");
+    if (!osS.equalsIgnoreCase(osP)) {
+      os.add(osS);
+    }
+    for (int i = 0; i < Alias.osNameAliases.length; i++) {
+      if (osP.equalsIgnoreCase(Alias.osNameAliases[i][0])) {
+        for (int j = 1; j < Alias.osNameAliases[i].length; j++) {
+          if (!osS.equalsIgnoreCase(Alias.osNameAliases[i][j])) {
+            os.add(Alias.osNameAliases[i][j]);
+          }
+        }
+        break;
+      }
+    }
+    attributes.put(NativeNamespace.CAPABILITY_OSNAME_ATTRIBUTE, os);
+    attributes.put(NativeNamespace.CAPABILITY_OSVERSION_ATTRIBUTE,
+                   new Version(fwProps.getProperty(Constants.FRAMEWORK_OS_VERSION)));
+    attributes.put(NativeNamespace.CAPABILITY_LANGUAGE_ATTRIBUTE,
+                   fwProps.getProperty(Constants.FRAMEWORK_LANGUAGE));
+    attributes = Collections.unmodifiableMap(attributes);
+    directives = Collections.EMPTY_MAP;
   }
 
   @Override

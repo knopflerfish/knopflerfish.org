@@ -41,6 +41,7 @@ import java.security.ProtectionDomain;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -56,12 +57,14 @@ import java.util.Set;
 import java.util.Vector;
 
 import org.knopflerfish.framework.Util.HeaderEntry;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.hooks.bundle.CollisionHook;
 import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
+import org.osgi.framework.namespace.NativeNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 
@@ -189,6 +192,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   final BundleNameVersionCapability bundleCapability;
   final BundleNameVersionCapability hostCapability;
 
+  final NativeRequirement nativeRequirement;
+
   /**
    * Construct a new BundleGeneration for the System Bundle.
    *
@@ -216,9 +221,11 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     bundleRevision = new BundleRevisionImpl(this);
     classLoader = b.getClassLoader();
     processCapabilities(capabilityStr);
+    capabilities.put(NativeNamespace.NATIVE_NAMESPACE, Collections.singletonList(new BundleCapabilityImpl(this, b.fwCtx.props)));
     identity = new BundleCapabilityImpl(this);
     bundleCapability = new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);
     hostCapability = new BundleNameVersionCapability(this, BundleRevision.HOST_NAMESPACE);
+    nativeRequirement = null;
   }
 
 
@@ -412,6 +419,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       bundleCapability = null;
       hostCapability = null;
     }
+    final String nc = archive.getAttribute(Constants.BUNDLE_NATIVECODE);
+    nativeRequirement = nc != null ? new NativeRequirement(this, nc) : null;
   }
 
 
@@ -443,6 +452,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     identity = null;
     bundleCapability = null;
     hostCapability = null;
+    nativeRequirement = null;
   }
 
 
@@ -641,10 +651,12 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         && bundle.isResolved()) {
       throw new IllegalStateException("Bundle does not allow fragments to attach dynamically");
     }
-    try {
-      BundleClassPath.checkNativeCode(fragmentBundle.archive, bundle.fwCtx.props, true);
-    } catch (BundleException e) {
-      throw new IllegalStateException(e.getMessage());
+    if (fragmentBundle.nativeRequirement != null) {
+      try {
+        fragmentBundle.nativeRequirement.checkNativeCode();
+      } catch (BundleException e) {
+        throw new IllegalStateException(e.getMessage());
+      }
     }
     if (!bundle.fwCtx.resolverHooks.filterMatches(fragmentBundle.fragment, hostCapability)) {
       throw new IllegalStateException("Resolver hooks vetoed attach to: " + this);      

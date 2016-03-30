@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2015, KNOPFLERFISH project
+ * Copyright (c) 2009-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,9 +37,11 @@ package org.knopflerfish.framework;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -88,21 +90,21 @@ public class BundleClassPath {
    *
    * @throws BundleException if native code resolve failed.
    */
-  BundleClassPath(BundleArchive ba, List<BundleGeneration> frags, FrameworkContext fwCtx)
+  BundleClassPath(BundleArchive ba, BundleGeneration gen)
       throws BundleException {
-    this.fwCtx = fwCtx;
+    this.fwCtx = gen.bundle.fwCtx;
     debug = fwCtx.debug;
-    bid = ba.getBundleId();
-    checkBundleArchive(ba, frags);
-    if (frags != null) {
-      for (final BundleGeneration bundleGeneration : frags) {
+    bid = gen.bundle.id;
+    checkBundleArchive(ba, gen.fragments);
+    if (gen.fragments != null) {
+      for (final BundleGeneration bundleGeneration : gen.fragments) {
         checkBundleArchive(bundleGeneration.archive, null);
       }
     }
-    resolveNativeCode(ba, false);
-    if (frags != null) {
-      for (final BundleGeneration bundleGeneration : frags) {
-        resolveNativeCode(bundleGeneration.archive, true);
+    resolveNativeCode(gen);
+    if (gen.fragments != null) {
+      for (final BundleGeneration bundleGeneration : gen.fragments) {
+        resolveNativeCode(bundleGeneration);
       }
     }
   }
@@ -125,7 +127,7 @@ public class BundleClassPath {
    */
   void attachFragment(BundleGeneration gen) throws BundleException {
     checkBundleArchive(gen.archive, null);
-    resolveNativeCode(gen.archive, true);
+    resolveNativeCode(gen);
   }
 
 
@@ -308,233 +310,49 @@ public class BundleClassPath {
    *
    * @throws BundleException if native code resolve failed.
    */
-  private void resolveNativeCode(BundleArchive ba, boolean isFrag) throws BundleException {
-    List<String> best = checkNativeCode(ba, fwCtx.props, isFrag);
-    if (best != null) {
-      nativeLibs = new HashMap<String, FileArchive>();
-      bloop: for (final String name : best) {
-        for (final FileArchive fa : archives) {
-          if (!isFrag || fa.getBundleGeneration().archive == ba) {
-            final String key = fa.checkNativeLibrary(name);
-            if (key != null) {
-              nativeLibs.put(key, fa);
-              if (debug.classLoader) {
-                debug.println(this + "- Registered native library: " + key + " -> " + fa);
+  private void resolveNativeCode(BundleGeneration gen) throws BundleException {
+    nativeLibs = null;
+    if (gen.nativeRequirement != null) {
+      List<String> best = gen.nativeRequirement.checkNativeCode();
+      if (best != null) {
+        nativeLibs = new HashMap<String, FileArchive>();
+      bloop:
+        for (final String name : best) {
+          for (final FileArchive fa : archives) {
+            if (!gen.isFragment() || fa.getBundleGeneration() == gen) {
+              final String key = fa.checkNativeLibrary(name);
+              if (key != null) {
+                nativeLibs.put(key, fa);
+                if (debug.classLoader) {
+                  debug.println(this + "- Registered native library: " + key + " -> " + fa);
+                }
+                continue bloop;
               }
-              continue bloop;
             }
           }
+          nativeLibs = null;
+          throw new BundleException("Bundle#" + bid + ", failed to resolve native code: "
+                                    + name, BundleException.NATIVECODE_ERROR);
         }
-        throw new BundleException("Bundle#" + bid + ", failed to resolve native code: "
-            + name, BundleException.NATIVECODE_ERROR);
       }
-    } else {
-      // No native code in this bundle
-      nativeLibs = null;
     }
   }
 
-
   /**
-   * Check native code attribute.
-   * 
-   * @return 
-   *
-   * @throws BundleException if native code match fails.
+   * Check if we have native code
    */
-  static List<String> checkNativeCode(BundleArchive ba, FWProps fwProps, boolean isFrag) throws BundleException {
-    final String bnc = ba.getAttribute(Constants.BUNDLE_NATIVECODE);
-    if (bnc != null) {
-      final ArrayList<String> proc = new ArrayList<String>(3);
-      final String procP = fwProps.getProperty(Constants.FRAMEWORK_PROCESSOR).toLowerCase();
-      proc.add(procP);
-      final String procS = System.getProperty("os.arch").toLowerCase();
-      if (!procP.equals(procS)) {
-        proc.add(procS);
-      }
-      // Handle deprecated value "arm"
-      if (procP.startsWith("arm_")) {
-        proc.add("arm");
-      }
-      for (int i = 0; i < Alias.processorAliases.length; i++) {
-        if (procP.equalsIgnoreCase(Alias.processorAliases[i][0])) {
-          for (int j = 1; j < Alias.processorAliases[i].length; j++) {
-            if (!procS.equals(Alias.processorAliases[i][j])) {
-              proc.add(Alias.processorAliases[i][j]);
-            }
-          }
-          break;
+  Set<BundleGeneration> hasNativeRequirements() {
+    if (nativeLibs != null) {
+      Set<BundleGeneration> res = new HashSet<BundleGeneration>();
+      for (FileArchive fa : nativeLibs.values()) {
+        BundleGeneration bg = fa.getBundleGeneration();
+        if (bg.nativeRequirement != null) {
+          res.add(bg);
         }
       }
-      final ArrayList<String> os = new ArrayList<String>();
-      final String osP = fwProps.getProperty(Constants.FRAMEWORK_OS_NAME).toLowerCase();
-      os.add(osP);
-      final String osS = System.getProperty("os.name").toLowerCase();
-      if (!osS.equals(osP)) {
-        os.add(osS);
-      }
-      for (int i = 0; i < Alias.osNameAliases.length; i++) {
-        if (osP.equalsIgnoreCase(Alias.osNameAliases[i][0])) {
-          for (int j = 1; j < Alias.osNameAliases[i].length; j++) {
-            if (!osS.equals(Alias.osNameAliases[i][j])) {
-              os.add(Alias.osNameAliases[i][j]);
-            }
-          }
-          break;
-        }
-      }
-      final Version osVer = new Version(fwProps.getProperty(Constants.FRAMEWORK_OS_VERSION));
-      final String osLang = fwProps.getProperty(Constants.FRAMEWORK_LANGUAGE);
-      boolean optional = false;
-      List<String> best = null;
-      VersionRange bestVer = null;
-      boolean bestLang = false;
-
-      final List<HeaderEntry> hes = Util
-          .parseManifestHeader(Constants.BUNDLE_NATIVECODE, bnc, false, false,
-                               false);
-      for (final Iterator<HeaderEntry> heIt = hes.iterator(); heIt.hasNext();) {
-        final HeaderEntry he = heIt.next();
-        VersionRange matchVer = null;
-        boolean matchLang = false;
-
-        final
-        List<String> keys = he.getKeys();
-        if (keys.size() == 1 && "*".equals(keys.get(0)) && !heIt.hasNext()) {
-          optional = true;
-          break;
-        }
-
-        @SuppressWarnings("unchecked")
-        final
-        List<String> pl = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
-        if (pl != null) {
-          if (!containsIgnoreCase(proc, pl)) {
-            continue;
-          }
-        } else {
-          // NYI! Handle null
-          continue;
-        }
-
-        @SuppressWarnings("unchecked")
-        final
-        List<String> ol = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_OSNAME);
-        if (ol != null) {
-          if (!containsIgnoreCase(os, ol)) {
-            continue;
-          }
-        } else {
-          // NYI! Handle null
-          continue;
-        }
-
-        @SuppressWarnings("unchecked")
-        final
-        List<String> ver = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_OSVERSION);
-        if (ver != null) {
-          boolean okVer = false;
-          for (final String string : ver) {
-            // TODO! Handle format Exception
-            matchVer = new VersionRange(string);
-            if (matchVer.includes(osVer)) {
-              okVer = true;
-              break;
-            }
-          }
-          if (!okVer) {
-            continue;
-          }
-        }
-
-        @SuppressWarnings("unchecked")
-        final
-        List<String> lang = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
-        if (lang != null) {
-          for (final String string : lang) {
-            if (osLang.equalsIgnoreCase(string)) {
-              // Found specified language version, search no more
-              matchLang = true;
-              break;
-            }
-          }
-          if (!matchLang) {
-            continue;
-          }
-        }
-
-        @SuppressWarnings("unchecked")
-        final
-        List<String> sf = (List<String>) he.getAttributes().get(Constants.SELECTION_FILTER_ATTRIBUTE);
-        if (sf != null) {
-          final String sfs = sf.get(0);
-          if (sf.size() == 1) {
-            try {
-              if (!(FrameworkUtil.createFilter(sfs)).match(fwProps.getProperties())) {
-                continue;
-              }
-            } catch (final InvalidSyntaxException ise) {
-              throw new BundleException("Bundle#" + ba.getBundleId() +
-                                        ", Invalid syntax for native code selection filter: "
-                                        + sfs, BundleException.NATIVECODE_ERROR, ise);
-            }
-          } else {
-            throw new BundleException("Bundle#" + ba.getBundleId() +
-                                      ", Invalid character after native code selection filter: "
-                                      + sfs, BundleException.NATIVECODE_ERROR);
-          }
-        }
-
-        // Compare to previous best
-        if (best != null) {
-          boolean verEqual = false;
-          if (bestVer != null) {
-            if (matchVer == null) {
-              continue;
-            }
-            final int d = bestVer.getLeft().compareTo(matchVer.getLeft());
-            if (d == 0) {
-              verEqual = true;
-            } else if (d > 0) {
-              continue;
-            }
-          } else if (matchVer == null) {
-            verEqual = true;
-          }
-          if (verEqual && (!matchLang || bestLang)) {
-            continue;
-          }
-        }
-        best = keys;
-        bestVer = matchVer;
-        bestLang = matchLang;
-      }
-      if (best == null && !optional) {
-        throw new BundleException("Bundle#" + ba.getBundleId() +
-                                  ", no matching native code libraries found for os="
-                                  + os + " version=" + osVer + ", processor="
-                                  + proc + " and language=" + osLang + ".",
-                                  BundleException.NATIVECODE_ERROR);
-      }
-      return best;
+      return res;
     }
     return null;
-  }
-
-
-  /**
-   * Check if a string exists in a list. Ignore case when comparing.
-   */
-  static boolean containsIgnoreCase(List<String> fl, List<String> l) {
-    for (final String string : l) {
-      final String s = string.toLowerCase();
-      for (final String string2 : fl) {
-        if (Util.filterMatch(string2, s)) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
 }
