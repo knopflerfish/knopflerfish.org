@@ -360,6 +360,11 @@ class Listeners {
             asyncEventQueue.addLast(new AsyncEvent(new ListenerEntry(null, fl), evt));
           }
         }
+        if (initListeners != null) {
+          for (FrameworkListener il : initListeners) {
+            asyncEventQueue.addLast(new AsyncEvent(new ListenerEntry(null, il), evt));
+          }
+        }
         synchronized (frameworkListeners) {
           for (final ListenerEntry listenerEntry : frameworkListeners) {
             asyncEventQueue.addLast(new AsyncEvent(listenerEntry, evt));

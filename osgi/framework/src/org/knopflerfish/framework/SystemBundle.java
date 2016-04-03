@@ -55,10 +55,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
@@ -124,6 +127,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   private FrameworkWiringImpl fwWiring;
 
+  private TreeMap<BundleImpl, BundleActivator> extensions = new TreeMap<BundleImpl, BundleActivator>();;
 
   /**
    * Construct the System Bundle handle.
@@ -158,6 +162,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
       switch (state) {
       case INSTALLED:
+        state = RESOLVED;
       case RESOLVED:
         break;
       case STARTING:
@@ -462,9 +467,9 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
-   * Adds an bundle as an extension that will be included in the boot class path
-   * on restart.
-   * @throws BundleException Should not happened.
+   * Adds an bundle as an extension.
+   * TODO, check that bootclasspath extensions really are on the
+   * bootclasspath.
    */
   void attachExtension(BundleGeneration extension) throws BundleException  {
     if (extension.isBootClassPathExtension()) {
@@ -472,18 +477,19 @@ public class SystemBundle extends BundleImpl implements Framework {
       if (getClassLoader() == null) {
         current().attachFragment(extension);
       } else {
-        throw new UnsupportedOperationException(
-            "Bootclasspath extension can not be dynamicly activated");
+        throw new BundleException("Bootclasspath extension can not be dynamicly activated", BundleException.UNSUPPORTED_OPERATION);
       }
     } else {
+      if (extensions.containsKey(extension.bundle)) {
+        throw new BundleException("Framework extension updates can not be resolved", BundleException.STATECHANGE_ERROR);
+      }        
       try {
         addClassPathURL(new URL("file:" + extension.archive.getJarLocation()));
-        current().attachFragment(extension);
-        handleExtensionActivator(extension);
       } catch (final Exception e) {
-        throw new UnsupportedOperationException(
-            "Framework extension could not be dynamicly activated, " + e);
+        throw new BundleException("Framework extension could not be dynamicly activated", BundleException.UNSUPPORTED_OPERATION, e);
       }
+      current().attachFragment(extension);
+      extensions.put(extension.bundle, handleExtensionActivator(extension));
     }
   }
 
@@ -613,6 +619,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
     gen.setWired();
     fwWiring = new FrameworkWiringImpl(fwCtx);
+    state = STARTING;
   }
 
 
@@ -641,6 +648,18 @@ public class SystemBundle extends BundleImpl implements Framework {
     return current().getDeclaredCapabilities().get(NativeNamespace.NATIVE_NAMESPACE).get(0);
   }
 
+
+  void extensionCallStart(BundleImpl b) {
+    if (b != null) {
+      callBundleActivatorStart(b);
+    } else {
+      BundleImpl[] bs = extensions.keySet().toArray(new BundleImpl[extensions.size()]);
+      for (BundleImpl be : bs) {
+        callBundleActivatorStart(be);
+      }
+    }
+  }
+
   //
   // Private methods
   //
@@ -649,7 +668,6 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    */
   private void doInit(FrameworkListener... listeners) throws BundleException {
-    state = STARTING;
     bootClassPathHasChanged = false;
     fwCtx.init(listeners);
   }
@@ -949,6 +967,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         stopAllBundles();
         saveClasspaths();
       }
+      extensionCallStop();
       synchronized (lock) {
         fwCtx.uninit();
         shutdownThread = null;
@@ -1077,16 +1096,55 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @param extension the extension bundle to process.
    */
-  private void handleExtensionActivator(final BundleGeneration extension) {
+  private BundleActivator handleExtensionActivator(final BundleGeneration extension) throws BundleException {
     String extActivatorName =
-      extension.archive.getAttribute("Extension-Activator");
+      extension.archive.getAttribute(Constants.EXTENSION_BUNDLE_ACTIVATOR);
     extActivatorName = null!=extActivatorName ? extActivatorName.trim() : null;
 
-    if (null!=extActivatorName && extActivatorName.length()>0) {
-      fwCtx.log("Activating extension: " + extension.symbolicName
+    if (null != extActivatorName && extActivatorName.length() > 0) {
+      fwCtx.log("Create bundle activator for extension: " + extension.symbolicName
                 + ":" +extension.version + " using: " +extActivatorName);
-      fwCtx.activateExtension(extension);
+      try {
+        final Class<BundleActivator> c = (Class<BundleActivator>)Class.forName(extActivatorName);
+        return c.newInstance();
+      } catch (Throwable t) {
+        final String msg = "Failed to instanciate extension activator " + extActivatorName + ", " + extension.bundle;
+        fwCtx.log(msg, t);
+        throw new BundleException(msg, BundleException.ACTIVATOR_ERROR, t);
+      }
     }
+    return null;
+  }
+
+
+  private void callBundleActivatorStart(BundleImpl b) {
+    BundleActivator ba = extensions.get(b);
+    if (ba != null) {
+      try {
+        ba.start(bundleContext);
+      } catch (final Throwable t) {
+        extensions.put(b, null);
+        final String msg = "Failed to start framework extension, " + b;
+        fwCtx.frameworkError(b, new BundleException(msg, BundleException.ACTIVATOR_ERROR, t));
+      }
+    }
+  }
+
+
+  private void extensionCallStop() {
+    BundleImpl[] bs = extensions.keySet().toArray(new BundleImpl[extensions.size()]);
+    for (int i = bs.length - 1; i >= 0; i--) {
+      BundleActivator ba = extensions.get(bs[i]);
+      if (ba != null) {
+        try {
+          ba.stop(bundleContext);
+        } catch (final Throwable t) {
+          final String msg = "Failed to stop framework extension, " + bs[i];
+          fwCtx.frameworkError(bs[i], new BundleException(msg, BundleException.ACTIVATOR_ERROR, t));
+        }
+      }
+    }
+    extensions.clear();
   }
 
 

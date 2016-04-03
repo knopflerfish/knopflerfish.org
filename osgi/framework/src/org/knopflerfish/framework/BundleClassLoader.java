@@ -115,7 +115,6 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     bpkgs = gen.bpkgs;
     archive = gen.archive;
     classPath = new BundleClassPath(archive, gen);
-    fwCtx.bundleClassLoaderCreated(this);
     if (debug.classLoader) {
       debug.println(this + " Created new classloader");
     }
@@ -489,7 +488,6 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    */
   void close() {
     archive = null;
-    fwCtx.bundleClassLoaderClosed(this);
     if (debug.classLoader) {
       debug.println(this + " Cleared archives");
     }

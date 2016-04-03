@@ -196,6 +196,9 @@ public class StartLevelController
 
   void setStartLevel(final int startLevel, final FrameworkListener... listeners)
   {
+    if (!bRun) {
+      throw new IllegalStateException("StartLevelService isn't running yet");
+    }
     fwCtx.perm.checkStartLevelAdminPerm();
     if (startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is "

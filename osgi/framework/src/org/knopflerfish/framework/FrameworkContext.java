@@ -163,7 +163,12 @@ public class FrameworkContext  {
   ClassLoader parentClassLoader;
 
   /**
-   * All bundle in this framework.
+   * Is init in progress.
+   */
+  boolean isInit = false;
+
+  /**
+   * Is this first init.
    */
   boolean firstInit = true;
 
@@ -286,6 +291,7 @@ public class FrameworkContext  {
   {
     log("initializing");
     initCount++;
+    isInit = true;
 
     if (firstInit && Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
         .equals(props.getProperty(Constants.FRAMEWORK_STORAGE_CLEAN))) {
@@ -423,7 +429,9 @@ public class FrameworkContext  {
                       null);
     registerStartLevel();
     bundles.load();
+    systemBundle.extensionCallStart(null);
     listeners.initDone();
+    isInit = false;
     log("inited");
     
     if (debug.framework) {
@@ -750,47 +758,6 @@ public class FrameworkContext  {
     // If bootclassloader, wrap it
     if (parentClassLoader == null) {
       parentClassLoader = new BCLoader();
-    }
-  }
-
-  /**
-   * The list of active {@link ExtensionContext} instances for attached
-   * extensions with an ExtensionActivator.
-   */
-  private final List<ExtensionContext> extCtxs = new ArrayList<ExtensionContext>();
-
-  /**
-   * Create a new {@link ExtensionContext} instances for the specified
-   * extension. This will create an instance of the extension
-   * activator class and call its activate-method of.
-   *
-   * @param extension the extension bundle to activate.
-   */
-  void activateExtension(final BundleGeneration extension) {
-    extCtxs.add( new ExtensionContext(this, extension) );
-  }
-
-  /**
-   * Inform all active extension contexts about a newly created bundle
-   * class loader.
-   *
-   * @param bcl the new bundle class loader to inform about.
-   */
-  void bundleClassLoaderCreated(final BundleClassLoader bcl) {
-    for (final ExtensionContext extCtx : extCtxs) {
-      extCtx.bundleClassLoaderCreated(bcl);
-    }
-  }
-
-  /**
-   * Inform all active extension contexts about a closed down bundle
-   * class loader.
-   *
-   * @param bcl the closed down bundle class loader to inform about.
-   */
-  void bundleClassLoaderClosed(final BundleClassLoader bcl) {
-    for (final ExtensionContext extCtx : extCtxs) {
-      extCtx.bundleClassLoaderClosed(bcl);
     }
   }
 

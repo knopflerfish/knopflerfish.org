@@ -420,6 +420,13 @@ public class Bundles {
       try {
         final BundleImpl b = new BundleImpl(fwCtx, ba, null, fwCtx.systemBundle);
         bundles.put(b.location, b);
+        // Activate extension as soon as they are installed so that
+        // they get added in bundle id order. The are run by the
+        // FrameworkContext after all bundles has been loaded.
+        if (b.current().isExtension() && b.attachToFragmentHost(fwCtx.systemBundle.current())) {
+          b.current().setWired();
+          b.state = Bundle.RESOLVED;
+        }
       } catch (final Exception e) {
         try {
           ba.setAutostartSetting(-1); // Do not start on launch

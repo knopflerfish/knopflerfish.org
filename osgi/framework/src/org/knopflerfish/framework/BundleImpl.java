@@ -202,13 +202,6 @@ public class BundleImpl implements Bundle {
     gen.checkPermissions(checkContext);
     doExportImport();
     bundleDir = fwCtx.getDataStorage(id);
-
-    // Activate extension as soon as they are installed so that
-    // they get added in bundle id order.
-    if (gen.isExtension() && attachToFragmentHost(fwCtx.systemBundle.current())) {
-      gen.setWired();
-      state = RESOLVED;
-    }
   }
 
 
@@ -1225,8 +1218,8 @@ public class BundleImpl implements Bundle {
       try {
         synchronized (fwCtx.resolver) {
           waitOnOperation(fwCtx.resolver, "Bundle.resolve", true);
-          if (state == INSTALLED) {
-            final BundleGeneration current = current();
+          final BundleGeneration current = current();
+          if (state == INSTALLED && (!fwCtx.isInit || current.isExtension())) {
             if (triggers != null) {
               fwCtx.resolverHooks.beginResolve(triggers);
             }
@@ -1248,6 +1241,10 @@ public class BundleImpl implements Bundle {
                   current.setWired();
                   state = RESOLVED;
                   operation = RESOLVING;
+                  if (current.isExtension()) {
+                    // TODO call on bundle thread!?
+                    fwCtx.systemBundle.extensionCallStart(this);
+                  }
                   bundleThread().bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
                   operation = IDLE;
                 }
@@ -1305,7 +1302,7 @@ public class BundleImpl implements Bundle {
           fwCtx.systemBundle.attachExtension(fix);
         } else {
           host.attachFragment(fix);
-        }
+        } 
         fix.fragment.addHost(host);
         return true;
       } catch (final BundleException be) {
