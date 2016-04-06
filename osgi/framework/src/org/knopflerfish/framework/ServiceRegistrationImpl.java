@@ -309,6 +309,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
   S getService(Bundle b, boolean multiple) {
     Integer ref;
     BundleImpl sBundle = null;
+
     if (multiple && scope != Constants.SCOPE_PROTOTYPE) {
       multiple = false;
     }
@@ -479,80 +480,88 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
    *
    */
   boolean ungetService(Bundle b, boolean checkRefCounter,  S uservice) {
-    List<S> servicesToRemove = null;
-    Hashtable<Bundle,Integer> deps;
+    List<S> servicesToRemove = new ArrayList<S>();
+    Hashtable<Bundle,Integer> deps = null;
     BundleImpl sBundle;
+    boolean res = false;
+
     synchronized (properties) {
       if (dependents == null) {
         return false;
       }
-      if (uservice != null && scope == Constants.SCOPE_PROTOTYPE) {
-        List<S> sl = prototypeServiceInstances.get(b);
-        if (sl != null) {
-          for (Iterator i = sl.iterator(); i.hasNext(); ) {
-            if (i.next() == uservice) {
-              i.remove();
-              servicesToRemove = new ArrayList<S>();
-              servicesToRemove.add(uservice);
-            }
-          }
-        }
-        if (servicesToRemove == null) {
-          throw new IllegalArgumentException("Service is not in use or not from this service reference");
-        }
-      } else {
-        final Object countInteger = dependents.get(b);
-        if (countInteger == null) {
-          return false;
-        }
-
+      if (scope == Constants.SCOPE_PROTOTYPE) {
         if (uservice != null) {
-          S s = scope == Constants.SCOPE_SINGLETON ? (S)service : serviceInstances.get(b);
-          if (s != uservice) {
-            throw new IllegalArgumentException("Service is not in user or not from this service reference");
-          }
-        }
-
-        final int count = ((Integer) countInteger).intValue();
-        if (checkRefCounter && count > 1) {
-          dependents.put(b, new Integer(count - 1));
-        } else {
-          synchronized (dependents) {
-            ungetInProgress.add(b);
-            dependents.remove(b);
-          }
-          if (scope != Constants.SCOPE_SINGLETON) {
-            servicesToRemove = new ArrayList<S>();
-            if (!checkRefCounter && prototypeServiceInstances != null) {
-              List<S> pl = prototypeServiceInstances.remove(b);
-              if (pl != null) {
-                servicesToRemove.addAll(pl);
+          List<S> sl = prototypeServiceInstances.get(b);
+          if (sl != null) {
+            for (Iterator<S> i = sl.iterator(); i.hasNext(); ) {
+              if (i.next() == uservice) {
+                i.remove();
+                servicesToRemove.add(uservice);
+                res = true;
+                break;
               }
             }
-            S s = serviceInstances.remove(b);
-            if (s != null) {
-              servicesToRemove.add(s);
-            }
+          }
+          if (!res) {
+            throw new IllegalArgumentException("Service is not in use or not from this service reference");
+          }
+        } else if (!checkRefCounter) {
+          List<S> sl = prototypeServiceInstances.get(b);
+          if (sl != null && !sl.isEmpty()) {
+            servicesToRemove.addAll(sl);
+            sl.clear();
+            res = true;
           }
         }
       }
-      deps = dependents;
+      if (uservice == null || scope != Constants.SCOPE_PROTOTYPE) {
+        final Object countInteger = dependents.get(b);
+        if (countInteger != null) {
+          if (uservice != null) {
+            S s = scope == Constants.SCOPE_SINGLETON ? (S)service : serviceInstances.get(b);
+            if (s != uservice) {
+              throw new IllegalArgumentException("Service is not in user or not from this service reference");
+            }
+          }
+
+          final int count = ((Integer) countInteger).intValue();
+          if (checkRefCounter && count > 1) {
+            dependents.put(b, new Integer(count - 1));
+          } else {
+            synchronized (dependents) {
+              ungetInProgress.add(b);
+              dependents.remove(b);
+              deps = dependents;
+            }
+            if (scope != Constants.SCOPE_SINGLETON) {
+              if (servicesToRemove == null) {
+                servicesToRemove = new ArrayList<S>();
+              }
+              S s = serviceInstances.remove(b);
+              if (s != null) {
+                servicesToRemove.add(s);
+              }
+            }
+          }
+          res = true;
+        }
+      }
       sBundle = bundle;
     }
 
-    if (servicesToRemove != null) {
-      for (S s : servicesToRemove) {
-        try {
-          sBundle.fwCtx.perm.callUngetService(this, b, s);
-        } catch (final Throwable e) {
-          sBundle.fwCtx.frameworkError(sBundle, e);
-        }
+    for (S s : servicesToRemove) {
+      try {
+        sBundle.fwCtx.perm.callUngetService(this, b, s);
+      } catch (final Throwable e) {
+        sBundle.fwCtx.frameworkError(sBundle, e);
       }
     }
-    synchronized (deps) {
-      ungetInProgress.remove(b);
+    if (deps != null) {
+      synchronized (deps) {
+        ungetInProgress.remove(b);
+      }
     }
-    return true;
+    return res;
   }
 
   ServiceReferenceDTO getDTO() {

@@ -40,6 +40,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -163,6 +164,10 @@ public class Bundles {
       final BundleImpl res = new BundleImpl(fwCtx, ba, checkContext, caller);
       bundles.put(location, res);
       fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, res, caller));
+      if (res.current().isExtension()) {
+        // Try to resolve extensions
+        fwCtx.packageAdmin.resolveBundles(new Bundle [] {res});
+      }
       return res;
     } catch (final Exception e) {
       if (ba != null) {

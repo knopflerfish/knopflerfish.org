@@ -416,6 +416,7 @@ public class BundleContextImpl
    */
   public <S> ServiceObjects<S> getServiceObjects(ServiceReference<S> reference) {
     checkValid();
+    bundle.fwCtx.perm.checkGetServicePerms(reference);
     ServiceReferenceImpl<S> sr = (ServiceReferenceImpl<S>)reference;
     if (sr.isAvailable()) {
       return new ServiceObjectsImpl(this, sr);
