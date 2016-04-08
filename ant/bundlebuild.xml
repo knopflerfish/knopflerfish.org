@@ -281,11 +281,14 @@
     <include name="${ant.project.name}_lib-*.jar" />
   </patternset>
 
-  <!-- Path that finds the framework API packages.                 -->
+  <!-- Path that finds the framework API and annotation packages.  -->
   <path id="framework.path">
     <pathelement location="${jars.dir}/../framework.jar"/>
     <pathelement location="${osgi.jars.dir}/../framework.jar"/>
     <pathelement location="${osgi.dir}/framework.jar"/>
+    <pathelement location="${jars.dir}/../annotations/osgi.annotation-6.0.1.jar"/>
+    <pathelement location="${osgi.jars.dir}/../annotations/osgi.annotation-6.0.1.jar"/>
+    <pathelement location="${osgi.dir}/annotations/osgi.annotation-6.0.1.jar"/>
   </path>
 
   <!-- Default compile path for a bundle. The referenced path,     -->
