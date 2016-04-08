@@ -3,6 +3,9 @@
 language: java
 sudo: required
 dist: trusty
+jdk:
+  - openjdk6
+  - oraclejdk8
 
 notifications:
   email:

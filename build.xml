@@ -179,6 +179,7 @@
     <ant dir="${osgi.dir}/framework" inheritall="false">
       <property name="jarfile"
                 location="${distrib.osgi.dir}/framework.jar"/>
+      <property name="jars.dir" location="${distrib.osgi.dir}/jars"/>
       <property name="version" value="${version}"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>

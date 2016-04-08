@@ -26,8 +26,6 @@
            debug="on"
            includeAntRuntime="false"
            srcdir="${src.dir}"
-           target="${javac.target}"
-           source="${javac.source}"
            classpathref="bundle.compile.path"
            includes="test_fb/common/**"
            >
