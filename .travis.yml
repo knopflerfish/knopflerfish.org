@@ -1,6 +1,6 @@
 # Travis CI <http://travis-ci.org>
 
-language: java
+language: android
 sudo: required
 dist: trusty
 jdk:
