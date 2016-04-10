@@ -38,7 +38,7 @@
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
-  <property name="version"            value="5.2.1.svn-0000"/>
+  <property name="version"            value="6.0.0.latest-kf6"/>
 
   <!-- The release date of this release -->
   <!-- *** Un-comment and set here on release branch. *** -->
@@ -48,13 +48,13 @@
   <!-- The previous official release version for this build -->
   <property name="version.previous"   value="5.2.0"/>
 
-  <!-- The URL to the root of the SVN-repository -->
-  <property name="svn.repo.url"
-            value="https://www.knopflerfish.org/svn/knopflerfish.org"/>
+  <!-- The URL to the root of the git-repository -->
+  <property name="git.repo.url"
+            value="https://github.com/knopflerfish/knopflerfish.org"/>
 
-  <!-- The subversion tag / branch that this build is made on -->
+  <!-- The git tag / branch that this build is made on -->
   <!-- E.g., "trunk", "tags/2.3.2", "branches/kf_1_support". -->
-  <property name="svn.tag"    value="tags/${version}"/>
+  <property name="git.tag"    value="releases/tag/${version}"/>
 
   <!-- The kind of build, used on the index page for the release. -->
   <property name="build.kind" value="release build"/>
@@ -327,7 +327,7 @@
                 includeSourceFiles="false"
                 includeSourceFileRepositoryLinks="true"
                 rootDir="${knopflerfish.dir}"
-                repositoryURL="${svn.repo.url}/${svn.tag}/">
+                repositoryURL="${git.repo.url}/${git.tag}/">
       <fileset dir="${distrib.osgi.dir}/jars">
         <include name="**/*.jar"/>
         <exclude name="**/*-source.jar"/>
@@ -531,7 +531,6 @@
         <exclude name="**/*.jbf"/>
         <exclude name="**/out/**"/>
         <exclude name="**/*.class"/>
-        <exclude name="**/.svn"/>
 
         <include name="ant/**"/>
         <exclude name="ant/classes/**"/>
@@ -709,9 +708,9 @@
       <replacefilter token="@YEAR@"
                      value="${distrib_index.tstamp.year}"/>
       <replacefilter token="@REPO_URL@"
-                     value="${svn.repo.url}"/>
+                     value="${git.repo.url}"/>
       <replacefilter token="@TAG@"
-                     value="${svn.tag}"/>
+                     value="${git.tag}"/>
       <replacefilter token="@BUILD_KIND@"
                      value="${build.kind}"/>
       <replacefilter token="@DISTRIB_SDK_FILE_LENGTH@"

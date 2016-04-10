@@ -1,9 +1,9 @@
 # Travis CI <http://travis-ci.org>
 
-language: android
 sudo: required
 dist: trusty
 group: edge
+language: android
 
 android:
   components:
@@ -23,4 +23,4 @@ notifications:
 
 install: true
 
-script: ant distrib
+script: ant -DANDROID_HOME=$ANDROID_HOME distrib
