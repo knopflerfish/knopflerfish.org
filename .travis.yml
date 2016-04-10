@@ -1,15 +1,13 @@
 # Travis CI <http://travis-ci.org>
 
+group: edge
 sudo: required
 dist: trusty
-group: edge
 language: android
 
 android:
   components:
-    - build-tools-18.1.1
-    - android-18
-    - extra
+    - build-tools-23.0.1
 
 jdk:
   - openjdk6
@@ -23,4 +21,6 @@ notifications:
 
 install: true
 
-script: ant -DANDROID_HOME=$ANDROID_HOME distrib
+script:
+ - ant -version
+ - ant -DANDROID_HOME=$ANDROID_HOME distrib
