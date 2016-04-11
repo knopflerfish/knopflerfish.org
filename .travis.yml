@@ -1,6 +1,5 @@
 # Travis CI <http://travis-ci.org>
 
-group: edge
 sudo: required
 dist: trusty
 language: android
@@ -12,6 +11,11 @@ android:
 jdk:
   - openjdk6
   - oraclejdk8
+
+before_install:
+  - sudo add-apt-repository ppa:ubuntu/wily -y
+  - sudo apt-get update -q
+  - sudo apt-get install ant-1.9.6-1ubuntu1  -y
 
 notifications:
   email:
