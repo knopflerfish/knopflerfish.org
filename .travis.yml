@@ -13,9 +13,8 @@ jdk:
   - oraclejdk8
 
 before_install:
-  - sudo add-apt-repository ppa:ubuntu/wily -y
-  - sudo apt-get update -q
-  - sudo apt-get install ant-1.9.6-1ubuntu1  -y
+  - sudo wget http://apache.mirrors.spacedump.net//ant/binaries/apache-ant-1.9.6-bin.tar.gz
+  - sudo tar xzf apache-ant-1.9.6-bin.tar.gz
 
 notifications:
   email:
@@ -26,5 +25,5 @@ notifications:
 install: true
 
 script:
- - ant -version
- - ant -DANDROID_HOME=$ANDROID_HOME distrib
+ - apache-ant-1.9.6/bin/ant -version
+ - apache-ant-1.9.6/bin/ant -DANDROID_HOME=$ANDROID_HOME distrib
