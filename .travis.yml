@@ -13,8 +13,8 @@ jdk:
   - oraclejdk8
 
 env:
-  - VER_SUF=latest-$TRAVIS_BRANCH       EXTRA=
-  - VER_SUF=latest-${TRAVIS_BRANCH}_dex EXTRA=-DANDROID_HOME=$ANDROID_HOME
+  - VER_SUF=.latest-$TRAVIS_BRANCH       EXTRA=
+  - VER_SUF=.latest-${TRAVIS_BRANCH}_dex EXTRA=-DANDROID_HOME=$ANDROID_HOME
 
 before_install:
   - sudo wget http://apache.mirrors.spacedump.net//ant/binaries/apache-ant-1.9.6-bin.tar.gz
@@ -29,5 +29,5 @@ notifications:
 install: true
 
 script:
- - echo args -Dversion.suffix=$VER_SUF $EXTRA distrib
+ - echo ant -Dversion.suffix=$VER_SUF $EXTRA distrib
  - apache-ant-1.9.6/bin/ant -Dversion.suffix=$VER_SUF $EXTRA distrib
