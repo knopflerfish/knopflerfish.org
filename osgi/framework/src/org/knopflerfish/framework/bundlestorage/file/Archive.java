@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2015, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1222,6 +1222,11 @@ public class Archive implements FileArchive {
     Util.parseManifestHeader(Constants.IMPORT_PACKAGE,
                              a.getValue(Constants.IMPORT_PACKAGE), false, true,
                              false);
+    if (ba.storage.isReadOnly() && needUnpack(a)) {
+      throw new IllegalArgumentException("Framework is in read-only mode, we can not " +
+                                         "install bundles that needs to be downloaded " +
+                                         "(e.g. has native code or an internal Bundle-ClassPath)");
+    }
     // NYI, more checks?
   }
 
@@ -1321,7 +1326,7 @@ public class Archive implements FileArchive {
    * @param is InputStream to read from.
    */
   private void loadFile(File output, InputStream is) throws IOException {
-    if (ba.storage.isReadOnly()) {
+    if (output != null && ba.storage.isReadOnly()) {
       throw new IOException("Bundle storage is read-only, unable to save: " + output);
     }
     OutputStream os = null;

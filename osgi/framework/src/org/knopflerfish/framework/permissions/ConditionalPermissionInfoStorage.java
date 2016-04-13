@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2014, KNOPFLERFISH project
+ * Copyright (c) 2008-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,7 @@ class ConditionalPermissionInfoStorage {
     if (condPermDir == null) {
       System.err.println("Property org.osgi.framework.dir not set," +
                          "conditional permission info will not be saved between sessions");
-    } else {
+    } else if (condPermDir.isDirectory()) {
       load();
     }
   }

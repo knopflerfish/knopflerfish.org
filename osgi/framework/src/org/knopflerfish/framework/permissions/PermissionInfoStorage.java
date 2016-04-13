@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2014, KNOPFLERFISH project
+ * Copyright (c) 2006-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,7 +90,7 @@ class PermissionInfoStorage {
     if (permDir == null) {
       System.err.println("Property org.osgi.framework.dir not set," +
                          "permission data will not be saved between sessions");
-    } else {
+    } else if (permDir.isDirectory()) {
       load();
     }
   }

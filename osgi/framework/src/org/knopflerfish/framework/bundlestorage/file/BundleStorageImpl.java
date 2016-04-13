@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2015, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -143,6 +143,14 @@ public class BundleStorageImpl implements BundleStorage {
   public BundleStorageImpl(FrameworkContext framework) {
     this.framework = framework;
     initProps(framework.props);
+    if (isReadOnly()) {
+      if (alwaysUnpack) {
+        throw new RuntimeException("Property '" + ALWAYS_UNPACK_PROP + "' must be false when we are in read only mode!");
+      }
+      if (unpack) {
+        throw new RuntimeException("Property '" + UNPACK_PROP + "' must be false when we are in read only mode!");
+      }
+    }
     // See if we have a storage directory
     bundlesDir = Util.getFileStorage(framework, "bs", !isReadOnly());
     if (bundlesDir == null) {
