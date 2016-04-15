@@ -13,9 +13,10 @@ jdk:
   - oraclejdk8
 
 env:
-  - VER_SUF=.latest-$TRAVIS_BRANCH       EXTRA=
-  - VER_SUF=.latest-${TRAVIS_BRANCH}_dex EXTRA=-DANDROID_HOME=$ANDROID_HOME
+  - DEPLOY=true  VER_SUF=      EXTRA=
+  - DEPLOY=false VER_SUF=_dex  EXTRA=-DANDROID_HOME=$ANDROID_HOME
 
+# install new ant since we currently can not use trusty and android together
 before_install:
   - sudo wget http://apache.mirrors.spacedump.net//ant/binaries/apache-ant-1.9.6-bin.tar.gz
   - sudo tar xzf apache-ant-1.9.6-bin.tar.gz
@@ -28,6 +29,15 @@ notifications:
 
 install: true
 
-script:
- - echo ant -Dversion.suffix=$VER_SUF $EXTRA distrib
- - apache-ant-1.9.6/bin/ant -Dversion.suffix=$VER_SUF $EXTRA distrib
+script: apache-ant-1.9.6/bin/ant -Dbuild.kind="CI build" -Dversion.branch=$TRAVIS_BRANCH$VER_SUF $EXTRA distrib
+
+deploy:
+  provider: bintray
+  file: out/bintray.cfg
+  user: janste63
+  skip_cleanup: true
+  dry-run: true
+  on:
+    branch: kf-r6
+    jdk: openjdk6
+    condition: $DEPLOY = true

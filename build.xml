@@ -38,8 +38,9 @@
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
+  <property name="version.branch"     value="snapshot"/>
+  <property name="version.suffix"     value=".latest-${version.branch}"/>
   <property name="version.base"       value="6.0.0"/>
-  <property name="version.suffix"     value=".latest-kf6"/>
   <property name="version"            value="${version.base}${version.suffix}"/>
 
   <!-- The release date of this release -->
@@ -722,6 +723,40 @@
     </replace>
   </target>
 
+  <!-- Creates a Bintray configuration file for a release build.-->
+  <target name="distrib_bintray" depends="bundle_tasks">
+    <tstamp>
+      <format property="distrib_index.tstamp"
+              pattern="yyyy-MM-dd HH:mm"
+              locale="en"/>
+    </tstamp>
+    <tstamp>
+      <format property="distrib_index.tstamp.year"
+              pattern="yyyy"
+              locale="en"/>
+    </tstamp>
+
+    <copy file="tools/bintray/template_bintray.cfg"
+          tofile="${distrib.out.dir}/bintray.cfg">
+    </copy>
+    <replace file="${distrib.out.dir}/bintray.cfg">
+      <replacefilter token="@VERSION@"
+                     value="${version}"/>
+      <replacefilter token="@DATE@"
+                     value="${distrib_index.tstamp}"/>
+      <replacefilter token="@YEAR@"
+                     value="${distrib_index.tstamp.year}"/>
+      <replacefilter token="@REPO_URL@"
+                     value="${git.repo.url}"/>
+      <replacefilter token="@TAG@"
+                     value="${git.tag}"/>
+      <replacefilter token="@BUILD_KIND@"
+                     value="${build.kind}"/>
+      <replacefilter token="@BRANCH@"
+                     value="${version.branch}"/>
+    </replace>
+  </target>
+
 
   <target name="distrib"
           description="Builds all full Knopflerfish SDK distribution">
@@ -740,6 +775,7 @@
     <antcall target="distrib_tiny"/>
     <antcall target="distrib_index"/>
     <antcall target="distrib_mvn_repo"/>
+    <antcall target="distrib_bintray"/>
     <echo message="Build result placed in ${distrib.dir} and repo"/>
   </target>
 
