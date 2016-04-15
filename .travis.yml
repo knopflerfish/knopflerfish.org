@@ -36,7 +36,6 @@ deploy:
   file: out/bintray.cfg
   user: janste63
   skip_cleanup: true
-  dry-run: true
   on:
     branch: kf-r6
     jdk: openjdk6
