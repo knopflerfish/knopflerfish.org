@@ -40,10 +40,13 @@
   <!-- The default version of this build -->
   <tstamp>
     <format property="build.time"
-            pattern="yyyyMMddHHmm"/>
+            pattern="yyMMddHHmm"/>
   </tstamp>
-  <property name="version.branch"     value=""/>
-  <property name="version.suffix"     value=".${build.time}${version.branch}"/>
+  <condition property="version.suffix"
+             value=".${build.time}-${version.branch}"
+             else=".${build.time}">
+    <isset property="version.branch"/>
+  </condition>
   <property name="version.base"       value="5.99.99"/>
   <property name="version"            value="${version.base}${version.suffix}"/>
 
