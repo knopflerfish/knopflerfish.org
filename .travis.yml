@@ -24,7 +24,7 @@ before_install:
 notifications:
   email:
     recipients:
-    - jan@makewave.com
+    - devel@makewave.com
     on_success: always
 
 install: true
