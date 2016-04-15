@@ -38,9 +38,13 @@
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
-  <property name="version.branch"     value="snapshot"/>
-  <property name="version.suffix"     value=".latest-${version.branch}"/>
-  <property name="version.base"       value="6.0.0"/>
+  <tstamp>
+    <format property="build.time"
+            pattern="yyyyMMddHHmm"/>
+  </tstamp>
+  <property name="version.branch"     value=""/>
+  <property name="version.suffix"     value=".${build.time}${version.branch}"/>
+  <property name="version.base"       value="5.99.99"/>
   <property name="version"            value="${version.base}${version.suffix}"/>
 
   <!-- The release date of this release -->
@@ -98,17 +102,16 @@
   <property name="distrib.junit_grunt.dir"
             location="${distrib.dir}/junit_grunt"/>
 
-
-  <!-- The URL that this release will be available on after installation. -->
-  <property name="base.url" value="http://www.knopflerfish.org/releases"/>
-
-  <property name="jarunpacker.dir" location="tools/jarunpacker"/>
-
   <!-- Current date is default for the relesase.date property -->
   <tstamp>
     <format property="release.date"
             pattern="yyyy-MM-dd"/>
   </tstamp>
+
+  <!-- The URL that this release will be available on after installation. -->
+  <property name="base.url" value="http://www.knopflerfish.org/releases"/>
+
+  <property name="jarunpacker.dir" location="tools/jarunpacker"/>
 
   <!-- Load support for KF bundle related ant tasks. -->
   <property name="ant.dir" location="ant"/>
@@ -726,13 +729,8 @@
   <!-- Creates a Bintray configuration file for a release build.-->
   <target name="distrib_bintray" depends="bundle_tasks">
     <tstamp>
-      <format property="distrib_index.tstamp"
-              pattern="yyyy-MM-dd HH:mm"
-              locale="en"/>
-    </tstamp>
-    <tstamp>
-      <format property="distrib_index.tstamp.year"
-              pattern="yyyy"
+      <format property="distrib_bintray.tstamp"
+              pattern="yyyy-MM-dd'T'HH:mm"
               locale="en"/>
     </tstamp>
 
@@ -743,9 +741,7 @@
       <replacefilter token="@VERSION@"
                      value="${version}"/>
       <replacefilter token="@DATE@"
-                     value="${distrib_index.tstamp}"/>
-      <replacefilter token="@YEAR@"
-                     value="${distrib_index.tstamp.year}"/>
+                     value="${distrib_bintray.tstamp}"/>
       <replacefilter token="@REPO_URL@"
                      value="${git.repo.url}"/>
       <replacefilter token="@TAG@"
