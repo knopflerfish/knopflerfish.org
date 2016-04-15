@@ -37,6 +37,6 @@ deploy:
   user: janste63
   skip_cleanup: true
   on:
-    branch: kf-r6
+    branch: kf_r6
     jdk: openjdk6
     condition: $DEPLOY = true
