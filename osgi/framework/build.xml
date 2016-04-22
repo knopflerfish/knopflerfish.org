@@ -19,7 +19,13 @@
   <property name="frameworkdoc_template"
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.impl.version"   value="7.99.1"/>
+  <property name="fw.base.version"   value="7.99.1"/>
+  <property name="version.suffix"    value=""/>
+  <condition property="fw.impl.version"
+             value="${fw.base.version}"
+             else="${fw.base.version}.${version.suffix}">
+    <equals arg1="${version.suffix}" arg2=""/>
+  </condition>
 
   <property name="jarfile"
             location="${topdir}/${ant.project.name}.jar"/>

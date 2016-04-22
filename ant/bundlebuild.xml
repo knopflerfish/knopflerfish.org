@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   ** Copyright (c) 2003-2015, KNOPFLERFISH project
+   ** Copyright (c) 2003-2016, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -273,6 +273,9 @@
   <!-- and the exported and imported packages on the console.      -->
   <property name="bundlemanifest.verbose" value="true"/>
 
+  <!-- Extra suffix to bundle version -->
+  <property name="bundle.version.suffix" value=""/>
+
   <patternset id="jars.pattern">
     <include name="${ant.project.name}.jar" />
     <include name="${ant.project.name}-*.jar" />
@@ -361,6 +364,7 @@
     <!-- on their values in the manifest template file (if present). -->
     <bundlemanifest mode="templateOnly"
                     attributePropertyPrefix="${bundle.mf.attr.prefix}"
+                    versionSuffix="${bundle.version.suffix}"
                     templateFile="${bundlemanifest.template}">
     </bundlemanifest>
 

@@ -43,12 +43,25 @@
             pattern="yyMMddHHmm"/>
   </tstamp>
   <condition property="version.suffix"
-             value=".${build.time}-${version.branch}"
-             else=".${build.time}">
+             value="${build.time}-${version.branch}"
+             else="${build.time}">
     <isset property="version.branch"/>
   </condition>
+
+  <!-- Set default bundle suffix if no version is set -->
+  <condition property="bundle.version.suffix"
+             value=""
+             else="${version.suffix}">
+    <isset property="version"/>
+  </condition>
+
+
   <property name="version.base"       value="5.99.99"/>
-  <property name="version"            value="${version.base}${version.suffix}"/>
+  <condition property="version"
+             value="${version.base}"
+             else="${version.base}.${version.suffix}">
+    <equals arg1="${version.suffix}" arg2=""/>
+  </condition>
 
   <!-- The release date of this release -->
   <!-- *** Un-comment and set here on release branch. *** -->
@@ -184,6 +197,7 @@
       <property name="bundle.build.javadoc.jar" value="true"/>
       <property name="javadoc.jarfile"
                 location="${distrib.osgi.dir}/framework-javadoc.jar"/>
+      <property name="version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
     <ant dir="${osgi.dir}/framework" inheritall="false">
       <property name="jarfile"
@@ -201,6 +215,7 @@
       <property name="bundle.build.javadoc.jar" value="true"/>
       <property name="javadoc.jarfile"
                 location="${distrib.osgi.dir}/framework-javadoc.jar"/>
+      <property name="version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
   </target>
 
@@ -218,6 +233,7 @@
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="bundle.build.source.jar"   value="true"/>
       <property name="bundle.build.javadoc.jar"  value="true"/>
+      <property name="bundle.version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
   </target>
 
@@ -235,6 +251,7 @@
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="bundle.build.source.jar"   value="true"/>
       <property name="bundle.build.javadoc.jar"  value="true"/>
+      <property name="bundle.version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
   </target>
 
@@ -254,6 +271,7 @@
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="bundle.build.source.jar"   value="true"/>
       <property name="bundle.build.javadoc.jar"  value="true"/>
+      <property name="bundle.version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
   </target>
 

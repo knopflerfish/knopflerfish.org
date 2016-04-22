@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -541,7 +541,7 @@ public class BundleLocator extends Task {
   static private boolean isBundleNameWithWildcardVersion(final String name)
   {
     final Pattern pattern = Pattern.compile
-      ("^(.+)-(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.([-_0-9a-zA-Z]+))))(?:.jar|.zip)$");
+      ("^((?:[^-]*-??)+)-(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.([-_0-9a-zA-Z]+))))(?:.jar|.zip)$");
     final Matcher matcher = pattern.matcher(name);
     if (matcher.matches()) {
       for (int i=2; i<6; i++) {
@@ -601,7 +601,7 @@ public class BundleLocator extends Task {
     }
 
     final Pattern pattern = Pattern.compile
-      ("^(.+)-(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.([-_0-9a-zA-Z]+))))$");
+      ("^((?:[^-]*-??)+)-(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.([-_0-9a-zA-Z]+))))$");
     final Matcher matcher = pattern.matcher(name);
     if (matcher.matches()) {
       name = matcher.group(1);

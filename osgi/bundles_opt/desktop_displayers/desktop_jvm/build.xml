@@ -5,6 +5,9 @@
   <dirname  property="proj.dir" file="${ant.file.desktop_jvm}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
+  <property name="bundle.version.suffix" value=""/>
+  <property name="desktop_jvm.version"   value="4.0.1"/>
+
   <!-- Build for JavaSE 1.4 Execution Environment. -->
   <!-- Uses java.awt.*, javax.swing.*            -->
   <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
@@ -24,7 +27,11 @@
   <property name="bmfa.Bundle-Description"    value="JVM info desktop plugin"/>
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
   <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="1.0.0"/>
+  <condition property="bmfa.Bundle-Version"
+             value="${desktop_jvm.version}"
+             else="${desktop_jvm.version}.${bundle.version.suffix}">
+    <equals arg1="${bundle.version.suffix}" arg2=""/>
+  </condition>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
