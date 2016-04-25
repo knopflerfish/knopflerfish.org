@@ -16,14 +16,16 @@
 
 package org.osgi.service.event;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * The Event Admin service. Bundles wishing to publish events must obtain the
  * Event Admin service and call one of the event delivery methods.
  * 
  * @ThreadSafe
- * @noimplement
- * @author $Id: 9a845e5269829c3f713d43391364f6c9097fd342 $
+ * @author $Id: 529f0431b3cb8f682c95107b2b7d0bc255a968dd $
  */
+@ProviderType
 public interface EventAdmin {
 	/**
 	 * Initiate asynchronous, ordered delivery of an event. This method returns

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /**
- * Remote Service Admin Package Version 1.0.
+ * Remote Service Admin Package Version 1.1.
  * 
  * <p>
  * Bundles wishing to use this package must list the package in the
@@ -26,15 +26,18 @@
  * <p>
  * Example import for consumers using the API in this package:
  * <p>
- * {@code  Import-Package: org.osgi.service.remoteserviceadmin; version="[1.0,2.0)"}
+ * {@code  Import-Package: org.osgi.service.remoteserviceadmin; version="[1.1,2.0)"}
  * <p>
  * Example import for providers implementing the API in this package:
  * <p>
- * {@code  Import-Package: org.osgi.service.remoteserviceadmin; version="[1.0,1.1)"}
+ * {@code  Import-Package: org.osgi.service.remoteserviceadmin; version="[1.1,1.2)"}
  * 
- * @version 1.0
- * @author $Id: 36efdee7e86d53c3f063fef7ef827b78df06c9c8 $
+ * @version 1.1
+ * @author $Id: 0581bb37a078f9e6e76f04e1db32b1734fd0db7e $
  */
 
+@Version("1.1.0")
 package org.osgi.service.remoteserviceadmin;
+
+import org.osgi.annotation.versioning.Version;
 

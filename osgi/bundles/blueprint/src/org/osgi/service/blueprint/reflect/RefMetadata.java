@@ -16,13 +16,16 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * Metadata for a reference to another component managed by the Blueprint
  * Container.
  * 
  * @ThreadSafe
- * @author $Id: a67274cc8e5033dddc8477a046d116d511c1a4d3 $
+ * @author $Id: 86f3b89d543e2fd199b0e193b8fc645adc6570fa $
  */
+@ConsumerType
 public interface RefMetadata extends Target, NonNullMetadata {
 	/**
 	 * Return the id of the referenced component.

@@ -18,6 +18,7 @@ package org.osgi.service.coordinator;
 
 import java.util.List;
 import java.util.Map;
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 
 /**
@@ -62,30 +63,29 @@ import org.osgi.framework.Bundle;
  * </pre>
  * 
  * @ThreadSafe
- * @noimplement
- * @author $Id: 67f67b5265cec7f5b33b1bde74cf93b578debcf7 $
+ * @author $Id: 9b7da14f4dac30c9a1cb8b2f411887b0f58de94b $
  */
-
+@ProviderType
 public interface Coordination {
 
 	/**
 	 * A singleton exception that will be the failure cause when a Coordination
 	 * times out.
 	 */
-	Exception	TIMEOUT		= new Exception("TIMEOUT");
+	Exception	TIMEOUT		= new SingletonException("TIMEOUT");
 
 	/**
 	 * A singleton exception that will be the failure cause when the
 	 * Coordinations created by a bundle are terminated because the bundle
 	 * released the Coordinator service.
 	 */
-	Exception	RELEASED	= new Exception("RELEASED");
+	Exception	RELEASED	= new SingletonException("RELEASED");
 
 	/**
 	 * A singleton exception that will be the failure cause when a Coordination
 	 * has been orphaned.
 	 */
-	Exception	ORPHANED	= new Exception("ORPHANED");
+	Exception	ORPHANED	= new SingletonException("ORPHANED");
 
 	/**
 	 * Returns the id assigned to this Coordination.

@@ -16,6 +16,7 @@
 
 package org.osgi.service.remoteserviceadmin;
 
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.ServiceReference;
 
 /**
@@ -25,9 +26,9 @@ import org.osgi.framework.ServiceReference;
  * service is no longer exported, all methods must return {@code null}.
  * 
  * @ThreadSafe
- * @noimplement
- * @author $Id: e5e04f861e76c575accaf34089ca0ec7deb004a2 $
+ * @author $Id: c6b452b40c0356b3c5a9f4b0a1e0654512733494 $
  */
+@ProviderType
 public interface ExportReference {
 	/**
 	 * Return the service being exported.
@@ -35,7 +36,7 @@ public interface ExportReference {
 	 * @return The service being exported. Must be {@code null} when the service
 	 *         is no longer exported.
 	 */
-	ServiceReference getExportedService();
+	ServiceReference<?> getExportedService();
 
 	/**
 	 * Return the Endpoint Description for the local endpoint.

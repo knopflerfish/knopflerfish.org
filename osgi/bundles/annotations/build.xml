@@ -5,6 +5,7 @@
   <!-- Internal target that calls a specified target in all sub-dirs. -->
   <target name="doAntBuild">
     <ant target="${the.target}" dir="component_api"/>
+    <ant target="${the.target}" dir="metatype_api"/>
   </target>
 
   <target name="all" 

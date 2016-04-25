@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import javax.microedition.io.Connection;
  * selected Connection Factory will then be called to create the actual
  * {@code Connection} object.
  * 
- * @author $Id: 9f6aae71e9b0b65afb94f94a8c0493a96d925558 $
+ * @author $Id: 864b1ce026449e89af9459baec11c7147c792a34 $
  */
 public interface ConnectionFactory {
 	/**
@@ -53,7 +53,7 @@ public interface ConnectionFactory {
 	 *        {@code ConnectorService.open} method
 	 * @return A new {@code javax.microedition.io.Connection} object.
 	 * @throws IOException If a {@code javax.microedition.io.Connection} object
-	 *         can not not be created.
+	 *         cannot be created.
 	 */
 	public Connection createConnection(String name, int mode, boolean timeouts) throws IOException;
 }

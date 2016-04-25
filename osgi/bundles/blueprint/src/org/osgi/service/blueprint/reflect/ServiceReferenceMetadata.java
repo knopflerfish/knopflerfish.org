@@ -17,14 +17,16 @@
 package org.osgi.service.blueprint.reflect;
 
 import java.util.Collection;
+import org.osgi.annotation.versioning.ConsumerType;
 
 /**
  * Metadata for a reference to an OSGi service. This is the base type for
  * {@link ReferenceListMetadata} and {@link ReferenceMetadata}.
  * 
  * @ThreadSafe
- * @author $Id: 9aeb2ae92d89c4d0e82ba9a87c049adaa35df845 $
+ * @author $Id: 059d8f84a3078bbba9cba14f4d5ac2546d509d29 $
  */
+@ConsumerType
 public interface ServiceReferenceMetadata extends ComponentMetadata {
 
 	/**

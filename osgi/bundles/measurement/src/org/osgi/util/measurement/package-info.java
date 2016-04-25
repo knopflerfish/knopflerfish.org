@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@
  * <p>
  * {@code  Import-Package: org.osgi.util.measurement; version="[1.0,2.0)"}
  * 
- * @version 1.0
- * @author $Id: 6ea8b4c26bb929485152bac4b631983e65b2fc90 $
+ * @version 1.0.1
+ * @author $Id: 7603bac0b6ec5e4d091d31a4a6b70ab15503eb77 $
  */
 
 package org.osgi.util.measurement;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.osgi.framework.InvalidSyntaxException;
  * {@code lifecycle}, {@code schedule} and {@code lock}. The permission
  * {@code schedule} implies the permission {@code lifecycle}.
  * 
- * @author $Id: c8c799ae29ff5bb6095e22d201b47a3445eb42cb $
+ * @author $Id: 19f488667e2aee41cb81c79154de452919562b93 $
  */
 public class ApplicationAdminPermission extends Permission {
 	private static final long		serialVersionUID	= 1L;
@@ -108,14 +108,14 @@ public class ApplicationAdminPermission extends Permission {
 	}
 
 	/**
-	 * This contructor should be used when creating
+	 * This constructor should be used when creating
 	 * {@code ApplicationAdminPermission} instance for {@code checkPermission}
 	 * call.
 	 * 
-	 * @param application the tareget of the operation, it must not be
-	 *        {@code null}
-	 * @param actions the required operation. it must not be {@code null}
-	 * @throws NullPointerException if any of the arguments is null.
+	 * @param application The target of the operation, it must not be
+	 *        {@code null}.
+	 * @param actions The required operation, it must not be {@code null}.
+	 * @throws NullPointerException If any of the arguments is null.
 	 */
 	public ApplicationAdminPermission(ApplicationDescriptor application, String actions) {
 		super(application.getApplicationId());
@@ -165,7 +165,7 @@ public class ApplicationAdminPermission extends Permission {
 	 * <li>The implied {@code otherPermission} was created for a particular
 	 * {@link ApplicationDescriptor} (see
 	 * {@link #ApplicationAdminPermission(ApplicationDescriptor, String)})</li>
-	 * <li>The {@code filter} of this permission mathes the
+	 * <li>The {@code filter} of this permission matches the
 	 * {@code ApplicationDescriptor} specified in the {@code otherPermission}.
 	 * If the filter in this permission is the {@code <<SELF>>} pseudo target,
 	 * then the currentApplicationId set in the {@code otherPermission} is

@@ -18,6 +18,7 @@ package org.osgi.service.blueprint.reflect;
 
 import java.util.Collection;
 import java.util.List;
+import org.osgi.annotation.versioning.ConsumerType;
 
 /**
  * Metadata for a service to be registered by the Blueprint Container when
@@ -27,8 +28,9 @@ import java.util.List;
  * This is specified by the {@code service} element.
  * 
  * @ThreadSafe
- * @author $Id: 6fee125cb89facf4f1680a3b4043c06a50aab2e1 $
+ * @author $Id: 8c4ddb6239c2247906ceeb2b61226be64dfc24ab $
  */
+@ConsumerType
 public interface ServiceMetadata extends ComponentMetadata {
 
 	/**

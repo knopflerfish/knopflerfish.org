@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import java.util.Hashtable;
  * to the implementations of the {@code BasicPermission} class.
  * 
  * @ThreadSafe
- * @author $Id: 99a7e308be87b5c34045f4d0ab6f2dd1bf3cd425 $
+ * @author $Id: ecf1b5fa83469af0568192d53250f6c491ca5bc8 $
  */
 final public class WirePermission extends BasicPermission {
 	static final long			serialVersionUID	= -5583709391516569321L;
@@ -238,7 +238,7 @@ final public class WirePermission extends BasicPermission {
 	}
 
 	/**
-	 * Determines the equalty of two {@code WirePermission} objects.
+	 * Determines the equality of two {@code WirePermission} objects.
 	 * 
 	 * Checks that specified object has the same name and actions as this
 	 * {@code WirePermission} object.

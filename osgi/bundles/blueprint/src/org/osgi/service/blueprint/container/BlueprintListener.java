@@ -16,6 +16,8 @@
 
 package org.osgi.service.blueprint.container;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * A {@code BlueprintEvent} Listener.
  * 
@@ -38,8 +40,9 @@ package org.osgi.service.blueprint.container;
  * 
  * @see BlueprintEvent
  * @ThreadSafe
- * @author $Id: d86b4e08b710e0929acd80dd9742dedeb35e2c0f $
+ * @author $Id: 80562f9e101ece4f572073d81436bf0b4c5651e2 $
  */
+@ConsumerType
 public interface BlueprintListener {
 
 	/**

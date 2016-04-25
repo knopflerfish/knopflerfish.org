@@ -16,6 +16,8 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * A common interface for managed components that can be used as a direct target
  * for method calls. These are {@code bean}, {@code reference}, and {@code ref},
@@ -25,8 +27,9 @@ package org.osgi.service.blueprint.reflect;
  * @see ReferenceMetadata
  * @see RefMetadata
  * @ThreadSafe
- * @author $Id: eaf6c93e05710d4aa1d90937da77ab0e33f9bdcb $
+ * @author $Id: c1f6e5601b1af84122418e0f475f6e0f53cf9cb5 $
  */
+@ConsumerType
 public interface Target extends NonNullMetadata {
 	// marker interface
 }

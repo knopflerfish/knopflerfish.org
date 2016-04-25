@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@
  * <p>
  * {@code  Import-Package: org.osgi.service.deploymentadmin.spi; version="[1.0,1.1)"}
  * 
- * @version 1.0
- * @author $Id: 393a106a36d0d37d5cdfeabf1c69d79c2640824b $
+ * @version 1.0.1
+ * @author $Id: 2e10a094e20b101049d7f563a26327ef9a37fe3d $
  */
 
 package org.osgi.service.deploymentadmin.spi;

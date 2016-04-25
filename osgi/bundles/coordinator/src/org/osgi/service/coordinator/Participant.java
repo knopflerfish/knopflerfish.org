@@ -16,6 +16,8 @@
 
 package org.osgi.service.coordinator;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * A Participant participates in a Coordination.
  * 
@@ -46,8 +48,9 @@ package org.osgi.service.coordinator;
  * returns.
  * 
  * @ThreadSafe
- * @author $Id: 6bef92f858270876b0d23bfb8b797b970bca2a27 $
+ * @author $Id: 7c958674f4263c811c1b24995f6cedee50e75815 $
  */
+@ConsumerType
 public interface Participant {
 	/**
 	 * Notification that a Coordination has terminated

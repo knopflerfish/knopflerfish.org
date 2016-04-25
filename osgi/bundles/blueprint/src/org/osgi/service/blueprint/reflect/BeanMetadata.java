@@ -17,6 +17,7 @@
 package org.osgi.service.blueprint.reflect;
 
 import java.util.List;
+import org.osgi.annotation.versioning.ConsumerType;
 
 /**
  * Metadata for a Bean component.
@@ -25,8 +26,9 @@ import java.util.List;
  * This is specified by the {@code bean} element.
  * 
  * @ThreadSafe
- * @author $Id: 725928b126cb26462428e32024f18af7a0a40a4e $
+ * @author $Id: 232caebbf07a2c51cb20942ff9afa3a10114c005 $
  */
+@ConsumerType
 public interface BeanMetadata extends Target, ComponentMetadata {
 
 	/**

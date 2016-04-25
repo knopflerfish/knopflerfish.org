@@ -43,6 +43,7 @@
 
     <ant target="${the.target}" dir="measurement"/>
     <ant target="${the.target}" dir="position"/>
+    <ant target="${the.target}" dir="promise"/>
     <ant target="${the.target}" dir="metatype/metatype_api"/>
 
     <ant target="${the.target}" dir="remotefw"/>

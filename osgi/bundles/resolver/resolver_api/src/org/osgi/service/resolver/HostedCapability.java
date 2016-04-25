@@ -16,6 +16,7 @@
 
 package org.osgi.service.resolver;
 
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Resource;
 
@@ -32,9 +33,9 @@ import org.osgi.resource.Resource;
  * capability can actually be hosted multiple times.
  * 
  * @ThreadSafe
- * @noimplement
- * @author $Id: ef2183bdd379da6d1a2adc6f6c4719b847c279d2 $
+ * @author $Id: b25092b5ec6b66c7766a255a3a3452bb576609c5 $
  */
+@ProviderType
 public interface HostedCapability extends Capability {
 
 	/**

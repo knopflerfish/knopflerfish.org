@@ -16,13 +16,16 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * Metadata for a value specified to be {@code null} via the &lt;null&gt;
  * element.
  * 
  * @ThreadSafe
- * @author $Id: a77a51450e907a2160d116af1bcba04efda6c05b $
+ * @author $Id: 43f4d33a2b0fc7126742f6d2f4287b73af4573ad $
  */
+@ConsumerType
 public interface NullMetadata extends Metadata {
 
 	/**

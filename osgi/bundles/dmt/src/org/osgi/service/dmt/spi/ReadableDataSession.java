@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.osgi.service.dmt.MetaNode;
  * interfaces inherit from this interface, some of the method descriptions do
  * not apply for an instance that is only a {@code ReadableDataSession}. For
  * example, the {@link #close()} method description also contains information
- * about its behaviour when invoked as part of a transactional session.
+ * about its behavior when invoked as part of a transactional session.
  * <p>
  * The {@code nodePath} parameters appearing in this interface always contain an
  * array of path segments identifying a node in the subtree of this plugin. This
@@ -66,7 +66,7 @@ import org.osgi.service.dmt.MetaNode;
  * fit into any other category, the {@link DmtException#COMMAND_FAILED} code
  * should be used.
  * 
- * @author $Id: 127f2bfbfa19d4bafbddfb1c8c6b8fb76138ef5f $
+ * @author $Id: 6d3a6a20d1f1f993740ed1ce8387c4c1eaa7e9b3 $
  */
 public interface ReadableDataSession {
 	/**

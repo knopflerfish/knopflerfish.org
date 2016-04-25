@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ import java.util.List;
  * anywhere else but in the beginning of a URI.</li>
  * </ul>
  * 
- * @author $Id: 6cc99c9a05cf3d1aa6735bac6e9f1b78cba761ed $
+ * @author $Id: 7ab4cc1cb063d03c00a40ca138697a922905368f $
  */
 public final class Uri {
 
@@ -319,7 +319,7 @@ public final class Uri {
 	}
 
 	/**
-	 * Decode the node name so that back slash and forward slash are un-escaped
+	 * Decode the node name so that back slash and forward slash are unescaped
 	 * from a back slash.
 	 * 
 	 * @param nodeName the node name to be decoded

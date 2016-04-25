@@ -16,14 +16,17 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * Metadata for the verified id of another component managed by the Blueprint
  * Container. The id itself will be injected, not the component to which the id
  * refers. No implicit dependency is created.
  * 
  * @ThreadSafe
- * @author $Id: 9903067b9248e6f6ba2431c5cb166bc9833fc3e1 $
+ * @author $Id: 21fe592cd49e0151d95901d3bca4941f32759413 $
  */
+@ConsumerType
 public interface IdRefMetadata extends NonNullMetadata {
 	/**
 	 * Return the id of the referenced component.

@@ -16,13 +16,16 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * Metadata for a reference listener interested in the reference bind and unbind
  * events for a service reference.
  * 
  * @ThreadSafe
- * @author $Id: 837a8107787f9db89c8cbe20549d93c03889f1dc $
+ * @author $Id: 09a44faa9684988621ae47a481d32d4e6c029ec2 $
  */
+@ConsumerType
 public interface ReferenceListener {
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.osgi.service.dmt.notification;
 
-import org.osgi.service.dmt.*;
+import org.osgi.service.dmt.DmtData;
+import org.osgi.service.dmt.Uri;
 
 /**
  * Immutable data structure carried in an alert (client initiated notification).
@@ -37,7 +38,7 @@ import org.osgi.service.dmt.*;
  * format. {@link NotificationService} implementations on other management
  * protocols should map these constructs to the underlying protocol.
  * 
- * @author $Id: 1d9aa0c02d665ba439ee3e4e3fcffdae065b4102 $
+ * @author $Id: 0fe38540d8096d2c0cf4fc5b6da55b133d9cee0f $
  */
 public class AlertItem {
 
@@ -117,8 +118,8 @@ public class AlertItem {
 	 * (returned by {@link #getData()}). There might be no type associated with
 	 * the alert item.
 	 * 
-	 * @return the type type associated with the alert item, or {@code null} if
-	 *         there is no type
+	 * @return the type associated with the alert item, or {@code null} if there
+	 *         is no type
 	 */
 	public String getType() {
 		return type;

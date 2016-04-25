@@ -16,6 +16,8 @@
 
 package org.osgi.service.remoteserviceadmin;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * A {@link RemoteServiceAdminEvent} listener is notified synchronously of any
  * export or import registrations and unregistrations.
@@ -30,9 +32,9 @@ package org.osgi.service.remoteserviceadmin;
  * 
  * @see RemoteServiceAdminEvent
  * @ThreadSafe
- * @author $Id: d67af164f7d89d6237f71dba09aedc21ac4d72ba $
+ * @author $Id: c5c7ce06a2f2964f5821c764cb99c21607263b6a $
  */
-
+@ConsumerType
 public interface RemoteServiceAdminListener {
 	/**
 	 * Receive notification of any export or import registrations and

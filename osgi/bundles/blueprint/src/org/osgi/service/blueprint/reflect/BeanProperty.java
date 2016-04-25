@@ -16,6 +16,8 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * Metadata for a property to be injected into a bean. The properties of a bean
  * are obtained from {@link BeanMetadata#getProperties()}.
@@ -24,8 +26,9 @@ package org.osgi.service.blueprint.reflect;
  * defined according to the Java Beans conventions.
  * 
  * @ThreadSafe
- * @author $Id: 698d624c9385b8c80d7f8d977cf4f710c0e1864b $
+ * @author $Id: 3b7a752235b469f86423c24ffd9798f5b5a5a720 $
  */
+@ConsumerType
 public interface BeanProperty {
 
 	/**
