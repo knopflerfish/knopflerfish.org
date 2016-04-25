@@ -20,7 +20,7 @@ package org.osgi.service.cm;
  * An {@code Exception} class to inform the Configuration Admin service of
  * problems with configuration data.
  * 
- * @author $Id: 373726d3395eb6d9c163fd5d7cfec8bb032a6627 $
+ * @author $Id: d4646fc2a8227d38ee0815407ee3578de0188541 $
  */
 public class ConfigurationException extends Exception {
 	static final long		serialVersionUID	= -1690090413441769377L;
@@ -81,6 +81,7 @@ public class ConfigurationException extends Exception {
 	 * @return The cause of this exception or {@code null} if no cause was set.
 	 * @since 1.2
 	 */
+	@Override
 	public Throwable getCause() {
 		return super.getCause();
 	}
@@ -96,6 +97,7 @@ public class ConfigurationException extends Exception {
 	 *         been set.
 	 * @since 1.2
 	 */
+	@Override
 	public Throwable initCause(Throwable cause) {
 		return super.initCause(cause);
 	}

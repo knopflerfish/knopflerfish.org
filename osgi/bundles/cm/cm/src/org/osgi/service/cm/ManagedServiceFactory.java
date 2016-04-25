@@ -17,6 +17,7 @@
 package org.osgi.service.cm;
 
 import java.util.Dictionary;
+import org.osgi.annotation.versioning.ConsumerType;
 
 /**
  * Manage multiple service instances.
@@ -92,8 +93,10 @@ import java.util.Dictionary;
  * 
  * </pre>
  * 
- * @author $Id: d91f9771b95e91e371aaccf4811fc1e463cbdade $
+ * @author $Id: 97807d23ba5c5814c2665d28776fd1eaa44ed4ec $
+ * @ThreadSafe
  */
+@ConsumerType
 public interface ManagedServiceFactory {
 	/**
 	 * Return a descriptive name of this factory.

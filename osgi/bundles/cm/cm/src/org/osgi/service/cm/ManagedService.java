@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.osgi.service.cm;
 
 import java.util.Dictionary;
+import org.osgi.annotation.versioning.ConsumerType;
 
 /**
  * A service that can receive configuration data from a Configuration Admin
@@ -106,8 +107,10 @@ import java.util.Dictionary;
  * registering bundle. However, when security is on, a Managed Service can have
  * Configuration Permission to also be updated for other locations.
  * 
- * @author $Id: 396a171acbab5e3842ae9d927ab8b3dbd4126f30 $
+ * @author $Id: b85f71d92a690750642b08ea54ca873ea94a5357 $
+ * @ThreadSafe
  */
+@ConsumerType
 public interface ManagedService {
 	/**
 	 * Update the configuration for a Managed Service.
@@ -130,9 +133,9 @@ public interface ManagedService {
 	 * method.
 	 * 
 	 * <p>
-	 * If the the location allows multiple managed services to be called back
-	 * for a single configuration then the callbacks must occur in service
-	 * ranking order. Changes in the location must be reflected by deleting the
+	 * If the location allows multiple managed services to be called back for a
+	 * single configuration then the callbacks must occur in service ranking
+	 * order. Changes in the location must be reflected by deleting the
 	 * configuration if the configuration is no longer visible and updating when
 	 * it becomes visible.
 	 * 
