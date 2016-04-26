@@ -97,11 +97,6 @@
     <ant dir="bundles_examples" target="dex_jars"/>
   </target>
 
-  <target name="repoindex_version"
-          depends="repoindex">
-    <copy file="${jars.dir}/index.xml" tofile="${jars.dir}/index-${version}.xml"/>
-  </target>
-
   <target name="repoindex"
     description="Generates the repository index file."
     depends="init,bundle_tasks,install_repoindex">
@@ -428,6 +423,7 @@
          output="${junit.out.dir}/out.txt"
          append="${run.test.append}"
          jar="${run.test.dir}/framework.jar">
+     <arg value="-Djava.net.preferIPv4Stack=true"/>
      <arg value="-Forg.osgi.framework.security=osgi"/>
      <arg value="-Forg.osgi.framework.storage=${junit.out.dir}/test_fwdir"/>
      <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>

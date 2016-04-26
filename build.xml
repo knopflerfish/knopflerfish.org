@@ -321,7 +321,7 @@
   <target name="distrib_repoindex">
     <mkdir dir="${distrib.osgi.dir}/jars"/>
 
-    <ant dir="${osgi.dir}" target="repoindex_version">
+    <ant dir="${osgi.dir}" target="repoindex">
       <property name="jars.dir"      location="${distrib.osgi.dir}/jars"/>
       <property name="version"       value="${version}"/>
     </ant>
