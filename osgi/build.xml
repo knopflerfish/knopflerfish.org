@@ -97,6 +97,11 @@
     <ant dir="bundles_examples" target="dex_jars"/>
   </target>
 
+  <target name="repoindex_version"
+          depends="repoindex">
+    <copy file="${jars.dir}/index.xml" tofile="${jars.dir}/index-${version}.xml"/>
+  </target>
+
   <target name="repoindex"
     description="Generates the repository index file."
     depends="init,bundle_tasks,install_repoindex">
