@@ -4,6 +4,10 @@ sudo: required
 dist: trusty
 language: android
 
+# Set a short hostname, avoids buffer overflow in openjdk6
+addons:
+  hostname: builder
+
 android:
   components:
     - build-tools-23.0.1
