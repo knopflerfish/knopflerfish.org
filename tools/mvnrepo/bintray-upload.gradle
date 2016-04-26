@@ -1,0 +1,68 @@
+// basic gradle script for uploading from Knopflerfish's maven2 repo
+// 
+// When calling script make sure to set:
+// artifact=org/knopflerfish<group>/<bundle symbolic name>
+// version=bundle version
+// e.g.
+// gradle -d -Partifact=org/knopflerfish/bundle/cm/ -Pversion=5.0.2 bintrayUpload
+
+plugins {
+    id "com.jfrog.bintray" version "1.6"
+}
+
+ext {
+   kfMavenDir = "$rootDir/../../../knopflerfish.github.io/maven2"
+   if (!project.hasProperty("artifact")) {
+      ext.artifact = "org/knopflerfish"
+   }
+   
+   if (!project.hasProperty("bvers")) {
+      ext.bvers = "."
+   }
+   if (!project.hasProperty("user")) {
+      ext.user = "user"
+   }
+
+   if (!project.hasProperty("key")) {
+      ext.key = "key"
+   }
+}
+
+
+def mavenDir = new File("$rootProject.ext.kfMavenDir")
+
+if (!mavenDir.exists()) {
+   println("Folder does not exist: $mavenDir");
+   throw new GradleException("maven dir does not exist: $rootProject.ext.kfMavenDir/")
+}
+
+bintray {   
+   // If preferred set use/key below
+   // default is to supply it as -Puser=u -Pkey=ASDFGHJKL
+   // user = 'SET USER'
+   // key = 'SET KEY'
+   user = property('user')
+   key = property('key')
+   // dryRun = true
+   // publish = true // autopublish after upload, default is false
+   filesSpec {
+      from ("$rootProject.ext.kfMavenDir/$artifact/") {
+	 include "maven-metadata.xml*"
+	 include "$bvers/**"
+      }
+      into "$artifact/"
+   }
+   
+    pkg {
+       repo = 'knopflerfish-maven'
+       userOrg = 'knopflerfish'
+       name = 'knopflerfish'
+       desc = 'Knopflerfish OSGi maven artifacts'
+       licenses = ['BSD 3-Clause']
+       vcsUrl = 'https://github.com/knopflerfish/knopflerfish.org.git'
+       // Do no set version, must be unspecified
+
+    }
+
+}
+

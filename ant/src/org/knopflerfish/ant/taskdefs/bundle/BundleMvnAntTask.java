@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.io.FileWriter;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -219,6 +220,7 @@ public class BundleMvnAntTask extends Task {
 
   private String buildFileName;
   private File buildFile;
+
   public void setBuildFile(String f) {
     if(null==f || 0==f.length()) {
       throw new BuildException("The attribute 'buildFile' must be non-null.");
@@ -295,6 +297,7 @@ public class BundleMvnAntTask extends Task {
 
     try {
       writeBuildFile();
+      writeGradleBuildFile();
       writeDependencyManagementFile();
     } catch (final Exception e) {
       final String msg = "Failed to create ant build file: " +e;
@@ -302,6 +305,88 @@ public class BundleMvnAntTask extends Task {
       throw new BuildException(msg, e);
     }
 
+  }
+
+  private void writeGradleBuildFile()
+    throws IOException
+  {
+    String gradleBuildFileName = "build.gradle";
+    
+    log("Creating gradle build file: " + gradleBuildFileName, Project.MSG_VERBOSE);
+
+    FileWriter fw = new FileWriter(new File(outDir, gradleBuildFileName));
+
+    fw.write("apply plugin: 'maven-publish'\n");
+    fw.write("publishing {\n");
+    fw.write("repositories {\n");
+    fw.write("maven {\n");
+    fw.write("url \"file:///Users/cl/rkf/knopflerfish.github.io/maven2\"\n");
+    fw.write("}\n");
+    fw.write("publications {\n");
+
+    final String prefix1 = "  ";
+    final String prefix2 = prefix1 + "  ";
+
+    final StringBuffer targetNames = new StringBuffer(2048);
+
+    for (final Entry<String,SortedSet<BundleArchive>> entry : bas.bsnToBundleArchives.entrySet()) {
+      final SortedSet<BundleArchive> bsnSet = entry.getValue();
+      // Sorted set with bundle archives, same bsn, different versions
+      for (final BundleArchive ba : bsnSet) {
+	fw.write(fixBsnName(ba) + "(MavenPublication) {\n");
+	fw.write("groupId '" + getGroupId(ba) + "'\n");
+	fw.write("artifactId '" + getArtifactId(ba) + "'\n" );
+	fw.write("version '" + getVersion(ba) + "'\n" );
+
+	String archivePathName = ba.file.getAbsolutePath();
+	fw.write("artifact \"" + archivePathName + "\"\n");
+	// source and javadoc, if they exist
+	String javadocPath = archivePathName.substring(0, archivePathName.length()-4) + "-javadoc.jar";
+	File f = new File(javadocPath);
+	if (f.exists()) {
+	  fw.write("artifact ('" + javadocPath + "') {\n");
+	  fw.write("classifier = 'javadoc'}\n");
+	}
+	String sourcePath = archivePathName.substring(0, archivePathName.length()-4) + "-source.jar";
+	f = new File(sourcePath);
+	
+	if (f.exists()) {
+	  fw.write("artifact ('" + sourcePath + "') {\n");
+	  fw.write("classifier = 'sources'}\n");
+	}
+	// artifact(s)
+	// fw.write("version '" + getVersion(ba) + "'\n" );
+
+        // Optional attributes & dependencies
+	fw.write("pom.withXml {\n");
+
+        final String description = ba.getBundleDescription();
+        if (null != description) {
+	  fw.write("asNode().appendNode('description', '" + fixGradleString(description) + "')\n");
+        }
+	
+	// Name and org
+	fw.write("asNode().appendNode('name', '" + ba.name + "')\n");
+	fw.write("def orgNode = asNode().appendNode('organization')\n");
+	fw.write("orgNode.appendNode('name', 'Knopflerfish')\n");
+	fw.write("orgNode.appendNode('url', 'http://www.knopflerfish.org')\n");
+
+        addGradleLicense(fw, ba);
+        addGradleDependencies(fw, ba);
+
+	fw.write("}\n");
+        // addSourceAttachment(mvnDeployBundle, ba, prefix2);
+        // addJavadocAttachment(mvnDeployBundle, ba, prefix2);
+
+      }
+      fw.write("}\n");
+
+    }
+    fw.write("}\n");
+    fw.write("}\n");
+    fw.write("}\n");
+    fw.close();
+    log("wrote " + gradleBuildFileName, Project.MSG_VERBOSE);
   }
 
   private void writeBuildFile()
@@ -665,6 +750,52 @@ public class BundleMvnAntTask extends Task {
     return path;
   }
 
+  private void addGradleLicense(FileWriter fw, final BundleArchive ba) throws IOException
+  {
+    //final Element licenses = el.getOwnerDocument().createElement("licenses");
+    //final String prefix1 = prefix + "  ";
+    //final String prefix2 = prefix1 + "  ";
+
+    //el.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix1));
+    //el.appendChild(licenses);
+    //el.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix));
+    
+    fw.write("def licensiesNode = asNode().appendNode('licenses')\n");
+    fw.write("def licenseNode\n");
+    boolean addDefault = true;
+
+    final List<HeaderEntry> licenseEntries = ba.getBundleLicense();
+    for (final HeaderEntry licenseEntry : licenseEntries) {
+      addDefault = false;
+      fw.write("licenseNode = licensiesNode.appendNode('license')\n");
+      //final Element license = el.getOwnerDocument().createElement("license");
+      fw.write("licenseNode.appendNode('name', '" + licenseEntry.getKey() + "')\n");
+
+      //license.setAttribute("name", licenseEntry.getKey());
+      //licenses.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix2));
+      //licenses.appendChild(license);
+
+      if (licenseEntry.getAttributes().containsKey("description")) {
+	fw.write("licenseNode.appendNode('comments', '" + licenseEntry.getAttributes().get("description").toString() + "')\n");
+        //license.setAttribute("comments", licenseEntry.getAttributes().get("description").toString());
+      }
+      if (licenseEntry.getAttributes().containsKey("link")) {
+	fw.write("licenseNode.appendNode('url', '" + licenseEntry.getAttributes().get("link").toString() + "')\n");
+        // license.setAttribute("url", licenseEntry.getAttributes().get("link").toString());
+      }
+    }
+
+    if (addDefault) {
+      fw.write("licenseNode = licensiesNode.appendNode('license')\n");
+      // final Element license = el.getOwnerDocument().createElement("license");
+      fw.write("licenseNode.appendNode('name', '<<EXTERNAL>>')\n");
+      // license.setAttribute("name", "<<EXTERNAL>>");
+      // licenses.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix2));
+      // licenses.appendChild(license);
+    }
+    // licenses.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix1));
+  }
+
   /**
    * Add licenses element for the given bundle to the string buffer.
    *
@@ -751,6 +882,61 @@ public class BundleMvnAntTask extends Task {
     }
     dependencies.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix1));
 
+    if (0<ba.pkgUnprovidedMap.size()) {
+      log("  Imports without any provider: " +ba.pkgUnprovidedMap,
+          Project.MSG_DEBUG);
+    }
+  }
+
+  /**
+   * Add dependencies element for the given bundle to the string buffer.
+   *
+   * @param el
+   *          element to add the dependencies to.
+   * @param ba
+   *          The bundle archive to defining the coordinates.
+   * @param prefix
+   *          Whitespace to add before the new element.
+   */
+  private void addGradleDependencies(FileWriter fw, BundleArchive ba) throws IOException
+  {
+    // final Element dependencies = el.getOwnerDocument().createElement("dependencies");
+    //final String prefix1 = prefix + "  ";
+    //final String prefix2 = prefix1 + "  ";
+
+    //el.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix1));
+    //el.appendChild(dependencies);
+    //el.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix));
+
+    fw.write("def dependenciesNode = asNode().appendNode('dependencies')\n");
+    fw.write("def dependencyNode\n");
+
+    for (final Entry<BundleArchive,SortedSet<String>> depEntry : selectCtDeps(ba).entrySet()) {
+      final BundleArchives.BundleArchive depBa = depEntry.getKey();
+      final SortedSet<String> pkgNames = depEntry.getValue();
+
+      // dependencies.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix2));
+      // dependencies.appendChild(el.getOwnerDocument().createComment(pkgNames.toString()));
+
+      // final Element dependency = el.getOwnerDocument().createElement("dependency");
+      fw.write("dependencyNode = dependenciesNode.appendNode('dependency')\n");
+
+      fw.write("dependencyNode.appendNode('groupId', '" + getGroupId(depBa) + "')\n");
+      fw.write("dependencyNode.appendNode('artifactId', '" + getArtifactId(depBa) + "')\n");
+      fw.write("dependencyNode.appendNode('version', '" + getVersion(depBa) + "')\n");
+	
+      //addMavenCoordinates(dependency, depBa);
+      if (pkgNames.contains("org.osgi.framework")) {
+	fw.write("dependencyNode.appendNode('scope', 'provided')\n");
+        // dependency.setAttribute("scope", "provided");
+      }
+
+      //dependencies.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix2));
+      //dependencies.appendChild(dependency);
+      //dependencies.appendChild(el.getOwnerDocument().createTextNode("\n"));
+    }
+    //dependencies.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix1));
+    
     if (0<ba.pkgUnprovidedMap.size()) {
       log("  Imports without any provider: " +ba.pkgUnprovidedMap,
           Project.MSG_DEBUG);
@@ -983,4 +1169,33 @@ public class BundleMvnAntTask extends Task {
     return Util.replace(src, a, b == null ? "" : b);
   }
 
+  private String fixBsnName(final BundleArchive ba)  {
+    String tmp = replace(ba.bsn, ".", "_");
+    return replace(tmp, "-", "_");
+  }
+
+  private String getGroupId(final BundleArchive ba)  {
+    final int ix = ba.bsn.lastIndexOf('.');
+    final String gId = -1==ix ? (String) groupId : ba.bsn.substring(0,ix);
+
+    if (null!=gId) 
+      return gId;
+    else
+      return "org.knopflerfish";
+  }
+
+  private String getArtifactId(final BundleArchive ba)  {
+    final int ix = ba.bsn.lastIndexOf('.');
+    final String aId = -1==ix ? ba.bsn : ba.bsn.substring(ix+1);
+    return aId;
+  }
+
+  private String getVersion(final BundleArchive ba)  {
+    return ba.version.toString();
+  }
+
+  private static String fixGradleString(String s) {
+    return replace(s, "'", "\\'");
+  }
+  
 }
