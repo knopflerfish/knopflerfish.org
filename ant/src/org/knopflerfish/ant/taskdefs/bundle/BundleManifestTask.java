@@ -1000,8 +1000,13 @@ public class BundleManifestTask extends Task {
       if (null!=bundleVerAttr) {
         final Version ver = new Version(bundleVerAttr.getValue());
         String q = ver.getQualifier();
-        if (!q.endsWith(versionSuffix)) {
-          bundleVerAttr.setValue(new Version(ver.getMajor(), ver.getMinor(), ver.getMicro(), q + versionSuffix).toString());
+        int major = ver.getMajor();
+        int minor = ver.getMinor();
+        int micro = ver.getMicro();
+        if (q.length() == 0) {
+          bundleVerAttr.setValue(new Version(major, minor, micro, versionSuffix).toString());
+        } else if (!q.endsWith(versionSuffix)) {
+          bundleVerAttr.setValue(new Version(major, minor, micro, q + "-" + versionSuffix).toString());
         }
       }
     }
