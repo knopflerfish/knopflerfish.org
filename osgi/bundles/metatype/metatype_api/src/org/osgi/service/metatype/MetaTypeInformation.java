@@ -16,6 +16,7 @@
 
 package org.osgi.service.metatype;
 
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 
 /**
@@ -23,10 +24,10 @@ import org.osgi.framework.Bundle;
  * meta type information for a specific bundle.
  * 
  * @ThreadSafe
- * @noimplement
- * @author $Id: 5d795691070f69f49d88c1930f811b7b90210848 $
+ * @author $Id: 0097616119994d574d3c2d83459c996e02cb1aa2 $
  * @since 1.1
  */
+@ProviderType
 public interface MetaTypeInformation extends MetaTypeProvider {
 	/**
 	 * Return the PIDs (for ManagedServices) for which ObjectClassDefinition

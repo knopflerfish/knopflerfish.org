@@ -21,8 +21,8 @@
   <property name="bundle.compile.EE" value="ee.minimum"/>
 
   <path id="bundle.compile.path">
-   <pathelement location="repository_api-N.N.N.jar"/>
    <pathelement location="promise-N.N.N.jar"/>
+   <pathelement location="repository_api-N.N.N.jar"/>
    <pathelement location="kxml-N.N.N.jar"/>
    <pathelement location="cm_api-N.N.N.jar"/>
   </path>
