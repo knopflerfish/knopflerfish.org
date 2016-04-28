@@ -447,3 +447,22 @@ p {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
 }
+
+div.newkf6:after {
+    content: " N";
+    background: #cccccc;
+    display:block;
+}
+
+table.kf td.newkf6 {
+    /* background-color: #f5f3ee; */
+    /* color: #4a96ad; */
+}
+
+td.R6-new:after {
+    content: "N";
+}
+
+td.R6-upd:after {
+    content: "U";
+}
