@@ -82,6 +82,14 @@
   <!-- E.g., "trunk", "tags/2.3.2", "branches/kf_1_support". -->
   <property name="git.tag"    value="releases/tag/${version}"/>
 
+  <exec executable="/usr/bin/git" outputproperty="git.branch">
+    <arg value="rev-parse"/>
+    <arg value="--abbrev-ref"/>
+    <arg value="HEAD"/>
+  </exec>
+
+  <property name="git.browse.url"    value="${git.repo.url}/tree/${git.branch}"/>
+
   <!-- The kind of build, used on the index page for the release. -->
   <property name="build.kind" value="release build"/>
 

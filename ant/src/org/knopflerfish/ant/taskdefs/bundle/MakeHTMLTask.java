@@ -421,9 +421,11 @@ public class MakeHTMLTask
                              proj.getProperty("JAVADOC"));
       content = Util.replace(content, "$(CLASS_NAVIGATION)",
                              proj.getProperty("css_navigation_enabled"));
-      content = Util.replace(content, "$(SVN_REPO_URL)",
-                             proj.getProperty("svn.repo.url"));
-      content = Util.replace(content, "$(SVN_TAG)",proj.getProperty("svn.tag"));
+      content = Util.replace(content, "$(GIT_REPO_URL)",
+                             proj.getProperty("git.repo.url"));
+      content = Util.replace(content, "$(GIT_TAG)",proj.getProperty("git.tag"));
+      content = Util.replace(content, "$(GIT_BRANCH)",proj.getProperty("git.branch"));
+      content = Util.replace(content, "$(GIT_BROWSE_URL)",proj.getProperty("git.browse.url"));
       content = Util.replace(content, "$(JAVADOCPATH)", pathToJavadocDir);
       content = Util.replace(content, "$(JAVADOCLINK)",
                              pathToJavadocDir + "/index.html?");
