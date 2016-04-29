@@ -794,7 +794,6 @@
     <zip destfile="${distrib.out.dir}/distrib_bintray.zip" compress="true">
       <zipfileset dir="${distrib.out.dir}">
         <include name="distrib*/junit_grunt/*"/>
-        <include name="distrib*/knopflerfish_osgi*"/>
         <include name="distrib*/maven2/**"/>
         <include name="distrib*/osgi/jars/**"/>
         <include name="distrib*/release_notes.html"/>
