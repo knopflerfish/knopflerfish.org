@@ -41,6 +41,9 @@
   <tstamp>
     <format property="build.time"
             pattern="yyMMddHHmm"/>
+    <format property="distrib_bintray.tstamp"
+            pattern="yyyy-MM-dd'T'HH:mm"
+            locale="en"/>
   </tstamp>
   <condition property="version.suffix"
              value="${build.time}-${version.branch}"
@@ -747,33 +750,6 @@
     </replace>
   </target>
 
-  <!-- Creates a Bintray configuration file for a release build.-->
-  <target name="distrib_bintray" depends="bundle_tasks">
-    <tstamp>
-      <format property="distrib_bintray.tstamp"
-              pattern="yyyy-MM-dd'T'HH:mm"
-              locale="en"/>
-    </tstamp>
-
-    <copy file="tools/bintray/template_bintray.cfg"
-          tofile="${distrib.out.dir}/bintray.cfg">
-    </copy>
-    <replace file="${distrib.out.dir}/bintray.cfg">
-      <replacefilter token="@VERSION@"
-                     value="${version}"/>
-      <replacefilter token="@DATE@"
-                     value="${distrib_bintray.tstamp}"/>
-      <replacefilter token="@REPO_URL@"
-                     value="${git.repo.url}"/>
-      <replacefilter token="@TAG@"
-                     value="${git.tag}"/>
-      <replacefilter token="@BUILD_KIND@"
-                     value="${build.kind}"/>
-      <replacefilter token="@BRANCH@"
-                     value="${version.branch}"/>
-    </replace>
-  </target>
-
 
   <target name="distrib"
           description="Builds all full Knopflerfish SDK distribution">
@@ -792,9 +768,40 @@
     <antcall target="distrib_tiny"/>
     <antcall target="distrib_index"/>
     <antcall target="distrib_mvn_repo"/>
-    <antcall target="distrib_bintray"/>
     <echo message="Build result placed in ${distrib.dir} and repo"/>
   </target>
+
+
+  <!-- Creates a Bintray configuration file and a matching archive of a release build.-->
+  <target name="distrib_bintray" depends="distrib">
+    <copy file="tools/bintray/template_bintray.cfg"
+          tofile="${distrib.out.dir}/bintray.cfg">
+    </copy>
+    <replace file="${distrib.out.dir}/bintray.cfg">
+      <replacefilter token="@VERSION@"
+                     value="${version}"/>
+      <replacefilter token="@DATE@"
+                     value="${distrib_bintray.tstamp}"/>
+      <replacefilter token="@REPO_URL@"
+                     value="${git.repo.url}"/>
+      <replacefilter token="@TAG@"
+                     value="${git.tag}"/>
+      <replacefilter token="@BUILD_KIND@"
+                     value="${build.kind}"/>
+      <replacefilter token="@BRANCH@"
+                     value="${version.branch}"/>
+    </replace>
+    <zip destfile="${distrib.out.dir}/distrib_bintray.zip" compress="true">
+      <zipfileset dir="${distrib.out.dir}">
+        <include name="distrib*/junit_grunt/*"/>
+        <include name="distrib*/knopflerfish_osgi*"/>
+        <include name="distrib*/maven2/**"/>
+        <include name="distrib*/osgi/jars/**"/>
+        <include name="distrib*/release_notes.html"/>
+      </zipfileset>
+    </zip>
+  </target>
+
 
   <!--|
       | The program used to check for broken links is the W3C checklink program:
