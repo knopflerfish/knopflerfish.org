@@ -31,7 +31,7 @@
 		   org/knopflerfish/service/**,
 		   org/knopflerfish/shared/cm/**,
                    org/knopflerfish/util/**,
-                   org/osgi/service/**"/> 
+                   org/osgi/**"/> 
 
   <target name="bundle.custom.pre">
 
@@ -43,6 +43,7 @@
                                  cm_api,
                                  event_api,
                                  prefs_api,
+                                 promise,
                                  component_api">
       <fileset dir="${jars.dir}">
         <exclude name="**/*-source.jar"/>
@@ -94,6 +95,13 @@
       </zipfileset>
 
       <zipfileset src="${bap.prefs_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+
+      <zipfileset src="${bap.promise}">
         <patternset>
           <exclude name="META-INF/**/*"/>
           <exclude name="**/*.dex"/>

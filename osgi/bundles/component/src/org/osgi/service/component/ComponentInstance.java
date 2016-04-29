@@ -16,6 +16,8 @@
 
 package org.osgi.service.component;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * A ComponentInstance encapsulates a component instance of an activated
  * component configuration. ComponentInstances are created whenever a component
@@ -26,9 +28,9 @@ package org.osgi.service.component;
  * created when the component configuration is activated again.
  * 
  * @ThreadSafe
- * @noimplement
- * @author $Id: ea48ee21ed7e44d2a4c30a7fa9dba327139827bf $
+ * @author $Id: 8078babdd771f18831a54bfaa407e4edd2781552 $
  */
+@ProviderType
 public interface ComponentInstance {
 	/**
 	 * Dispose of the component configuration for this component instance. The

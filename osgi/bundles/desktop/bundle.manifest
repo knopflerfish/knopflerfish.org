@@ -56,7 +56,9 @@ Provide-Capability: osgi.service;
    org.knopflerfish.service.desktop.displayer.name=Events,
  osgi.service;
    objectClass:List<String>="org.osgi.service.event.EventHandler"
-Import-Package: org.osgi.framework;version="[1.6,2)",
+Import-Package: org.osgi.dto;version="[1.0,2)",
+ org.osgi.framework;version="[1.8,2)",
+ org.osgi.framework.dto;version="[1.0,2)",
  org.osgi.framework.startlevel;version="[1.0,2)",
  org.osgi.framework.wiring;version="[1.0,2)",
  org.osgi.service.packageadmin;version="[1.2,2)",

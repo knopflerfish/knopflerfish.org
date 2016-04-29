@@ -99,6 +99,7 @@
            includejavaruntime = "true"
            includes          = "${androidSrcs}"
            excludes          = "**/package-info.java"
+           source            = "1.6"
            target            = "1.6"
            bootclasspathref  = "${android.class.path.name}"
            classpathref      = "compile.path"
