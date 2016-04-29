@@ -791,10 +791,20 @@
       <replacefilter token="@BRANCH@"
                      value="${version.branch}"/>
     </replace>
-    <zip destfile="${distrib.out.dir}/distrib_bintray.zip" compress="true">
+    <zip destfile="${distrib.out.dir}/distrib_bintray1.zip" compress="true">
       <zipfileset dir="${distrib.out.dir}">
         <include name="distrib*/junit_grunt/*"/>
         <include name="distrib*/release_notes.html"/>
+      </zipfileset>
+    </zip>
+    <zip destfile="${distrib.out.dir}/distrib_bintray2.zip" compress="true">
+      <zipfileset dir="${distrib.out.dir}">
+        <include name="distrib*/maven2/**"/>
+      </zipfileset>
+    </zip>
+    <zip destfile="${distrib.out.dir}/distrib_bintray3.zip" compress="true">
+      <zipfileset dir="${distrib.out.dir}">
+        <include name="distrib*/osgi/jars/**"/>
       </zipfileset>
     </zip>
   </target>
