@@ -33,7 +33,7 @@ notifications:
 
 install: true
 
-script: apache-ant-1.9.7/bin/ant -Dbuild.kind="CI build" -Dversion.branch=$TRAVIS_BRANCH$VER_SUF $EXTRA distrib
+script: apache-ant-1.9.7/bin/ant -Dbuild.kind="CI build" -Dversion.branch=$TRAVIS_BRANCH$VER_SUF $EXTRA distrib_bintray
 
 deploy:
   provider: bintray
