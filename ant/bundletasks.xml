@@ -51,7 +51,7 @@
     <pathelement location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
   </path>
   
-  <property name="asm-all.version"	value="4.0"/>
+  <property name="asm-all.version"	value="5.0.3"/>
   <property name="asm-all.jar"		value="asm-all-${asm-all.version}.jar" />
   <path id="asm-all.path">
     <pathelement location="${ant.lib}/${asm-all.jar}" />
@@ -236,6 +236,9 @@
     <pathelement location="${antclasses}"/>
     <path refid="asm-all.path"/>
     <pathelement location="${ant.lib}/pegdown-1.6.0.jar"/>
+    <pathelement location="${ant.lib}/parboiled-core-1.1.7.jar"/>
+    <pathelement location="${ant.lib}/parboiled-java-1.1.7.jar"/>
+    <path refid="asm-all.path"/>
   </path>
 
   <target name="chkBundleTaskSrc">
