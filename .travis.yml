@@ -1,7 +1,7 @@
 # Travis CI <http://travis-ci.org>
 
 sudo: required
-dist: trusty
+#dist: trusty
 language: android
 
 # Set a short hostname, avoids buffer overflow in openjdk6
