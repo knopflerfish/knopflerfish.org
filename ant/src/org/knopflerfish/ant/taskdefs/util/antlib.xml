@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<antlib>
+  <taskdef name="md2html"
+           classname="org.knopflerfish.ant.taskdefs.util.Markdown2HtmlTask"/>
+</antlib>

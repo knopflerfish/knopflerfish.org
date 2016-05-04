@@ -8,7 +8,8 @@
   <target name="all" description="Creates lib/bundle_tasks.jar">
     <delete quiet="true" dir="classes"/>
     <delete quiet="true" dir="lib" includes="bundle_tasks.jar"/>
-    <ant antfile="bundletasks.xml" target="build_bundle_tasks"/>
+    <!-- <ant antfile="bundletasks.xml" target="build_bundle_tasks"/> -->
+    <ant antfile="bundletasks.xml" target="build_ant_tasks"/>
   </target>
 
   <target name="javadoc"
@@ -28,6 +29,11 @@
 
     <delete dir="lib" includes="org.osgi.impl.bundle.repoindex.cli-*.jar"/>
     <delete dir="lib" includes="proguard-*.jar"/>
+
+    <delete dir="lib" includes="kf_ant_util_tasks.jar"/>
+    <delete dir="lib" includes="asm-all*.jar"/>
+    <delete dir="lib" includes="pegdown*.jar"/>
+    <delete dir="lib" includes="parboiled*.jar"/>
 
     <!-- Obsolete, not used in KF-5 and later. -->
     <delete dir="lib" includes="bindex.jar"/>

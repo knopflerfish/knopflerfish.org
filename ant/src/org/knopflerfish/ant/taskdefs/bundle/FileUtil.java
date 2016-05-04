@@ -126,7 +126,7 @@ public class FileUtil
   }
 
   // Always write files using UTF-8.
-  static void writeStringToFile(File outFile, String s) throws IOException {
+  public static void writeStringToFile(File outFile, String s) throws IOException {
     OutputStreamWriter writer = null;
     try {
       outFile.getParentFile().mkdirs();

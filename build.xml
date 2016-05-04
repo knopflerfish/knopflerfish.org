@@ -449,7 +449,7 @@
   </target>
 
   <!-- General distribution documentation, mostly html -->
-  <target name="distrib_docs" depends="bundle_tasks">
+  <target name="distrib_docs" depends="bundle_tasks, util_tasks">
     <mkdir dir="${distrib.doc.dir}"/>
 
     <property name="htdocs.out"     location="${distrib.doc.dir}"/>
@@ -548,6 +548,7 @@
         <include name="NOTICE.txt"/>
         <include name="README.txt"/>
         <include name="release_notes.html"/>
+        <include name="release_notes.md"/>
       </zipfileset>
 
       <zipfileset dir="${distrib.doc.dir}" prefix="docs">
