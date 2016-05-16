@@ -818,7 +818,7 @@
       <replacefilter token="@SDK_NAME@"
                      value="${distrib.sdk.name}"/>
     </replace>
-    <chmod perg="555">
+    <chmod perm="555">
       <fileset dir="${distrib.out.dir}">
 	<include name=".travis_*.sh" />
       </fileset>
