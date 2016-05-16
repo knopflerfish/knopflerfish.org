@@ -7,7 +7,7 @@ BINTRAY_URL="https://bintray.com/api/v1"
 
 RELEASE_NOTES_PATH="packages/knopflerfish/kf_r6-snapshot/KnopflerfishBuild/versions/${RELEASE_VERSION}/release_notes"
 
-RELEASE_NOTES=$(<release_notes.in.md)
+RELEASE_NOTES=$(<@DISTRIB_NAME@/release_notes.md)
 ESCAPED_NOTES=${RELEASE_NOTES//\"/\\\"}
 
 if [[ ${PROJECT_VERSION} != *-SNAPSHOT ]]   
