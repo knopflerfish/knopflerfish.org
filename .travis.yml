@@ -37,4 +37,4 @@ deploy:
     jdk: openjdk6
     condition: $DEPLOY = true
 after_success:
-- '[ "$travis_PULL_REQUEST" = "false" ] && /bin/bash "out/.travis_credentials.sh" && /bin/bash "out/.travis_upload.sh"'
+- '[ "$TRAVIS_PULL_REQUEST" = "false" ] && /bin/bash "out/.travis_credentials.sh" && /bin/bash "out/.travis_upload.sh"'
