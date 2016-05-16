@@ -108,8 +108,10 @@
             location="${distrib.out.dir}/exported_pkgs.txt"/>
 
   <!-- Where to place the results of a distrib build in. -->
+  <property name="distrib.name"
+	    value="distrib_${version}" />
   <property name="distrib.dir"
-            location="${distrib.out.dir}/distrib_${version}"/>
+            location="${distrib.out.dir}/${distrib.name}"/>
   <property name="distrib.doc.dir"
             location="${distrib.dir}/docs"/>
   <property name="distrib.javadoc.dir"
@@ -120,6 +122,8 @@
             location="${distrib.doc.dir}/bundledoc"/>
   <property name="distrib.mvn.repo.dir"
             location="${distrib.dir}/maven2"/>
+  <property name="distrib.sdk.name"
+	    value="knopflerfish_osgi_sdk_${version}" />
   <property name="distrib.sdk.file"
             location="${distrib.dir}/knopflerfish_osgi_sdk_${version}.jar"/>
   <property name="distrib.tiny.file"
@@ -800,6 +804,25 @@
       <replacefilter token="@BRANCH@"
                      value="${version.branch}"/>
     </replace>
+    <copy file="tools/bintray/bin/travis_credentials.sh"
+          tofile="${distrib.out.dir}/.travis_credentials.sh">
+    </copy>
+    <copy file="tools/bintray/bin/travis_upload.sh"
+          tofile="${distrib.out.dir}/.travis_upload.sh">
+    </copy>
+    <replace file="${distrib.out.dir}/.travis_upload.sh">
+      <replacefilter token="@VERSION@"
+                     value="${version}"/>
+      <replacefilter token="@DISTRIB_NAME@"
+                     value="${distrib.name}"/>
+      <replacefilter token="@SDK_NAME@"
+                     value="${distrib.sdk.name}"/>
+    </replace>
+    <chmod perg="555">
+      <fileset dir="${distrib.out.dir}">
+	<include name=".travis_*.sh" />
+      </fileset>
+    </chmod>
   </target>
 
 
