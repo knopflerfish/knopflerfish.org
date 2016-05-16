@@ -37,5 +37,4 @@ deploy:
     jdk: openjdk6
     condition: $DEPLOY = true
 after_success:
-- chmod 555 "$TRAVIS_BUILD_DIR/tools/bintray/bin/travis_credentials.sh" "$TRAVIS_BUILD_DIR/tools/bintray/bin/travis_upload.sh" 
-- '[ "$travis_PULL_REQUEST" = "false" ] && /bin/bash "out/.travis_credentials.sh" && /bin/bash "out/.travis_upload.sh"
+- '[ "$travis_PULL_REQUEST" = "false" ] && /bin/bash "out/.travis_credentials.sh" && /bin/bash "out/.travis_upload.sh"'
