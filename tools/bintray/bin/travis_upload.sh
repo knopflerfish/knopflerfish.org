@@ -12,7 +12,7 @@ BINTRAY_URL="https://bintray.com/api/v1"
 
 RELEASE_NOTES_PATH="packages/knopflerfish/kf_r6-snapshot/KnopflerfishBuild/versions/${RELEASE_VERSION}/release_notes"
 
-RELEASE_NOTES_FILE="${DIR}/@DISTRIB_NAME@/release_notes.md
+RELEASE_NOTES_FILE="${DIR}/@DISTRIB_NAME@/release_notes.md"
 
 if [ ! -f $RELEASE_NOTES_FILE ]; then
     echo "Release note file does not exist, exiting: ${RELEASE_NOTES_FILE}"
