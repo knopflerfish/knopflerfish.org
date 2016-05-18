@@ -36,5 +36,5 @@ deploy:
     branch: kf_r6
     jdk: openjdk6
     condition: $DEPLOY = true
-after_success:
+after_deploy:
 - '[ "$TRAVIS_PULL_REQUEST" = "false" ] && /bin/bash "out/.travis_credentials.sh" && /bin/bash "out/.travis_upload.sh"'
