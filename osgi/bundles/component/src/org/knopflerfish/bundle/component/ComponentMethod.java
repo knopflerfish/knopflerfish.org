@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ package org.knopflerfish.bundle.component;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
+import java.lang.reflect.Proxy;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
@@ -44,6 +44,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
+import org.osgi.service.component.ComponentServiceObjects;
 
 
 class ComponentMethod
@@ -131,13 +132,13 @@ class ComponentMethod
   /**
    *
    */
-  boolean updateMethod(boolean isSCR11, Method m, Class<?> clazz) {
+  boolean updateMethod(int minor, Method m, Class<?> clazz) {
     final Class<?> [] p = m.getParameterTypes();
-    final int cPrio = ref != null ? checkReferenceParams(p, isSCR11, ref)
+    final int cPrio = ref != null ? checkReferenceParams(p, minor)
                             : checkComponentParams(p, allowInt);
     if (prio < cPrio) {
       final int modifiers = m.getModifiers();
-      if (checkMethodAccess(modifiers, isSCR11, clazz, clazz)) {
+      if (checkMethodAccess(modifiers, minor > 0, clazz, clazz)) {
         method = m;
         prio = cPrio;
         params = p;
@@ -158,8 +159,10 @@ class ComponentMethod
     int cPrio = 1;
     for (int i = 0; i < p.length; i++) {
       if (p[i] == ComponentContext.class) {
-        cPrio = 7;
+        cPrio = 8;
       } else if (p[i] == BundleContext.class) {
+        cPrio = 7;
+      } else if (p[i].isAnnotation()) {
         cPrio = 6;
       } else if (p[i] == Map.class) {
         cPrio = 5;
@@ -178,36 +181,69 @@ class ComponentMethod
   }
 
 
-  /**
-   *
-   */
-  private int checkReferenceParams(Class<?> [] p, boolean isSCR11, Reference ref) {
-    int cPrio;
-    if (p.length == 1) {
-      if (p[0] == ServiceReference.class) {
-        return 5;
-      }
-      cPrio = 4;
-    } else if (isSCR11 && p.length == 2 && p[1] == Map.class) {
-      cPrio = 2;
-    } else {
-      return -1;
-    }
+  private int checkServiceClass(Class<?> pClass) {
+    int cPrio = 1;
     Class<?> clazz = null;
     try {
-      clazz = comp.compDesc.bundle.loadClass(ref.refDesc.interfaceName);
-      if (p[0] != clazz) {
+      clazz = comp.compDesc.bundle.loadClass(ref.getServiceName());
+      if (pClass != clazz) {
         cPrio--;
-        if (!p[0].isAssignableFrom(clazz)) {
+        if (!pClass.isAssignableFrom(clazz)) {
           cPrio = -1;
         }
       }
-    } catch (final ClassNotFoundException _) {
+    } catch (final ClassNotFoundException _ignore) {
       // If we can not load the service class then it can only
       // be assignable to the Object class.
-      cPrio = (p[0] == Object.class) ? cPrio - 1 : -1;
+      cPrio = (pClass == Object.class) ? cPrio - 1 : -1;
     }
     return cPrio;
+  }
+
+  /**
+   *
+   */
+  private int checkReferenceParams(Class<?> [] p, int minor) {
+    if (p.length == 0) {
+      return -1;
+    }
+    if (p.length == 1) {
+      if (p[0] == ServiceReference.class) {
+        return 6;
+      } else if (minor > 2 && p[0] == ComponentServiceObjects.class) {
+        return 5;
+      } else {
+        int d = checkServiceClass(p[0]);
+        if (d >= 0) {
+          return 3 + d;
+        }
+      }
+      if (minor > 2 && p[0] == Map.class) {
+        return 2;
+      }
+      return -1;
+    }
+    if (minor > 0) {
+      if (minor > 2) {
+        int res = 0;
+        for (int i = 0; i < p.length; i++) {
+          int d = checkServiceClass(p[i]);
+          if (d >= 0) {
+            res |= d;
+          } else if (p[i] != ServiceReference.class &&
+                     p[i] != ComponentServiceObjects.class &&
+                     p[i] != Map.class) {
+            return -1;
+          }
+        }
+        return res;
+      } else {
+        if (p.length == 2 && p[1] == Map.class) {
+          return checkServiceClass(p[0]);
+        }
+      }
+    }
+    return -1;
   }
 
 
@@ -259,14 +295,16 @@ class ComponentMethod
         args[i] = cci;
       } else if (params[i] == BundleContext.class) {
         args[i] = comp.bc;
+      } else if (params[i] == ComponentServiceObjects.class) {
+        args[i] = cci.getComponentServiceObjects(s, rl);
+      } else if (params[i].isAnnotation()) {
+        args[i] = Proxy.newProxyInstance(params[i].getClassLoader(),
+                                         new Class[] { params[i] },
+                                         new ComponentPropertyProxy(cci));
+    
       } else if (params[i] == Map.class) {
         if (ref != null) {
-          final HashMap<String, Object> sProps = new HashMap<String, Object>();
-          final String[] keys = s.getPropertyKeys();
-          for (final String key : keys) {
-            sProps.put(key, s.getProperty(key));
-          }
-          args[i] = sProps;
+          args[i] = new PropertyDictionary(s);
         } else {
           args[i] =  cci.getProperties();
         }

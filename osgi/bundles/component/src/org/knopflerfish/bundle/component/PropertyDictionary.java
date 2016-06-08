@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,18 @@
  */
 package org.knopflerfish.bundle.component;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Properties;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentConstants;
 
 
@@ -45,7 +52,8 @@ import org.osgi.service.component.ComponentConstants;
  * This class needs to be a Dictionary and a Map.
  * TBD, check that this class is immutable
  */
-class PropertyDictionary extends Dictionary<String,Object>
+class PropertyDictionary extends Dictionary<String, Object>
+  implements Map<String, Object>, Comparable<Map<String, Object>>
 {
 
   final private Hashtable<String,Object> props;
@@ -54,7 +62,7 @@ class PropertyDictionary extends Dictionary<String,Object>
    *
    */
   PropertyDictionary(Component comp,
-                     Dictionary<String,Object> cm,
+                     Map<String,Object> cm,
                      Dictionary<String,Object> instance,
                      boolean service) {
     props = new Hashtable<String,Object>();
@@ -82,6 +90,17 @@ class PropertyDictionary extends Dictionary<String,Object>
   /**
    *
    */
+  PropertyDictionary(ServiceReference<?> sr) {
+    props = new Hashtable<String,Object>();
+    for (String key : sr.getPropertyKeys()) {
+      props.put(key, sr.getProperty(key));
+    }
+  }
+
+
+  /**
+   *
+   */
   @Override
   public Enumeration<Object> elements() {
     return props.elements();
@@ -92,8 +111,26 @@ class PropertyDictionary extends Dictionary<String,Object>
    *
    */
   @Override
+  public boolean equals(Object o) {
+    return props.equals(o);
+  }
+
+
+  /**
+   *
+   */
+  @Override
   public Object get(Object key) {
     return props.get(key);
+  }
+
+
+  /**
+   *
+   */
+  @Override
+  public int hashCode() {
+    return props.hashCode();
   }
 
 
@@ -120,7 +157,7 @@ class PropertyDictionary extends Dictionary<String,Object>
    */
   @Override
   public Object put(String key, Object value) {
-    throw new RuntimeException("Operation not supported.");
+    throw new UnsupportedOperationException();
   }
 
 
@@ -129,7 +166,7 @@ class PropertyDictionary extends Dictionary<String,Object>
    */
   @Override
   public Object remove(Object key) {
-    throw new RuntimeException("Operation not supported.");
+    throw new UnsupportedOperationException();
   }
 
 
@@ -139,6 +176,96 @@ class PropertyDictionary extends Dictionary<String,Object>
   @Override
   public int size() {
     return props.size();
+  }
+
+
+  /**
+   *
+   */
+  @Override
+  public void clear() {
+    throw new UnsupportedOperationException();
+  }
+
+
+  /**
+   *
+   */
+  @Override
+  public boolean containsKey(Object key) {
+    return props.containsKey(key);
+  }
+
+
+  /**
+   *
+   */
+  @Override
+  public boolean containsValue(Object value) {
+    return props.containsValue(value);
+  }
+
+
+  /**
+   *
+   */
+  @Override
+  public Set<Map.Entry<String, Object>> entrySet() {
+    return Collections.unmodifiableSet(props.entrySet());
+  }
+
+
+  /**
+   *
+   */
+  @Override
+  public Set<String> keySet() {
+    return Collections.unmodifiableSet(props.keySet());
+  }
+
+
+  /**
+   *
+   */
+  @Override
+  public void putAll(Map<? extends String, ? extends Object> m) {
+    throw new UnsupportedOperationException();
+  }
+
+
+  /**
+   *
+   */
+  @Override
+  public Collection<Object> values() {
+    return Collections.unmodifiableCollection(props.values());
+  }
+
+
+  /**
+   *
+   */
+  @Override
+  public int compareTo(Map<String, Object> that) {
+    final Object ro1 = this.get(Constants.SERVICE_RANKING);
+    final Object ro2 = that.get(Constants.SERVICE_RANKING);
+    final int r1 = (ro1 instanceof Integer) ? ((Integer)ro1).intValue() : 0;
+    final int r2 = (ro2 instanceof Integer) ? ((Integer)ro2).intValue() : 0;
+
+    if (r1 != r2) {
+      // use ranking if ranking differs
+      return r1 < r2 ? -1 : 1;
+    } else {
+      final Long id1 = (Long)this.get(Constants.SERVICE_ID);
+      Object id2 = that.get(Constants.SERVICE_ID);
+
+      if (!(id2 instanceof Long)) {
+        id2 = new Long(0);
+      }
+      // otherwise compare using IDs,
+      // is less than if it has a higher ID.
+      return -id1.compareTo((Long)id2);
+    }
   }
 
   //
@@ -152,23 +279,33 @@ class PropertyDictionary extends Dictionary<String,Object>
     return new Hashtable<String, Object>(props);
   }
 
+  /**
+   *
+   */
+  Map<String,Object> getMap() {
+    return new HashMap<String, Object>(props);
+  }
+
   //
   // Private methods
   //
 
+
   /**
    * Add all properties in the given properties object to the props dictionary.
    *
-   * @param properties The properties object to insert the contents of.
+   * @param m The properties object to insert the contents of.
    * @param service If the component is a service skip non-public properties.
    *                I.e., those with a key starting with '.'.
    */
-  private void addDict(Properties properties, boolean service) {
-    for (final Enumeration<Object> e = properties.keys(); e.hasMoreElements(); ) {
-      final String key = (String) e.nextElement();
-      addDict(key, properties.get(key), service);
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private void addDict(Map m, boolean service) {
+    for (final Iterator<Map.Entry> i = m.entrySet().iterator(); i.hasNext(); ) {
+      final Map.Entry<String, Object> e = i.next();
+      addDict(e.getKey(), e.getValue(), service);
     }
   }
+
   /**
    * Add all properties in the given dictionary to the props dictionary.
    *
@@ -182,6 +319,7 @@ class PropertyDictionary extends Dictionary<String,Object>
       addDict(key, d.get(key), service);
     }
   }
+
   /**
    * Add a property in the given dictionary to the props dictionary.
    *

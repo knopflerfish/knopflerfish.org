@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,17 +33,19 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
 import java.util.TreeMap;
 
+import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.cm.Configuration;
+import org.osgi.service.component.ComponentException;
 
 
 /**
@@ -58,12 +60,14 @@ class Reference implements org.apache.felix.scr.Reference
   private volatile ComponentMethod bindMethod = null;
   private volatile ComponentMethod unbindMethod = null;
   private volatile ComponentMethod updatedMethod = null;
-  private volatile boolean methodsSet = false;
+  private volatile ComponentField field = null;
+  private volatile boolean fieldAndMethodsSet = false;
 
   private ReferenceListener listener = null;
   private TreeMap<String, ReferenceListener> factoryListeners = null;
   private int numListeners;
   private int available;
+  private int minCardinality = -1;
 
 
   /**
@@ -72,13 +76,18 @@ class Reference implements org.apache.felix.scr.Reference
   Reference(Component comp, ReferenceDescription refDesc) {
     this.comp = comp;
     this.refDesc = refDesc;
-    Filter target = getTarget(comp.compDesc.getProperties(),
-                              "component description for " + comp);
+    Properties props = comp.compDesc.getProperties();
+    Filter target = getTarget(props, "component description for " + comp);
     if (target == null) {
       target = refDesc.targetFilter;
     }
     targetFilter = target;
+    if (!updateMinCardinality(props)) {
+      minCardinality = refDesc.optional ? 0 : 1;
+    }
   }
+
+  
 
   //
   // org.apache.felix.scr.Reference interface
@@ -117,7 +126,7 @@ class Reference implements org.apache.felix.scr.Reference
    * @see org.apache.felix.scr.Reference.isSatisfied
    */
   public boolean isSatisfied() {
-    return available > 0;
+    return available >= minCardinality;
   }
 
 
@@ -185,6 +194,13 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
+   */
+  public boolean isGreedy() {
+    return refDesc.greedy;
+  }
+
+
+  /**
    * String with info about reference.
    */
   @Override
@@ -192,44 +208,55 @@ class Reference implements org.apache.felix.scr.Reference
     return "Reference " + refDesc.name + " in " + comp;
   }
 
-
   //
   // Package methods
   //
 
-  private void assertMethods() {
-    if (!methodsSet) {
-      final HashMap<String, ComponentMethod[]> lookFor = new HashMap<String, ComponentMethod[]>();
-      if (refDesc.bind != null) {
-        bindMethod = new ComponentMethod(refDesc.bind, comp, this);
-        comp.saveMethod(lookFor, refDesc.bind, bindMethod);
-      }
-      if (refDesc.unbind != null) {
-        unbindMethod = new ComponentMethod(refDesc.unbind, comp, this);
-        comp.saveMethod(lookFor, refDesc.unbind, unbindMethod);
-      }
-      if (refDesc.updated != null) {
-        updatedMethod = new ComponentMethod(refDesc.updated, comp, this);
-        comp.saveMethod(lookFor, refDesc.updated, updatedMethod);
-      }
-      comp.scanForMethods(lookFor);
-      methodsSet = true;
-    }
+  int getMinimumCardinality()
+  {
+    return minCardinality;
   }
 
+
+  String getScope()
+  {
+    return refDesc.scope;
+  }
+
+
   ComponentMethod getBindMethod() {
-    assertMethods();
+    assertFieldAndMethods();
     return bindMethod;
   }
 
+
   ComponentMethod getUnbindMethod() {
-    assertMethods();
+    assertFieldAndMethods();
     return unbindMethod;
   }
 
+
   ComponentMethod getUpdatedMethod() {
-    assertMethods();
+    assertFieldAndMethods();
     return updatedMethod;
+  }
+
+
+  ComponentField getField() {
+    assertFieldAndMethods();
+    return field;
+  }
+
+
+  boolean isRefOptional()
+  {
+    return minCardinality == 0;
+  }
+
+
+  boolean isScopeBundle()
+  {
+    return Constants.SCOPE_BUNDLE.equals(refDesc.scope);
   }
 
 
@@ -238,18 +265,18 @@ class Reference implements org.apache.felix.scr.Reference
    * get initial state synchronized with the listener.
    *
    */
-  void start(Configuration [] config) {
+  void start() {
     available = 0;
     numListeners = 1;
-    if (config != null && config.length > 0) {
-      listener = new ReferenceListener(this);
-      listener.setTarget(config[0]);
-      for (int i = 1; i < config.length; i++) {
-        update(config[i], false);
-      }
+    listener = new ReferenceListener(this);
+    if (comp.cmConfig.isEmpty()) {
+      listener.setTarget(null, null);
     } else {
-      listener = new ReferenceListener(this);
-      listener.setTarget(null);
+      String [] ccid = comp.cmConfig.getCCIds();
+      listener.setTarget(ccid[0], comp.cmConfig.getProperties(ccid[0]));
+      for (int i = 1; i < ccid.length; i++) {
+        update(ccid[i], comp.cmConfig.getProperties(ccid[i]), false);
+      }
     }
   }
 
@@ -262,11 +289,10 @@ class Reference implements org.apache.felix.scr.Reference
       listener.stop();
       listener = null;
     } else {
-      for (final ReferenceListener referenceListener : (new HashSet<ReferenceListener>(
-                                                                                       factoryListeners
-                                                                                           .values()))) {
-                                                                                            referenceListener.stop();
-                                                                                          }
+      for (final ReferenceListener referenceListener : 
+             (new HashSet<ReferenceListener>(factoryListeners.values()))) {
+        referenceListener.stop();
+      }
       factoryListeners = null;
     }
   }
@@ -275,59 +301,73 @@ class Reference implements org.apache.felix.scr.Reference
   /**
    *
    */
-  void update(Configuration c, boolean useNoPid) {
-    final String pid = c.getPid();
+  void update(String ccid, Map<String, Object> dict, boolean useNoId) {
+    boolean before = isSatisfied();
+    boolean doCheck = updateMinCardinality(dict) && isSatisfied() != before;
     if (listener != null) {
       // We only have one listener, check if it still is true;
-      if (listener.checkTargetChanged(c)) {
-        if (listener.isOnlyPid(useNoPid ? Component.NO_PID : pid)) {
-          // Only one pid change listener target
-          listener.setTarget(c);
+      if (listener.checkTargetChanged(ccid, dict)) {
+        if (listener.isOnlyId(useNoId ? Component.NO_CCID : ccid)) {
+          // Only one ccid change listener target
+          listener.setTarget(ccid, dict);
         } else {
           // We have multiple listener we need multiple listeners
           factoryListeners = new TreeMap<String, ReferenceListener>();
-          for (String p : listener.getPids()) {
+          for (String p : listener.getIds()) {
             factoryListeners.put(p, listener);
           }
           listener = null;
           // NYI, optimize, we don't have to checkTargetChanged again
         }
-      } else if (useNoPid) {
-        // No change, just make sure that pid is registered
-        listener.addPid(pid, true);
+      } else if (useNoId) {
+        // No change, just make sure that ccid is registered
+        listener.addId(ccid, true);
       }
     }
     if (factoryListeners != null) {
-      ReferenceListener rl = factoryListeners.get(pid);
+      ReferenceListener rl = factoryListeners.get(ccid);
+      boolean newListener;
       if (rl != null) {
         // Listener found, check if we need to change it
-        if (rl.checkTargetChanged(c)) {
-          if (rl.isOnlyPid(pid)) {
-            rl.setTarget(c);
-            return;
+        newListener = false;
+        if (rl.checkTargetChanged(ccid, dict)) {
+          if (rl.isOnlyId(ccid)) {
+            rl.setTarget(ccid, dict);
           } else {
-            rl.removePid(pid);
-            // Fall through to new listener creation
+            rl.removeId(ccid);
+            newListener = true;
           }
-        } else {
-          // No change
-          return;
         }
       } else {
         // Pid is new, check if we already have a matching listener
+        newListener = true;
         for (final Iterator<ReferenceListener> i = new HashSet<ReferenceListener>(factoryListeners.values()).iterator(); i.hasNext(); ) {
           rl = i.next();
-          if (!rl.checkTargetChanged(c)) {
-            rl.addPid(pid, false);
-            factoryListeners.put(pid, rl);
-            return;
+          if (!rl.checkTargetChanged(ccid, dict)) {
+            rl.addId(ccid, false);
+            factoryListeners.put(ccid, rl);
+            newListener = false;
+            break;
           }
         }
       }
-      numListeners++;
-      rl = new ReferenceListener(this);
-      factoryListeners.put(pid, rl);
-      rl.setTarget(c);
+      if (newListener) {
+        numListeners++;
+        rl = new ReferenceListener(this);
+        factoryListeners.put(ccid, rl);
+        rl.setTarget(ccid, dict);
+      }
+    }
+    if (doCheck) {
+      if (before) {
+        if (!isSatisfied()) {
+          comp.refUnavailable(this);
+        }
+      } else {
+        if (isSatisfied()) {
+          comp.refAvailable(this);
+        }
+      }
     }
   }
 
@@ -335,9 +375,9 @@ class Reference implements org.apache.felix.scr.Reference
   /**
    * We got a configuration PID update if we have a listener.
    */
-  void updateNoPid(String pid) {
-    if (listener != null && listener.isOnlyPid(Component.NO_PID)) {
-      listener.addPid(pid, true);
+  void updateNoPid(String ccid) {
+    if (listener != null && listener.isOnlyId(Component.NO_CCID)) {
+      listener.addId(ccid, true);
     }
   }
 
@@ -345,16 +385,16 @@ class Reference implements org.apache.felix.scr.Reference
   /**
    *
    */
-  void remove(String pid) {
+  void remove(String ccid) {
     if (listener != null) {
-      listener.removePid(pid);
-      if (listener.noPids()) {
-        listener.addPid(Component.NO_PID, false);
+      listener.removeId(ccid);
+      if (listener.noIds()) {
+        listener.addId(Component.NO_CCID, false);
       }
-    } else {
-      final ReferenceListener rl = factoryListeners.remove(pid);
-      rl.removePid(pid);
-      if (rl.noPids()) {
+    } else if (factoryListeners != null) {
+      final ReferenceListener rl = factoryListeners.remove(ccid);
+      rl.removeId(ccid);
+      if (rl.noIds()) {
         rl.stop();
         if (--numListeners == 1) {
           listener = factoryListeners.get(factoryListeners.lastKey());
@@ -368,11 +408,11 @@ class Reference implements org.apache.felix.scr.Reference
   /**
    *
    */
-  ReferenceListener getListener(String pid) {
+  ReferenceListener getListener(String ccid) {
     if (listener != null) {
       return listener;
     } else {
-      return factoryListeners.get(pid);
+      return factoryListeners.get(ccid);
     }
   }
 
@@ -381,7 +421,7 @@ class Reference implements org.apache.felix.scr.Reference
    * Get target value for reference, if target is missing or the target
    * string is malformed return null.
    */
-  Filter getTarget(Dictionary<?, Object> d, String src)
+  Filter getTarget(Map<?, Object> d, String src)
   {
     final Object prop = d.get(refDesc.name + ".target");
     if (prop != null) {
@@ -417,7 +457,7 @@ class Reference implements org.apache.felix.scr.Reference
    * @return True, if component became satisfied otherwise false.
    */
   boolean refAvailable() {
-    if (available++ == 0) {
+    if (++available == (minCardinality == 0 ? 1 : minCardinality)) {
       return comp.refAvailable(this);
     }
     return false;
@@ -429,9 +469,68 @@ class Reference implements org.apache.felix.scr.Reference
    * @return True, if component became unsatisfied otherwise false.
    */
   boolean refUnavailable() {
-    if (--available == 0) {
+    if (available-- == (minCardinality == 0 ? 1 : minCardinality)) {
       return comp.refUnavailable(this);
     }
     return false;
   }
+
+
+
+  private void assertFieldAndMethods() {
+    if (!fieldAndMethodsSet) {
+      final HashMap<String, ComponentMethod[]> lookFor = new HashMap<String, ComponentMethod[]>();
+      if (refDesc.bind != null) {
+        bindMethod = new ComponentMethod(refDesc.bind, comp, this);
+        comp.saveMethod(lookFor, refDesc.bind, bindMethod);
+      }
+      if (refDesc.unbind != null) {
+        unbindMethod = new ComponentMethod(refDesc.unbind, comp, this);
+        comp.saveMethod(lookFor, refDesc.unbind, unbindMethod);
+      }
+      if (refDesc.updated != null) {
+        updatedMethod = new ComponentMethod(refDesc.updated, comp, this);
+        comp.saveMethod(lookFor, refDesc.updated, updatedMethod);
+      }
+      comp.scanForMethods(lookFor);
+      if (refDesc.field != null) {
+        try {
+          field = new ComponentField(refDesc.field, comp, this);
+        } catch (NoSuchFieldException nsfe) {
+          Activator.logError(comp.bc,
+                             "Field not found in component, name = " + refDesc.field,
+                             nsfe);
+        }
+      }
+      fieldAndMethodsSet = true;
+    }
+  }
+
+
+
+  private boolean updateMinCardinality(Map<?, Object> d)
+  {
+    String key = refDesc.name + ".cardinality.minimum";
+    final Object prop = d.get(key);
+    if (prop != null) {
+      try {
+        int mc = ComponentPropertyProxy.coerceInteger(prop);
+        int minVal = refDesc.optional ? 0 : 1;
+        int maxVal = refDesc.multiple ? Integer.MAX_VALUE : 1;
+        if (mc < minVal) {
+          Activator.logInfo(comp.bc, "Property " + key + " too small " + mc + " < " + minVal);
+        } else if (mc > maxVal) {
+          Activator.logInfo(comp.bc, "Property " + key + " too large " + mc + " > " + maxVal);
+        } else {
+          boolean res = minCardinality != mc;
+          minCardinality = mc;
+          return res;
+        }
+      } catch (ComponentException ce) {
+        Activator.logInfo(comp.bc, "Property " + key + " is not an integer: " + prop);        
+      }
+    }
+    return false;
+  }
+
 }

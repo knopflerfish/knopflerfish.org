@@ -272,7 +272,7 @@ public class Bundles {
   /**
    * Get all installed bundles.
    *
-   * @return A Bundle array with bundles.
+   * @return A list with bundles.
    */
   List<BundleImpl> getBundles() {
     final ArrayList<BundleImpl> res = new ArrayList<BundleImpl>(bundles.size());

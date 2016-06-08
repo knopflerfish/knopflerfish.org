@@ -44,9 +44,8 @@ OSGi Compendium Specification
 *   Updated API classes to match OSGi R6. 
 
 ### Component (SCR) 6.0.0
-*   Updated API classes to match OSGi R6, new minor version 1.3.
+*   Updated API and functionality to match OSGI R6, new minor version 1.3.
 *   Added dependency to new Promise bundle.
-*   NO support yet for new features!
 
 ### Component API 1.1.0
 *      Updated API classes to match OSGi R6, new minor version 1.3.
@@ -126,6 +125,10 @@ Knopflerfish Services
 
 ### Desktop 6.0.0
 *      Added new Promise bundle.
+
+### KF Metatype 4.1.0
+*      Updated to match OSGi R6 API minor version 1.3.
+*      New functionality not yet supported.
 
 ### Repository manager 2.0.0
 *      Include new Promise bundle packages.
