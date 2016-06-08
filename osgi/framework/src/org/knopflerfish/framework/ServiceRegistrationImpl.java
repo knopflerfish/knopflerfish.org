@@ -534,9 +534,6 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
               deps = dependents;
             }
             if (scope != Constants.SCOPE_SINGLETON) {
-              if (servicesToRemove == null) {
-                servicesToRemove = new ArrayList<S>();
-              }
               S s = serviceInstances.remove(b);
               if (s != null) {
                 servicesToRemove.add(s);

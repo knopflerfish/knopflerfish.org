@@ -587,6 +587,7 @@
 
         <include name="osgi/*.xargs.in"/>
         <include name="osgi/kf2"/>
+        <include name="osgi/annotations/**"/>
         <include name="osgi/ee/**"/>
         <include name="osgi/build.xml"/>
 
@@ -627,6 +628,7 @@
         <include name="osgi/bundles/metatype/**"/>
         <include name="osgi/bundles/repository/**"/>
         <include name="osgi/bundles/resolver/**"/>
+        <include name="osgi/bundles/promise/**"/>
 
         <include name="osgi/bundles/component/**"/>
         <include name="osgi/bundles/scrcommands/**"/>
@@ -659,6 +661,7 @@
         <include name="osgi/bundles/remotefw/**"/>
 
         <include name="osgi/bundles_opt/build.xml"/>
+        <include name="osgi/bundles_opt/httpclient_connector/**"/>
         <include name="osgi/bundles_opt/classpatcher/**"/>
         <include name="osgi/bundles_opt/commons-logging/**"/>
         <include name="osgi/bundles_opt/desktop_awt/**"/>
