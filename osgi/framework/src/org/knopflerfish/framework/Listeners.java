@@ -405,7 +405,7 @@ class Listeners {
                       final Set<ServiceListenerEntry> matchBefore) {
     final ServiceReferenceImpl<?> sr = (ServiceReferenceImpl<?>)evt.getServiceReference();
     final String[] classes = (String[])sr.getProperty(Constants.OBJECTCLASS);
-    final int n = 0;
+    int n = 0;
 
     // TODO: OSGi43 the interplay between ldap filters, hooks and MODIFIED_ENDMATCH should be revised
     if (matchBefore != null) {
@@ -428,6 +428,7 @@ class Listeners {
             }
             try {
               ((ServiceListener)l.listener).serviceChanged(evt);
+              n++;
             } catch (final Throwable pe) {
               fwCtx.frameworkError(l.bc, pe);
             }
