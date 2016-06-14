@@ -698,7 +698,7 @@ class Resolver {
    */
   private boolean resolvePackages(Iterator<ImportPkg> pkgs, StringBuffer failReason)
       throws BundleException {
-    StringBuffer pkgFail = failReason != null ? new StringBuffer() : null;
+    StringBuffer pkgFail = failReason != null || framework.debug.resolver ? new StringBuffer() : null;
     boolean res = true;
     tempCollision = null;
     while (pkgs.hasNext()) {
@@ -713,18 +713,26 @@ class Resolver {
       }
       List<ExportPkg> possibleProvider = new LinkedList<ExportPkg>();
       for (ExportPkg ep : ip.pkg.exporters) {
+        int ss = framework.debug.resolver ? pkgFail.length() : 0;
         if (ip.checkAttributes(ep)) {
           if (tempBlackList.contains(ep)) {
             tempBlackListHits++;
+            newFailReason(pkgFail, "Package temporary black listed", ep);
           } else {
             if (ip.bpkgs == ep.bpkgs || ip.checkPermission(ep)) {
               possibleProvider.add(ep);
+              continue;
             } else if (pkgFail != null) {
               newFailReason(pkgFail, "No import permission", ep);
             }
           }
         } else if (pkgFail != null) {
           newFailReason(pkgFail, "Attributes don't match", ep);
+        }
+        if (framework.debug.resolver) {
+          if (ip.pkg.providers.contains(ep)) {
+            framework.debug.println("resolvePackages: rejected provide because - " + pkgFail.substring(ss));
+          }
         }
       }
       if (pkgFail != null) {
@@ -770,9 +778,15 @@ class Resolver {
             if (pkgFail != null) {
               newFailReason(pkgFail, "Collied with previous selection", ep);
             }
+            if (framework.debug.resolver) {
+              framework.debug.println("resolvePackages: Provider black listed: " + ep);
+            }
             continue;
           }
           if (ep.zombie) {
+            if (framework.debug.resolver) {
+              framework.debug.println("resolvePackages: Provider zombie, skip: " + ep);
+            }
             continue;
           }
           final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
@@ -785,6 +799,9 @@ class Resolver {
             possibleProvider.remove(ep);
             if (pkgFail != null) {
               newFailReason(pkgFail, "Provider rejected because of uses directive ", ep);
+            }
+            if (framework.debug.resolver) {
+              framework.debug.println("resolvePackages: Provider rejected because of uses directive: " + ep);
             }
           }
         }
