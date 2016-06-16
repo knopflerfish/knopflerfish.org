@@ -20,8 +20,17 @@ Bundle-Activator: org.knopflerfish.bundle.metatype.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 api-Provide-Capability: [bundle.emptystring]
 lib-Provide-Capability: [bundle.emptystring]
-Provide-Capability: osgi.service;
-   objectClass:List<String>="org.osgi.service.metatype.MetaTypeService",
+Provide-Capability: osgi.implementation;
+    osgi.implementation="osgi.metatype";
+    version:Version="1.3";
+    uses:="org.osgi.service.metatype",
+  osgi.extender;
+   osgi.extender="osgi.metatype";
+   version:Version="1.3";
+   uses:="org.osgi.service.metatype",
+ osgi.service;
+   objectClass:List<String>="org.osgi.service.metatype.MetaTypeService";
+   uses:="org.osgi.service.metatype",
  osgi.service;
    objectClass:List<String>="org.knopflerfish.util.metatype.SystemMetatypeProvider",
  osgi.service;
@@ -34,7 +43,7 @@ Export-Package: org.knopflerfish.util.metatype,
  net.n3.nanoxml; version=2.2.1
 Import-Package: org.osgi.framework; version="[1.6,2)",
  org.osgi.service.cm; version="[1.4,2)",
- org.osgi.service.metatype; version="[1.2,2)",
+ org.osgi.service.metatype; version="[1.3,2)",
  org.osgi.util.tracker; version="[1.5,2)",
  org.knopflerfish.service.log; version="[1.2,2)",
  org.knopflerfish.util,

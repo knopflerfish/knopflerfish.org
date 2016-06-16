@@ -57,6 +57,9 @@ import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.metatype.AttributeDefinition;
 import org.osgi.util.tracker.ServiceTracker;
+
+import org.knopflerfish.util.metatype.OsgiMetaTypeXmlParser.Designate;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -68,6 +71,11 @@ import org.xmlpull.v1.XmlPullParserException;
  * </p>
  */
 public class OsgiMetaTypeXmlParser {
+
+  private static final String MT_NAMESPACE_V1_3_0_URI = "http://www.osgi.org/xmlns/metatype/v1.3.0";
+  private static final String MT_NAMESPACE_V1_2_0_URI = "http://www.osgi.org/xmlns/metatype/v1.2.0";
+  private static final String MT_NAMESPACE_V1_1_0_URI = "http://www.osgi.org/xmlns/metatype/v1.1.0";
+  private static final String MT_NAMESPACE_V1_0_0_URI = "http://www.osgi.org/xmlns/metatype/v1.0.0";
 
   private static final String ATTR_PID = "pid";
   private static final String ATTR_TYPE = "type";
@@ -130,18 +138,25 @@ public class OsgiMetaTypeXmlParser {
   private static String currentDesignateBundleLocation;
   private static boolean currentDesignateMerge;
 
+  private static List<Designate> currentDesignates = new ArrayList<Designate>();
+
   private static ServiceTracker<?, ?> confAdminTracker;
   private static Configuration currentConf;
   private static List<AE> currentAttributes;
   private static AE currentAE;
 
   private static Bundle currentBundle;
+  private static int currentNSMinor;
 
   public static BundleMetaTypeResource loadBMTIfromUrl(BundleContext bc,
       Bundle b, URL url) throws IOException {
     if (xml_parser == null) {
       xml_parser = new KXmlParser();
-
+      try {
+        xml_parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      } catch (XmlPullParserException e) {
+        throw new IOException("XML namespace support missing");
+      }
       confAdminTracker = new ServiceTracker<Object, Object>(bc,
           ConfigurationAdmin.class.getName(), null);
       confAdminTracker.open();
@@ -232,6 +247,19 @@ public class OsgiMetaTypeXmlParser {
     }
 
     if (METADATA.equals(element) || element.endsWith(METADATA)) {
+      final String ns = xml_parser.getNamespace();
+      if (MT_NAMESPACE_V1_3_0_URI.equals(ns)) {
+        currentNSMinor = 3;
+      } else if (MT_NAMESPACE_V1_2_0_URI.equals(ns)) {
+        currentNSMinor = 2;
+      } else if (MT_NAMESPACE_V1_1_0_URI.equals(ns)) {
+        currentNSMinor = 1;
+      } else if (MT_NAMESPACE_V1_0_0_URI.equals(ns) ||
+                 xml_parser.getDepth() == 1) {
+        currentNSMinor = 0;
+      } else {
+        throw new Exception("Unknown name space: "+ ns);
+      }
       final String localization = attrs.get(ATTR_LOCALIZATION);
       if (localization != null) {
         currentMetaData = new MetaData(localization, currentBundle);
@@ -410,6 +438,10 @@ public class OsgiMetaTypeXmlParser {
       throws Exception {
 
     if (METADATA.equals(element) || element.endsWith(METADATA)) {
+      for (Designate d : currentDesignates) {
+        d.designate(currentMetaData);
+      }
+      currentDesignates.clear();
       currentBMTR.addMetaData(currentMetaData);
       currentMetaData.prepare();
       currentMetaData = null;
@@ -477,9 +509,9 @@ public class OsgiMetaTypeXmlParser {
         }
       }
 
-      currentMetaData.designate(currentDesignateFactoryPid,
+      currentDesignates.add(new Designate(currentDesignateFactoryPid,
           currentDesignatePid, currentObjectOCDref, currentConf,
-          currentAttributes);
+          currentAttributes));
 
       currentDesignatePid = null;
       currentDesignateFactoryPid = null;
@@ -510,7 +542,9 @@ public class OsgiMetaTypeXmlParser {
       type = AttributeDefinition.LONG;
     } else if ("Short".equals(strType)) {
       type = AttributeDefinition.SHORT;
-    } else if ("Char".equals(strType)) {
+    } else if (currentNSMinor <= 2 && "Char".equals(strType)) {
+      type = AttributeDefinition.CHARACTER;
+    } else if (currentNSMinor >= 3 && "Character".equals(strType)) {
       type = AttributeDefinition.CHARACTER;
     } else if ("Byte".equals(strType)) {
       type = AttributeDefinition.BYTE;
@@ -523,6 +557,31 @@ public class OsgiMetaTypeXmlParser {
     }
 
     return type;
+  }
+
+  static class Designate
+  {
+
+    private String designateFactoryPid;
+    private String designatePid;
+    private String objectOCDref;
+    private Configuration conf;
+    private List<AE> attributes;
+
+    Designate(String currentDesignateFactoryPid,
+                     String currentDesignatePid, String currentObjectOCDref,
+                     Configuration currentConf, List<AE> currentAttributes)
+    {
+       designateFactoryPid = currentDesignateFactoryPid;
+       designatePid = currentDesignatePid;
+       objectOCDref = currentObjectOCDref;
+       conf = currentConf;
+       attributes = currentAttributes;
+    }
+
+    void designate(MetaData md) {
+      md.designate(designateFactoryPid, designatePid, objectOCDref, conf, attributes);
+    }
   }
 
 }
