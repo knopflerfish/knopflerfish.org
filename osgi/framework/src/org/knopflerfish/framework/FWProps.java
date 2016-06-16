@@ -152,6 +152,12 @@ public class FWProps {
   public static final String KEY_KEYS = "org.knopflerfish.framework.bundleprops.keys";
 
   /**
+   * Set to true if resolver should only check uses directive for class conflicts,
+   * otherwise all import packages are checked when uses directives are missing.
+   */
+  public final static String RESOLVER_ONLY_USES = "org.knopflerfish.framework.resolver.onlyuses";
+
+  /**
    * Common true string.
    */
   public final static String TRUE = "true";
@@ -513,6 +519,7 @@ public class FWProps {
     setPropertyDefault(STARTLEVEL_COMPAT_PROP, FALSE);
     setPropertyDefault(STARTLEVEL_USE_PROP, TRUE);
     setPropertyDefault(READ_ONLY_PROP, FALSE);
+    setPropertyDefault(RESOLVER_ONLY_USES, FALSE);
   }
 
 

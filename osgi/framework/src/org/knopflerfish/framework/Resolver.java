@@ -1052,7 +1052,11 @@ class Resolver {
       final ArrayList<ExportPkg> checkList = new ArrayList<ExportPkg>();
       while (i.hasNext()) {
         final ImportPkg ip = i.next();
-        if (uses != null && !uses.contains(ip.pkg.pkg)) {
+        if (uses == null) {
+          if (framework.props.getBooleanProperty(FWProps.RESOLVER_ONLY_USES)) {
+            continue;
+          }
+        } else if (!uses.contains(ip.pkg.pkg)) {
           continue;
         }
         final ExportPkg ep = tempProvider.get(ip.pkg.pkg);
