@@ -1574,7 +1574,7 @@ public class BundleImpl implements Bundle {
   String toString(int detail) {
     final StringBuffer sb = new StringBuffer();
 
-    sb.append("BundleImpl[");
+    sb.append("Bundle[");
     sb.append("id=" + getBundleId());
     if (detail > 0) {
       sb.append(", state=" + getState());

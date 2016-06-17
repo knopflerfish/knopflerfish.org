@@ -41,6 +41,7 @@ import java.security.Permission;
 import java.security.PermissionCollection;
 import java.security.Permissions;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -49,6 +50,7 @@ import java.util.PropertyPermission;
 import org.osgi.framework.AdminPermission;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.CapabilityPermission;
+import org.osgi.framework.PackagePermission;
 import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.permissionadmin.PermissionInfo;
@@ -240,6 +242,47 @@ public class PermissionsWrapper extends PermissionCollection {
   /**
    *
    */
+  synchronized void updateChangedConditionalPermission(ConditionalPermissionInfoImpl cpi,
+                                                       int cpi_pos,
+                                                       int remove_pos,
+                                                       int expected_size)
+  {
+    final ConditionalPermission new_cp = cpi != null ? cpi
+        .getConditionalPermission(bundle) : null;
+    @SuppressWarnings("unused")
+    ConditionalPermission old_cp;
+    if (cpi_pos == remove_pos) {
+      old_cp = condPermList.set(cpi_pos, new_cp);
+    } else if (remove_pos == -1) {
+      condPermList.add(cpi_pos, new_cp);
+      old_cp = null;
+    } else if (cpi_pos == -1) {
+      old_cp = condPermList.remove(remove_pos);
+    } else {
+      // Case with different remove & insert position not used, yet
+      throw new RuntimeException("NYI");
+    }
+    if (expected_size != condPermList.size()) {
+      debug.printStackTrace("ASSERT, table size differ, " + expected_size
+                            + " != " + condPermList.size(), new Throwable());
+      throw new RuntimeException("ASSERT ERROR");
+    }
+    // TBD! How to optimize?   if (new_cp != null || old_cp != null) {
+      invalidate();
+    //    }
+  }
+
+
+  synchronized void addWovenDynamicImport(Collection<String> pkgs) {
+    for (String pkg : pkgs) {
+      implicitPermissions.add(new PackagePermission(pkg, PackagePermission.IMPORT));
+    }
+  }
+
+
+  /**
+   *
+   */
   private PermissionCollection getPerms0() {
     if (systemPermissions == null) {
       final PermissionCollection p = makePermissionCollection();
@@ -393,40 +436,6 @@ public class PermissionsWrapper extends PermissionCollection {
     } else {
       return immediateAccess == ConditionalPermissionInfo.ALLOW;
     }
-  }
-
-
-  /**
-   *
-   */
-  synchronized void updateChangedConditionalPermission(ConditionalPermissionInfoImpl cpi,
-                                                       int cpi_pos,
-                                                       int remove_pos,
-                                                       int expected_size)
-  {
-    final ConditionalPermission new_cp = cpi != null ? cpi
-        .getConditionalPermission(bundle) : null;
-    @SuppressWarnings("unused")
-    ConditionalPermission old_cp;
-    if (cpi_pos == remove_pos) {
-      old_cp = condPermList.set(cpi_pos, new_cp);
-    } else if (remove_pos == -1) {
-      condPermList.add(cpi_pos, new_cp);
-      old_cp = null;
-    } else if (cpi_pos == -1) {
-      old_cp = condPermList.remove(remove_pos);
-    } else {
-      // Case with different remove & insert position not used, yet
-      throw new RuntimeException("NYI");
-    }
-    if (expected_size != condPermList.size()) {
-      debug.printStackTrace("ASSERT, table size differ, " + expected_size
-                            + " != " + condPermList.size(), new Throwable());
-      throw new RuntimeException("ASSERT ERROR");
-    }
-    // TBD! How to optimize?   if (new_cp != null || old_cp != null) {
-      invalidate();
-    //    }
   }
 
 

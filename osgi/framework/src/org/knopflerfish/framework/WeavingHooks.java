@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -156,6 +157,10 @@ class WeavingHooks {
   }
 
   synchronized void callListeners(WovenClassImpl wc) {
+    WovenClassListener wcl = fwCtx.perm.getWovenClassListener();
+    if (wcl != null) {
+      wcl.modified(wc);
+    }
     if (listenerTracker == null) {
       return;
     }
@@ -202,7 +207,7 @@ class WeavingHooks {
     byte[] current;
     int state = WovenClass.TRANSFORMING;
     Class<?> c = null;
-    final List<String> dynamicImports = new DynamicImportList<String>(this);
+    final List<String> dynamicImports = new DynamicImportList(this);
   
     WovenClassImpl(BundleImpl bundle, String name, byte[] initial) {
       this.bundle = bundle;
@@ -309,54 +314,55 @@ class WeavingHooks {
     }
   }
 
-  public static class DynamicImportList<E> implements List<E> {
+
+  public static class DynamicImportList implements List<String> {
   
-    final private List<E> org;
+    final private List<String> org;
     final private WovenClassImpl parent;
     
     public DynamicImportList(WovenClassImpl parent) {
       this.parent = parent;
-      this.org = new ArrayList<E>();
+      this.org = new ArrayList<String>();
     }
 
 
-    public DynamicImportList(WovenClassImpl parent, List<E> subList) {
+    public DynamicImportList(WovenClassImpl parent, List<String> subList) {
       this.parent = parent;
       org = subList;
     }
 
 
     @Override
-    public boolean add(E elem) {
-      checkChangeAllowed();
+    public boolean add(String elem) {
+      checkChangeAllowed(Collections.singletonList(elem));
       return org.add(elem);
     }
 
 
     @Override
-    public void add(int index, E elem) {
-      checkChangeAllowed();
+    public void add(int index, String elem) {
+      checkChangeAllowed(Collections.singletonList(elem));
       org.add(index, elem);
     }
   
 
     @Override
-    public boolean addAll(Collection<? extends E> elems) {
-      checkChangeAllowed();
+    public boolean addAll(Collection<? extends String> elems) {
+      checkChangeAllowed(elems);
       return org.addAll(elems);
     }
 
 
     @Override
-    public boolean addAll(int index, Collection<? extends E> elems) {
-      checkChangeAllowed();
+    public boolean addAll(int index, Collection<? extends String> elems) {
+      checkChangeAllowed(elems);
       return org.addAll(index, elems);
     }
 
 
     @Override
     public void clear() {
-      checkChangeAllowed();
+      checkChangeAllowed(null);
       org.clear();
     }
 
@@ -374,7 +380,7 @@ class WeavingHooks {
 
 
     @Override
-    public E get(int index) {
+    public String get(int index) {
       return org.get(index);
     }
 
@@ -392,8 +398,8 @@ class WeavingHooks {
 
 
     @Override
-    public Iterator<E> iterator() {
-      return new DynamicListIterator<E>(parent, org.listIterator());
+    public Iterator<String> iterator() {
+      return new DynamicListIterator(parent, org.listIterator());
     }
 
 
@@ -404,48 +410,48 @@ class WeavingHooks {
 
 
     @Override
-    public ListIterator<E> listIterator() {
-      return new DynamicListIterator<E>(parent, org.listIterator());
+    public ListIterator<String> listIterator() {
+      return new DynamicListIterator(parent, org.listIterator());
     }
 
 
     @Override
-    public ListIterator<E> listIterator(int index) {
-      return new DynamicListIterator<E>(parent, org.listIterator(index));
+    public ListIterator<String> listIterator(int index) {
+      return new DynamicListIterator(parent, org.listIterator(index));
     }
 
 
     @Override
-    public E remove(int index) {
-      checkChangeAllowed();
+    public String remove(int index) {
+      checkChangeAllowed(null);
       return org.remove(index);
     }
   
 
     @Override
     public boolean remove(Object elem) {
-      checkChangeAllowed();
+      checkChangeAllowed(null);
       return org.remove(elem);
     }
   
 
     @Override
     public boolean removeAll(Collection<?> elems) {
-      checkChangeAllowed();
+      checkChangeAllowed(null);
       return org.removeAll(elems);
     }
   
 
     @Override
     public boolean retainAll(Collection<?> elems) {
-      checkChangeAllowed();
+      checkChangeAllowed(null);
       return org.removeAll(elems);
     }
 
 
     @Override
-    public E set(int index, E elem) {
-      checkChangeAllowed();
+    public String set(int index, String elem) {
+      checkChangeAllowed(Collections.singletonList(elem));
       return org.set(index, elem);
     }
 
@@ -457,8 +463,8 @@ class WeavingHooks {
 
 
     @Override
-    public List<E> subList(int from, int to) {
-      return new DynamicImportList<E>(parent, org.subList(from, to));
+    public List<String> subList(int from, int to) {
+      return new DynamicImportList(parent, org.subList(from, to));
     }
 
 
@@ -474,29 +480,34 @@ class WeavingHooks {
     }
 
 
-    private void checkChangeAllowed() throws UnsupportedOperationException {
+    private void checkChangeAllowed(Collection<? extends String> elems) throws UnsupportedOperationException {
       if (parent.isWeavingComplete()) {
         throw new IllegalStateException("Parent WovenClass is frozen");
       }
       parent.bundle.fwCtx.perm.checkWeaveAdminPerm(parent.bundle);
+      if (elems != null) {
+        for (String pkg : elems) {
+          parent.bundle.fwCtx.perm.checkImportPackagePermission(pkg);
+        }
+      }
     }
   
   }
 
-  public static class DynamicListIterator<E> implements ListIterator<E> {
+  public static class DynamicListIterator implements ListIterator<String> {
 
     final private WovenClassImpl parent;
-    final private ListIterator<E> org;
+    final private ListIterator<String> org;
  
 
-    public DynamicListIterator(WovenClassImpl parent, ListIterator<E> org) {
+    public DynamicListIterator(WovenClassImpl parent, ListIterator<String> org) {
       this.parent = parent;
       this.org = org;
     }
 
     @Override
-    public void add(E elem) {
-      checkChangeAllowed();
+    public void add(String elem) {
+      checkChangeAllowed(elem);
       org.add(elem);
     }
 
@@ -511,7 +522,7 @@ class WeavingHooks {
     }
 
     @Override
-    public E next() {
+    public String next() {
       return org.next();
     }
 
@@ -521,7 +532,7 @@ class WeavingHooks {
     }
 
     @Override
-    public E previous() {
+    public String previous() {
       return org.previous();
     }
 
@@ -532,21 +543,24 @@ class WeavingHooks {
 
     @Override
     public void remove() {
-      checkChangeAllowed();
+      checkChangeAllowed(null);
       org.remove();
     }
 
     @Override
-    public void set(E elem) {
-      checkChangeAllowed();
+    public void set(String elem) {
+      checkChangeAllowed(elem);
       org.set(elem);
     }
   
-    private void checkChangeAllowed() throws UnsupportedOperationException {
+    private void checkChangeAllowed(String elem) throws UnsupportedOperationException {
       if (parent.isWeavingComplete()) {
         throw new IllegalStateException("Parent WovenClass is frozen");
       }
       parent.bundle.fwCtx.perm.checkWeaveAdminPerm(parent.bundle);
+      if (elem != null) {
+        parent.bundle.fwCtx.perm.checkImportPackagePermission(elem);
+      }
     }
   
   }

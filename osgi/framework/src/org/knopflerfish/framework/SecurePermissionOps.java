@@ -74,6 +74,7 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServicePermission;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.hooks.weaving.WovenClassListener;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 
@@ -384,6 +385,15 @@ public class SecurePermissionOps
                                               PackagePermission.IMPORT));
     }
     return true;
+  }
+
+  @Override
+  void checkImportPackagePermission(String pkg)
+  {
+    final SecurityManager sm = System.getSecurityManager();
+    if (null != sm) {
+      sm.checkPermission(new PackagePermission(pkg, PackagePermission.IMPORT));
+    }
   }
 
   //
@@ -920,6 +930,11 @@ public class SecurePermissionOps
     } catch (final PrivilegedActionException e) {
       throw (MalformedURLException) e.getException();
     }
+  }
+
+  @Override
+  WovenClassListener getWovenClassListener() {
+    return ph;
   }
 
   //
