@@ -344,10 +344,7 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
           if (sService == null) {
             throw new IllegalStateException("Service is unregistered");
           }
-          if (p.providers.size() == 1) {
-            // Only one version available, allow.
-            return true;
-          } else if (sService instanceof ServiceFactory) {
+          if (sService instanceof ServiceFactory) {
             // Factory, allow.
             return true;
           } else {
