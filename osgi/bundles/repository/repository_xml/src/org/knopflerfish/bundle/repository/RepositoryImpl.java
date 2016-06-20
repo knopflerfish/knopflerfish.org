@@ -49,7 +49,12 @@ import org.osgi.service.repository.ExpressionCombiner;
 import org.osgi.service.repository.Repository;
 import org.osgi.service.repository.RequirementBuilder;
 import org.osgi.service.repository.RequirementExpression;
+import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
+
+import org.knopflerfish.bundle.repository.expression.ExpressionCombinerImpl;
+import org.knopflerfish.bundle.repository.expression.ExpressionResolver;
+import org.knopflerfish.bundle.repository.expression.RequirementBuilderImpl;
 
 
 public class RepositoryImpl implements Repository {
@@ -96,19 +101,25 @@ public class RepositoryImpl implements Repository {
 
   @Override
   public Promise<Collection<Resource>> findProviders(RequirementExpression expression) {
-    throw new RuntimeException("TODO: NYI");
+    Deferred<Collection<Resource>> d = new Deferred<Collection<Resource>>();
+    try {
+      new ExpressionResolver(this, expression, d).start();
+    } catch (Exception e) {
+      d.fail(e);
+    }
+    return d.getPromise();
   }
 
 
   @Override
   public ExpressionCombiner getExpressionCombiner() {
-    throw new RuntimeException("TODO: NYI");
+    return new ExpressionCombinerImpl();
   }
 
 
   @Override
   public RequirementBuilder newRequirementBuilder(String namespace) {
-    throw new RuntimeException("TODO: NYI");
+    return new RequirementBuilderImpl(namespace);
   }
 
 }

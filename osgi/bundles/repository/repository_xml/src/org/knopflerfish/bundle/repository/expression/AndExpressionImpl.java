@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,41 +31,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.knopflerfish.bundle.repository.expression;
 
-package org.knopflerfish.bundle.repository.xml;
+import java.util.Collections;
+import java.util.List;
 
-import java.util.HashMap;
+import org.osgi.service.repository.AndExpression;
+import org.osgi.service.repository.RequirementExpression;
 
-import org.osgi.resource.Resource;
+public class AndExpressionImpl
+  implements AndExpression
+{
 
-public class Data {
-  public final String namespace;
-  public final HashMap<String, String> directives;
-  public final HashMap<String, Object> attributes;
-  public Resource resource;
+  private final List<RequirementExpression> exprs;
 
-  public Data(String namespace) {
-    this.namespace = namespace;
-    directives = new HashMap<String, String>();
-    attributes = new HashMap<String, Object>();
-    resource = null;
-  }
-
-  @SuppressWarnings("unchecked")
-  public Data(Data d) {
-    namespace = d.namespace;
-    directives = (HashMap<String, String>) d.directives.clone();
-    attributes = (HashMap<String, Object>) d.attributes.clone();
-    resource = d.resource;
+  AndExpressionImpl(List<RequirementExpression> exprs)
+  {
+    this.exprs = exprs;
   }
 
   @Override
-  public String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.append("[namespace=" + namespace + "]\n");
-    sb.append("[directives=" + directives + "]\n");
-    sb.append("[attributes=" + attributes + "]\n");
-    return sb.toString();  
+  public List<RequirementExpression> getRequirementExpressions()
+  {
+    return Collections.unmodifiableList(exprs);
   }
 
 }

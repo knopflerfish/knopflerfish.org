@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,41 +31,76 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.knopflerfish.bundle.repository.expression;
 
-package org.knopflerfish.bundle.repository.xml;
+import java.util.Map;
 
-import java.util.HashMap;
-
+import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
+import org.osgi.service.repository.IdentityExpression;
+import org.osgi.service.repository.RequirementBuilder;
 
-public class Data {
-  public final String namespace;
-  public final HashMap<String, String> directives;
-  public final HashMap<String, Object> attributes;
-  public Resource resource;
+import org.knopflerfish.bundle.repository.xml.Data;
+import org.knopflerfish.bundle.repository.xml.RequirementImpl;
 
-  public Data(String namespace) {
-    this.namespace = namespace;
-    directives = new HashMap<String, String>();
-    attributes = new HashMap<String, Object>();
-    resource = null;
-  }
+public class RequirementBuilderImpl
+  implements RequirementBuilder
+{
 
-  @SuppressWarnings("unchecked")
-  public Data(Data d) {
-    namespace = d.namespace;
-    directives = (HashMap<String, String>) d.directives.clone();
-    attributes = (HashMap<String, Object>) d.attributes.clone();
-    resource = d.resource;
+  private final Data data;
+
+  public RequirementBuilderImpl(String namespace)
+  {
+    data = new Data(namespace);
   }
 
   @Override
-  public String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.append("[namespace=" + namespace + "]\n");
-    sb.append("[directives=" + directives + "]\n");
-    sb.append("[attributes=" + attributes + "]\n");
-    return sb.toString();  
+  public RequirementBuilder addAttribute(String name, Object value)
+  {
+    data.attributes.put(name, value);
+    return this;
+  }
+
+  @Override
+  public RequirementBuilder addDirective(String name, String value)
+  {
+    data.directives.put(name, value);
+    return this;
+  }
+
+  @Override
+  public RequirementBuilder setAttributes(Map<String, Object> attributes)
+  {
+    data.attributes.clear();
+    data.attributes.putAll(attributes);
+    return this;
+  }
+
+  @Override
+  public RequirementBuilder setDirectives(Map<String, String> directives)
+  {
+    data.directives.clear();
+    data.directives.putAll(directives);
+    return null;
+  }
+
+  @Override
+  public RequirementBuilder setResource(Resource resource)
+  {
+    data.resource = resource;
+    return this;
+  }
+
+  @Override
+  public Requirement build()
+  {
+    return new RequirementImpl(new Data(data));
+  }
+
+  @Override
+  public IdentityExpression buildExpression()
+  {
+    return new IdentityExperssionImpl(build());
   }
 
 }
