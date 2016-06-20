@@ -9,7 +9,7 @@
 	  content    = "NO-CACHE"/>
 
     <meta name       = "description"
-	  content    = "Knopflerfish OSGi @VERSION@ - is an Open Source OSGi Service Platform designed to be compliant with OSGi R5"/>
+	  content    = "Knopflerfish OSGi @VERSION@ - is an Open Source OSGi Service Platform designed to be compliant with OSGi R6"/>
     
     <meta name       = "title"
 	  content    = "Knopflerfish OSGi @VERSION@ - Release Overview Page"/>

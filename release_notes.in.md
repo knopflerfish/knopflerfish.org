@@ -48,90 +48,87 @@ OSGi Compendium Specification
 *   Added dependency to new Promise bundle.
 
 ### Component API 1.1.0
-*      Updated API classes to match OSGi R6, new minor version 1.3.
+*   Updated API classes to match OSGi R6, new minor version 1.3.
 
 ### Coordinator API 1.0.1
-*      Updated API classes to match OSGi R6. 
+*   Updated API classes to match OSGi R6. 
 
 ### DMT 5.0.1
-*      Updated API classes to match OSGi R6. 
+*   Updated API classes to match OSGi R6. 
 
 ### Event 4.0.2
-*      Updated API classes to match OSGi R6. 
+*   Updated API classes to match OSGi R6. 
 
 ### Http 5.1.3
-*      Updated API classes to match OSGi R6. 
+*   Updated API classes to match OSGi R6. 
 
 ### IO 4.0.1
-*      Updated API classes to match OSGi R6. 
+*   Updated API classes to match OSGi R6. 
 
 ### Measurement 4.0.2
-*      Updated API classes to match OSGi R6. 
+*   Updated API classes to match OSGi R6. 
 
 ### Metatype Annotations API 1.0.0
-*      New API bundle providing the
-       <code>org.osgi.service.metatype.annotations</code> package.
-*      This API-bundle is for compile time use, since the annotations
-      are used by the build system to create the XML-file describing
-      metatype information.
+*   New API bundle providing the
+    <code>org.osgi.service.metatype.annotations</code> package.
+*   This API-bundle is for compile time use, since the annotations
+    are used by the build system to create the XML-file describing
+    metatype information.
 
 ### Metatype API 4.1.0
-*      Updated API classes to match OSGi R6, new minor version 1.3.
+*   Updated API classes to match OSGi R6, new minor version 1.3.
 
 ### Position 4.0.1
-*      Updated API classes to match OSGi R6.
+*   Updated API classes to match OSGi R6.
 
 ### Prefs 4.0.3
-*      Updated API classes to match OSGi R6.
+*   Updated API classes to match OSGi R6.
 
 ### Promise 1.0.0
 *   New library bundle providing the
     <code>org.osgi.util.function.</code> and
     <code>org.osgi.util.promise</code> packages.
 
-
 ### Provisioning 4.0.1
-*      Updated API classes to match OSGi R6.
+*   Updated API classes to match OSGi R6.
 
 ### Remote service admin 1.1.0
-*      Updated API classes to match OSGi R6, new minor version 1.1.
+*   Updated API classes to match OSGi R6, new minor version 1.1.
 
 ### Repository API 1.1.0
-*      Updated API classes to match OSGi R6, new minor version 1.1.
+*   Updated API classes to match OSGi R6, new minor version 1.1.
 
 ### Repository XML 2.0.0
-*      Stubs for new methods in Repository API.
-*      Added dependency to new Promise bundle.
-
+*   Support for new methods in OSGi R6 Repository API.
+*   Added dependency to new Promise bundle.
 
 ### Resolver API 1.0.1
-*      Updated API classes to match OSGi R6.
+*   Updated API classes to match OSGi R6.
 
 ### Service loader API 1.0.1
-*      Updated API classes to match OSGi R6.
+*   Updated API classes to match OSGi R6.
 
 ### UPnP 4.0.1
-*      Updated API classes to match OSGi R6.
+*   Updated API classes to match OSGi R6.
 
 ### WireAdmin 5.0.1
-*      Updated API classes to match OSGi R6.
+*   Updated API classes to match OSGi R6.
 
 ### XML 4.0.1
-*      Updated API classes to match OSGi R6.
+*   Updated API classes to match OSGi R6.
 
 
 Knopflerfish Services
 ----------------------------------------------------------------------
 
 ### Desktop 6.0.0
-*      Added new Promise bundle.
+*   Added new Promise bundle.
 
 ### KF Metatype 4.1.0
-*      Updated to match OSGi R6 API minor version 1.3.
-*      New functionality not yet supported.
+*   Updated to match OSGi R6 API minor version 1.3.
 
 ### Repository manager 2.0.0
-*      Include new Promise bundle packages.
+*   Include new Promise bundle packages.
 
 
 Misc, start scripts, build system etc 
@@ -140,7 +137,6 @@ Misc, start scripts, build system etc
 ### Distribution build
  *  Add timestamp to bundle and SDK version numbers by default
     during distribution builds.
-
 
 ### Travis CI
  *  Added support for CI builds using travis. Check
