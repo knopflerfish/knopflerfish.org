@@ -33,6 +33,7 @@ osgi/jars/
 osgi/junit_grunt/
 osgi/minimal.xargs
 osgi/out/
+osgi/prefsdir/
 osgi/remote-init.xargs
 osgi/test-restart1.xargs
 osgi/test-restart2.xargs

@@ -158,6 +158,11 @@ public class FWProps {
   public final static String RESOLVER_ONLY_USES = "org.knopflerfish.framework.resolver.onlyuses";
 
   /**
+   * Set to true if resolver should provide system bundle packages from start.
+   */
+  public final static String RESOLVER_PREFER_SB = "org.knopflerfish.framework.resolver.prefersystembundle";
+
+  /**
    * Common true string.
    */
   public final static String TRUE = "true";
@@ -520,6 +525,7 @@ public class FWProps {
     setPropertyDefault(STARTLEVEL_USE_PROP, TRUE);
     setPropertyDefault(READ_ONLY_PROP, FALSE);
     setPropertyDefault(RESOLVER_ONLY_USES, FALSE);
+    setPropertyDefault(RESOLVER_PREFER_SB, FALSE);
   }
 
 
