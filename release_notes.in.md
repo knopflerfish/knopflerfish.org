@@ -31,7 +31,7 @@ Knopflerfish Framework - OSGi Core Specification
 * Updated framework to be OSGi R6 compliant.
 
 * New property <code>org.knopflerfish.framework.resolver.implicituses</code>.
-  Controls if should implicitly check all imports if no uses directive is
+  Controls if framework should implicitly check all imports if no uses directive is
   specified. This used to be the default behaviour in previous releases.
 
 * Fixed too strict check in <code>ServiceReference.isAssignableTo(Bundle,String)</code>.
@@ -48,6 +48,8 @@ OSGi Compendium Specification
 
 ### CM 5.1.0
 *   Updated API classes to match OSGi R6. 
+*   Fixed missing CM_LOCATION_UPDATE events.
+*   Fixed missing security check for <code>Configuration.getBundleLocation()</code>.
 
 ### Component (SCR) 6.0.0
 *   Updated API and functionality to match OSGI R6, new minor version 1.3.
