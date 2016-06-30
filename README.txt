@@ -25,7 +25,7 @@ Basic: How to start
 ----------------------------------------
  Prerequisites
 
-   - JRE 1.4 or later, available from Oracle.
+   - JRE 6 or later, available from Oracle.
 
 1. Step into the osgi dir
 2. Start the OSGi framework by:
@@ -39,9 +39,9 @@ Building:
 ----------------------------------------
  Prerequisites
 
-   - JDK 1.6 (or 1.5), available from Oracle.
+   - JDK 6 , available from Oracle.
      See http://java.com/en/download/faq/java_6.xml for details.
-     Note that JDK 1.7 or later can NOT be used to build Knopflerfish,
+     Note that JDK 7 or later can NOT be used to build Knopflerfish,
      but Knopflerfish will run on them.
    - Ant 1.9.1 or later, available from ant.apache.org.
    - openssl, to create and manipulate certificates when using
@@ -49,7 +49,7 @@ Building:
      suites for CPA can not be built and executed without openssl.
    - ProGuard 4.10 or later, tested with 5.2. This is only need if you want
      to build the compact version of the framework. You need ProGuard 5
-     or later if you want to build with Java8.
+     or later if you want to build with Java 8.
 
 1. Step into the osgi dir
 2. Start the build by:

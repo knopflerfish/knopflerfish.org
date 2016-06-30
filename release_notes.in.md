@@ -26,7 +26,7 @@ Knopflerfish Framework - OSGi Core Specification
    release documentation for a more detailed description of news in R6
    and KF6 implementation status.
 
-### Framework 8.0,0
+### Framework 8.0.0
 
 * Updated framework to be OSGi R6 compliant
 
