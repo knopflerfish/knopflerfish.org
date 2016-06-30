@@ -34,39 +34,45 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
-### Application Admin 4.0.1
+### Application Admin 4.1.0
 *   Updated API classes to match OSGi R6.
 
-### Blueprint 5.0.1
+### Blueprint 5.1.0
 *   Updated API classes to match OSGi R6. 
 
-### CM 5.0.3
+### CM 5.1.0
 *   Updated API classes to match OSGi R6. 
 
 ### Component (SCR) 6.0.0
 *   Updated API and functionality to match OSGI R6, new minor version 1.3.
 *   Added dependency to new Promise bundle.
 
-### Component API 1.1.0
+### Component Annotation 1.1.0
 *   Updated API classes to match OSGi R6, new minor version 1.3.
 
-### Coordinator API 1.0.1
+### Coordinator API 1.1.0
 *   Updated API classes to match OSGi R6. 
 
-### DMT 5.0.1
+### DMT 5.1.0
 *   Updated API classes to match OSGi R6. 
 
-### Event 4.0.2
+### Event 4.1.0
 *   Updated API classes to match OSGi R6. 
 
-### Http 5.1.3
+### Http 5.2.0
 *   Updated API classes to match OSGi R6. 
 
-### IO 4.0.1
+### IO 4.1.0
 *   Updated API classes to match OSGi R6. 
 
-### Measurement 4.0.2
+### KF Metatype 5.1.0
+*   Updated to match OSGi R6 API minor version 1.3.
+
+### Measurement 4.1.0
 *   Updated API classes to match OSGi R6. 
+
+### Metatype API 5.1.0
+*   Updated API classes to match OSGi R6, new minor version 1.3.
 
 ### Metatype Annotations API 1.0.0
 *   New API bundle providing the
@@ -75,13 +81,10 @@ OSGi Compendium Specification
     are used by the build system to create the XML-file describing
     metatype information.
 
-### Metatype API 4.1.0
-*   Updated API classes to match OSGi R6, new minor version 1.3.
-
-### Position 4.0.1
+### Position 4.1.0
 *   Updated API classes to match OSGi R6.
 
-### Prefs 4.0.3
+### Prefs 4.1.0
 *   Updated API classes to match OSGi R6.
 
 ### Promise 1.0.0
@@ -89,7 +92,7 @@ OSGi Compendium Specification
     <code>org.osgi.util.function.</code> and
     <code>org.osgi.util.promise</code> packages.
 
-### Provisioning 4.0.1
+### Provisioning 4.1.0
 *   Updated API classes to match OSGi R6.
 
 ### Remote service admin 1.1.0
@@ -98,23 +101,23 @@ OSGi Compendium Specification
 ### Repository API 1.1.0
 *   Updated API classes to match OSGi R6, new minor version 1.1.
 
-### Repository XML 2.0.0
-*   Support for new methods in OSGi R6 Repository API.
+### Repository XML 1.1.0
+*   Support for new methods in OSGi R6 Repository API version 1.1.
 *   Added dependency to new Promise bundle.
 
-### Resolver API 1.0.1
+### Resolver API 1.1.0
 *   Updated API classes to match OSGi R6.
 
-### Service loader API 1.0.1
+### Service loader API 1.1.0
 *   Updated API classes to match OSGi R6.
 
-### UPnP 4.0.1
+### UPnP 4.1.0
 *   Updated API classes to match OSGi R6.
 
-### WireAdmin 5.0.1
+### WireAdmin 5.1.0
 *   Updated API classes to match OSGi R6.
 
-### XML 4.0.1
+### XML 4.1.0
 *   Updated API classes to match OSGi R6.
 
 
@@ -124,10 +127,7 @@ Knopflerfish Services
 ### Desktop 6.0.0
 *   Added new Promise bundle.
 
-### KF Metatype 4.1.0
-*   Updated to match OSGi R6 API minor version 1.3.
-
-### Repository manager 2.0.0
+### Repository manager 1.3.0
 *   Include new Promise bundle packages.
 
 
@@ -137,6 +137,7 @@ Misc, start scripts, build system etc
 ### Distribution build
  *  Add timestamp to bundle and SDK version numbers by default
     during distribution builds.
+ *  Changed SVN references to Git.
 
 ### Travis CI
  *  Added support for CI builds using travis. Check
