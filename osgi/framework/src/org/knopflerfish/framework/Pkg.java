@@ -136,17 +136,14 @@ class Pkg {
     if (!providers.isEmpty()) {
       return providers.get(0);
     } else {
-      ExportPkg best = null;
       // See if there are any resolved exporters.
       for (final ExportPkg exportPkg : exporters) {
         final ExportPkg ep = exportPkg;
-        if (ep.bpkgs.bg.bundle.isResolved()) {
-          if (best == null || best.version.compareTo(ep.version) < 0) {
-            best = ep;
-          }
+        if (ep.bpkgs.isActive()) {
+          return ep;
         }
       }
-      return best;
+      return null;
     }
   }
 

@@ -410,15 +410,6 @@ class Resolver {
     tempProvider = new HashMap<String, ExportPkg>();
     tempRequired = new HashMap<RequireBundle, BundlePackages>();
     tempWires = new ArrayList<BundleWireImpl>();
-    if (bg.bundle == framework.systemBundle && framework.props.getBooleanProperty(FWProps.RESOLVER_PREFER_SB)) {
-      for (Pkg p : packages.values()) {
-        for (ExportPkg ep : p.exporters) {
-          if (ep.bpkgs.bg == bg) {
-            tempProvider.put(ep.name, ep);
-          }
-        }
-      }
-    }
     try {
       while (true) {
         tempCollision = null;
@@ -721,6 +712,7 @@ class Resolver {
         framework.debug.println("resolvePackages: check - " + ip.pkgString());
       }
       List<ExportPkg> possibleProvider = new LinkedList<ExportPkg>();
+      int n_resolved = 0;
       for (ExportPkg ep : ip.pkg.exporters) {
         int ss = framework.debug.resolver ? pkgFail.length() : 0;
         if (ip.checkAttributes(ep)) {
@@ -729,7 +721,11 @@ class Resolver {
             newFailReason(pkgFail, "Package temporary black listed", ep);
           } else {
             if (ip.bpkgs == ep.bpkgs || ip.checkPermission(ep)) {
-              possibleProvider.add(ep);
+              if (ep.bpkgs.isActive()) {
+                possibleProvider.add(n_resolved++, ep);
+              } else {
+                possibleProvider.add(ep);
+              }
               continue;
             } else if (pkgFail != null) {
               newFailReason(pkgFail, "No import permission", ep);
@@ -1062,7 +1058,7 @@ class Resolver {
       while (i.hasNext()) {
         final ImportPkg ip = i.next();
         if (uses == null) {
-          if (framework.props.getBooleanProperty(FWProps.RESOLVER_ONLY_USES)) {
+          if (!framework.props.getBooleanProperty(FWProps.RESOLVER_IMPLICIT_USES)) {
             continue;
           }
         } else if (!uses.contains(ip.pkg.pkg)) {

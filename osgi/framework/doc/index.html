@@ -1020,18 +1020,10 @@ but "-D" should also work.
     <td>False</td>
   </tr>
   <tr>
-    <td>org.knopflerfish.framework.resolver.onlyuses</td>
+    <td>org.knopflerfish.framework.resolver.implicituses</td>
     <td>
-      Set to true if resolver should only check uses directive for class conflicts,
-      otherwise all import packages are checked when uses directives are missing.
-    </td>
-    <td>Boolean</td>
-    <td>False</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.framework.resolver.prefersystembundle</td>
-    <td>
-      Set to true if resolver should provide system bundle packages from start.
+      Set to true if resolver should in case that no uses directive is specified
+      implicitly check all imported packages for class conflicts.
     </td>
     <td>Boolean</td>
     <td>False</td>

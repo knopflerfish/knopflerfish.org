@@ -152,15 +152,10 @@ public class FWProps {
   public static final String KEY_KEYS = "org.knopflerfish.framework.bundleprops.keys";
 
   /**
-   * Set to true if resolver should only check uses directive for class conflicts,
-   * otherwise all import packages are checked when uses directives are missing.
+   * Set to true if resolver should in case that no uses directive is specified
+   * implicitly check all imported packages for class conflicts.
    */
-  public final static String RESOLVER_ONLY_USES = "org.knopflerfish.framework.resolver.onlyuses";
-
-  /**
-   * Set to true if resolver should provide system bundle packages from start.
-   */
-  public final static String RESOLVER_PREFER_SB = "org.knopflerfish.framework.resolver.prefersystembundle";
+  public final static String RESOLVER_IMPLICIT_USES = "org.knopflerfish.framework.resolver.implicituses";
 
   /**
    * Common true string.
@@ -524,8 +519,7 @@ public class FWProps {
     setPropertyDefault(STARTLEVEL_COMPAT_PROP, FALSE);
     setPropertyDefault(STARTLEVEL_USE_PROP, TRUE);
     setPropertyDefault(READ_ONLY_PROP, FALSE);
-    setPropertyDefault(RESOLVER_ONLY_USES, FALSE);
-    setPropertyDefault(RESOLVER_PREFER_SB, FALSE);
+    setPropertyDefault(RESOLVER_IMPLICIT_USES, FALSE);
   }
 
 

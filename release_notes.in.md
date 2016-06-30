@@ -28,7 +28,13 @@ Knopflerfish Framework - OSGi Core Specification
 
 ### Framework 8.0.0
 
-* Updated framework to be OSGi R6 compliant
+* Updated framework to be OSGi R6 compliant.
+
+* New property <code>org.knopflerfish.framework.resolver.implicituses</code>.
+  Controls if should implicitly check all imports if no uses directive is
+  specified. This used to be the default behaviour in previous releases.
+
+* Fixed too strict check in <code>ServiceReference.isAssignableTo(Bundle,String)</code>.
 
 
 OSGi Compendium Specification
