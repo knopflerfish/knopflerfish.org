@@ -8,7 +8,7 @@ href="http://ant.apache.org/">ant.apache.org</a>
 
 <p>
 Knopflerfish can be built either by 
- <a href="http://www.knopflerfish.org/svn_info.html">
+ <a href="http://www.knopflerfish.org/git_info.html">
    checking out the entire source code
 </a>,
 or by (re)building an installed distribution.
@@ -59,7 +59,7 @@ href="programming.html">programming</a> section.
 
 You can build a compact version of the framework called
 <code>framework_compact.jar</code>. To build this you need to download
-<a href="http://proguard.sourceforge.net/">Proguard 4.10</a>.
+<a href="http://proguard.sourceforge.net/">Proguard 5.2</a>.
 Install the proguard.jar file into ${KF_ROOT}/ant/lib and build
 the framework with the property <code>compact</code> set to
 <code>true</code>.
@@ -72,7 +72,7 @@ to build bundles.
 </p>
 <pre class="shell">
 $ ant -Dcompact=true -f framework/build.xml 
-Buildfile: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/build.xml
+Buildfile: /Users/jan/workspace_osgi/kf_osgi/osgi/framework/build.xml
 
 compile:
 
@@ -91,27 +91,27 @@ define_bundle_tasks:
 bundle_tasks:
 
 genexports:
-   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/resources/exports
+   [delete] Deleting: /Users/jan/workspace_osgi/kf_osgi/osgi/framework/resources/exports
 
 jar:
-   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/resources/version
-   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework/resources/tstamp
+   [delete] Deleting: /Users/jan/workspace_osgi/kf_osgi/osgi/framework/resources/version
+   [delete] Deleting: /Users/jan/workspace_osgi/kf_osgi/osgi/framework/resources/tstamp
 
 writerelease:
 
 jar_file_full:
 
 jar_file_compact:
-      [jar] Building jar: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar
+      [jar] Building jar: /Users/jan/workspace_osgi/kf_osgi/osgi/framework_compact.jar
 
 proguard_compact:
-     [move] Moving 1 file to /Users/jan/workspace_osgi5/kf_osgi5/osgi
- [proguard] ProGuard, version 4.10
- [proguard] Reading program jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar.tmp.jar]
- [proguard] Reading library jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/ee/ee.minimum.jar]
- [proguard] Preparing output jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar]
- [proguard]   Copying resources from program jar [/Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar.tmp.jar]
-   [delete] Deleting: /Users/jan/workspace_osgi5/kf_osgi5/osgi/framework_compact.jar.tmp.jar
+     [move] Moving 1 file to /Users/jan/workspace_osgi/kf_osgi/osgi
+ [proguard] ProGuard, version 5.2
+ [proguard] Reading program jar [/Users/jan/workspace_osgi/kf_osgi/osgi/framework_compact.jar.tmp.jar]
+ [proguard] Reading library jar [/Users/jan/workspace_osgi/kf_osgi/osgi/ee/ee.minimum.jar]
+ [proguard] Preparing output jar [/Users/jan/workspace_osgi/kf_osgi/osgi/framework_compact.jar]
+ [proguard]   Copying resources from program jar [/Users/jan/workspace_osgi/kf_osgi/osgi/framework_compact.jar.tmp.jar]
+   [delete] Deleting: /Users/jan/workspace_osgi/kf_osgi/osgi/framework_compact.jar.tmp.jar
 
 add_dex:
 

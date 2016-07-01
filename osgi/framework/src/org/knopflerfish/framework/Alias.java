@@ -76,7 +76,8 @@ public class Alias {
       { "Windows7", "win*7", "win32" },
       { "WindowsServer2008", "win*2008", "win32" },
       { "Windows8", "win*8", "win32" },
-      { "WindowsServer2012", "win*2012", "win32" }
+      { "WindowsServer2012", "win*2012", "win32" },
+      { "Windows10", "win*10", "win32" }
   };
 
 
