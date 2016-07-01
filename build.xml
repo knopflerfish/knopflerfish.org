@@ -59,7 +59,7 @@
   </condition>
 
 
-  <property name="version.base"       value="6.0.0.alpha"/>
+  <property name="version.base"       value="6.0.0.beta"/>
   <condition property="version"
              value="${version.base}"
              else="${version.base}-${version.suffix}">
