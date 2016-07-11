@@ -33,6 +33,12 @@ Knopflerfish Framework - OSGi Core Specification
 * New property <code>org.knopflerfish.framework.resolver.implicituses</code>.
   Controls if framework should implicitly check all imports if no uses directive is
   specified. This used to be the default behaviour in previous releases.
+  Default value is false.
+
+* New property <code>org.knopflerfish.framework.resolver.prefersystembundle</code>.
+  Set to true if resolver should actively provide system bundle packages
+  from the start. This will cause the resolver to prefer these packages
+  if possible. Default value is false.
 
 * Fixed too strict check in <code>ServiceReference.isAssignableTo(Bundle,String)</code>.
 

@@ -410,6 +410,15 @@ class Resolver {
     tempProvider = new HashMap<String, ExportPkg>();
     tempRequired = new HashMap<RequireBundle, BundlePackages>();
     tempWires = new ArrayList<BundleWireImpl>();
+    if (bg.bundle == framework.systemBundle && framework.props.getBooleanProperty(FWProps.RESOLVER_PREFER_SB)) {
+      for (Pkg p : packages.values()) {
+        for (ExportPkg ep : p.exporters) {
+          if (ep.bpkgs.bg == bg) {
+            tempProvider.put(ep.name, ep);
+          }
+        }
+      }
+    }
     try {
       while (true) {
         tempCollision = null;

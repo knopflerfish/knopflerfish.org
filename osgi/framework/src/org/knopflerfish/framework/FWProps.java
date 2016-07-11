@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.osgi.framework.Constants;
@@ -156,6 +155,11 @@ public class FWProps {
    * implicitly check all imported packages for class conflicts.
    */
   public final static String RESOLVER_IMPLICIT_USES = "org.knopflerfish.framework.resolver.implicituses";
+
+  /**
+   * Set to true if resolver should provide system bundle packages from start.
+   */
+  public final static String RESOLVER_PREFER_SB = "org.knopflerfish.framework.resolver.prefersystembundle";
 
   /**
    * Common true string.
@@ -520,6 +524,7 @@ public class FWProps {
     setPropertyDefault(STARTLEVEL_USE_PROP, TRUE);
     setPropertyDefault(READ_ONLY_PROP, FALSE);
     setPropertyDefault(RESOLVER_IMPLICIT_USES, FALSE);
+    setPropertyDefault(RESOLVER_PREFER_SB, FALSE);
   }
 
 
