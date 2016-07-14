@@ -727,7 +727,9 @@ class Resolver {
         if (ip.checkAttributes(ep)) {
           if (tempBlackList.contains(ep)) {
             tempBlackListHits++;
-            newFailReason(pkgFail, "Package temporary black listed", ep);
+            if (pkgFail != null) {
+              newFailReason(pkgFail, "Package temporary black listed", ep);
+            }
           } else {
             if (ip.bpkgs == ep.bpkgs || ip.checkPermission(ep)) {
               if (ep.bpkgs.isActive()) {
