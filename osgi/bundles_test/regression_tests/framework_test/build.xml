@@ -423,46 +423,49 @@
 		</ant>
 	</target>
 	<target name="fragment_bundles">
-		<ant dir="test_target_bundles/fb_C" target="all"
-	 inheritAll="false">
+		<ant dir="test_target_bundles/fb_C" target="all" inheritAll="false">
 			<property name="jardir"  location="${resources.dir}"/>
 			<property name="outdir"  location="${ttb.outdir}/fb_C"/>
 			<property name="bundle_tasks.built" value="true"/>
 		</ant>
-		<ant dir="test_target_bundles/fb_B" target="all"
-	 inheritAll="false">
+		<ant dir="test_target_bundles/fb_B" target="all" inheritAll="false">
 			<property name="jardir"  location="${resources.dir}"/>
 			<property name="outdir"  location="${ttb.outdir}/fb_B"/>
 			<property name="bundle_tasks.built" value="true"/>
 		</ant>
-		<ant dir="test_target_bundles/fb_A" target="all"
-	 inheritAll="false">
+		<ant dir="test_target_bundles/fb_A" target="all" inheritAll="false">
 			<property name="jardir"  location="${resources.dir}"/>
 			<property name="outdir"  location="${ttb.outdir}/fb_A"/>
 			<property name="bundle_tasks.built" value="true"/>
 		</ant>
-		<ant dir="test_target_bundles/fb_D" target="all"
-	 inheritAll="false">
+		<ant dir="test_target_bundles/fb_D" target="all" inheritAll="false">
 			<property name="jardir"  location="${resources.dir}"/>
 			<property name="outdir"  location="${ttb.outdir}/fb_D"/>
 			<property name="bundle_tasks.built" value="true"/>
 		</ant>
-		<ant dir="test_target_bundles/fb_E" target="all"
-	 inheritAll="false">
+		<ant dir="test_target_bundles/fb_E" target="all" inheritAll="false">
 			<property name="jardir"  location="${resources.dir}"/>
 			<property name="outdir"  location="${ttb.outdir}/fb_E"/>
 			<property name="bundle_tasks.built" value="true"/>
 		</ant>
-		<ant dir="test_target_bundles/fb_F" target="all"
-	 inheritAll="false">
+		<ant dir="test_target_bundles/fb_F" target="all" inheritAll="false">
 			<property name="jardir"  location="${resources.dir}"/>
 			<property name="outdir"  location="${ttb.outdir}/fb_F"/>
 			<property name="bundle_tasks.built" value="true"/>
 		</ant>
-		<ant dir="test_target_bundles/fb_G" target="all"
-	 inheritAll="false">
+		<ant dir="test_target_bundles/fb_G" target="all" inheritAll="false">
 			<property name="jardir"  location="${resources.dir}"/>
 			<property name="outdir"  location="${ttb.outdir}/fb_G"/>
+			<property name="bundle_tasks.built" value="true"/>
+		</ant>
+		<ant dir="test_target_bundles/fb_H" target="all" inheritAll="false">
+			<property name="jardir"  location="${resources.dir}"/>
+			<property name="outdir"  location="${ttb.outdir}/fb_H"/>
+			<property name="bundle_tasks.built" value="true"/>
+		</ant>
+		<ant dir="test_target_bundles/fb_I" target="all" inheritAll="false">
+			<property name="jardir"  location="${resources.dir}"/>
+			<property name="outdir"  location="${ttb.outdir}/fb_I"/>
 			<property name="bundle_tasks.built" value="true"/>
 		</ant>
 	</target>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2015, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -447,7 +447,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     if (extension.isBootClassPathExtension()) {
       // if we attach during startup, we assume that bundle is in BCP.
       if (getClassLoader() == null) {
-        current().attachFragment(extension);
+        current().attachFragment(extension, false);
       } else {
         throw new UnsupportedOperationException(
             "Bootclasspath extension can not be dynamicly activated");
@@ -455,7 +455,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     } else {
       try {
         addClassPathURL(new URL("file:" + extension.archive.getJarLocation()));
-        current().attachFragment(extension);
+        current().attachFragment(extension, false);
         handleExtensionActivator(extension);
       } catch (final Exception e) {
         throw new UnsupportedOperationException(
@@ -974,10 +974,8 @@ public class SystemBundle extends BundleImpl implements Framework {
       }
     }
 
-    final List<BundleImpl> allBundles = fwCtx.bundles.getBundles();
-
     // Set state to INSTALLED and purge any unrefreshed bundles
-    for (final BundleImpl bundleImpl : allBundles) {
+    for (final BundleImpl bundleImpl : fwCtx.bundles.getBundles()) {
       final BundleImpl b = bundleImpl;
       if (b.getBundleId() != 0) {
         b.setStateInstalled(false);

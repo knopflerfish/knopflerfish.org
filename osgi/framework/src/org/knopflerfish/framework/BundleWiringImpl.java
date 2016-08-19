@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,7 +108,7 @@ public class BundleWiringImpl implements BundleWiring {
       if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
         for (ExportPkg ep : gen.bpkgs.getPackageCapabilities()) {
           if (ep.checkPermission()) {
-            res.add(ep);            
+            res.add(ep);
           }
         }
       }

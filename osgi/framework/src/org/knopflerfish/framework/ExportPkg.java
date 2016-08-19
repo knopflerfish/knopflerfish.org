@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -143,7 +143,7 @@ class ExportPkg
    * Create a re-export package entry with a new bundle owner from an
    * existing export.
    * @param ep The ExportPkg to create a re-export package entry for.
-   * @param b  The BundlePackages that owns this re-exprot entry.
+   * @param b  The BundlePackages that owns this re-export entry.
    */
   ExportPkg(ExportPkg ep, BundlePackages b) {
     this.name = ep.name;

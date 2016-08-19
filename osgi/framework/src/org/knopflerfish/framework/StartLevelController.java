@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@
 package org.knopflerfish.framework;
 
 import java.io.File;
-import java.util.List;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
@@ -269,9 +268,7 @@ public class StartLevelController
       }
       final Vector<BundleImpl> set = new Vector<BundleImpl>();
 
-      final List<BundleImpl> bundles = fwCtx.bundles.getBundles();
-
-      for (final BundleImpl bs : bundles) {
+      for (final BundleImpl bs : fwCtx.bundles.getBundles()) {
         if (canStart(bs)) {
           if (bs.getStartLevel() == currentLevel) {
             if (bs.current().archive.getAutostartSetting()!=-1) {
@@ -312,9 +309,7 @@ public class StartLevelController
 
       final Vector<BundleImpl> set = new Vector<BundleImpl>();
 
-      final List<BundleImpl> bundles = fwCtx.bundles.getBundles();
-
-      for (final BundleImpl bs : bundles) {
+      for (final BundleImpl bs : fwCtx.bundles.getBundles()) {
         if (bs.getState() == Bundle.ACTIVE ||
             (bs.getState() == Bundle.STARTING && bs.current().lazyActivation)) {
           if (bs.getStartLevel() == currentLevel + 1) {

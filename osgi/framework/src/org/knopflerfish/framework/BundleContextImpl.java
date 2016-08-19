@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.List;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -161,7 +160,7 @@ public class BundleContextImpl
   public Bundle[] getBundles() {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     final
-    List<Bundle> bl = (List) bundle.fwCtx.bundles.getBundles();
+    Collection<Bundle> bl = (Collection)bundle.fwCtx.bundles.getBundles();
     bundle.fwCtx.bundleHooks.filterBundles(this, bl);
     return bl.toArray(new Bundle [bl.size()]);
   }

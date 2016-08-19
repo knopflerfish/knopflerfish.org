@@ -18,7 +18,7 @@
   <property name="frameworkdoc_template"
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.impl.version"   value="7.2.3"/>
+  <property name="fw.impl.version"   value="7.2.4"/>
 
   <property name="jarfile"
             location="${topdir}/${ant.project.name}.jar"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -532,16 +532,18 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   /**
    *
    */
-  boolean resolvePackages(BundleImpl[] triggers) throws BundleException {
+  boolean resolvePackages(BundleImpl[] triggers, boolean isResolve) throws BundleException {
     ArrayList<BundleGeneration> detached = null;
-    attachFragments();
+    if (!isResolve) {
+      attachFragments();
+    }
     while (true) {
       if (bpkgs.resolvePackages(triggers)) {
         if (detached != null) {
           // TODO should we report fragment that failed to attach
           for (int i = detached.size() - 2; i >= 0; i--) {
             final BundleGeneration bg = detached.get(i);
-            if (bg.bundle.attachToFragmentHost(this)) {
+            if (bg.bundle.attachToFragmentHost(this, false)) {
               fragments.add(bg);
             }
           }
@@ -550,7 +552,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
         return true;
       }
-      if (isFragmentHost()) {
+      if (!isResolve && isFragmentHost()) {
         if (bundle.fwCtx.debug.resolver) {
           bundle.fwCtx.debug.println("Resolve failed, remove last fragment and retry");
         }
@@ -609,7 +611,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         // retrieve all fragments this bundle host
         for (final BundleGeneration fbg : hosting) {
           // TODO, do we need to clean in case of BundleException?
-          fbg.bundle.attachToFragmentHost(this);
+          fbg.bundle.attachToFragmentHost(this, false);
         }
       }
     }
@@ -620,7 +622,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    * Attaches a fragment to this bundle generation.
    * @throws BundleException 
    */
-  void attachFragment(BundleGeneration fragmentBundle) throws BundleException {
+  void attachFragment(BundleGeneration fragmentBundle, boolean isResolve) throws BundleException {
     if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
       throw new IllegalStateException("Bundle does not allow fragments to attach");
     }
@@ -635,9 +637,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     }
     if (!bundle.fwCtx.resolverHooks.filterMatches(fragmentBundle.fragment,
                                                   new BundleNameVersionCapability(this, BundleRevision.HOST_NAMESPACE))) {
-      throw new IllegalStateException("Resolver hooks vetoed attach to: " + this);      
+      throw new IllegalStateException("Resolver hooks vetoed attach to: " + this);
     }
-    final String failReason = bpkgs.attachFragment(fragmentBundle.bpkgs);
+    final String failReason = bpkgs.attachFragment(fragmentBundle.bpkgs, isResolve);
     if (failReason != null) {
       throw new IllegalStateException("Failed to attach: " + failReason);
     }
@@ -649,7 +651,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         throw new IllegalStateException(be.getMessage());
       }
     } else {
-      
+
     }
     if (bundle.fwCtx.debug.resolver) {
       bundle.fwCtx.debug.println("Fragment(" + fragmentBundle.bundle + ") attached to host(id="
@@ -707,7 +709,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)fragments.clone();
       for (final BundleGeneration bundleGeneration : fix) {
         final BundleImpl fb = bundleGeneration.bundle;
-        fb.getUpdatedState(null);
+        fb.getUpdatedState(null, false);
       }
     }
   }

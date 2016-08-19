@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -345,7 +345,7 @@ public class PackageAdminImpl implements PackageAdmin {
     // Resolve first to avoid dead lock
     BundleImpl [] triggers = slist.toArray(new BundleImpl[slist.size()]);
     for (final BundleImpl rb : slist) {
-      rb.getUpdatedState(triggers);
+      rb.getUpdatedState(triggers, false);
     }
     try {
       fwCtx.resolverHooks.endResolve(triggers);
@@ -395,7 +395,7 @@ public class PackageAdminImpl implements PackageAdmin {
         // TODO Resolve all at once, so that we can handle resolver abort correctly! 
         for (final Bundle bundle : bl) {
           final BundleImpl b = (BundleImpl)bundle;
-          if (b.getUpdatedState(triggers) == Bundle.INSTALLED) {
+          if (b.getUpdatedState(triggers, false) == Bundle.INSTALLED) {
             res = false;
           }
         }

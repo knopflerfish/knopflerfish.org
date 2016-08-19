@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -266,8 +268,8 @@ public class Bundles {
    *
    * @return A Bundle array with bundles.
    */
-  List<BundleImpl> getBundles() {
-    final ArrayList<BundleImpl> res = new ArrayList<BundleImpl>(bundles.size());
+  SortedSet<BundleImpl> getBundles() {
+    final SortedSet<BundleImpl> res = new TreeSet<BundleImpl>();
     synchronized (bundles) {
       res.addAll(bundles.values());
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,8 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   Bundle buE;
   Bundle buF;
   Bundle buG;
+  Bundle buH;
+  Bundle buI;
 
   PrintStream out = System.out;
 
@@ -100,6 +102,12 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Setup());
     addTest(new Frame560a());
     addTest(new Cleanup());
+    addTest(new Setup());
+    addTest(new Frame570a());
+    addTest(new Cleanup());
+    addTest(new Setup());
+    addTest(new Frame580a());
+    addTest(new Cleanup());
   }
 
 
@@ -129,7 +137,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
 
       try {
         pa.refreshPackages(null);
-	Thread.sleep(1000);
+        Thread.sleep(1000);
       } catch (Exception e) {
         fail("Failed to refresh packages");
       }
@@ -148,6 +156,8 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
         buE,
         buF,
         buG,
+        buH,
+        buI
       };
       for(int i = 0; i < bundles.length; i++) {
         if (bundles[i] != null) {
@@ -164,6 +174,8 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       buE = null;
       buF = null;
       buG = null;
+      buH = null;
+      buI = null;
 
       if (pa != null) {
         bc.ungetService(paSR);
@@ -197,7 +209,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
 
       assertTrue("Fragment should be resolved", buB.getState() == Bundle.RESOLVED);
       assertTrue("Exporter should be resolved", buC.getState() == Bundle.RESOLVED);
-      
+
       out.println("### framework test bundle :FRAME500A:PASS");
     }
   }
@@ -423,16 +435,72 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       // NYI wait for refreshed event
       try {
         Thread.sleep(5000);
-      } catch (InterruptedException _) {
+      } catch (InterruptedException _ignore) {
       }
 
       assertEquals("Class should come from Host after refresh", "HOST", checkApi(1));
 
       out.println("### framework test bundle :FRAME560A:PASS");
     }
+  }
+
+  class Frame570a extends FWTestCase {
+
+    public void runTest() throws Throwable {
+      buA = Util.installBundle(bc, "fb_A-1.0.0.jar");
+      assertNotNull(buA);
+      buB = Util.installBundle(bc, "fb_B-1.0.0.jar");
+      assertNotNull(buB);
+      buC = Util.installBundle(bc, "fb_C_api-1.0.0.jar");
+      assertNotNull(buC);
+      buH = Util.installBundle(bc, "fb_H-1.0.0.jar");
+      assertNotNull(buH);
+      try {
+        buA.start();
+      } catch (BundleException bexcR) {
+        fail("framework test bundle "+ bexcR
+             +"(" + bexcR.getNestedException() + ") :FRAME570A:FAIL");
+      } catch (SecurityException secR) {
+        fail("framework test bundle "+ secR +" :FRAME570A:FAIL");
+      }
+
+      assertTrue("Fragment 1.0 should be resolved", buB.getState() == Bundle.RESOLVED);
+      assertTrue("Provider of optional package should be resolved", buH.getState() == Bundle.RESOLVED);
+      try {
+        buA.loadClass("test_fb.H.LibObject");
+      } catch (ClassNotFoundException cnfe) {
+        fail("Fragment host should get fragment imported class "+ cnfe +" :FRAME570A:FAIL");
+      }
+      out.println("### framework test bundle :FRAME570A:PASS");
+    }
 
   }
 
+  class Frame580a extends FWTestCase {
+
+    public void runTest() throws Throwable {
+      buB = Util.installBundle(bc, "fb_B-1.0.0.jar");
+      assertNotNull(buB);
+      buC = Util.installBundle(bc, "fb_C_api-1.0.0.jar");
+      assertNotNull(buC);
+      buI = Util.installBundle(bc, "fb_I-1.0.0.jar");
+      assertNotNull(buI);
+      assertFalse("Should not resolve since fragment host is missing",
+                  pa.resolveBundles(new Bundle [] {buI}));
+      buA = Util.installBundle(bc, "fb_A-1.0.0.jar");
+      assertNotNull(buA);
+      try {
+        buI.start();
+      } catch (BundleException bexcR) {
+        fail("framework test bundle "+ bexcR
+             +"(" + bexcR.getNestedException() + ") :FRAME580A:FAIL");
+      } catch (SecurityException secR) {
+        fail("framework test bundle "+ secR +" :FRAME580A:FAIL");
+      }
+      out.println("### framework test bundle :FRAME580A:PASS");
+    }
+
+  }
 
   //
   // Help methods
@@ -467,9 +535,9 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       if (fv != version) {
         return "Wrong FragApi version, was " + fv + " expected " + version;
       }
-    } catch (IllegalAccessException _) {
+    } catch (IllegalAccessException _ignore) {
       return "Failed to find access FragApi version";
-    } catch (NoSuchFieldException _) {
+    } catch (NoSuchFieldException _ignore) {
       return "Failed to find FragApi version";
     }
 
@@ -481,11 +549,11 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
         return "Method where doesn't return String";
       }
       res = (String)where.invoke(fa, (Object[])null);
-    } catch (NoSuchMethodException _) {
+    } catch (NoSuchMethodException _ignore) {
       return "Failed to find where method";
-    } catch (IllegalAccessException _) {
+    } catch (IllegalAccessException _ignore) {
       return "Failed to find access where method";
-    } catch (InvocationTargetException _) {
+    } catch (InvocationTargetException _ignore) {
       return "Failed to invoke where method";
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -215,13 +215,20 @@ class BundlePackages {
 
       if (ip != null) {
         if (!fip.intersect(ip)) {
-          throw new IllegalStateException(
-              "Host bundle import package and fragment bundle " +
-                  "import package doesn't intersect, resolve isn't possible.");
+          if (fip.mustBeResolved()) {
+            throw new IllegalStateException("Host bundle import package and fragment" +
+                " bundle import package doesn't intersect, resolve isn't possible.");
+          } else {
+            continue;
+          }
         }
       } else if (noNew){
-        throw new IllegalStateException("Resolve host bundle package would " +
-                                        "be shadow by new fragment import.");
+        if (fip.mustBeResolved()) {
+          throw new IllegalStateException("Resolve host bundle package would " +
+              "be shadow by new fragment import.");
+        } else {
+          continue;
+        }
       }
       imports.add(new ImportPkg(fip, this));
     }
@@ -258,7 +265,7 @@ class BundlePackages {
     }
     for (final Iterator<ExportPkg> eiter = frag.getExports(); eiter.hasNext();) {
       final ExportPkg fep = eiter.next();
-      final ExportPkg hep = getExport(fep.name);
+      final ExportPkg hep = host.getExport(fep.name);
       if (fep.pkgEquals(hep)) {
         continue;
       }
@@ -702,7 +709,7 @@ class BundlePackages {
   Iterator<ImportPkg> getActiveImports() {
     if (okImports != null) {
       return okImports.iterator();
-    } else if (bg.isFragment()){
+    } else if (bg.isFragment() && this != bg.bpkgs){
       // This is fragment BP, use host
       return bg.bpkgs.getActiveImports();
     } else {
@@ -893,11 +900,27 @@ class BundlePackages {
    * @return null if okay, otherwise a String with fail reason.
    * @throws BundleException Resolver hook complaint.
    */
-  String attachFragment(BundlePackages fbpkgs) throws BundleException {
+  String attachFragment(BundlePackages fbpkgs, boolean isResolve) throws BundleException {
     // TODO, should we lock this?!
     final boolean resolvedHost = okImports != null;
-    final BundlePackages nfbpkgs = new BundlePackages(this, fbpkgs, resolvedHost);
-    nfbpkgs.registerPackages();
+    BundlePackages nfbpkgs = null;
+    if (isResolve) {
+      List<BundlePackages> bps = bg.bundle.fwCtx.resolver.getFragBundlePackages(fbpkgs);
+      if (bps != null) {
+        for (BundlePackages bp : bps) {
+          if (bp.bg == bg) {
+            nfbpkgs = bp;
+            break;
+          }
+        }
+      }
+      if (nfbpkgs == null) {
+        throw new BundleException("Internal error, can't find fragment");
+      }
+    } else {
+      nfbpkgs = new BundlePackages(this, fbpkgs, resolvedHost);
+      nfbpkgs.registerPackages();
+    }
     if (resolvedHost) {
       try {
         failReason = bg.bundle.fwCtx.resolver.resolve(bg, nfbpkgs, null);
