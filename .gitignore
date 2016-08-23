@@ -1,6 +1,7 @@
 *~
 .classpath
 .project
+.settings
 ant/classes/
 ant/lib/
 eclipse_bin/
@@ -39,3 +40,4 @@ osgi/test-restart1.xargs
 osgi/test-restart2.xargs
 osgi/test_jars/
 out/
+bin/

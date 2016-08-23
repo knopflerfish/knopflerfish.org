@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.List;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -168,7 +167,7 @@ public class BundleContextImpl
    */
   public Bundle[] getBundles() {
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    final List<Bundle> bl = (List) bundle.fwCtx.bundles.getBundles();
+    final Collection<Bundle> bl = (Collection)bundle.fwCtx.bundles.getBundles();
     Bundle [] res = null;
     if (bundle.fwCtx.systemBundle == bundle) {
       res = bl.toArray(new Bundle [bl.size()]);

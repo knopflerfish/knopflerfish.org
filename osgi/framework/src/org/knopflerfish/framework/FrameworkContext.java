@@ -433,7 +433,7 @@ public class FrameworkContext  {
     listeners.initDone();
     isInit = false;
     log("inited");
-    
+
     if (debug.framework) {
       log("Installed bundles:");
       // Use the ordering in the bundle storage to get a sorted list of bundles.

@@ -282,7 +282,7 @@ public class BundleImpl implements Bundle {
       // 5: Lazy?
       if ((options & START_ACTIVATION_POLICY) != 0 && current.lazyActivation) {
         // 4: Resolve bundle (if needed)
-        if (INSTALLED == getUpdatedState(new BundleImpl [] { this })) {
+        if (INSTALLED == getUpdatedState(new BundleImpl [] { this }, false)) {
           throw resolveFailException;
         }
         if (STARTING == state)
@@ -308,7 +308,7 @@ public class BundleImpl implements Bundle {
   void finalizeActivation() throws BundleException {
     synchronized (fwCtx.resolver) {
       // 4: Resolve bundle (if needed)
-      switch (getUpdatedState(new BundleImpl [] { this })) {
+      switch (getUpdatedState(new BundleImpl [] { this }, false)) {
       case INSTALLED:
         throw resolveFailException;
       case STARTING:
@@ -935,6 +935,9 @@ public class BundleImpl implements Bundle {
         }
         boolean saveZombie = false;
         if (current.isFragment()) {
+          if (!current.unregisterPackages(false)) {
+            throw new RuntimeException("Internal error! fragment packages shouldn't be used");
+          }
           if (isAttached()) {
             if (current.isExtension()) {
               if (current.isBootClassPathExtension()) {
@@ -1116,7 +1119,7 @@ public class BundleImpl implements Bundle {
     checkUninstalled();
     // NYI, sync BundleGeneration
     if (secure.okResourceAdminPerm(this) && !current().isFragment()) {
-      if (getUpdatedState(new BundleImpl [] { this }) != INSTALLED) {
+      if (getUpdatedState(new BundleImpl [] { this }, false) != INSTALLED) {
         final ClassLoader cl0 = getClassLoader();
         if (cl0 != null) {
           return cl0.getResource(name);
@@ -1213,7 +1216,7 @@ public class BundleImpl implements Bundle {
    *
    * @return Bundles state
    */
-  int getUpdatedState(BundleImpl [] triggers) {
+  int getUpdatedState(BundleImpl [] triggers, boolean isResolve) {
     if (state == INSTALLED) {
       try {
         synchronized (fwCtx.resolver) {
@@ -1224,37 +1227,50 @@ public class BundleImpl implements Bundle {
               fwCtx.resolverHooks.beginResolve(triggers);
             }
             if (current.isFragment()) {
-              final List<BundleGeneration> hosts = current.fragment.targets();
+              List<BundleGeneration> hosts;
+              if (isResolve) {
+                hosts = new ArrayList<BundleGeneration>();
+                List<BundlePackages> bps = fwCtx.resolver.getFragBundlePackages(current.bpkgs);
+                if (bps != null) {
+                  for (BundlePackages bp : bps) {
+                    hosts.add(bp.bg);
+                  }
+                }
+              } else {
+                hosts = current.fragment.targets();
+              }
               if (!hosts.isEmpty()) {
                 for (final BundleGeneration host : hosts) {
-                  if (!host.bpkgs.isActive()) {
+                  if (isResolve || host.bpkgs.isActive()) {
+                    if (!current.fragment.isHost(host)) {
+                      attachToFragmentHost(host, isResolve);
+                    }
+                  } else {
                     // Try resolve our host
                     // NYI! Detect circular attach
-                    host.bundle.getUpdatedState(null);
-                  } else {
-                    if (!current.fragment.isHost(host)) {
-                      attachToFragmentHost(host);
-                    }
+                    host.bundle.getUpdatedState(null, false);
                   }
-                }
-                if (state == INSTALLED && current.fragment.hasHosts()) {
-                  current.setWired();
-                  state = RESOLVED;
-                  operation = RESOLVING;
-                  if (current.isExtension()) {
-                    // TODO call on bundle thread!?
-                    fwCtx.systemBundle.extensionCallStart(this);
-                  }
-                  bundleThread().bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
-                  operation = IDLE;
                 }
               }
-            } else {
-              if (current.resolvePackages(triggers)) {
+              if (state == INSTALLED && current.fragment.hasHosts()) {
                 current.setWired();
                 state = RESOLVED;
                 operation = RESOLVING;
-                current.updateStateFragments();
+                if (current.isExtension()) {
+                  // TODO call on bundle thread!?
+                  fwCtx.systemBundle.extensionCallStart(this);
+                }
+                bundleThread().bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
+                operation = IDLE;
+              }
+            } else {
+              if (current.resolvePackages(triggers, isResolve)) {
+                current.setWired();
+                state = RESOLVED;
+                operation = RESOLVING;
+                if (!isResolve) {
+                  current.updateStateFragments();
+                }
                 bundleThread().bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
                 operation = IDLE;
               } else {
@@ -1294,14 +1310,14 @@ public class BundleImpl implements Bundle {
    * Attach a fragment to host bundle
    * @throws BundleException 
    */
-  boolean attachToFragmentHost(BundleGeneration host) throws BundleException {
+  boolean attachToFragmentHost(BundleGeneration host, boolean isResolve) throws BundleException {
     final BundleGeneration fix = current();
     if (fix.isFragment() && secure.okFragmentBundlePerm(this)) {
       try {
         if (fix.isExtension()) {
           fwCtx.systemBundle.attachExtension(fix);
         } else {
-          host.attachFragment(fix);
+          host.attachFragment(fix, isResolve);
         } 
         fix.fragment.addHost(host);
         return true;
@@ -1614,7 +1630,7 @@ public class BundleImpl implements Bundle {
   public Enumeration<URL> findEntries(String path, String filePattern, boolean recurse) {
     if (secure.okResourceAdminPerm(this)) {
       // Try to resolve, so that fragments attach.
-      getUpdatedState(new BundleImpl [] { this });
+      getUpdatedState(new BundleImpl [] { this }, false);
       final Vector<URL> res = secure.callFindEntries(current(), path, filePattern, recurse);
       if (!res.isEmpty()) {
         return res.elements();
@@ -1687,7 +1703,7 @@ public class BundleImpl implements Bundle {
     final BundleGeneration current = current();
     if (secure.okResourceAdminPerm(this) && !current.isFragment()) {
       Enumeration<URL> e = null;
-      if (getUpdatedState(new BundleImpl [] { this }) != INSTALLED) {
+      if (getUpdatedState(new BundleImpl [] { this }, false) != INSTALLED) {
         if (this instanceof SystemBundle) {
           e = getClassLoader().getResources(name);
         } else {
@@ -1722,7 +1738,7 @@ public class BundleImpl implements Bundle {
         throw new ClassNotFoundException("Can not load classes from fragment/extension bundles");
       }
       // NYI! Fix BundleGeneration
-      if (getUpdatedState(new BundleImpl [] { this }) == INSTALLED) {
+      if (getUpdatedState(new BundleImpl [] { this }, false) == INSTALLED) {
         throw new ClassNotFoundException(resolveFailException.getMessage());
       }
 
@@ -1931,11 +1947,7 @@ public class BundleImpl implements Bundle {
    *
    */
   private void doExportImport() {
-    final BundleGeneration current = current();
-    if (!current.isFragment()) {
-      // fragments don't export anything themselves.
-      current.bpkgs.registerPackages();
-    }
+    current().bpkgs.registerPackages();
   }
 
 

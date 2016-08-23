@@ -99,6 +99,12 @@ class Resolver {
   private HashMap<RequireBundle, BundlePackages> tempRequired = null;
 
   /**
+   * Temporary map of attached fragment bundle packages done during a resolve
+   * operation.
+   */
+  private HashMap<BundlePackages, List<BundlePackages>> tempAttached = null;
+
+  /**
    * Temporary set of package providers that are black listed in the resolve
    * operation.
    */
@@ -150,6 +156,9 @@ class Resolver {
     }
     if (null != tempRequired) {
       tempRequired.clear();
+    }
+    if (null != tempAttached) {
+      tempAttached.clear();
     }
     if (null != tempBlackList) {
       tempBlackList.clear();
@@ -226,6 +235,7 @@ class Resolver {
       tempResolved = new HashSet<BundleGeneration>();
       tempProvider = new HashMap<String, ExportPkg>();
       tempRequired = new HashMap<RequireBundle, BundlePackages>();
+      tempAttached = new HashMap<BundlePackages, List<BundlePackages>>();
       tempWires = new ArrayList<BundleWireImpl>();
       tempBlackList = new HashSet<ExportPkg>();
       tempBackTracked = new HashSet<BundlePackages>();
@@ -248,6 +258,7 @@ class Resolver {
         tempBlackList = null;
         tempProvider = null;
         tempRequired = null;
+        tempAttached = null;
         tempWires = null;
         tempResolved = null;
         resolveThread = null;
@@ -409,6 +420,7 @@ class Resolver {
     tempBlackList = new HashSet<ExportPkg>();
     tempProvider = new HashMap<String, ExportPkg>();
     tempRequired = new HashMap<RequireBundle, BundlePackages>();
+    tempAttached = new HashMap<BundlePackages, List<BundlePackages>>();
     tempWires = new ArrayList<BundleWireImpl>();
     if (bg.bundle == framework.systemBundle && framework.props.getBooleanProperty(FWProps.RESOLVER_PREFER_SB)) {
       for (Pkg p : packages.values()) {
@@ -448,6 +460,7 @@ class Resolver {
           tempBlackList.addAll(baseTempBlackList);
           tempProvider.clear();
           tempRequired.clear();
+          tempAttached.clear();
           tempWires.clear();
         } else {
           break;
@@ -457,6 +470,7 @@ class Resolver {
       tempResolved = null;
       tempProvider = null;
       tempRequired = null;
+      tempAttached = null;
       tempBlackList = null;
       tempWires = null;
       resolveThread = null;
@@ -475,6 +489,15 @@ class Resolver {
       return true;
     }
     return false;
+  }
+
+
+  List<BundlePackages> getFragBundlePackages(BundlePackages fbpkgs)
+  {
+    if (tempAttached != null) {
+      return tempAttached.get(fbpkgs);
+    }
+    return null;
   }
 
 
@@ -882,20 +905,14 @@ class Resolver {
         }
         continue;
       }
+      if (ep.bpkgs.bg.isFragment()) {
+        continue;
+      }
       if (ip.bpkgs == ep.bpkgs) {
         if (framework.debug.resolver) {
           framework.debug.println("pickProvider: internal wire ok for - " + ep);
         }
         ip.internalOk = ep;
-      } else if (!ep.checkPermission()) {
-        if (framework.debug.resolver) {
-          framework.debug.println("pickProvider: no export permission for - " + ep);
-        }
-        i.remove();
-        if (failReason != null) {
-          newFailReason(failReason, "No export permission for", ep);
-        }
-        continue;
       }
       if (ep.bpkgs.bg.bundle.state != Bundle.INSTALLED) {
         final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
@@ -951,10 +968,11 @@ class Resolver {
         framework.debug.println("pickProvider: check possible provider - " + ep);
       }
       if (checkResolve(ep.bpkgs.bg, ep)) {
+        ExportPkg tep = ep.bpkgs.bg.isFragment() ? tempProvider.get(ep.name) : ep;
         if (framework.debug.resolver) {
-          framework.debug.println("pickProvider: " + ip + " - got provider - " + ep);
+          framework.debug.println("pickProvider: " + ip + " - got provider - " + tep);
         }
-        return ep;
+        return tep;
       }
       if (tempCollision != null  && savedCollision  == null) {
         // Save collision so that we can backtrack and try to avoid collision
@@ -1003,48 +1021,109 @@ class Resolver {
       return true;
     }
     if (checkBundleSingleton(bg) == null) {
-      boolean retry;
-      final HashSet<ExportPkg> collisions = new HashSet<ExportPkg>();
-      do {
-        retry = false;
-        @SuppressWarnings("unchecked")
-        final HashSet<BundleGeneration> oldTempResolved = (HashSet<BundleGeneration>)tempResolved.clone();
+      List<BundleGeneration> fraghosts = checkFragmentHost(bg);
+      if (fraghosts == null) {
+        if (ep != null && !ep.checkPermission()) {
+          if (framework.debug.resolver) {
+            framework.debug.println("checkResolve: no export permission for - " + ep);
+          }
+          return false;
+        }
+        fraghosts = new ArrayList<BundleGeneration>(1);
+        fraghosts.add(null);
+      }
+      SavedTempState savedState = new SavedTempState();
+      SavedTempState savedState2 = savedState;
+      while (!fraghosts.isEmpty()) {
         if (!addTempResolved(bg)) {
           return false;
         }
-        final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
-        @SuppressWarnings("unchecked")
-        final HashMap<RequireBundle, BundlePackages> oldTempRequired = (HashMap<RequireBundle, BundlePackages>)tempRequired.clone();
-        @SuppressWarnings("unchecked")
-        final HashSet<ExportPkg> oldTempBlackList = (HashSet<ExportPkg>)tempBlackList.clone();
-        tempBlackList.addAll(collisions);
-        final int oldTempWiresSize = tempWires.size();
-        if (ep != null) {
-          tempProvider.put(ep.pkg.pkg, ep);
-        }
-        final String breq = checkBundleRequirements(bg);
-        if (breq == null) {
-          if (checkRequireBundle(bg) == null) {
-            if (resolvePackages(bg.bpkgs.getImports(), null)) {
-              return true;
+        BundlePackages rbp;
+        ExportPkg rep;
+        BundleGeneration rbg = fraghosts.remove(0);
+        if (rbg != null) {
+          try {
+            if (framework.debug.resolver) {
+              framework.debug.println("checkResolve: fragment export of " + ep + " attach to:" + rbg);
             }
-            if (tempCollision != null) {
-              if (!oldTempProvider.containsValue(tempCollision)) {
-                collisions.add(tempCollision);
-                retry = true;
-                tempCollision = null;
+            if (rbg.bundle.isResolved()) {
+              rbp = new BundlePackages(rbg.bpkgs, bg.bpkgs, true);
+            } else {
+              if (checkResolve(rbg, null)) {
+                rbp = new BundlePackages(rbg.bpkgs, bg.bpkgs, false);
+                savedState2 = new SavedTempState();
+              } else {
+                continue;
+              }
+            }
+            rbp.registerPackages();
+            List<BundlePackages> fbps = tempAttached.get(bg.bpkgs);
+            if (fbps == null) {
+              fbps = new ArrayList<BundlePackages>();
+              tempAttached.put(bg.bpkgs, fbps);
+            }
+            fbps.add(rbp);
+          } catch (IllegalStateException ise) {
+            savedState.restore();
+            continue;
+          }
+          if (ep != null) {
+            rep = rbp.getExports(ep.name).next();
+            if (!rep.checkPermission()) {
+              if (framework.debug.resolver) {
+                framework.debug.println("checkResolve: no fragment export permission for - " + rep);
+              }
+              savedState.restore();
+              continue;
+            }
+          } else {
+            rep = null;
+          }
+        } else {
+          rbp = bg.bpkgs;
+          rep = ep;
+        }
+        final HashSet<ExportPkg> collisions = new HashSet<ExportPkg>();
+        boolean retry;
+        do {
+          retry = false;
+          tempBlackList.addAll(collisions);
+          if (rep != null) {
+            tempProvider.put(rep.pkg.pkg, rep);
+          }
+          final String breq = checkBundleRequirements(bg);
+          if (breq == null) {
+            if (checkRequireBundle(bg) == null) {
+              if (resolvePackages(rbp.getImports(), null)) {
+                  return true;
+              }
+              if (tempCollision != null) {
+                if (!savedState2.oldTempProvider.containsValue(tempCollision)) {
+                  collisions.add(tempCollision);
+                  retry = true;
+                  tempCollision = null;
+                }
               }
             }
           }
-        }
-        tempResolved = oldTempResolved;
-        tempProvider = oldTempProvider;
-        tempRequired = oldTempRequired;
-        tempBlackList = oldTempBlackList;
-        tempWires.subList(oldTempWiresSize, tempWires.size()).clear();
-      } while (retry);
+          if (retry) {
+          savedState2.restore();
+          }
+        } while (retry);
+      }
+      savedState.restore();
     }
     return false;
+  }
+
+
+  private List<BundleGeneration> checkFragmentHost(BundleGeneration bg)
+  {
+    if (bg.isFragment()) {
+      return bg.fragment.targets();
+    } else {
+      return null;
+    }
   }
 
 
@@ -1382,56 +1461,66 @@ class Resolver {
     List<BundleImpl> resolve = new ArrayList<BundleImpl>(tempResolved.size());
     for (final BundleGeneration bg : tempResolved) {
       if (!bg.bpkgs.isActive()) {
-        for (final Iterator<ImportPkg> bi = bg.bpkgs.getImports(); bi.hasNext();) {
-          final ImportPkg ip = bi.next();
-          final ExportPkg ep = tempProvider.get(ip.name);
-          if (ep == null) {
-            // There could be an internal connection, that should export a
-            // package
-            if (ip.internalOk != null) {
-              if (ip.internalOk.pkg.providers.isEmpty() &&
-                  ip.internalOk.checkPermission()) {
-                ip.internalOk.pkg.addProvider(ip.internalOk);
-                if (framework.debug.resolver) {
-                  framework.debug.println("registerNewProviders: exported internal wire, "
-                                          + ip + " -> " + ip.internalOk);
-                }
-              } else {
-                if (framework.debug.resolver) {
-                  framework.debug.println("registerNewProviders: internal wire, "
-                                          + ip + " -> " + ip.internalOk);
-                }
-              }
-            }
-          } else {
-            // TODO! This check is already done, we should cache result
-            if (ip.checkAttributes(ep) && ip.checkPermission(ep)) {
-              ip.provider = ep;
-            } else {
-              // Check if got a missmatching internal wire.
+        List<BundlePackages> bps = tempAttached.get(bg.bpkgs);
+        if (bps == null) {
+          bps = Collections.singletonList(bg.bpkgs);
+        }
+        for (BundlePackages bp : bps) {
+          for (final Iterator<ImportPkg> bi = bp.getImports(); bi.hasNext();) {
+            final ImportPkg ip = bi.next();
+            final ExportPkg ep = tempProvider.get(ip.name);
+            if (ep == null) {
+              // There could be an internal connection, that should export a
+              // package
               if (ip.internalOk != null) {
-                if (ip.internalOk == ep) {
+                if (ip.internalOk.pkg.providers.isEmpty() &&
+                    ip.internalOk.checkPermission()) {
+                  ip.internalOk.pkg.addProvider(ip.internalOk);
                   if (framework.debug.resolver) {
-                    framework.debug.println("registerNewProviders: internal wire, " + ip + ", "
-                        + ep);
+                    framework.debug.println("registerNewProviders: exported internal wire, "
+                                            + ip + " -> " + ip.internalOk);
                   }
                 } else {
-                  // TODO, should we resolve when this happens!?
-                  framework.frameworkError(bg.bundle,
-                       new Exception("registerNewProviders: Warning! Internal wire for, " + ip +
-                                     ", does not match exported. " + ep));
+                  if (framework.debug.resolver) {
+                    framework.debug.println("registerNewProviders: internal wire, "
+                                            + ip + " -> " + ip.internalOk);
+                  }
+                }
+              }
+            } else {
+              // TODO! This check is already done, we should cache result
+              if (ip.checkAttributes(ep) && ip.checkPermission(ep)) {
+                ip.provider = ep;
+              } else {
+                // Check if got a missmatching internal wire.
+                if (ip.internalOk != null) {
+                  if (ip.internalOk == ep) {
+                    if (framework.debug.resolver) {
+                      framework.debug.println("registerNewProviders: internal wire, " + ip + ", "
+                          + ep);
+                    }
+                  } else {
+                    // TODO, should we resolve when this happens!?
+                    framework.frameworkError(bg.bundle,
+                         new Exception("registerNewProviders: Warning! Internal wire for, " + ip +
+                                       ", does not match exported. " + ep));
+                  }
                 }
               }
             }
           }
         }
         if (bg.bundle != bundle) {
-          resolve.add(bg.bundle);
+          if (bg.isFragment()) {
+            resolve.add(0, bg.bundle);
+          } else {
+            resolve.add(bg.bundle);
+          }
         }
       }
     }
     for (final BundleImpl b : resolve) {
-      if (b.getUpdatedState(null) == Bundle.INSTALLED) {
+      if (b.getUpdatedState(null, true) == Bundle.INSTALLED) {
         framework.frameworkError(b,
             new Exception("registerNewProviders: InternalError!"));
       }
@@ -1456,13 +1545,55 @@ class Resolver {
   private void checkThread() throws BundleException {
     Thread t = Thread.currentThread();
     if (t.equals(resolveThread)) {
-      throw new BundleException("Can not currently start new resolve during a resolve.");      
+      throw new BundleException("Can not currently start new resolve during a resolve.");
     }
     for (BundleGeneration bg : tempResolved) {
       if (bg.bundle.isBundleThread(t)) {
         throw new BundleException("Can not resolve a bundle inside current BundleListener." +
                                   "Will cause a dead-lock. BID=" + bg.bundle.id);
       }
+    }
+  }
+
+
+  class SavedTempState {
+
+    final HashSet<BundleGeneration> oldTempResolved;
+    final HashMap<String, ExportPkg> oldTempProvider;
+    final HashMap<RequireBundle, BundlePackages> oldTempRequired;
+    final HashMap<BundlePackages, List<BundlePackages>> oldTempAttached;
+    final HashSet<ExportPkg> oldTempBlackList;
+    final int oldTempWiresSize;
+
+    @SuppressWarnings("unchecked")
+    SavedTempState()
+    {
+      oldTempResolved = (HashSet<BundleGeneration>)tempResolved.clone();
+      oldTempProvider = tempProviderClone();
+      oldTempRequired = (HashMap<RequireBundle, BundlePackages>)tempRequired.clone();
+      oldTempAttached = (HashMap<BundlePackages, List<BundlePackages>>)tempAttached.clone();
+      oldTempBlackList = (HashSet<ExportPkg>)tempBlackList.clone();
+      oldTempWiresSize = tempWires.size();
+    }
+
+    void restore() {
+      // Unregister temporary fragments
+      for (Entry<BundlePackages, List<BundlePackages>> e : tempAttached.entrySet()) {
+        List<BundlePackages> bps = e.getValue();
+        List<BundlePackages> oldbps = oldTempAttached.get(e.getKey());
+        if (oldbps != null) {
+          bps.removeAll(oldbps);
+        }
+        for (BundlePackages bp : bps) {
+          bp.unregisterPackages(true);
+        }
+      }
+      tempResolved = oldTempResolved;
+      tempProvider = oldTempProvider;
+      tempRequired = oldTempRequired;
+      tempAttached = oldTempAttached;
+      tempBlackList = oldTempBlackList;
+      tempWires.subList(oldTempWiresSize, tempWires.size()).clear();
     }
   }
 

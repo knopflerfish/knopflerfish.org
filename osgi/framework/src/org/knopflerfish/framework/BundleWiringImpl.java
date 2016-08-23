@@ -117,7 +117,7 @@ public class BundleWiringImpl
       if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
         for (ExportPkg ep : gen.bpkgs.getPackageCapabilities()) {
           if (ep.checkPermission()) {
-            res.add(ep);            
+            res.add(ep);
           }
         }
       }

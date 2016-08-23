@@ -46,6 +46,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -274,8 +276,8 @@ public class Bundles {
    *
    * @return A list with bundles.
    */
-  List<BundleImpl> getBundles() {
-    final ArrayList<BundleImpl> res = new ArrayList<BundleImpl>(bundles.size());
+  SortedSet<BundleImpl> getBundles() {
+    final SortedSet<BundleImpl> res = new TreeSet<BundleImpl>();
     synchronized (bundles) {
       res.addAll(bundles.values());
     }
@@ -428,7 +430,7 @@ public class Bundles {
         // Activate extension as soon as they are installed so that
         // they get added in bundle id order. The are run by the
         // FrameworkContext after all bundles has been loaded.
-        if (b.current().isExtension() && b.attachToFragmentHost(fwCtx.systemBundle.current())) {
+        if (b.current().isExtension() && b.attachToFragmentHost(fwCtx.systemBundle.current(), false)) {
           b.current().setWired();
           b.state = Bundle.RESOLVED;
         }

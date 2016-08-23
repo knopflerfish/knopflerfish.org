@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="fb_I" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.fb_I}"/>
+  <import  file="${proj.dir}/../../../test_import.xml"/>
+
+  <property name = "bundle.build.all"  value="true"/>
+  <property name = "bundle.build.api"  value="false"/>
+  <property name = "bundle.build.lib"  value="false"/>
+  <property name = "bundle.build.impl" value="false"/>
+  <property name = "bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"   value=""/>
+
+  <property name  = "api.pattern"
+            value = ""/>
+  <property name  = "impl.pattern"
+            value = "test_fb/I/**"/>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="../../resources/fb_C_api-1.0.0.jar"/>
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>
