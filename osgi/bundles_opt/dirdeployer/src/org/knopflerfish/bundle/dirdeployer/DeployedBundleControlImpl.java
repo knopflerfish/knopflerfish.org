@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2016, KNOPFLERFISH project
+ * Copyright (c) 2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,52 +31,51 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package org.knopflerfish.bundle.dirdeployer;
 
-import java.io.File;
+import org.knopflerfish.service.dirdeployer.DeployedBundleControl;
+import org.osgi.framework.Bundle;
 
-
-interface DeployedFile
+public class DeployedBundleControlImpl implements DeployedBundleControl
 {
 
-  /**
-   * Get the file object that this deployed file handles.
-   * @return The file that this instance handles.
-   */
-  File getFile();
+ private DeployedBundle deployedBundle;
+ private DeployedBundleControlState state;
+ private Exception failure;
+ private DirDeployerImpl deployer;
+ 
+ public DeployedBundleControlImpl(DirDeployerImpl deployer, DeployedBundle db) {
+   this.deployer = deployer;
+   this.deployedBundle = db;
+   this.state = DeployedBundleControlState.DEPLOYED;
+ }
+ 
+ public DeployedBundleControlImpl(DirDeployerImpl deployer, Exception e) {
+   this.deployer = deployer;
+   this.deployedBundle = null;
+   this.failure = e;
+   this.state = DeployedBundleControlState.FAILED;
+ }
+  @Override
+  public void undeploy()
+  {
+    // deployedBundle
 
-  /**
-   * Installs the file if not already installed.
-   */
-  void installIfNeeded()
-      throws Exception;
+  }
 
-  /**
-   * Start the installed file when applicable.
-   */
-  void start()
-      throws Exception;
+  @Override
+  public Bundle getBundle()
+  {
+    if (deployedBundle == null)
+      return null;
+    return deployedBundle.getBundle();
+  }
 
-  /**
-   * If the installed file is older than the current one update the installed
-   * file.
-   */
-  void updateIfNeeded()
-      throws Exception;
-
-  /**
-   * Uninstall the file.
-   * @throws Exception
-   */
-  void uninstall()
-      throws Exception;
-
-  /**
-   * A deployed file should be updated if the file is newer than the
-   * latest update time.
-   */
-  boolean needUpdate();
-
-  boolean isControlFile(File f);
+  @Override
+  public DeployedBundleControlState getDeploymentState()
+  {
+    return state;
+  }
 
 }

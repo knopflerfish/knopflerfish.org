@@ -144,6 +144,15 @@ Knopflerfish Services
 ### Desktop 6.0.0
 *   Added new Promise bundle.
 
+### Dirdeployer 4.1.0
+*   Marker files can be used to control and inspect the deployment.
+    Controlled by the boolean property: <code>org.knopflerfish.fileinstall.filemarkers.use</code>
+    Default is false.
+*   DeployedBundleControl instances are optionally registered
+    for every deployed bundle. Controlled by the boolean property:
+    <code>org.knopflerfish.fileinstall.bundlecontrols.use</code>
+    Default is false.
+    
 ### Repository manager 1.3.0
 *   Include new Promise bundle packages.
 

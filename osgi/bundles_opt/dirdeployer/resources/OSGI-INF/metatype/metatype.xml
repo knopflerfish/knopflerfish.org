@@ -40,6 +40,21 @@
         default="true" 
         description="When set to true the dirdeployer bundle will uninstall all bundles it has installed when it is stopped." 
         />
+
+    <AD name="Use file markers"
+	id="org.knopflerfish.fileinstall.filemarkers.use"
+	type="Boolean"
+	default="false"
+	description="When set to true file markers will be used to control and monitor the deployment"
+	/>
+
+    <AD name="Use bundle controls"
+	id="org.knopflerfish.fileinstall.bundlecontrols.use"
+	type="Boolean"
+	default="false"
+	description="When set to true DeployedBundleControls will be registered for every deployed bundle jar file"
+	/>
+
   </OCD>
                   
   <Designate pid="org.knopflerfish.fileinstall">

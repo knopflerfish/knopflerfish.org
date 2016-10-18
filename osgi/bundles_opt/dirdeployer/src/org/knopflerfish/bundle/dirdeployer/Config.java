@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2013, KNOPFLERFISH project
+ * Copyright (c) 2004-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.service.cm.ManagedService;
@@ -64,8 +65,17 @@ public class Config
   static final String PROP_USE_INITIAL_START_LEVEL = PID + ".use.initial.startlevel";
   static final String PROP_STARTLEVEL = PID + ".startlevel";
   static final String PROP_UNINSTALL = PID + ".uninstallOnStop";
+  static final String PROP_USE_FILE_MARKERS = PID + ".filemarkers.use";
+  static final String PROP_REGISTER_CONTROLS = PID + ".bundlecontrols.use";
 
   static final String DEFAULT_DIR = "./load";
+  
+  static final boolean USE_FILE_MARKERS_DEFALT = Boolean.FALSE;
+  boolean useFileMarkers = USE_FILE_MARKERS_DEFALT;
+  
+  static final boolean REGISTER_BUNDLE_CONTROLS_DEFALT = Boolean.FALSE;
+  boolean registerBundleControls = REGISTER_BUNDLE_CONTROLS_DEFALT;
+  
 
   // directories to scan
   File[] dirs = new File[0];
@@ -172,6 +182,20 @@ public class Config
     if (uVal != null) {
       uninstallOnStop = uVal.booleanValue();
     }
+    
+    final Boolean usefm = (Boolean) props.get(PROP_USE_FILE_MARKERS);
+    if (usefm != null) {
+      useFileMarkers = usefm.booleanValue();
+    }
+    final Boolean regc = (Boolean) props.get(PROP_REGISTER_CONTROLS);
+    if (regc != null) {
+      registerBundleControls = regc.booleanValue();
+    }
+    
+    Activator.logger.info("Config values");
+    Activator.logger.info(" useFIleMarkers: " + useFileMarkers);
+    Activator.logger.info(" registerBundleControls: " + registerBundleControls);
+    
   }
 
   Dictionary<String,?> getDefaults()
@@ -218,6 +242,12 @@ public class Config
       uninstallOnStop = new Boolean((String) uninstallOnStopO);
     }
     props.put(PROP_UNINSTALL, uninstallOnStop);
+    
+    props.put(PROP_USE_FILE_MARKERS, 
+              getBoolProperty(Activator.bc, PROP_USE_FILE_MARKERS, USE_FILE_MARKERS_DEFALT));
+    props.put(PROP_REGISTER_CONTROLS, 
+              getBoolProperty(Activator.bc, PROP_REGISTER_CONTROLS, REGISTER_BUNDLE_CONTROLS_DEFALT));
+    
 
     return props;
   }
@@ -239,5 +269,19 @@ public class Config
       startLevel = 1; // Fallback to the default initial bundle start level
     }
     return startLevel;
+  }
+  
+  private static Boolean getBoolProperty(BundleContext bc, String p, Boolean def) {
+    Boolean ret;
+    
+    final Object o = bc.getProperty(p);
+    if (null != o)
+      ret = new Boolean((String)o);
+    else
+      ret = def;
+    
+    Activator.logger.info( p + " : " + ret);
+    return ret;
+    
   }
 }

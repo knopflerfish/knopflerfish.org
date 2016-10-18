@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2016, KNOPFLERFISH project
+ * Copyright (c) 2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,52 +31,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.knopflerfish.bundle.dirdeployer;
 
-import java.io.File;
+package org.knopflerfish.service.dirdeployer;
 
+import org.osgi.framework.Bundle;
 
-interface DeployedFile
-{
+public interface DeployedBundleControl {
 
-  /**
-   * Get the file object that this deployed file handles.
-   * @return The file that this instance handles.
-   */
-  File getFile();
-
-  /**
-   * Installs the file if not already installed.
-   */
-  void installIfNeeded()
-      throws Exception;
-
-  /**
-   * Start the installed file when applicable.
-   */
-  void start()
-      throws Exception;
-
-  /**
-   * If the installed file is older than the current one update the installed
-   * file.
-   */
-  void updateIfNeeded()
-      throws Exception;
-
-  /**
-   * Uninstall the file.
-   * @throws Exception
-   */
-  void uninstall()
-      throws Exception;
-
-  /**
-   * A deployed file should be updated if the file is newer than the
-   * latest update time.
-   */
-  boolean needUpdate();
-
-  boolean isControlFile(File f);
-
+	public enum DeployedBundleControlState {
+		STAGED,
+	  IS_DEPLOYING,
+		DEPLOYED,
+		IS_UNDEPLOYING,
+	  UNDEPLOYED,
+		FAILED
+	}
+	
+	public void undeploy();
+	
+	public Bundle getBundle();
+	
+	public DeployedBundleControlState getDeploymentState();
+	
 }
