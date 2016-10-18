@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="dal" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.dal}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name = "bundle.build.api"   value = "true"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "false"/>
+  <property name = "bundle.build.lib"   value = "false"/>
+
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
+  <property name="api.pattern" value="org/osgi/service/dal/**"/> 
+
+  <path id="bundle.compile.path">
+    <pathelement location="${topdir}/jars/event/event_api-N.N.N.jar"/>
+    <pathelement location="${topdir}/jars/device/device_api-N.N.N.jar"/> 
+  </path>
+  
+  
+  <property name="bmfa.api-Import-Package"
+            value="org.osgi.framework; version=&quot;[1.6,2)&quot;,
+		   org.osgi.service.event; version=&quot;[1.3,2)&quot;"/>
+
+	    
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>
