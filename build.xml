@@ -652,6 +652,8 @@
         <include name="osgi/bundles/serviceloader/**"/>
         <include name="osgi/bundles/subsystem/**"/>
 
+        <include name="osgi/bundles/dal/**"/>
+
         <include name="osgi/bundles/demos/**"/>
 
         <include name="osgi/bundles/trayicon/build.xml"/>

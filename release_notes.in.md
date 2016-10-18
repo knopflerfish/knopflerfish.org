@@ -67,6 +67,9 @@ OSGi Compendium Specification
 ### Coordinator API 1.1.0
 *   Updated API classes to match OSGi R6. 
 
+### DAL 1.0.0
+*   DAL, the Device Abstraction Layer API has been added to Knopflerfish
+
 ### DMT 5.1.0
 *   Updated API classes to match OSGi R6. 
 
