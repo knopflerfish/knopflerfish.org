@@ -192,6 +192,13 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
     res.references = new ReferenceDTO[len];
     for (int i = 0; i < len; i++) {
       res.references[i] = createReferenceDTO(refs[i]);
+      String target = res.references[i].target;
+      if (target != null) {
+        String name = res.references[i].name + ".target";
+        if (!res.properties.containsKey(name)) {
+          res.properties.put(name, target);
+        }
+      }
     }
     res.activate = c.getActivate();
     res.deactivate = c.getDeactivate();
