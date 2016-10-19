@@ -274,7 +274,8 @@ public class StartLevelController
       final Vector<BundleImpl> set = new Vector<BundleImpl>();
 
       for (final BundleImpl bs : fwCtx.bundles.getBundles()) {
-        if (canStart(bs)) {
+        BundleArchive archive = bs.current().archive;
+        if (archive != null) {
           if (bs.getStartLevel() == currentLevel) {
             if (bs.current().archive.getAutostartSetting()!=-1) {
               set.addElement(bs);
@@ -287,21 +288,24 @@ public class StartLevelController
 
       for (int i = 0; i < set.size(); i++) {
         final BundleImpl bs = set.elementAt(i);
-        try {
-          if (bs.current().archive.getAutostartSetting()!=-1) {
-            if (fwCtx.debug.startlevel) {
-              fwCtx.debug.println("startlevel: start " + bs);
+        BundleArchive archive = bs.current().archive;
+        if (archive != null) {
+          try {
+            if (bs.current().archive.getAutostartSetting()!=-1) {
+              if (fwCtx.debug.startlevel) {
+                fwCtx.debug.println("startlevel: start " + bs);
+              }
+              int startOptions = Bundle.START_TRANSIENT;
+              if (isBundleActivationPolicyUsed(bs.current().archive)) {
+                startOptions |= Bundle.START_ACTIVATION_POLICY;
+              }
+              bs.start(startOptions);
             }
-            int startOptions = Bundle.START_TRANSIENT;
-            if (isBundleActivationPolicyUsed(bs.current().archive)) {
-              startOptions |= Bundle.START_ACTIVATION_POLICY;
-            }
-            bs.start(startOptions);
+          } catch (final IllegalStateException ignore) {
+            // Tried to start an uninstalled bundle, skip
+          } catch (final Exception e) {
+            fwCtx.frameworkError(bs, e);
           }
-        } catch (final IllegalStateException ignore) {
-          // Tried to start an uninstalled bundle, skip
-        } catch (final Exception e) {
-          fwCtx.frameworkError(bs, e);
         }
       }
     }
