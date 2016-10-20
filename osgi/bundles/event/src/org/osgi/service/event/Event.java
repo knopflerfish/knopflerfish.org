@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2014). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.osgi.framework.Filter;
  * subscribe to the topic of the event.
  * 
  * @Immutable
- * @author $Id: 3bf75bd699b03fc379fa0e620045936d110f3546 $
+ * @author $Id: fd99f31520f5b39b2b2eaa6a0fd5f743bf0c0615 $
  */
 public class Event {
 	/**
@@ -52,6 +52,9 @@ public class Event {
 	 * @param topic The topic of the event.
 	 * @param properties The event's properties (may be {@code null}). A
 	 *        property whose key is not of type {@code String} will be ignored.
+	 *        If the specified properties is an {@link EventProperties} object,
+	 *        then it will be directly used. Otherwise, a copy of the specified
+	 *        properties is made.
 	 * @throws IllegalArgumentException If topic is not a valid topic name.
 	 * @since 1.2
 	 */
@@ -68,6 +71,7 @@ public class Event {
 	 * @param topic The topic of the event.
 	 * @param properties The event's properties (may be {@code null}). A
 	 *        property whose key is not of type {@code String} will be ignored.
+	 *        A copy of the specified properties is made.
 	 * @throws IllegalArgumentException If topic is not a valid topic name.
 	 */
 	public Event(String topic, Dictionary<String, ?> properties) {
@@ -156,6 +160,7 @@ public class Event {
 	 * @return {@code true} if {@code object} is a {@code Event} and is equal to
 	 *         this object; {@code false} otherwise.
 	 */
+	@Override
 	public boolean equals(Object object) {
 		if (object == this) { // quick test
 			return true;
@@ -174,6 +179,7 @@ public class Event {
 	 * 
 	 * @return An integer which is a hash code value for this object.
 	 */
+	@Override
 	public int hashCode() {
 		int h = 31 * 17 + topic.hashCode();
 		h = 31 * h + properties.hashCode();
@@ -185,8 +191,9 @@ public class Event {
 	 * 
 	 * @return The string representation of this event.
 	 */
+	@Override
 	public String toString() {
-		return getClass().getName() + " [topic=" + topic + "]";
+		return getClass().getName() + " [topic=" + topic + "] " + properties.toString();
 	}
 
 	/**
@@ -242,6 +249,7 @@ public class Event {
 			this.properties = properties;
 		}
 
+		@Override
 		public Enumeration<Object> elements() {
 			Collection<Object> values = properties.values();
 			List<Object> result = new ArrayList<Object>(values.size() + 1);
@@ -250,6 +258,7 @@ public class Event {
 			return Collections.enumeration(result);
 		}
 
+		@Override
 		public Object get(Object key) {
 			if (EVENT_TOPIC.equals(key)) {
 				return topic;
@@ -257,10 +266,12 @@ public class Event {
 			return properties.get(key);
 		}
 
+		@Override
 		public boolean isEmpty() {
 			return false;
 		}
 
+		@Override
 		public Enumeration<String> keys() {
 			Collection<String> keys = properties.keySet();
 			List<String> result = new ArrayList<String>(keys.size() + 1);
@@ -269,14 +280,17 @@ public class Event {
 			return Collections.enumeration(result);
 		}
 
+		@Override
 		public Object put(String key, Object value) {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public Object remove(Object key) {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public int size() {
 			return properties.size() + 1;
 		}

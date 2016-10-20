@@ -55,6 +55,7 @@ import org.osgi.framework.wiring.BundleRevision;
  * @author Jan Stein, Gunnar Ekolin
  */
 class ExportPkg
+  extends DTOId
   implements BundleCapability, Comparable<ExportPkg>
 {
   // To maintain the creation order in the osgi.wiring.package name space.

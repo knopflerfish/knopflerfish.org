@@ -14,13 +14,13 @@
   <property name="impl.pattern" value="org/knopflerfish/bundle/repositorymanager/**"/> 
   <property name="all-api.pattern"
             value="org/knopflerfish/service/repositorymanager/**,
-                   org/osgi/service/**"/> 
+                   org/osgi/service/**,
+                   org/osgi/util/**"/> 
 
   <target name="bundle.custom.pre">
 
     <!-- Embedd APIs for OSGi services that the Repository Manager depends on -->
-    <bundle_locator bundleNames="repository_api,
-                                 resolver_api">
+    <bundle_locator bundleNames="promise,repository_api,resolver_api">
       <fileset dir="${jars.dir}">
         <exclude name="**/*-source.jar"/>
         <exclude name="**/*-javadoc.jar"/>
@@ -28,13 +28,20 @@
       </fileset>
     </bundle_locator>
     <copy todir="${classes.out.dir}">
-      <zipfileset src="${bap.repository_api}">
+      <zipfileset src="${bap.promise}">
         <patternset>
           <exclude name="META-INF/**/*"/>
           <exclude name="**/*.dex"/>
         </patternset>
       </zipfileset>
       
+      <zipfileset src="${bap.repository_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+
       <zipfileset src="${bap.resolver_api}">
         <patternset>
           <exclude name="META-INF/**/*"/>

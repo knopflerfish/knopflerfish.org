@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,7 +116,7 @@ public class ServiceContentHandlerFactory
       @SuppressWarnings("unchecked")
       final ServiceReference<ContentHandler>[] srl
         = (ServiceReference<ContentHandler>[])
-          framework.services.get(ContentHandler.class.getName(), filter, null);
+        framework.services.get(ContentHandler.class.getName(), filter, framework.systemBundle, false);
 
       if (srl != null && srl.length > 0) {
         ContentHandlerWrapper wrapper = wrapMap.get(mimetype);

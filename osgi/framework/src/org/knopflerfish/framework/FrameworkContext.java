@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -163,7 +163,12 @@ public class FrameworkContext  {
   ClassLoader parentClassLoader;
 
   /**
-   * All bundle in this framework.
+   * Is init in progress.
+   */
+  boolean isInit = false;
+
+  /**
+   * Is this first init.
    */
   boolean firstInit = true;
 
@@ -282,10 +287,11 @@ public class FrameworkContext  {
    * Initialize the framework, see spec v4.2 sec 4.2.4
    *
    */
-  void init()
+  void init(FrameworkListener... initListeners)
   {
     log("initializing");
     initCount++;
+    isInit = true;
 
     if (firstInit && Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
         .equals(props.getProperty(Constants.FRAMEWORK_STORAGE_CLEAN))) {
@@ -301,6 +307,8 @@ public class FrameworkContext  {
       systemBundle.secure = perm;
     }
     perm.init();
+
+    listeners = new Listeners(this, perm, initListeners);
 
     final String v = props.getProperty(FWProps.VALIDATOR_PROP);
     if (!v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
@@ -337,6 +345,7 @@ public class FrameworkContext  {
             debug.printStackTrace
               ("Cannot set global content handlers, "
                +"continuing without OSGi service content handler (" +e +")", e);
+            frameworkError(systemBundle, e);
           }
         }
       } else {
@@ -375,8 +384,10 @@ public class FrameworkContext  {
         // Use the nested exception as cause in this case.
         cause = ((InvocationTargetException)e).getTargetException();
       }
-      throw new RuntimeException("Failed to initialize storage "
-                                 + storageClass, cause);
+      RuntimeException re = new RuntimeException("Failed to initialize storage "
+                                                 + storageClass, cause);
+      frameworkError(systemBundle, re);
+      throw re;
     }
     if (props.getBooleanProperty(FWProps.READ_ONLY_PROP)) {
       dataStorage = null;
@@ -388,7 +399,6 @@ public class FrameworkContext  {
     bundleThreads = new LinkedList<BundleThread>();
 
     resolver  = new Resolver(this);
-    listeners = new Listeners(this, perm);
     services  = new Services(this, perm);
 
     // Add this framework to the bundle URL handle
@@ -417,20 +427,22 @@ public class FrameworkContext  {
                       classes,
                       packageAdmin,
                       null);
-
     registerStartLevel();
-
     bundles.load();
-
+    systemBundle.extensionCallStart(null);
+    listeners.initDone();
+    isInit = false;
     log("inited");
 
-    log("Installed bundles:");
-    // Use the ordering in the bundle storage to get a sorted list of bundles.
-    final BundleArchive [] allBAs = storage.getAllBundleArchives();
-    for (final BundleArchive ba : allBAs) {
-      final Bundle b = bundles.getBundle(ba.getBundleLocation());
-      log(" #" +b.getBundleId() +" " +b.getSymbolicName() +":"
-          +b.getVersion() +" location:" +b.getLocation());
+    if (debug.framework) {
+      log("Installed bundles:");
+      // Use the ordering in the bundle storage to get a sorted list of bundles.
+      final BundleArchive [] allBAs = storage.getAllBundleArchives();
+      for (final BundleArchive ba : allBAs) {
+        final Bundle b = bundles.getBundle(ba.getBundleLocation());
+        log(" #" +b.getBundleId() +" " +b.getSymbolicName() +":"
+            +b.getVersion() +" location:" +b.getLocation());
+      }
     }
   }
 
@@ -746,47 +758,6 @@ public class FrameworkContext  {
     // If bootclassloader, wrap it
     if (parentClassLoader == null) {
       parentClassLoader = new BCLoader();
-    }
-  }
-
-  /**
-   * The list of active {@link ExtensionContext} instances for attached
-   * extensions with an ExtensionActivator.
-   */
-  private final List<ExtensionContext> extCtxs = new ArrayList<ExtensionContext>();
-
-  /**
-   * Create a new {@link ExtensionContext} instances for the specified
-   * extension. This will create an instance of the extension
-   * activator class and call its activate-method of.
-   *
-   * @param extension the extension bundle to activate.
-   */
-  void activateExtension(final BundleGeneration extension) {
-    extCtxs.add( new ExtensionContext(this, extension) );
-  }
-
-  /**
-   * Inform all active extension contexts about a newly created bundle
-   * class loader.
-   *
-   * @param bcl the new bundle class loader to inform about.
-   */
-  void bundleClassLoaderCreated(final BundleClassLoader bcl) {
-    for (final ExtensionContext extCtx : extCtxs) {
-      extCtx.bundleClassLoaderCreated(bcl);
-    }
-  }
-
-  /**
-   * Inform all active extension contexts about a closed down bundle
-   * class loader.
-   *
-   * @param bcl the closed down bundle class loader to inform about.
-   */
-  void bundleClassLoaderClosed(final BundleClassLoader bcl) {
-    for (final ExtensionContext extCtx : extCtxs) {
-      extCtx.bundleClassLoaderClosed(bcl);
     }
   }
 

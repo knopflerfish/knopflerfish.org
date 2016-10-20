@@ -41,6 +41,9 @@ import java.util.Hashtable;
 import java.util.Iterator;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.PackagePermission;
+import org.osgi.framework.hooks.weaving.WovenClass;
+import org.osgi.framework.hooks.weaving.WovenClassListener;
 
 import org.knopflerfish.framework.FrameworkContext;
 
@@ -48,7 +51,7 @@ import org.knopflerfish.framework.FrameworkContext;
 /**
  *
  */
-public class PermissionsHandle {
+public class PermissionsHandle implements WovenClassListener {
 
   FrameworkContext framework;
 
@@ -158,6 +161,21 @@ public class PermissionsHandle {
    */
   Iterator<PermissionsWrapper> getPermissionWrappers() {
     return pcCache.values().iterator();
+  }
+
+
+  /**
+   * Listener for woven classes.
+   */
+  @Override
+  public void modified(WovenClass wc)
+  {
+    if ((wc.getState() & (WovenClass.DEFINED|WovenClass.DEFINE_FAILED)) != 0) {
+      PermissionsWrapper pw = pcCache.get(new Long(wc.getBundleWiring().getBundle().getBundleId()));
+      if (pw != null) { // TODO, is this really necessary.
+        pw.addWovenDynamicImport(wc.getDynamicImports());
+      }
+    }
   }
 
 }

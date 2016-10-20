@@ -189,8 +189,8 @@ public class RepositoryXmlParser {
   }
   
   private static Data parseData(XmlPullParser p) throws Exception {
-    Data d = new Data();
-    d.namespace = p.getAttributeCount() == 1 && "namespace".equals(p.getAttributeName(0)) ? p.getAttributeValue(0) : "";
+    Data d = new Data(p.getAttributeCount() == 1 && "namespace".equals(p.getAttributeName(0))
+                      ? p.getAttributeValue(0) : "");
     if (p.isEmptyElementTag()) {
       p.next(); // We still get an END_TAG
       return d;

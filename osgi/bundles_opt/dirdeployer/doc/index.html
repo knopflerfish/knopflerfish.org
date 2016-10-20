@@ -141,7 +141,8 @@ The Directory Deployer supports deploying of bundles and configurations:
 
   The table below describes the framework properties that may be used
   to set the default values for the directory deployer configuration.
-
+</p>
+<p>
 <table class="man">
   <tr>
     <th>Name</th>
@@ -233,4 +234,51 @@ The Directory Deployer supports deploying of bundles and configurations:
     <td>boolean</td>
     <td>true</td>
   </tr>
+
+  <tr>
+    <td>org.knopflerfish.fileinstall.filemarkers.use</td>
+    <td>
+      When set to true the deployer will use a suffix file marker to identify and mark files to deploy as
+      well as their deployment status. The following markers are used:
+      <p>
+      <table class="man_inner">
+	<tr>
+	  <td>.dodeploy</td>
+	  <td> Mark the file for deployment </td>
+	</tr>
+	<tr>
+	  <td>.deploying</td>
+	  <td>The file is in the process of being deployed </td>
+	</tr>
+	<tr>
+	  <td>.deployed </td>
+	  <td>The file has been succesfully deployed. Removing this marker will undeploy the file </td>
+	</tr>
+	<tr>
+	  <td>.undeploying </td>
+	  <td>The file is in the process of being undeployed </td>
+	</tr>
+	<tr>
+	  <td>.undeployed </td>
+	  <td>The file has been successfully deployed </td>
+	</tr>
+	<tr>
+	  <td>.failed </td>
+	  <td>A deployment step failed. Removing this marker will make the file eligable for
+	    deployment again</td>
+	</tr>
+      </table>
+      </p>
+    </td>
+    <td>boolean</td>
+    <td>false</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.fileinstall.bundlecontrols.use</td>
+    <td>
+      When set to true a DeployedBundleControl instance is registered for every deployed bundle jar file.
+    <td>boolean</td>
+    <td>false</td>
+    
 </table>
+</p>

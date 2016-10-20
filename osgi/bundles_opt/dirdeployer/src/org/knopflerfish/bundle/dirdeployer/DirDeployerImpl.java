@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2013, KNOPFLERFISH project
+ * Copyright (c) 2004-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,10 +48,11 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.service.log.LogService;
+// import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
-
+import org.knopflerfish.service.dirdeployer.DeployedBundleControl;
 import org.knopflerfish.service.dirdeployer.DirDeployerService;
+import org.knopflerfish.service.log.LogRef;
 
 /**
  * Implementation of <tt>DirDeployerService</tt> which scans a set of
@@ -67,17 +68,17 @@ class DirDeployerImpl
   Thread runner = null; // scan thread
   boolean bRun = false; // flag for stopping scan thread
 
-  static ServiceTracker<LogService,LogService> logTracker;
+  // static ServiceTracker<LogService,LogService> logTracker;
   static ServiceTracker<ConfigurationAdmin,ConfigurationAdmin> caTracker;
-
+  
   Config config;
 
   public DirDeployerImpl()
   {
-    logTracker =
-      new ServiceTracker<LogService, LogService>(Activator.bc,
-                                                 LogService.class, null);
-    logTracker.open();
+//    logTracker =
+//      new ServiceTracker<LogService, LogService>(Activator.bc,
+//                                                 LogService.class, null);
+//    logTracker.open();
 
     caTracker =
       new ServiceTracker<ConfigurationAdmin, ConfigurationAdmin>(
@@ -109,18 +110,18 @@ class DirDeployerImpl
       @Override
       public void run()
       {
-        log("started scaning of " +Arrays.asList(config.dirs));
+        Activator.logger.info("start scan of " +Arrays.asList(config.dirs));
         while (bRun) {
           try {
             doScan();
             Thread.sleep(Math.max(100, config.interval));
           } catch (final InterruptedException ie) {
-            log("scaning interrupted");
+            Activator.logger.info("scaning interrupted");
           } catch (final Exception e) {
-            log("scan failed: " +e.getMessage(), e);
+            Activator.logger.error("scan failed: " +e.getMessage(), e);
           }
         }
-        log("stopped scaning");
+        Activator.logger.info("stopped scaning");
 
         if (config.uninstallOnStop) {
           uninstallAll();
@@ -153,7 +154,7 @@ class DirDeployerImpl
     DeployedBundle.clearState();
     DeployedCMData.clearState();
     caTracker.close();
-    logTracker.close();
+    // logTracker.close();
   }
 
   /**
@@ -198,16 +199,49 @@ class DirDeployerImpl
         for (final String file : files) {
           try {
             final File f = new File(dir, file);
+            if (Activator.logger.doDebug())
+              Activator.logger.debug("Examining: " + f.getName());
+            if (MarkerFile.isMarkerFile(f))
+              continue;
             DeployedFile df = deployedFiles.get(f);
             if (df!=null) {
-              df.updateIfNeeded();
+              if (Activator.logger.doDebug())
+                Activator.logger.debug("We already have the file deployed: " + f.getName());
+              if (config.useFileMarkers && df instanceof DeployedBundle) {
+                DeployedBundle deployed = (DeployedBundle)df;
+                Activator.logger.debug("Deployment State: " + deployed.getDeploymentState());
+           
+                switch (deployed.getDeploymentState()) {
+                case STAGED: {
+                  if (MarkerFile.isMarkedForDeployment(f)) {
+                    if (Activator.logger.doDebug())
+                      Activator.logger.debug("Staged, but marked for (re)deployment, attempting to install: " + f.getName());
+                    df.installIfNeeded();
+                  }
+                  break;
+                }
+                case DEPLOYED:
+                  if (!MarkerFile.isMarkedAsDeployed(f)) {
+                    deployed.uninstall();
+                    deployedFiles.remove(df.getFile());
+                  }
+                }
+              }
+              else {
+                df.updateIfNeeded();
+              }
             } else {
-              if (DeployedBundle.isBundleFile(f)) {
+              if (DeployedBundle.isBundleFile(f)) { 
+                if (Activator.logger.doDebug())
+                Activator.logger.debug("New deployment: " + f.getName());
                 df = new DeployedBundle(config, f);
+                // Config.useFileMarkers && MarkerFile.isMarkedForDeployment(f)) {
               } else if (DeployedCMData.isCMDataFile(f)) {
                 df = new DeployedCMData(config, f);
               }
               if (df!=null) {
+                if (Activator.logger.doDebug())
+                  Activator.logger.debug("Starting deployment: " + df.getFile().getName());
                 deployedFiles.put(df.getFile(), df);
                 df.installIfNeeded();
               }
@@ -219,6 +253,8 @@ class DirDeployerImpl
       }
     }
   }
+
+  
 
   /**
    * Check if any files has been removed from any of the scanned dirs, If so,
@@ -421,7 +457,7 @@ class DirDeployerImpl
    */
   static void log(String s)
   {
-    log(s, null);
+    Activator.logger.info(s);
   }
 
   /**
@@ -432,9 +468,15 @@ class DirDeployerImpl
    */
   static void log(String msg, Throwable t)
   {
-    final int level = t == null ? LogService.LOG_INFO : LogService.LOG_WARNING;
-
-    log(level, msg, t);
+//    final int level = t == null ? LogService.LOG_INFO : LogService.LOG_WARNING;
+//
+//    log(level, msg, t);
+    
+    if (t == null) {
+      Activator.logger.info(msg);
+    } else {
+      Activator.logger.warn(msg, t);
+    }
   }
 
   /**
@@ -448,7 +490,8 @@ class DirDeployerImpl
    */
   static void logErr(String msg, Throwable t)
   {
-    log(LogService.LOG_ERROR, msg, t);
+    // log(LogService.LOG_ERROR, msg, t);
+    Activator.logger.error(msg, t);
   }
 
   /**
@@ -458,19 +501,19 @@ class DirDeployerImpl
    * @param msg The message to log.
    * @param t optional throwable  to include in the log entry.
    */
-  static void log(final int level, final String msg, final Throwable t)
-  {
-    final LogService log = logTracker != null ? logTracker.getService() : null;
-    if (log == null) {
-      final PrintStream out =
-        level == LogService.LOG_ERROR ? System.err : System.out;
-      out.println("[dirdeployer " + level + "] " + msg);
-      if (t != null) {
-        t.printStackTrace(out);
-      }
-    } else {
-      log.log(level, msg, t);
-    }
-  }
+//  static void log(final int level, final String msg, final Throwable t)
+//  {
+//    final LogService log = logTracker != null ? logTracker.getService() : null;
+//    if (log == null) {
+//      final PrintStream out =
+//        level == LogService.LOG_ERROR ? System.err : System.out;
+//      out.println("[dirdeployer " + level + "] " + msg);
+//      if (t != null) {
+//        t.printStackTrace(out);
+//      }
+//    } else {
+//      log.log(level, msg, t);
+//    }
+//  }
 
 }

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: SCR
 Bundle-SymbolicName: org.knopflerfish.bundle.component
-Bundle-Version: 5.0.3
+Bundle-Version: 5.99.99
 Bundle-Category: osgi
 Bundle-Description: Declarative Services SCR
 Bundle-Vendor: Knopflerfish
@@ -18,11 +18,23 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
 Bundle-Activator: org.knopflerfish.bundle.component.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 api-Provide-Capability: [bundle.emptystring]
-Provide-Capability: osgi.service;
- objectClass:List<String>="org.apache.felix.scr.ScrService"
-api-Import-Package: org.osgi.framework ; version="[1.6,2)"
-Import-Package: org.osgi.framework ; version="[1.6,2)",
+Provide-Capability: osgi.extender;
+    osgi.extender="osgi.component";
+    version:Version="1.3";
+    uses:="org.osgi.framework,org.osgi.service.component,org.osgi.service.component.runtime,org.osgi.service.component.runtime.dto,org.osgi.util.promise",
+    osgi.service; objectClass:List<String>=
+    "org.apache.felix.scr.ScrService";uses:="org.osgi.framework,org.osgi.service.component",
+    osgi.service; objectClass:List<String>=
+    "org.osgi.service.component.runtime.ServiceComponentRuntime";uses:="org.osgi.framework,org.osgi.service.component,org.osgi.service.component.runtime,org.osgi.service.component.runtime.dto,org.osgi.util.promise"
+api-Import-Package: org.osgi.dto ; version="[1.0,2)",
+ org.osgi.framework ; version="[1.8,2)",
+ org.osgi.framework.dto ; version="[1.0,2)",
+ org.osgi.util.promise ; version="[1.0,2)"
+Import-Package: org.osgi.dto ; version="[1.0,2)",
+ org.osgi.framework ; version="[1.8,2)",
+ org.osgi.framework.dto ; version="[1.0,2)",
  org.osgi.service.cm ; version="[1.5,2)",
  org.osgi.service.log ; version="[1.3,2)",
+ org.osgi.util.promise ; version="[1.0,2)",
  org.osgi.util.tracker ; version="[1.5,2)",
  org.xmlpull.v1

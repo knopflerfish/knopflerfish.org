@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,14 @@ import org.osgi.framework.InvalidSyntaxException;
 
 class ReferenceDescription
 {
+  static final int FIELD_ELEM_SERVICE = 0;
+  static final int FIELD_ELEM_REFERENCE = 1;
+  static final int FIELD_ELEM_SERVICE_OBJECTS = 2;
+  static final int FIELD_ELEM_PROPERTIES = 3;
+  static final int FIELD_ELEM_TUPLE = 4;
+
+  static final String SCOPE_PROTOTYPE_REQUIRED = "prototype_required";
+
   final String name;
   final String interfaceName;
   final boolean optional;
@@ -49,6 +57,10 @@ class ReferenceDescription
   final String bind;
   final String unbind;
   final String updated;
+  final String scope;
+  final String field;
+  final Boolean fieldUpdate;
+  final int fieldCollectionType;
   final Filter targetFilter;
 
   ReferenceDescription(String name,
@@ -60,7 +72,11 @@ class ReferenceDescription
                        String target,
                        String bind,
                        String unbind,
-                       String updated)
+                       String updated,
+                       String scope,
+                       String field,
+                       Boolean fieldUpdate,
+                       int fieldCollectionType)
     throws InvalidSyntaxException
   {
     Filter f = (target != null) ? FrameworkUtil.createFilter(target) : null;
@@ -74,6 +90,15 @@ class ReferenceDescription
     this.bind = bind;
     this.unbind = unbind;
     this.updated = updated;
+    this.scope = scope;
+    this.field = field;
+    this.fieldUpdate = fieldUpdate;
+    this.fieldCollectionType = fieldCollectionType;
+  }
+
+
+  boolean isFieldUpdate() {
+    return fieldUpdate != null && fieldUpdate.booleanValue();
   }
 
 }

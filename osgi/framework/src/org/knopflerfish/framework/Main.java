@@ -670,9 +670,14 @@ public class Main
           assertFramework();
           if (i+1 < args.length) {
             final int n = Integer.parseInt(args[i+1]);
-            final FrameworkStartLevel fsl = framework.adapt(FrameworkStartLevel.class);
-            if (fsl!=null) {
-              fsl.setStartLevel(n);
+            if ((Bundle.ACTIVE&framework.getState()) != 0) {
+              final FrameworkStartLevel fsl = framework.adapt(FrameworkStartLevel.class);
+              if (fsl!=null) {
+                fsl.setStartLevel(n);
+              }
+            } else {
+              error("Startlevel command not available before framework started.\n" +
+                    "Use property 'org.osgi.framework.startlevel.beginning' instead");
             }
             i++;
           } else {

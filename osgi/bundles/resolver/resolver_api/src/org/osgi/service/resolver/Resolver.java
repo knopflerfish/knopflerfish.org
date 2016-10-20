@@ -22,6 +22,7 @@ package org.osgi.service.resolver;
 
 import java.util.List;
 import java.util.Map;
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.resource.Resource;
 import org.osgi.resource.Wire;
 
@@ -30,9 +31,9 @@ import org.osgi.resource.Wire;
  * by the caller.
  * 
  * @ThreadSafe
- * @noimplement
- * @author $Id: 809049a3954e50f9abbfca24fa4fda0d77d4f5b3 $
+ * @author $Id: 367c005c1a4b487bb6512c13c6348e343cefcfe5 $
  */
+@ProviderType
 public interface Resolver {
 	/**
 	 * Resolve the specified resolve context and return any new resources and

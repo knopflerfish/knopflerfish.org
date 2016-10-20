@@ -183,7 +183,7 @@ H1, H1.kf {
     color: #444444;
 }
 
-H2, H2.kf, H2.filled  {
+H2, H2.kf, H2.filled, h2.release_notes  {
     font-family: Helvetica Neue; Helvetics, Lucida Grande, Verdana, Arial, Helvetica, sans-serif;
     font-size:	1.6em;
     font-weight:bold;
@@ -193,7 +193,7 @@ H2, H2.kf, H2.filled  {
     margin: 0.8em 0 0.2em 0;
 }
 
-H2.filled  {
+H2.filled, h2.release_notes  {
     background-image: url('../images/shortfadeout_20px.png');
     border-style: solid;
     border-color:	#ccc;
@@ -202,18 +202,6 @@ H2.filled  {
     padding:	3px 0px 3px 6px;
 }
     
-/*
-H2 {
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size:18px;
-    font-weight:bold;
-    border-style: solid;
-    border-color: #802060;
-    border-width: 0px 0px 2px 0px;
-    padding-bottom: 2px;
-}
-*/
-
 H3  {
  font-family:  Lucida Grande, Tahoma, Verdana, Arial, Helvetica, sans-serif;
  font-size:1.1em;
@@ -434,6 +422,7 @@ tt {
 }
 
 .note_name {
+    margin: 1.5em 0 0.5em 0;
     font-weight: bold;
     color:#333333;
 }
@@ -446,4 +435,23 @@ tt {
 p {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
+}
+
+div.newkf6:after {
+    content: " N";
+    background: #cccccc;
+    display:block;
+}
+
+table.kf td.newkf6 {
+    /* background-color: #f5f3ee; */
+    /* color: #4a96ad; */
+}
+
+td.R6-new:after {
+    content: "N";
+}
+
+td.R6-upd:after {
+    content: "U";
 }

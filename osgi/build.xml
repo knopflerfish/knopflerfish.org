@@ -280,6 +280,8 @@
           <include name="**/*.jar"/>
           <exclude name="bindex.jar"/>
         </fileset>
+        <!-- Make annotation jars available -->
+        <pathelement location="${osgi.dir}/annotations/osgi.annotation-6.0.1.jar"/>
         <!-- Make embedded jars available -->
         <pathelement location="${osgi.dir}/bundles/io/io/resources/javax.microedition.io.jar"/>
         <pathelement location="${osgi.dir}/bundles/metatype/kf_metatype/resources/nanoxml-2.2.1.jar"/>

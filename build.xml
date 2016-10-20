@@ -58,8 +58,7 @@
     <isset property="version"/>
   </condition>
 
-
-  <property name="version.base"       value="5.2.1.snapshot"/>
+  <property name="version.base"       value="6.0.0.snapshot"/>
   <condition property="version"
              value="${version.base}"
              else="${version.base}-${version.suffix}">
@@ -78,7 +77,7 @@
   <property name="git.repo.url"
             value="https://github.com/knopflerfish/knopflerfish.org"/>
 
-  <!-- The git tag / branch that this build is made on -->
+  <!-- The git tag / branch that this build is made on. Used for viewing -->
   <!-- E.g., "trunk", "tags/2.3.2", "branches/kf_1_support". -->
   <property name="git.tag"    value="tree/${version}"/>
 
@@ -453,7 +452,7 @@
   </target>
 
   <!-- General distribution documentation, mostly html -->
-  <target name="distrib_docs" depends="bundle_tasks">
+  <target name="distrib_docs" depends="bundle_tasks, util_tasks">
     <mkdir dir="${distrib.doc.dir}"/>
 
     <property name="htdocs.out"     location="${distrib.doc.dir}"/>

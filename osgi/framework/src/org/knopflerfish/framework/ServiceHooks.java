@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2013, KNOPFLERFISH project
+ * Copyright (c) 2009-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -151,7 +151,7 @@ class ServiceHooks {
 
       for (final ServiceRegistrationImpl<FindHook> fhr : srl) {
         final ServiceReferenceImpl<FindHook> sr = fhr.reference;
-        final FindHook fh = sr.getService(fwCtx.systemBundle);
+        final FindHook fh = sr.getService();
         if (fh != null) {
           try {
             fh.find(bc, service, filter, allServices, filtered);
@@ -187,7 +187,7 @@ class ServiceHooks {
 
       for (final ServiceRegistrationImpl<org.osgi.framework.hooks.service.EventHook> sregi : eventHooks) {
         final ServiceReferenceImpl<org.osgi.framework.hooks.service.EventHook> sr = sregi.reference;
-        final org.osgi.framework.hooks.service.EventHook eh = sr.getService(fwCtx.systemBundle);
+        final org.osgi.framework.hooks.service.EventHook eh = sr.getService();
         if (eh != null) {
           try {
             eh.event(evt, filtered);
@@ -199,6 +199,7 @@ class ServiceHooks {
       }
       // TODO, refactor this for speed!?
       if (start_size != ctxs.size()) {
+        ctxs.add(fwCtx.systemBundle.bundleContext);
         for (final Iterator<ServiceListenerEntry> ir = receivers.iterator(); ir.hasNext(); ) {
           if (!ctxs.contains(ir.next().getBundleContext())) {
             ir.remove();
@@ -220,6 +221,13 @@ class ServiceHooks {
         listeners.get(sle.getBundleContext()).add(sle);
       }
 
+      receivers.clear();
+      Collection<ListenerInfo> sys = listeners.get(fwCtx.systemBundle.bundleContext);
+      if (sys != null) {
+        final Collection<ServiceListenerEntry> sles = (Collection) sys;
+        receivers.addAll(sles);
+      }
+        
       for(final Entry<BundleContext, Collection<ListenerInfo>> e : listeners.entrySet()) {
         e.setValue(new RemoveOnlyCollection<ListenerInfo>(e.getValue()));
       }
@@ -228,7 +236,7 @@ class ServiceHooks {
         = new RemoveOnlyMap<BundleContext, Collection<ListenerInfo>>(listeners);
 
       for(final ServiceRegistrationImpl<EventListenerHook> sri : eventListenerHooks) {
-        final EventListenerHook elh = sri.reference.getService(fwCtx.systemBundle);
+        final EventListenerHook elh = sri.reference.getService();
         if(elh != null) {
           try {
             elh.event(evt, filtered);
@@ -238,7 +246,6 @@ class ServiceHooks {
           }
         }
       }
-      receivers.clear();
       for(final Collection<ListenerInfo> li : listeners.values()) {
         @SuppressWarnings({ "rawtypes", "unchecked" })
         final Collection<ServiceListenerEntry> sles = (Collection) li;

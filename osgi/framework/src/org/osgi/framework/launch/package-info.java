@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2014). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /**
- * Framework Launch Package Version 1.1.
+ * Framework Launch Package Version 1.2.
  *
  * <p>
  * Bundles wishing to use this package must list the package in the
@@ -24,10 +24,13 @@
  * <p>
  * Example import for consumers using the API in this package:
  * <p>
- * {@code  Import-Package: org.osgi.framework.launch; version="[1.1,2.0)"}
+ * {@code  Import-Package: org.osgi.framework.launch; version="[1.2,2.0)"}
  *
- * @version $Id: f1e5d25386dfcda77fb66659963a62209c4f6d60 $
+ * @author $Id: db5e926caf137972db8affe0b49ae39c75bec1fc $
  */
 
+@Version("1.2")
 package org.osgi.framework.launch;
+
+import org.osgi.annotation.versioning.Version;
 

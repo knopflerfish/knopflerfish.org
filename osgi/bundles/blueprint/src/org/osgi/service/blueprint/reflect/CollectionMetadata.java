@@ -17,6 +17,7 @@
 package org.osgi.service.blueprint.reflect;
 
 import java.util.List;
+import org.osgi.annotation.versioning.ConsumerType;
 
 /**
  * Metadata for a collection based value. Values of the collection are defined
@@ -24,9 +25,9 @@ import java.util.List;
  * collection to a specific type.
  * 
  * @ThreadSafe
- * @author $Id: 4f230604fc391b46ac1dda9ab5c2dec14a2a1aa0 $
+ * @author $Id: 6c263e48e9a599887f0e97707fc44d19ae2ca489 $
  */
-
+@ConsumerType
 public interface CollectionMetadata extends NonNullMetadata {
 
 	/**

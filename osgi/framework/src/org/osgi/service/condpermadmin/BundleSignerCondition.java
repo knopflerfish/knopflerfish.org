@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ import org.osgi.framework.FrameworkUtil;
  * RDNs).
  * 
  * @ThreadSafe
- * @version $Id: 8f8619a999cf2afba3d9c1e52e3fc0df2cde636c $
+ * @author $Id: 9bb17ecb4b23c66940ab8d9f3b97b0a1040db929 $
  */
 public class BundleSignerCondition {
 	private static final String	CONDITION_TYPE	= "org.osgi.service.condpermadmin.BundleSignerCondition";

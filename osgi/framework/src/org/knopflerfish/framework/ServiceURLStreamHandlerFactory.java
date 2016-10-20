@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -219,7 +219,7 @@ public class ServiceURLStreamHandlerFactory
         @SuppressWarnings("unchecked")
         final ServiceReference<URLStreamHandlerService>[] srl
           = (ServiceReference<URLStreamHandlerService>[]) sfw.services
-            .get(URLStreamHandlerService.class.getName(), filter, null);
+            .get(URLStreamHandlerService.class.getName(), filter, sfw.systemBundle, false);
 
         if (srl != null && srl.length > 0) {
           synchronized (wrapMap) {

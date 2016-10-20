@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,18 @@ import java.util.Map;
 
 import org.osgi.framework.Version;
 import org.osgi.framework.namespace.IdentityNamespace;
+import org.osgi.framework.namespace.NativeNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.dto.BundleRevisionDTO;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
+import org.osgi.resource.dto.CapabilityDTO;
+import org.osgi.resource.dto.CapabilityRefDTO;
+import org.osgi.resource.dto.RequirementDTO;
+import org.osgi.resource.dto.RequirementRefDTO;
 
 public class BundleRevisionImpl
   extends BundleReferenceImpl
@@ -54,11 +60,12 @@ public class BundleRevisionImpl
   static final int NS_BUNDLE =    1;
   static final int NS_HOST =      2;
   static final int NS_IDENTITY =  4;
-  static final int NS_PACKAGE =   8;
-  static final int NS_OTHER =    16;
+  static final int NS_NATIVE =    8;
+  static final int NS_PACKAGE =  16;
+  static final int NS_OTHER =    32;
 
   final BundleGeneration gen;
-  private BundleWiring bundleWiring = null;
+  private BundleWiringImpl bundleWiring = null;
 
 
   BundleRevisionImpl(BundleGeneration gen) {
@@ -84,21 +91,22 @@ public class BundleRevisionImpl
     final ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
     final int ns = whichNameSpaces(namespace);
 
-    if ((ns & NS_BUNDLE) != 0) {
-      final BundleCapability bc = gen.getBundleCapability();
-      if (bc!=null) {
-        res.add(bc);
-      }
-    }
-    if ((ns & NS_HOST) != 0) {
-      final BundleCapability bc = gen.getHostCapability();
+    if ((ns & NS_IDENTITY) != 0) {
+      final BundleCapability bc = gen.identity;
       if (bc!=null) {
         res.add(bc);
       }
     }
 
-    if ((ns & NS_IDENTITY) != 0) {
-      final BundleCapability bc = gen.getIdentityCapability();
+    if ((ns & NS_BUNDLE) != 0) {
+      final BundleCapability bc = gen.bundleCapability;
+      if (bc!=null) {
+        res.add(bc);
+      }
+    }
+
+    if ((ns & NS_HOST) != 0) {
+      final BundleCapability bc = gen.hostCapability;
       if (bc!=null) {
         res.add(bc);
       }
@@ -108,7 +116,7 @@ public class BundleRevisionImpl
       res.addAll(gen.bpkgs.getDeclaredPackageCapabilities());
     }
 
-    if ((ns & NS_OTHER) != 0) {
+    if ((ns & (NS_NATIVE|NS_OTHER)) != 0) {
       final Map<String, List<BundleCapabilityImpl>> caps = gen.getDeclaredCapabilities();
       if (null != namespace) {
         final List<BundleCapabilityImpl> lcap = caps.get(namespace);
@@ -145,7 +153,10 @@ public class BundleRevisionImpl
       res.addAll(gen.bpkgs.getDeclaredPackageRequirements());
     }
 
-    if ((ns & (NS_IDENTITY|NS_OTHER)) != 0) {
+    if ((ns & (NS_IDENTITY|NS_NATIVE|NS_OTHER)) != 0) {
+      if ((ns & NS_NATIVE) != 0 && gen.nativeRequirement != null) {
+        res.add(gen.nativeRequirement);
+      }
       final Map<String, List<BundleRequirementImpl>> reqs = gen.getDeclaredRequirements();
       if (null != namespace) {
         final List<BundleRequirementImpl> lbr = reqs.get(namespace);
@@ -200,6 +211,11 @@ public class BundleRevisionImpl
   }
   
 
+  BundleWiringImpl getWiringImpl() {
+    return bundleWiring;
+  }
+
+
   void setWired() {
     bundleWiring = new BundleWiringImpl(this);
   }
@@ -207,6 +223,43 @@ public class BundleRevisionImpl
 
   void clearWiring() {
     bundleWiring = null;
+  }
+
+
+  BundleRevisionDTO getDTO() {
+    BundleRevisionDTO res = new BundleRevisionDTO();
+    res.symbolicName = gen.symbolicName;
+    res.type = getTypes();
+    res.version = gen.version.toString();
+    res.bundle = gen.bundle.id;
+    res.id = dtoId;
+    res.capabilities = new ArrayList<CapabilityDTO>();
+    for (BundleCapability bc :  getDeclaredCapabilities(null)) {
+      res.capabilities.add(BundleCapabilityImpl.getDTO(bc, this));
+    }
+    res.requirements = new ArrayList<RequirementDTO>();
+    for (BundleRequirement br :  getDeclaredRequirements(null)) {
+      res.requirements.add(BundleRequirementImpl.getDTO(br, this));
+    }
+    return res;
+  }
+
+
+  List<CapabilityRefDTO> getCapabilityRefDTOs() {
+    List<CapabilityRefDTO> res = new ArrayList<CapabilityRefDTO>();
+    for (BundleCapability bc :  getDeclaredCapabilities(null)) {
+      res.add(BundleCapabilityImpl.getRefDTO(bc, this));
+    }
+    return res;
+  }
+
+
+  List<RequirementRefDTO> getRequirementRefDTOs() {
+    List<RequirementRefDTO> res = new ArrayList<RequirementRefDTO>();
+    for (BundleRequirement br :  getDeclaredRequirements(null)) {
+      res.add(BundleRequirementImpl.getRefDTO(br, this));
+    }
+    return res;
   }
 
 
@@ -220,6 +273,8 @@ public class BundleRevisionImpl
       ns = NS_HOST;
     } else if (IdentityNamespace.IDENTITY_NAMESPACE.equals(namespace)) {
       ns = NS_IDENTITY;
+    } else if (NativeNamespace.NATIVE_NAMESPACE.equals(namespace)) {
+      ns = NS_NATIVE;
     } else if (BundleRevision.PACKAGE_NAMESPACE.equals(namespace)) {
       ns = NS_PACKAGE;
     } else {

@@ -34,7 +34,7 @@ import org.osgi.resource.Requirement;
  * Resolver implementations may extend this class to provide extra state
  * information about the reason for the resolution failure.
  * 
- * @author $Id: 7e9dcb8cd9bd8e69ddfd27f13e7046df346c5f00 $
+ * @author $Id: 2bcc0ac8ebfaf169dd301493303d23ce613ac8b9 $
  */
 public class ResolutionException extends Exception {
 
@@ -81,6 +81,7 @@ public class ResolutionException extends Exception {
 		unresolvedRequirements = null;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static Collection<Requirement> emptyCollection() {
 		return Collections.EMPTY_LIST;
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.osgi.service.wireadmin;
 
 /**
- * Data Consumer, a service that can receive udpated values from
+ * Data Consumer, a service that can receive updated values from
  * {@link Producer} services.
  * 
  * <p>
@@ -52,7 +52,7 @@ package org.osgi.service.wireadmin;
  * different types of objects from the Producer service. The Consumer service
  * should have {@code WirePermission} for each of these scope names.
  * 
- * @author $Id: 3363ead47a7767d56aa9199473ef4c529e9672eb $
+ * @author $Id: 2f7f64f305e997fa2c381842b037057116dc3e07 $
  */
 public interface Consumer {
 	/**

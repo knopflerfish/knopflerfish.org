@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ import java.util.Set;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.PrototypeServiceFactory;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceReference;
@@ -123,9 +124,14 @@ class Services {
     if (service == null) {
       throw new IllegalArgumentException("Can't register null as a service");
     }
+    String scope;
+    if (service instanceof ServiceFactory) {
+      scope = service instanceof PrototypeServiceFactory ? Constants.SCOPE_PROTOTYPE : Constants.SCOPE_BUNDLE;
+    } else {
+      scope = Constants.SCOPE_SINGLETON;
+    }
     // Check if service implements claimed classes and that they exist.
-    for (final String classe : classes) {
-      final String cls = classe;
+    for (final String cls : classes) {
       if (cls == null) {
         throw new IllegalArgumentException("Can't register as null class");
       }
@@ -144,7 +150,7 @@ class Services {
             ("Registeration of a ConditionalPermissionAdmin service is not allowed");
         }
       }
-      if (!(service instanceof ServiceFactory)) {
+      if (scope == Constants.SCOPE_SINGLETON) {
         if (!checkServiceClass(service, cls)) {
           throw new IllegalArgumentException
             ("Service object is not an instance of " + cls);
@@ -154,8 +160,8 @@ class Services {
 
     @SuppressWarnings("rawtypes")
     final ServiceRegistrationImpl<?> res =
-      new ServiceRegistrationImpl(bundle, service,
-                                  new PropertiesDictionary(properties, classes, null));
+      new ServiceRegistrationImpl(bundle, service, scope,
+                                  new PropertiesDictionary(properties, classes, null, new Long(bundle.id), scope));
     synchronized (this) {
       services.put(res, classes);
       for (final String clazz : classes) {
@@ -264,11 +270,14 @@ class Services {
    *
    * @param bundle bundle requesting reference
    * @param clazz The class name of requested service.
+   * @param doAssignableToTest whether to if the bundle that registered the service
+   * referenced by this ServiceReference and the specified bundle are both wired to
+   * same source for the registration class.
    * @return A {@link ServiceReference} object.
    */
-  synchronized ServiceReference<?> get(BundleImpl bundle, String clazz) {
+  synchronized ServiceReference<?> get(BundleImpl bundle, String clazz, boolean doAssignableToTest) {
     try {
-      final ServiceReference<?>[] srs = get(clazz, null, bundle);
+      final ServiceReference<?>[] srs = get(clazz, null, bundle, doAssignableToTest);
       if (framework.debug.service_reference) {
         framework.debug.println("get service ref " + clazz + " for bundle " + bundle.location
                                 + " = " + (srs != null ? srs[0] : null));
@@ -287,14 +296,13 @@ class Services {
    *
    * @param clazz The class name of requested service.
    * @param filter The property filter.
-   * @param bundle bundle requesting reference. can be null if doAssignableToTest is false
-   * (this is not an interface class so don't check)
-   * @param isAssignableToTest whether to if the bundle that registered the service
+   * @param bundle bundle requesting reference.
+   * @param doAssignableToTest whether to if the bundle that registered the service
    * referenced by this ServiceReference and the specified bundle are both wired to
    * same source for the registration class.
    * @return An array of {@link ServiceReference} object.
    */
-  synchronized ServiceReference<?>[] get(String clazz, String filter, BundleImpl bundle)
+  synchronized ServiceReference<?>[] get(String clazz, String filter, BundleImpl bundle, boolean doAssignableToTest)
     throws InvalidSyntaxException {
     Iterator<ServiceRegistrationImpl<?>> s;
     LDAPExpr ldap = null;
@@ -341,7 +349,7 @@ class Services {
         ldap = new LDAPExpr(filter);
       }
     }
-    final Collection<ServiceReference<?>> res
+    Collection<ServiceReference<?>> res
       = new ArrayList<ServiceReference<?>>();
     while (s.hasNext()) {
       final ServiceRegistrationImpl<?> sr = s.next();
@@ -350,7 +358,7 @@ class Services {
         continue; //sr not part of returned set
       }
       if (filter == null || ldap.evaluate(sr.getProperties(), false)) {
-        if (bundle != null) {
+        if (doAssignableToTest) {
           final String[] classes = services.get(sr);
           for (int i = 0; i < classes.length; i++) {
             if (!sri.isAssignableTo(bundle, classes[i])){
@@ -367,11 +375,18 @@ class Services {
     if (res.isEmpty()) {
       return null;
     } else {
-      if (bundle != null) {
+      ArrayList<ServiceReference<?>> allSaved = null;
+      if (bundle == framework.systemBundle) {
+        allSaved = new ArrayList<ServiceReference<?>>(res);
+      }
+      if (doAssignableToTest) {
         framework.serviceHooks.filterServiceReferences(bundle.bundleContext,
                                                 clazz, filter, false, res);
       } else {
         framework.serviceHooks.filterServiceReferences(null, clazz, filter, true, res);
+      }
+      if (allSaved != null) {
+        res = allSaved;
       }
       if (res.isEmpty()) {
         return null;
@@ -432,6 +447,16 @@ class Services {
       }
     }
     return res;
+  }
+
+
+  /**
+   * Get all services registered.
+   *
+   * @return A set of {@link ServiceRegistration} objects
+   */
+  synchronized Set<ServiceRegistrationImpl<?>> getAllRegistered() {
+    return new HashSet<ServiceRegistrationImpl<?>>(services.keySet());
   }
 
 

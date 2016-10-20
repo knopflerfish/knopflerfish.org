@@ -553,4 +553,11 @@ class DeployedCMData
            + (pids == null ? "-" : Arrays.asList(pids).toString()) + "]";
   }
 
+  @Override
+  public boolean isControlFile(File f)
+  {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
 }

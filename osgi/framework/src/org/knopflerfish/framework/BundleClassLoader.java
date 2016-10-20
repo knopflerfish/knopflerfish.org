@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2015, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,8 +114,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     protectionDomain = gen.getProtectionDomain();
     bpkgs = gen.bpkgs;
     archive = gen.archive;
-    classPath = new BundleClassPath(archive, gen.fragments, fwCtx);
-    fwCtx.bundleClassLoaderCreated(this);
+    classPath = new BundleClassPath(archive, gen);
     if (debug.classLoader) {
       debug.println(this + " Created new classloader");
     }
@@ -489,7 +488,6 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    */
   void close() {
     archive = null;
-    fwCtx.bundleClassLoaderClosed(this);
     if (debug.classLoader) {
       debug.println(this + " Cleared archives");
     }
@@ -949,15 +947,17 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
                 throw cfe;
               }
             }
-            if (cl.protectionDomain == null) {
-              // Kaffe can't handle null protectiondomain
-              c = cl.defineClass(name, bytes, 0, bytes.length);
-            } else {
-              c = cl.defineClass(name, bytes, 0, bytes.length, cl.protectionDomain);
-            }
-
-            if (wc != null) {
-              wc.setDefinedClass(c);
+            try {
+              if (cl.protectionDomain == null) {
+                // Kaffe can't handle null protectiondomain
+                c = cl.defineClass(name, bytes, 0, bytes.length);
+              } else {
+                c = cl.defineClass(name, bytes, 0, bytes.length, cl.protectionDomain);
+              }
+            } finally {
+              if (wc != null) {
+                wc.setDefinedClass(c);
+              }
             }
           }
           return c;
@@ -1068,6 +1068,13 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    */
   String findLibrary0(final String name) {
     return classPath.getNativeLibrary(name);
+  }
+
+  /**
+   * Check if we have native code
+   */
+  Set<BundleGeneration> hasNativeRequirements() {
+    return classPath.hasNativeRequirements();
   }
 
 }

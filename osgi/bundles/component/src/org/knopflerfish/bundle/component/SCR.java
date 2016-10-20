@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,48 +48,42 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.framework.SynchronousBundleListener;
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.service.cm.ConfigurationEvent;
-import org.osgi.service.cm.ConfigurationListener;
-import org.osgi.service.component.ComponentConstants;
-import org.osgi.util.tracker.ServiceTracker;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.SynchronousBundleListener;
+import org.osgi.service.component.ComponentConstants;
+import org.osgi.service.component.runtime.ServiceComponentRuntime;
+
 /**
  * Service Component Runtime
  */
-class SCR implements SynchronousBundleListener, ConfigurationListener
+class SCR implements SynchronousBundleListener
 {
-  final private BundleContext bc;
+  final BundleContext bc;
+  final CMHandler cmHandler;
 
   private final Set<Bundle> lazy = Collections.synchronizedSet(new HashSet<Bundle>());
   private final Hashtable<Bundle, Component[]> bundleComponents = new Hashtable<Bundle, Component[]>();
   private final Hashtable<String, Component[]> components = new Hashtable<String, Component[]>();
   private final Hashtable<String, Component[]> serviceComponents = new Hashtable<String, Component[]>();
-  private final Hashtable<String, Component[]> configSubscriber = new Hashtable<String, Component[]>();
-  private ServiceRegistration<ConfigurationListener> cmListener = null;
-  private final ServiceTracker<ConfigurationAdmin,ConfigurationAdmin> cmAdminTracker;
-  private long nextId = 0;
+  private final Hashtable<BundleContext, ComponentServiceListener> compListeners = new Hashtable<BundleContext, ComponentServiceListener>();
   private final HashMap<Thread, List<PostponedBind>> postponedBind = new HashMap<Thread, List<PostponedBind>>();
   private final HashMap<Thread, Integer> ppRef = new HashMap<Thread, Integer>();
+  private long nextId = 0;
+
 
   /**
    *
    */
   SCR(BundleContext bc) {
     this.bc = bc;
-    cmAdminTracker = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class, null);
+    cmHandler = new CMHandler(this);
   }
 
 
@@ -98,8 +92,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    *
    */
   void start() {
-    cmAdminTracker.open();
-    cmListener = bc.registerService(ConfigurationListener.class, this, null);
+    cmHandler.start();
     bc.addBundleListener(this);
     postponeCheckin();
     try {
@@ -112,6 +105,8 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
     } finally {
       postponeCheckout();
     }
+    bc.registerService(ServiceComponentRuntime.class.getName(),
+                       new ServiceComponentRuntimeImpl(this), null);
     bc.registerService(org.apache.felix.scr.ScrService.class.getName(),
                        new ScrServiceImpl(this), null);
   }
@@ -123,11 +118,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   void stop() {
     bc.removeBundleListener(this);
-    if (cmListener != null) {
-      cmListener.unregister();
-      cmListener = null;
-    }
-    cmAdminTracker.close();
+    cmHandler.stop();
     final Bundle [] b = bundleComponents.keySet().toArray(new Bundle[bundleComponents.size()]);
     for (final Bundle element : b) {
       removeBundle(element, ComponentConstants.DEACTIVATION_REASON_DISPOSED);
@@ -161,57 +152,6 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
         lazy.remove(bundle);
         removeBundle(bundle, ComponentConstants.DEACTIVATION_REASON_BUNDLE_STOPPED);
         break;
-      }
-    } finally {
-      postponeCheckout();
-    }
-  }
-
-  //
-  // ConfigurationListener method
-  //
-
-  /**
-   *
-   */
-  public void configurationEvent(ConfigurationEvent evt) {
-    postponeCheckin();
-    try {
-      final String factoryPid = evt.getFactoryPid();
-      final String pid = evt.getPid();
-      final Component [] comps = configSubscriber.get(factoryPid != null ? factoryPid : pid);
-      if (comps != null) {
-        switch (evt.getType()) {
-        case ConfigurationEvent.CM_DELETED:
-          for (final Component comp : comps) {
-            if (factoryPid != null) {
-              comp.cmConfigDeleted(pid);
-            } else {
-              Configuration c = getConfiguration(comp, null, null);
-              if (c != null) {
-                if (c.getPid().length() <= pid.length()) {
-                  comp.cmConfigUpdated(comp.getCMPid(), c);
-                }
-              } else {
-                comp.cmConfigDeleted(comp.getCMPid());
-              }
-            }
-          }
-          break;
-        case ConfigurationEvent.CM_UPDATED:
-          for (final Component comp : comps) {
-            Configuration c = getConfiguration(comp, factoryPid, pid);
-            if (c != null) {
-              comp.cmConfigUpdated(factoryPid != null ? pid : comp.getCMPid(), c);
-            }
-          }
-          break;
-        case ConfigurationEvent.CM_LOCATION_CHANGED:
-          break;
-        default:
-          Activator.logDebug("Unknown ConfigurationEvent type: " + evt.getType());
-          break;
-        }
       }
     } finally {
       postponeCheckout();
@@ -343,7 +283,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
     final Component [] ca = bundleComponents.remove(b);
     if (ca != null) {
       for (final Component component : ca) {
-        component.disable(reason);
+        component.disable(reason, null);
         final ComponentDescription cd = component.compDesc;
         removeComponentArray(components, cd.getName(), component);
         final String [] services = cd.getServices();
@@ -353,6 +293,10 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
           }
         }
       }
+    }
+    ComponentServiceListener csl = compListeners.remove(b.getBundleContext());
+    if (csl != null) {
+      csl.close();
     }
   }
 
@@ -369,7 +313,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
     if (ca != null) {
       for (final Component element : ca) {
         if (name == null || name.equals(element.compDesc.getName())) {
-          element.disable(ComponentConstants.DEACTIVATION_REASON_DISABLED);
+          element.disable(ComponentConstants.DEACTIVATION_REASON_DISABLED, null);
         }
       }
     }
@@ -448,7 +392,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
         path.add(component);
         for (int i = 0; i < rs.length; i++) {
           // Loop through all mandatory references
-          if (!rs[i].isOptional()) {
+          if (!rs[i].isRefOptional()) {
             final Component [] cs = serviceComponents.get(rs[i].refDesc.interfaceName);
             if (cs != null) {
               // Loop through all found components
@@ -567,143 +511,27 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
 
 
   /**
-   * Register Component as a subscriber of CM events which have
-   * component name as CM pid.
-   *
-   * @param comp Component which config needs to be tracked
-   */
-  Configuration [] subscribeCMConfig(Component comp) {
-    String[] cs = getTargetedPIDs(comp);
-    Configuration [] conf = null;
-    for (int i = cs.length - 1; i >= 0; i--) {
-      addSubscriberCMConfig(cs[i], comp);
-      if (conf == null) {
-        conf = listConfigurations(ConfigurationAdmin.SERVICE_FACTORYPID, cs[0]);
-      }
-      if (conf == null) {
-        conf = listConfigurations(Constants.SERVICE_PID, cs[0]);
-      }
-    }
-    return conf;
-  }
-
-
-  private String[] getTargetedPIDs(Component comp) {
-    final String id = comp.getCMPid();
-    final Bundle b = comp.getBundle();
-    final StringBuffer sb = new StringBuffer();
-    String [] cs = new String [] { id,
-                                   b.getSymbolicName(),
-                                   b.getVersion().toString(),
-                                   b.getLocation() };
-    for (int i = 0; i < cs.length; i++) {
-      if (i > 0) {
-        sb.append('|');
-      }
-      cs[i] = sb.append(cs[i]).toString();
-    }
-    return cs;
-  }
-
-
-  private void addSubscriberCMConfig(final String id, Component comp) {
-    final Component [] old = configSubscriber.get(id);
-    if (old != null) {
-      final Component [] n = new Component[old.length + 1];
-      System.arraycopy(old, 0, n, 0, old.length);
-      n[old.length] = comp;
-      configSubscriber.put(id, n);
-    } else {
-      configSubscriber.put(id, new Component [] {comp});
-    }
-  }
-
-
-  /**
-   * Unregister subscription of CM events for component.
-   *
-   * @param comp Component which config doesn't need to be tracked
-   */
-  void unsubscribeCMConfig(Component comp) {
-    String[] cs = getTargetedPIDs(comp);
-    for (int i = cs.length - 1; i >= 0; i--) {
-      final Component [] old = configSubscriber.remove(cs[i]);
-      if (old != null) {
-        if (old.length > 1) {
-          final Component [] n = new Component[old.length - 1];
-          int j = 0;
-          for (final Component element : old) {
-            if (element != comp) {
-              n[j++] = element;
-            }
-          }
-          configSubscriber.put(cs[i], n);
-        }
-      } else {
-        Activator.logError("Removed unknown subscriber: " + comp);
-      }
-    }
-  }
-
-
-  /**
    * Get all components for a bundle
    */
   Component [] getComponents(Bundle b) {
     return bundleComponents.get(b);
   }
 
+
+  ComponentServiceListener getComponentServiceListener(BundleContext bc)
+  {
+    ComponentServiceListener res = compListeners.get(bc);
+    if (res == null) {
+      res = new ComponentServiceListener(bc);
+      compListeners.put(bc, res);
+    }
+    return res;
+  }
+
+
   //
   // Private methods
   //
-
-  /**
-   * Get all CM configurations for specified CM pid or factory pid.
-   */
-  private Configuration[] listConfigurations(String key, String pid) {
-    final ConfigurationAdmin cm = cmAdminTracker.getService();
-    if (cm != null) {
-      try {
-        return cm.listConfigurations("(" + key + "=" + pid + ")");
-      } catch (final InvalidSyntaxException e) {
-        Activator.logError("Strange CM PID: " + pid, e);
-      } catch (final IOException e) {
-        Activator.logError("SCR could not retrieve the configuration for pid: " +
-                           pid + ". Got IOException.", e);
-      }
-    }
-    return null;
-  }
-
-
-  /**
-   * Get configuration, but if there is a more targeted version available
-   * ignore it and return <code>null</code>.
-   * 
-   * @param comp 
-   * @param name 
-   * @param pid 
-   *
-   */
-  private Configuration getConfiguration(Component comp, String factoryPid, String pid) {
-    /* Check if it is a factory configuration */
-    if (factoryPid != null) {
-      final Configuration[] conf = listConfigurations(Constants.SERVICE_PID, pid);
-      if (conf != null) {
-        return conf[0];
-      }      
-    } else {
-      final String[] cs = getTargetedPIDs(comp);
-      for (int i = cs.length - 1; i >= 0; i--) {
-        final Configuration[] conf = listConfigurations(Constants.SERVICE_PID, cs[i]);
-        if (conf != null) {
-          return pid == null || cs[i].length() <= pid.length() ? conf[0] : null;
-        }
-      }
-    }
-    return null;
-  }
-
 
   /**
    * Add component inside an array in a map.
@@ -748,6 +576,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
       }
     }
   }
+
 
 
   /**

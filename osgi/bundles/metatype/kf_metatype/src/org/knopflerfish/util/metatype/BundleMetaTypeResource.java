@@ -282,7 +282,7 @@ class MetaData
     if (url == null) {
       underscore = locale.lastIndexOf('_');
       if (underscore > 0) {
-        locale = locale.substring(0, underscore - 1);
+        locale = locale.substring(0, underscore );
       }
       url =
         findEntries(locBaseDir, localizationFileBaseName + "_" + locale
@@ -290,7 +290,7 @@ class MetaData
       if (url == null) {
         underscore = locale.lastIndexOf('_');
         if (underscore > 0) {
-          locale = locale.substring(0, underscore - 1);
+          locale = locale.substring(0, underscore);
         }
         url =
           findEntries(locBaseDir, localizationFileBaseName + "_" + locale
@@ -613,13 +613,13 @@ class MetaData
           final String path = p.nextElement();
           final int lastSlash = path.lastIndexOf('/');
           if (lastSlash > 0) {
-            final String name = path.substring(lastSlash) + 1;
+            final String name = path.substring(lastSlash + 1);
             if (name.equals(fileName)) {
               tmp.addElement(bundle.getEntry(path));
             }
           }
         }
-        res = tmp.elements();
+        res = tmp.isEmpty() ? null : tmp.elements();
       } else {
         res = null;
       }
@@ -644,7 +644,7 @@ class MetaData
           final String path = p.nextElement();
           final int lastSlash = path.lastIndexOf('/');
           if (lastSlash > 0) {
-            final String name = path.substring(lastSlash) + 1;
+            final String name = path.substring(lastSlash + 1);
             if (name.startsWith(fileNamePrefix)
                 && name.endsWith(fileNameSuffix)) {
               tmp.addElement(bundle.getEntry(path));

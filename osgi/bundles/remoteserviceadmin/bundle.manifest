@@ -17,4 +17,5 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/remoteserviceadmin/
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 api-Import-Package: org.osgi.framework;version="[1.7,2)",
+ org.osgi.resource;version="[1.0,2)",
  org.osgi.service.remoteserviceadmin;version="[1.0.1,1.1)"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 
 
@@ -59,6 +60,7 @@ public class ComponentDescription {
   private final static String SCR_NAMESPACE_V1_0_0_URI = "http://www.osgi.org/xmlns/scr/v1.0.0";
   private final static String SCR_NAMESPACE_V1_1_0_URI = "http://www.osgi.org/xmlns/scr/v1.1.0";
   private final static String SCR_NAMESPACE_V1_2_0_URI = "http://www.osgi.org/xmlns/scr/v1.2.0";
+  private final static String SCR_NAMESPACE_V1_3_0_URI = "http://www.osgi.org/xmlns/scr/v1.3.0";
 
   final Bundle bundle;
   private String implementation;
@@ -74,10 +76,11 @@ public class ComponentDescription {
   private boolean deactivateMethodSet = false;
   private String modifiedMethod = null;
   private int confPolicy = POLICY_OPTIONAL;
-  private String configurationPid = null;
+  private String [] configurationPid = null;
   private Properties properties = new Properties();
   private String [] services = null;
   private ArrayList<ReferenceDescription> references = null;
+  private String scope = Constants.SCOPE_SINGLETON;
   private int scrNSminor = 0;
 
 
@@ -93,6 +96,7 @@ public class ComponentDescription {
       if (p.getEventType() == XmlPullParser.START_TAG &&
           "component".equals(p.getName()) &&
           (p.getDepth() == 1 ||
+           SCR_NAMESPACE_V1_3_0_URI.equals(p.getNamespace()) ||
            SCR_NAMESPACE_V1_2_0_URI.equals(p.getNamespace()) ||
            SCR_NAMESPACE_V1_1_0_URI.equals(p.getNamespace()) ||
            SCR_NAMESPACE_V1_0_0_URI.equals(p.getNamespace()))) {
@@ -111,7 +115,9 @@ public class ComponentDescription {
     throws IOException, IllegalXMLException, XmlPullParserException
   {
     this.bundle = b;
-    if (SCR_NAMESPACE_V1_2_0_URI.equals(p.getNamespace())) {
+    if (SCR_NAMESPACE_V1_3_0_URI.equals(p.getNamespace())) {
+      scrNSminor = 3;
+    } else if (SCR_NAMESPACE_V1_2_0_URI.equals(p.getNamespace())) {
       scrNSminor = 2;
     } else if (SCR_NAMESPACE_V1_1_0_URI.equals(p.getNamespace())) {
       scrNSminor = 1;
@@ -150,7 +156,7 @@ public class ComponentDescription {
     if (services == null && immediateSet && !immediate) {
       throw new IllegalXMLException("Attribute immediate in component-tag must "+
                                     "be set to \"true\" when component-factory is "+
-                                    "not set and we do not have a service element.", p);
+                                    "not set and we do not have a service element", p);
     }
   }
 
@@ -179,7 +185,7 @@ public class ComponentDescription {
     return deactivateMethodSet;
   }
 
-  String getConfigurationPid() {
+  String [] getConfigurationPid() {
     return configurationPid;
   }
 
@@ -225,6 +231,10 @@ public class ComponentDescription {
 
   String [] getServices() {
     return services;
+  }
+
+  String getScope() {
+    return scope;
   }
 
   //
@@ -285,7 +295,11 @@ public class ComponentDescription {
           } else if (p.getAttributeName(i).equals("modified")) {
             modifiedMethod = p.getAttributeValue(i);
           } else if (scrNSminor > 1 && p.getAttributeName(i).equals("configuration-pid")) {
-            configurationPid = p.getAttributeValue(i);
+            configurationPid = p.getAttributeValue(i).trim().split("\\s+");
+            if (configurationPid[0].length() == 0) {
+              throw new IllegalXMLException("Attribute \"configuration-pid\" can not "
+                                            + "contain an empty string", p);
+            }
           } else {
             unrecognizedAttr(p, i);
           }
@@ -443,8 +457,7 @@ public class ComponentDescription {
     } else if ("Character".equals(type)) {
       char[] array = new char[len];
       for (int i=0; i<len; i++) {
-        array[i] = values.get(i).charAt(0);
-        // Should we complain when more than one character
+        array[i] = (char) Integer.parseInt(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Character(array[0]);
     } else if ("Double".equals(type)) {
@@ -479,7 +492,7 @@ public class ComponentDescription {
       val = isArray ? (Object) array : (Object) new Short(array[0]);
     } else {
       throw new IllegalXMLException("Did not recognize \"" + type +
-                                    "\" in property-tag.", p);
+                                    "\" in property-tag", p);
     }
     p.next();
     properties.put(name, val);
@@ -503,10 +516,14 @@ public class ComponentDescription {
     String bind = null;
     String unbind = null;
     String updated = null;
+    String scope = Constants.SCOPE_BUNDLE; // default value
+    String field = null;
+    int fieldCollectionType = ReferenceDescription.FIELD_ELEM_SERVICE; // default value
     boolean optional = false; // default value
     boolean multiple = false; // default value
     boolean dynamic = false; // default value
     boolean greedy = false; // default value
+    Boolean fieldUpdate = null; // No value
 
     for (int i = 0; i < p.getAttributeCount(); i++) {
       final String attrName = p.getAttributeName(i);
@@ -562,6 +579,39 @@ public class ComponentDescription {
       } else if (scrNSminor > 1 && attrName.equals("updated")) {
         updated = p.getAttributeValue(i);
         checkValidIdentifier(updated, "updated", p);
+      } else if (scrNSminor > 2 && p.getAttributeName(i).equals("scope")) {
+        scope = p.getAttributeValue(i);
+        if (!Constants.SCOPE_BUNDLE.equals(scope) && !Constants.SCOPE_PROTOTYPE.equals(scope)
+            && !"prototype_required".equals(scope)) {
+          invalidValue(p, new String[]{Constants.SCOPE_BUNDLE, Constants.SCOPE_PROTOTYPE, ReferenceDescription.SCOPE_PROTOTYPE_REQUIRED}, i);
+        }
+      } else if (scrNSminor > 2 && p.getAttributeName(i).equals("field")) {
+        field = p.getAttributeValue(i);
+        checkValidIdentifier(field, "field", p);
+      } else if (scrNSminor > 2 && p.getAttributeName(i).equals("field-option")) {
+        String val = p.getAttributeValue(i);
+        if ("replace".equals(val)) {
+          fieldUpdate = Boolean.FALSE;
+        } else if ("update".equals(val)) {
+          fieldUpdate = Boolean.TRUE;
+        } else {
+          invalidValue(p, new String[]{"replace", "update"}, i);
+        }
+      } else if (scrNSminor > 2 && p.getAttributeName(i).equals("field-collection-type")) {
+        String val = p.getAttributeValue(i);
+        if ("service".equals(val)) {
+          fieldCollectionType = ReferenceDescription.FIELD_ELEM_SERVICE;
+        } else if ("reference".equals(val)) {
+          fieldCollectionType = ReferenceDescription.FIELD_ELEM_REFERENCE;
+        } else if ("serviceobjects".equals(val)) {
+          fieldCollectionType = ReferenceDescription.FIELD_ELEM_SERVICE_OBJECTS;
+        } else if ("properties".equals(val)) {
+          fieldCollectionType = ReferenceDescription.FIELD_ELEM_PROPERTIES;
+        } else if ("tuple".equals(val)) {
+          fieldCollectionType = ReferenceDescription.FIELD_ELEM_TUPLE;
+        } else {
+          invalidValue(p, new String[]{"service", "reference", "serviceobjects", "properties", "tuple"}, i);
+        }
       } else {
         unrecognizedAttr(p, i);
       }
@@ -581,7 +631,8 @@ public class ComponentDescription {
     try {
       ref = new ReferenceDescription(name, interfaceName, optional,
                                      multiple, dynamic, greedy, target,
-                                     bind, unbind, updated);
+                                     bind, unbind, updated, scope,
+                                     field, fieldUpdate, fieldCollectionType);
     } catch (InvalidSyntaxException e) {
       throw new IllegalXMLException("Couldn't create filter for reference \"" +
                                     name + "\"", p, e);
@@ -614,20 +665,39 @@ public class ComponentDescription {
     }
     /* If there is an attribute in the service tag */
     for (int i = 0; i < p.getAttributeCount(); i++) {
-      if (p.getAttributeName(i).equals("servicefactory")) {
+      if (scrNSminor < 3 && p.getAttributeName(i).equals("servicefactory")) {
         isServiceFactory = parseBoolean(p, i);
         if (isServiceFactory) {
           if (factory != null) {
-            throw new IllegalXMLException(
-                                          "Attribute servicefactory in service-tag "
-                                              + "cannot be set to \"true\" when component "
-                                              + "is a factory component.", p);
+            throw new IllegalXMLException("Attribute servicefactory in service-tag "
+                                          + "cannot be set to \"true\" when component "
+                                          + "is a factory component", p);
+          }
+          if (immediate) {
+            throw new IllegalXMLException("Attribute servicefactory in service-tag "
+                                          + "cannot be set to \"true\" when component "
+                                          + "is an immediate component", p);
+          }
+          scope = Constants.SCOPE_BUNDLE;
+        }
+      } else if (scrNSminor > 2 && p.getAttributeName(i).equals("scope")) {
+        scope = p.getAttributeValue(i);
+        if (!Constants.SCOPE_SINGLETON.equals(scope)) {
+          isServiceFactory = true;
+          if (!Constants.SCOPE_BUNDLE.equals(scope) && !Constants.SCOPE_PROTOTYPE.equals(scope)) {
+            throw new IllegalXMLException("Attribute scope in service-tag must be set to "
+                                          + "\"bundle\", \"prototype\" or \"singleton\"", p);
+          }
+          if (factory != null) {
+            throw new IllegalXMLException("Attribute scope in service-tag must be "
+                                          + "set to \"singleton\" when component "
+                                          + "is a factory component", p);
           }
           if (immediate) {
             throw new IllegalXMLException(
-                                          "Attribute servicefactory in service-tag "
-                                              + "cannot be set to \"true\" when component "
-                                              + "is an immediate component.", p);
+                                          "Attribute scope in service-tag must be "
+                                          + "set to \"singleton\" when component "
+                                          + "is an immediate component", p);
           }
         }
       } else {
@@ -662,8 +732,7 @@ public class ComponentDescription {
     p.next();
     /* check if required attributes has been set */
     if (sl.isEmpty()) {
-      throw new IllegalXMLException(
-                                    "Service-tag did not contain a proper provide-tag.",
+      throw new IllegalXMLException("Service-tag did not contain a proper provide-tag",
                                     p);
     }
     services = sl.toArray(new String[sl.size()]);
@@ -743,7 +812,7 @@ public class ComponentDescription {
     throws IllegalXMLException
   {
     throw new IllegalXMLException("Unrecognized attribute \"" + p.getAttributeName(attr) +
-                                  "\" in \"" + p.getName() + "\"-tag. ", p);
+                                  "\" in \"" + p.getName() + "\"-tag", p);
   }
 
 
@@ -754,7 +823,7 @@ public class ComponentDescription {
     throws IllegalXMLException
   {
     throw new IllegalXMLException("Missing \"" + attr+ "\" attribute in \"" +
-                                  p.getName() + "\"-tag.", p);
+                                  p.getName() + "\"-tag", p);
   }
 
 
@@ -766,13 +835,12 @@ public class ComponentDescription {
     throws IllegalXMLException {
     StringBuffer buf = new StringBuffer();
     buf.append("Attribute " + p.getAttributeName(attr) +
-               " of \"" + p.getName() + "\"-tag has invalid value.");
+               " of \"" + p.getName() + "\"-tag has invalid value, expected one of ");
 
     for (int i = 0; i < expected.length - 1; i++) {
-      buf.append("\"" + expected[i] + "\"/");
+      buf.append("\"" + expected[i] + "\", /");
     }
-    buf.append("\"" + expected[expected.length - 1] + "\"" +
-               " but got \"" + p.getAttributeValue(attr) + "\".");
+    buf.append("but got \"" + p.getAttributeValue(attr) + "\".");
     throw new IllegalXMLException(buf.toString(), p);
   }
 

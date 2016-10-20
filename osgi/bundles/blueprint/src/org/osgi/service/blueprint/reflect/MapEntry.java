@@ -16,6 +16,8 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * Metadata for a map entry.
  * 
@@ -23,8 +25,9 @@ package org.osgi.service.blueprint.reflect;
  * {@link ServiceMetadata}.
  * 
  * @ThreadSafe
- * @author $Id: 0148e116bfa36331c0a9a309509e80fd4f8635a4 $
+ * @author $Id: c46fbe6a5c2bb81f6f2cc5f76f08aa9ced5deb2b $
  */
+@ConsumerType
 public interface MapEntry {
 	/**
 	 * Return the Metadata for the key of the map entry.

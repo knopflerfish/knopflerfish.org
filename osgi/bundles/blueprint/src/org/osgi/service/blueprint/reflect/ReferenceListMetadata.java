@@ -16,6 +16,8 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * Metadata for a list of service references.
  * 
@@ -23,8 +25,9 @@ package org.osgi.service.blueprint.reflect;
  * This is specified by the {@code reference-list} element.
  * 
  * @ThreadSafe
- * @author $Id: 00698e01d2281bdcabfc7f1cf9f7ede1900b7b97 $
+ * @author $Id: 5e419704f2238329e54fe8173f756c271b706268 $
  */
+@ConsumerType
 public interface ReferenceListMetadata extends ServiceReferenceMetadata {
 
 	/**

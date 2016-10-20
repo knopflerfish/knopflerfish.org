@@ -16,9 +16,11 @@
 
 package org.osgi.service.cm;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * Listener for Configuration Events. When a {@code ConfigurationEvent} is
- * fired, it is asynchronously delivered to a {@code ConfigurationListener}.
+ * fired, it is asynchronously delivered to all {@code ConfigurationListener}s.
  * 
  * <p>
  * {@code ConfigurationListener} objects are registered with the Framework
@@ -35,9 +37,11 @@ package org.osgi.service.cm;
  * require {@code ServicePermission[ConfigurationListener,REGISTER]} to register
  * a {@code ConfigurationListener} service.
  * 
- * @author $Id: b21e83c93cdb61cfd63205eec28b0baf36fd5da2 $
+ * @author $Id: ee8427b3dbab7f15dddfd9a2506f779c028117f9 $
  * @since 1.2
+ * @ThreadSafe
  */
+@ConsumerType
 public interface ConfigurationListener {
 	/**
 	 * Receives notification of a Configuration that has changed.

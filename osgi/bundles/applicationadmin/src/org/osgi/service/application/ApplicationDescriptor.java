@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.osgi.framework.InvalidSyntaxException;
  * information about it. The application descriptor can be used for instance
  * creation.
  * 
- * @author $Id: 991343b4701de961cbb87126ededcc00685811f0 $
+ * @author $Id: 39d1c46cc361e49b0cddddbc3b5f9be6bf84ca43 $
  */
 
 public abstract class ApplicationDescriptor {
@@ -335,10 +335,10 @@ public abstract class ApplicationDescriptor {
 
 	/**
 	 * Called by launch() to create and start a new instance in an application
-	 * model specific way. It also creates and registeres the application handle
-	 * to represent the newly created and started instance and registeres it.
-	 * The method is synchronous, it return only when the application instance
-	 * was successfully started or the attempt to start it failed.
+	 * model specific way. It also creates and registers the application handle
+	 * to represent the newly created and started instance and registers it. The
+	 * method is synchronous, it return only when the application instance was
+	 * successfully started or the attempt to start it failed.
 	 * <p>
 	 * This method must not return {@code null}. If launching the application
 	 * failed, and exception must be thrown.

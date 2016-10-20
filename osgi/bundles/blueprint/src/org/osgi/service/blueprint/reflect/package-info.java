@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,11 @@
  * <p>
  * {@code  Import-Package: org.osgi.service.blueprint.reflect; version="[1.0,1.1)"}
  * 
- * @version 1.0
- * @author $Id: 5fcd0d6594f33b7cef53586cc9e5b01f44a0a6a7 $
+ * @author $Id: 7370ea796ad9cc02c63528a339864baa3d6aaafc $
  */
 
+@Version("1.0.1")
 package org.osgi.service.blueprint.reflect;
+
+import org.osgi.annotation.versioning.Version;
 

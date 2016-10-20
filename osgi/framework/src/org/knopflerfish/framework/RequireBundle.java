@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import org.osgi.framework.wiring.BundleRevision;
 
 
 class RequireBundle
+  extends DTOId
   implements BundleRequirement, Comparable<RequireBundle>
 {
   // To maintain the creation order in the osgi.wiring.bundle name space.

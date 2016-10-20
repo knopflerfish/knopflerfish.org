@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,19 @@
 package org.knopflerfish.framework;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.FrameworkWiring;
+import org.osgi.resource.Requirement;
 
 public class FrameworkWiringImpl implements FrameworkWiring {
 
@@ -82,6 +89,35 @@ public class FrameworkWiringImpl implements FrameworkWiring {
       res.add(b);
     }
     fwCtx.resolver.closure(res);
+    return res;
+  }
+
+  @SuppressWarnings("unchecked")
+  public Collection<BundleCapability> findProviders(Requirement requirement) {
+    final String namespace = requirement.getNamespace();
+    final String filterStr = requirement.getDirectives().get("filter");
+    Filter filter;
+    if (filterStr != null) {
+      try {
+        filter = FrameworkUtil.createFilter(filterStr);
+      } catch (InvalidSyntaxException ise) {
+        final String msg = "Invalid filter directive '" + filterStr + "': " + ise;
+        throw new IllegalArgumentException(msg, ise);
+      }
+    } else {
+      filter = null;
+    }
+    HashSet<BundleCapability> res = new HashSet<BundleCapability>();
+    for (BundleGeneration bg : fwCtx.bundles.getBundleGenerations(null)) {
+      BundleRevisionImpl bri = bg.bundleRevision;
+      if (bri != null) {
+        for (BundleCapability bc : bri.getDeclaredCapabilities(namespace)) {
+          if (null == filter || filter.matches(bc.getAttributes())) {
+            res.add(bc);
+          }
+        }
+      }
+    }
     return res;
   }
 

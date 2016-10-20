@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,10 +35,11 @@ package org.knopflerfish.bundle.component;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -46,7 +47,7 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentException;
 
 
-public class ComponentConfiguration implements ServiceFactory<Object>, Comparable<ComponentConfiguration> {
+public abstract class ComponentConfiguration implements ServiceFactory<Object>, Comparable<ComponentConfiguration> {
 
   final static int STATE_ACTIVATING = 0;
   final static int STATE_REGISTERED = 1;
@@ -58,15 +59,14 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
   final int id;
 
   private PropertyDictionary ccProps = null;
-  private String cmPid = null;
-  private Dictionary<String, Object> cmDict = null;
+  private String ccId;
+  private Map<String, Object> cmDict;
   private final Dictionary<String, Object> instanceProps;
   private ServiceRegistration<?> serviceRegistration = null;
-  private ComponentContextImpl componentContext = null;
-  private final Hashtable<Bundle, ComponentContextImpl> factoryContexts;
   private volatile boolean unregisterInProgress = false;
   private volatile int activeCount = 0;
   private volatile int state = STATE_ACTIVATING;
+  private volatile ServiceEvent lastReactiveateEvent = null;
 
   private volatile static int count = 0;
   private static Object countLock = new Object();
@@ -75,16 +75,14 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
    *
    */
   ComponentConfiguration(Component c,
-                         String cmPid,
-                         Dictionary<String, Object> cmDict,
+                         String ccId,
+                         Map<String, Object> cmDict,
                          Dictionary<String, Object> instanceProps)
   {
     this.component = c;
-    this.cmPid = cmPid;
+    this.ccId = ccId;
     this.cmDict = cmDict;
     this.instanceProps = instanceProps;
-    factoryContexts = c.compDesc.isServiceFactory()
-        ? new Hashtable<Bundle, ComponentContextImpl>() : null;
     synchronized (countLock) {
       this.id = count++;
     }
@@ -109,6 +107,7 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
                                 final boolean incrementActive)
   {
     ComponentContextImpl res;
+    ComponentException err = null;
     Class<?> cclass = null;
     synchronized (this) {
       // Components that use both factory service and CM managed service factory
@@ -127,34 +126,27 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
         } catch (final InterruptedException _ignore) {
         }
       }
-      res = factoryContexts != null ? factoryContexts.get(usingBundle)
-          : componentContext;
+      res = getContext(usingBundle, null);
       if (res == null) {
         state = STATE_ACTIVATING;
         cclass = component.getImplementation();
         res = new ComponentContextImpl(this, usingBundle);
-        if (factoryContexts != null) {
-          factoryContexts.put(usingBundle, res);
-        } else {
-          componentContext = res;
+        try {
+          res.setInstance(cclass.newInstance());
+        } catch (final Exception e) {
+          err = new ComponentException("Failed to instanciate: " + cclass, e);
         }
+        addContext(res);
       }
+    }
+    if (err != null) {
+      res.activationResult(false);
+      Activator.logError(component.bc, "Failed to activate", err);
+      throw err;
     }
     if (cclass != null) {
       Activator.logDebug("CC.active start activate, this=" + this
                          + ", activateCount=" + activeCount);
-      try {
-        res.setInstance(cclass.newInstance());
-      } catch (final Exception e) {
-        if (factoryContexts != null) {
-          factoryContexts.remove(usingBundle);
-        } else {
-          componentContext = null;
-        }
-        res.activationResult(false);
-        Activator.logError(component.bc, "Failed to instanciate: " + cclass, e);
-        throw new ComponentException("Failed to instanciate: " + cclass, e);
-      }
       try {
         bindReferences(res);
         if (component.activateMethod != null) {
@@ -171,12 +163,8 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
           res.activationResult(true);
         }
       } catch (final RuntimeException e) {
-        unbindReferences(res);
-        if (factoryContexts != null) {
-          factoryContexts.remove(usingBundle);
-        } else {
-          componentContext = null;
-        }
+        unbindReferences(res, true);
+        removeContext(res);
         res.activationResult(false);
         throw e;
       }
@@ -200,7 +188,7 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
    * Deactivates a component configuration.
    *
    */
-  void deactivate(ComponentContextImpl cci, int reason, boolean disposeIfLast, boolean checkActive, boolean removeCompConfig) {
+  void deactivate(ComponentContextImpl cci, int reason, boolean checkActive, boolean removeCompConfig) {
     Activator.logDebug("CC.deactive this=" + this +
                        ", activateCount=" + activeCount);
     boolean last = false;
@@ -209,23 +197,19 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
         // Deactivate an already deactivated
         return;
       }
-      if (factoryContexts != null && factoryContexts.containsValue(cci)) {
-        if (factoryContexts.isEmpty()) {
-          last = true;
-        }
-        activeCount--;
-      } else if (componentContext == cci) {
-        last = true;
-      } else {
+      if (!containsContext(cci)) {
         // Deactivate an already deactivated
         return;
       }
-      if (last && disposeIfLast) {
+      last = noContext() == 1;
+      if (last) {
         state = STATE_DEACTIVATING;
+      } else {
+        activeCount--;
       }
       cci.setDeactive();
     }
-    if (last && disposeIfLast) {
+    if (last) {
       Activator.logDebug("CC.deactive last, dispose this=" +
                          this + ", unregisterInProgress=" +
                          unregisterInProgress);
@@ -238,15 +222,11 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
     if (component.deactivateMethod != null) {
       component.deactivateMethod.invoke(cci, reason);
     }
-    unbindReferences(cci);
+    unbindReferences(cci, last);
     synchronized (this) {
-      if (componentContext == cci) {
-        componentContext = null;
-      } else {
-        factoryContexts.remove(cci.getUsingBundle());
-      }
+      removeContext(cci);
     }
-    if (last && disposeIfLast) {
+    if (last) {
       synchronized (this) {
         state = STATE_DEACTIVE;
         notifyAll();
@@ -285,7 +265,7 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
     if (ccis.length > 0) {
       for (final ComponentContextImpl cci : ccis) {
         if (cci != null) {
-          deactivate(cci, reason, true, false, removeCompConfig);
+          deactivate(cci, reason, false, removeCompConfig);
         }
       }
     } else {
@@ -301,12 +281,12 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
 
 
   /**
-   * Get CM pid used for this component configuration or NO_PID
+   * Get CM pid used for this component configuration or NO_CCID
    * if no CM data is used.
    *
    */
-  String getCMPid() {
-    return cmPid;
+  String getCCId() {
+    return ccId;
   }
 
 
@@ -327,6 +307,16 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
       ccProps = new PropertyDictionary(component, cmDict, instanceProps, false);
     }
     return ccProps;
+  }
+
+
+  /**
+   * Get component configuration properties.
+   *
+   */
+  Map<String, Object> getPropertiesMap()
+  {
+    return getProperties().getMap();
   }
 
 
@@ -388,12 +378,24 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
   }
 
 
+  abstract void addContext(ComponentContextImpl cci);
+
+  abstract boolean containsContext(ComponentContextImpl cci);
+
+  abstract ComponentContextImpl [] getAllContexts();
+
+  abstract ComponentContextImpl getContext(Bundle bundle, Object instance);
+
+  abstract int noContext();
+
+  abstract void removeContext(ComponentContextImpl cci);
+
+
   /**
-   * Get ComponentContext for component configuration.
+   * Get active ComponentContext for component configuration.
    */
-  ComponentContextImpl getContext(Bundle b) {
-    final ComponentContextImpl cci = factoryContexts != null ?
-      factoryContexts.get(b) : componentContext;
+  ComponentContextImpl getActiveContext(Bundle b, Object instance) {
+    final ComponentContextImpl cci = getContext(b, instance);
     return cci != null && cci.isActive() ? cci : null;
   }
 
@@ -415,24 +417,24 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
    * for the component configuration. Also call modified method when its is specified.
    *
    */
-  void cmConfigUpdated(String pid, Dictionary<String, Object> dict)
+  void cmConfigUpdated(String ccid, Map<String, Object> dict)
   {
-    Activator.logDebug("CC.cmConfigUpdated, " + toString() + ", pid=" + pid
+    Activator.logDebug("CC.cmConfigUpdated, " + toString() + ", ccid=" + ccid
                        + ", activeCount=" + activeCount);
     int disposeReason = -1;
-    ComponentContextImpl[] ccis = null;
+    List<ComponentContextImpl> ccis = null;
     synchronized (this) {
-      cmPid = pid;
+      ccId = ccid;
       cmDict = dict;
       ccProps = null;
       if (state == STATE_ACTIVE) { // TODO check this for FactoryComponents
-        if (dict == null) {
-          // Always dispose when an used config is deleted!?
+        if (dict == null && component.compDesc.getScrNSminor() < 3) {
           disposeReason = ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED;
         } else if (component.modifiedMethod == null
-                   || component.modifiedMethod.isMissing(true)) {
+            || component.modifiedMethod.isMissing(true)) {
           // Dispose when we have no modify method
-          disposeReason = ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_MODIFIED;
+          disposeReason = dict == null ? ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED
+                          : ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_MODIFIED;
         } else {
           ccis = getActiveContexts();
         }
@@ -462,11 +464,11 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
   /**
    *
    */
-  void unbindReference(ReferenceListener rl, ServiceReference<?> s) {
+  void unbindReference(ReferenceListener rl, ServiceReference<?> s, boolean resetField) {
     // This is only called for dynamic refs, so we also unbind
     // services during deactivation
     for (final ComponentContextImpl cci : getAllContexts()) {
-      cci.unbind(rl, s);
+      cci.unbind(rl, s, resetField);
     }
   }
 
@@ -521,18 +523,18 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
                            Object obj) {
     if (!unregisterInProgress) {
       Activator.logDebug("CC.ungetService(), " + toString() + ", activeCount = " + activeCount);
-      final ComponentContextImpl cci = getContext(usingBundle);
+      final ComponentContextImpl cci = getActiveContext(usingBundle, obj);
       if (cci != null) {
         boolean doDeactivate = false;
         synchronized (this) {
-          if (factoryContexts != null || activeCount == 1) {
+          if (activeCount == 1 || !(this instanceof SingletonComponentConfiguration)) {
             doDeactivate = true;
           } else {
             activeCount--;
           }
         }
         if (doDeactivate) {
-          deactivate(cci, Component.KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED, true, true, true);
+          deactivate(cci, Component.KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED, true, true);
         }
       }
     }
@@ -544,42 +546,12 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
 
   /**
    */
-  private ComponentContextImpl [] getActiveContexts() {
-    ComponentContextImpl [] res;
-    if (factoryContexts != null) {
-      final Hashtable<Bundle, ComponentContextImpl> snapshot
-        = new Hashtable<Bundle, ComponentContextImpl>(factoryContexts);
-      final ArrayList<ComponentContextImpl> active = new ArrayList<ComponentContextImpl>(snapshot.size());
-      for (final Enumeration<ComponentContextImpl> e = snapshot.elements(); e.hasMoreElements(); ) {
-        final ComponentContextImpl cci = e.nextElement();
-        if (cci.isActive()) {
-          active.add(cci);
-        }
+  private List<ComponentContextImpl> getActiveContexts() {
+    List<ComponentContextImpl> res = new ArrayList<ComponentContextImpl>();
+    for (ComponentContextImpl cci : getAllContexts()) {
+      if (cci.isActive()) {
+        res.add(cci);
       }
-      res = new ComponentContextImpl[active.size()];
-      active.toArray(res);
-    } else if (componentContext != null && componentContext.isActive()) {
-      res = new ComponentContextImpl [] { componentContext };
-    } else {
-      res = new ComponentContextImpl[0];
-    }
-    return res;
-  }
-
-
-  /**
-   */
-  private ComponentContextImpl [] getAllContexts() {
-    ComponentContextImpl [] res;
-    if (factoryContexts != null) {
-      final Hashtable<Bundle, ComponentContextImpl> snapshot
-        = new Hashtable<Bundle, ComponentContextImpl>(factoryContexts);
-      res = new ComponentContextImpl[snapshot.size()];
-      snapshot.values().toArray(res);
-    } else if (componentContext != null) {
-      res = new ComponentContextImpl [] { componentContext };
-    } else {
-      res = new ComponentContextImpl[0];
     }
     return res;
   }
@@ -593,11 +565,13 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
     final Reference [] refs = component.getRawReferences();
     if (refs != null) {
       for (int i = 0; i < refs.length; i++) {
-        final ReferenceListener rl = refs[i].getListener(getCMPid());
+        final ReferenceListener rl = refs[i].getListener(ccId);
         if (rl.isAvailable()) {
-          if (!cci.bind(rl) && !refs[i].isOptional()) {
+          if (!cci.bind(rl) && !refs[i].isRefOptional()) {
             throw new ComponentException("Failed to bind: " + rl);
           }
+        } else {
+          cci.nullField(rl);
         }
       }
     }
@@ -608,24 +582,39 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
    * Unbind a component from its references. The references are
    * unbound in reverse order specified by the component description.
    */
-  private void unbindReferences(ComponentContextImpl cci) {
+  private void unbindReferences(ComponentContextImpl cci, boolean last) {
     final Reference [] refs = component.getRawReferences();
     if (refs != null) {
       for (int i = refs.length - 1; i >= 0; i--) {
-        cci.unbind(refs[i].refDesc.name);
+        cci.unbind(refs[i].refDesc.name, last);
       }
     }
   }
 
 
-  void remove(int reason) {
-    component.removeComponentConfiguration(this, reason);
+  ComponentConfiguration [] remove(int reason) {
+    return component.removeComponentConfiguration(this, reason);
   }
 
 
   @Override
   public int compareTo(ComponentConfiguration o) {
     return id - o.id;
+  }
+
+
+  boolean setAndTestLastReactivateEvent(ServiceEvent se)
+  {
+    if (lastReactiveateEvent  != se) {
+      lastReactiveateEvent = se;
+      return true;
+    }
+    return false;
+  }
+
+  boolean isUnregistering()
+  {
+    return unregisterInProgress;
   }
 
 }

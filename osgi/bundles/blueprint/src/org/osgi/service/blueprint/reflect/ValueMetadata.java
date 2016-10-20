@@ -16,13 +16,16 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * Metadata for a simple {@code String} value that will be type-converted if
  * necessary before injecting.
  * 
  * @ThreadSafe
- * @author $Id: 69bf6aaf988e94fe8769f3d21cdb45a6534714e2 $
+ * @author $Id: 9d09b60f215657d44853344212aed6ef56e28129 $
  */
+@ConsumerType
 public interface ValueMetadata extends NonNullMetadata {
 	/**
 	 * Return the unconverted string representation of the value.

@@ -17,6 +17,7 @@
 package org.osgi.service.cm;
 
 import java.util.Dictionary;
+import org.osgi.annotation.versioning.ConsumerType;
 import org.osgi.framework.ServiceReference;
 
 /**
@@ -67,8 +68,10 @@ import org.osgi.framework.ServiceReference;
  * the {@code cm.target} registration property means that the plugin is called
  * for all configuration updates.
  * 
- * @author $Id: 36cd6f091c1bb1726305702c57845ba419ca0a49 $
+ * @author $Id: a3c11ec22796b4b6d1dca2a272da39272d0d7517 $
+ * @ThreadSafe
  */
+@ConsumerType
 public interface ConfigurationPlugin {
 	/**
 	 * A service property to limit the Managed Service or Managed Service

@@ -40,6 +40,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -107,8 +108,8 @@ public class Bundles {
     synchronized (this) {
       b = bundles.get(location);
       if (b != null) {
-        b = (BundleImpl)b.fwCtx.bundleHooks.filterBundle(b.bundleContext, b);
-        if(b == null) {
+        if (fwCtx.bundleHooks.filterBundle(b.bundleContext, b) == null &&
+            caller != fwCtx.systemBundle) {
           throw new BundleException("Rejected by a bundle hook",
                                     BundleException.REJECTED_BY_HOOK);
         } else {
@@ -165,6 +166,10 @@ public class Bundles {
       final BundleImpl res = new BundleImpl(fwCtx, ba, checkContext, caller);
       bundles.put(location, res);
       fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, res, caller));
+      if (res.current().isExtension()) {
+        // Try to resolve extensions
+        fwCtx.packageAdmin.resolveBundles(new Bundle [] {res});
+      }
       return res;
     } catch (final Exception e) {
       if (ba != null) {
@@ -174,6 +179,9 @@ public class Bundles {
         throw (SecurityException)e;
       } else if (e instanceof BundleException) {
         throw (BundleException)e;
+      } else if (e instanceof IllegalArgumentException) {
+        throw new BundleException("Faulty manifest: " + e,
+                                  BundleException.MANIFEST_ERROR, e);
       } else {
         throw new BundleException("Failed to install bundle: " + e,
                                   BundleException.UNSPECIFIED, e);
@@ -266,7 +274,7 @@ public class Bundles {
   /**
    * Get all installed bundles.
    *
-   * @return A Bundle array with bundles.
+   * @return A list with bundles.
    */
   SortedSet<BundleImpl> getBundles() {
     final SortedSet<BundleImpl> res = new TreeSet<BundleImpl>();
@@ -419,6 +427,13 @@ public class Bundles {
       try {
         final BundleImpl b = new BundleImpl(fwCtx, ba, null, fwCtx.systemBundle);
         bundles.put(b.location, b);
+        // Activate extension as soon as they are installed so that
+        // they get added in bundle id order. The are run by the
+        // FrameworkContext after all bundles has been loaded.
+        if (b.current().isExtension() && b.attachToFragmentHost(fwCtx.systemBundle.current(), false)) {
+          b.current().setWired();
+          b.state = Bundle.RESOLVED;
+        }
       } catch (final Exception e) {
         try {
           ba.setAutostartSetting(-1); // Do not start on launch

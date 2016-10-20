@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.osgi.service.cm;
 
 import java.io.IOException;
 import java.util.Dictionary;
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 
@@ -114,9 +115,10 @@ import org.osgi.framework.InvalidSyntaxException;
  * {@code ConfigurationAdmin} must use a
  * {@link org.osgi.framework.ServiceFactory} to support this concept.
  * 
- * @noimplement
- * @author $Id: cf748cd876c4ff2f88ca7f88ca0030cd1ce94bef $
+ * @author $Id: caf295a2ac110db508f132cafbb97ae3f404cd59 $
+ * @ThreadSafe
  */
+@ProviderType
 public interface ConfigurationAdmin {
 	/**
 	 * Configuration property naming the Factory PID in the configuration
@@ -127,7 +129,7 @@ public interface ConfigurationAdmin {
 	public final static String	SERVICE_FACTORYPID		= "service.factoryPid";
 	/**
 	 * Configuration property naming the location of the bundle that is
-	 * associated with a a {@code Configuration} object. This property can be
+	 * associated with a {@code Configuration} object. This property can be
 	 * searched for but must not appear in the configuration dictionary for
 	 * security reason. The property's value is of type {@code String}.
 	 * 

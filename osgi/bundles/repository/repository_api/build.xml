@@ -16,6 +16,7 @@
   <property name="bundle.compile.EE" value="ee.minimum"/>
 
   <path id="bundle.compile.path">
+    <pathelement location="promise-N.N.N.jar"/>
   </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>

@@ -422,6 +422,15 @@ class Resolver {
     tempRequired = new HashMap<RequireBundle, BundlePackages>();
     tempAttached = new HashMap<BundlePackages, List<BundlePackages>>();
     tempWires = new ArrayList<BundleWireImpl>();
+    if (bg.bundle == framework.systemBundle && framework.props.getBooleanProperty(FWProps.RESOLVER_PREFER_SB)) {
+      for (Pkg p : packages.values()) {
+        for (ExportPkg ep : p.exporters) {
+          if (ep.bpkgs.bg == bg) {
+            tempProvider.put(ep.name, ep);
+          }
+        }
+      }
+    }
     try {
       while (true) {
         tempCollision = null;
@@ -721,7 +730,7 @@ class Resolver {
    */
   private boolean resolvePackages(Iterator<ImportPkg> pkgs, StringBuffer failReason)
       throws BundleException {
-    StringBuffer pkgFail = failReason != null ? new StringBuffer() : null;
+    StringBuffer pkgFail = failReason != null || framework.debug.resolver ? new StringBuffer() : null;
     boolean res = true;
     tempCollision = null;
     while (pkgs.hasNext()) {
@@ -735,19 +744,34 @@ class Resolver {
         framework.debug.println("resolvePackages: check - " + ip.pkgString());
       }
       List<ExportPkg> possibleProvider = new LinkedList<ExportPkg>();
+      int n_resolved = 0;
       for (ExportPkg ep : ip.pkg.exporters) {
+        int ss = framework.debug.resolver ? pkgFail.length() : 0;
         if (ip.checkAttributes(ep)) {
           if (tempBlackList.contains(ep)) {
             tempBlackListHits++;
+            if (pkgFail != null) {
+              newFailReason(pkgFail, "Package temporary black listed", ep);
+            }
           } else {
             if (ip.bpkgs == ep.bpkgs || ip.checkPermission(ep)) {
-              possibleProvider.add(ep);
+              if (ep.bpkgs.isActive()) {
+                possibleProvider.add(n_resolved++, ep);
+              } else {
+                possibleProvider.add(ep);
+              }
+              continue;
             } else if (pkgFail != null) {
               newFailReason(pkgFail, "No import permission", ep);
             }
           }
         } else if (pkgFail != null) {
           newFailReason(pkgFail, "Attributes don't match", ep);
+        }
+        if (framework.debug.resolver) {
+          if (ip.pkg.providers.contains(ep)) {
+            framework.debug.println("resolvePackages: rejected provide because - " + pkgFail.substring(ss));
+          }
         }
       }
       if (pkgFail != null) {
@@ -793,9 +817,15 @@ class Resolver {
             if (pkgFail != null) {
               newFailReason(pkgFail, "Collied with previous selection", ep);
             }
+            if (framework.debug.resolver) {
+              framework.debug.println("resolvePackages: Provider black listed: " + ep);
+            }
             continue;
           }
           if (ep.zombie) {
+            if (framework.debug.resolver) {
+              framework.debug.println("resolvePackages: Provider zombie, skip: " + ep);
+            }
             continue;
           }
           final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
@@ -808,6 +838,9 @@ class Resolver {
             possibleProvider.remove(ep);
             if (pkgFail != null) {
               newFailReason(pkgFail, "Provider rejected because of uses directive ", ep);
+            }
+            if (framework.debug.resolver) {
+              framework.debug.println("resolvePackages: Provider rejected because of uses directive: " + ep);
             }
           }
         }
@@ -1114,7 +1147,11 @@ class Resolver {
       final ArrayList<ExportPkg> checkList = new ArrayList<ExportPkg>();
       while (i.hasNext()) {
         final ImportPkg ip = i.next();
-        if (uses != null && !uses.contains(ip.pkg.pkg)) {
+        if (uses == null) {
+          if (!framework.props.getBooleanProperty(FWProps.RESOLVER_IMPLICIT_USES)) {
+            continue;
+          }
+        } else if (!uses.contains(ip.pkg.pkg)) {
           continue;
         }
         final ExportPkg ep = tempProvider.get(ip.pkg.pkg);
@@ -1168,18 +1205,16 @@ class Resolver {
       final List<BundleGeneration> bl = framework.bundles.getBundleGenerations(bg.symbolicName);
       if (bl.size() > 1) {
         if (framework.resolverHooks.hasHooks()) {
-          final BundleCapability bc = bg.getBundleCapability();
           Collection<BundleCapability> candidates = new LinkedList<BundleCapability>();
           List<BundleNameVersionCapability> active = new ArrayList<BundleNameVersionCapability>(bl.size());
           for (final BundleGeneration bg2 : bl) {
             if (bg2.singleton) {
               if (bg2 != bg) {
-                BundleNameVersionCapability bc2 = bg2.getBundleCapability();
-                if (bc2 != null) {
+                if (bg2.bundleCapability != null) {
                   if (bg2.bpkgs.isActive()) {
-                    active.add(bc2);
+                    active.add(bg2.bundleCapability);
                   } else {
-                    candidates.add(bc2);
+                    candidates.add(bg2.bundleCapability);
                   }
                 }
               }
@@ -1188,9 +1223,9 @@ class Resolver {
           if (!active.isEmpty()) {
             for (BundleNameVersionCapability abc : active) {
               Collection<BundleCapability> c = new LinkedList<BundleCapability>(candidates);
-              c.add(bc);
+              c.add(bg.bundleCapability);
               framework.resolverHooks.filterSingletonCollisions(abc, c);
-              if (c.contains(bc)) {
+              if (c.contains(bg.bundleCapability)) {
                 return abc.gen;
               } else {
                 candidates.removeAll(c);
@@ -1198,7 +1233,7 @@ class Resolver {
             }
           }
           if (!candidates.isEmpty()) {
-            framework.resolverHooks.filterSingletonCollisions(bc, candidates);
+            framework.resolverHooks.filterSingletonCollisions(bg.bundleCapability, candidates);
             for (final BundleCapability bc2 : candidates) {
               BundleGeneration bg2 = ((BundleRevisionImpl)bc2.getRevision()).gen;
               if (tempResolved.contains(bg2)) {
@@ -1520,6 +1555,7 @@ class Resolver {
     }
   }
 
+
   class SavedTempState {
 
     final HashSet<BundleGeneration> oldTempResolved;
@@ -1560,4 +1596,5 @@ class Resolver {
       tempWires.subList(oldTempWiresSize, tempWires.size()).clear();
     }
   }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ import java.util.zip.ZipInputStream;
  * Dictionary received from {@code getInformation} method.
  * 
  * @noimplement
- * @author $Id: 50e49f069860a3a994a5c0124b613888e95887e0 $
+ * @author $Id: 47510611332882de430d558af19a1056f91ec5f6 $
  */
 public interface ProvisioningService {
 	/**
@@ -115,8 +115,8 @@ public interface ProvisioningService {
 	public final static String	MIME_STRING					= "text/plain;charset=utf-8";
 
 	/**
-	 * MIME type to be stored stored in the extra field of a {@code ZipEntry}
-	 * object for {@code byte[]} data.
+	 * MIME type to be stored in the extra field of a {@code ZipEntry} object
+	 * for {@code byte[]} data.
 	 */
 	public final static String	MIME_BYTE_ARRAY				= "application/octet-stream";
 

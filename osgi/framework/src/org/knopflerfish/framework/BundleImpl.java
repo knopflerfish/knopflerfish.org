@@ -62,10 +62,15 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
+import org.osgi.framework.dto.BundleDTO;
+import org.osgi.framework.dto.ServiceReferenceDTO;
 import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.startlevel.dto.BundleStartLevelDTO;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleRevisions;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.dto.BundleRevisionDTO;
+import org.osgi.framework.wiring.dto.BundleWiringDTO;
 
 /**
  * Implementation of the Bundle object.
@@ -153,6 +158,7 @@ public class BundleImpl implements Bundle {
   /** current bundle thread */
   private BundleThread bundleThread;
   
+  
   /**
    * Construct a new Bundle empty.
    *
@@ -196,13 +202,6 @@ public class BundleImpl implements Bundle {
     gen.checkPermissions(checkContext);
     doExportImport();
     bundleDir = fwCtx.getDataStorage(id);
-
-    // Activate extension as soon as they are installed so that
-    // they get added in bundle id order.
-    if (gen.isExtension() && attachToFragmentHost(fwCtx.systemBundle.current(), false)) {
-      gen.setWired();
-      state = RESOLVED;
-    }
   }
 
 
@@ -1222,8 +1221,8 @@ public class BundleImpl implements Bundle {
       try {
         synchronized (fwCtx.resolver) {
           waitOnOperation(fwCtx.resolver, "Bundle.resolve", true);
-          if (state == INSTALLED) {
-            final BundleGeneration current = current();
+          final BundleGeneration current = current();
+          if (state == INSTALLED && (!fwCtx.isInit || current.isExtension())) {
             if (triggers != null) {
               fwCtx.resolverHooks.beginResolve(triggers);
             }
@@ -1257,6 +1256,10 @@ public class BundleImpl implements Bundle {
                 current.setWired();
                 state = RESOLVED;
                 operation = RESOLVING;
+                if (current.isExtension()) {
+                  // TODO call on bundle thread!?
+                  fwCtx.systemBundle.extensionCallStart(this);
+                }
                 bundleThread().bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
                 operation = IDLE;
               }
@@ -1315,7 +1318,7 @@ public class BundleImpl implements Bundle {
           fwCtx.systemBundle.attachExtension(fix);
         } else {
           host.attachFragment(fix, isResolve);
-        }
+        } 
         fix.fragment.addHost(host);
         return true;
       } catch (final BundleException be) {
@@ -1587,7 +1590,7 @@ public class BundleImpl implements Bundle {
   String toString(int detail) {
     final StringBuffer sb = new StringBuffer();
 
-    sb.append("BundleImpl[");
+    sb.append("Bundle[");
     sb.append("id=" + getBundleId());
     if (detail > 0) {
       sb.append(", state=" + getState());
@@ -1843,13 +1846,64 @@ public class BundleImpl implements Bundle {
       if (bundleRevision != null) {
         res = bundleRevision.getWiring();
       }
-    } else if (fwCtx.startLevelController != null &&
-	           BundleStartLevel.class.equals(type)) {
-      res = fwCtx.startLevelController.bundleStartLevel(this);
+    } else if (BundleStartLevel.class.equals(type)) {
+      if (fwCtx.startLevelController != null) {
+        res = fwCtx.startLevelController.bundleStartLevel(this);
+      }
     } else if (BundleContext.class.equals(type)) {
       res = bundleContext;
     } else if (AccessControlContext.class.equals(type)) {
       res = secure.getAccessControlContext(this);
+    } else if (BundleDTO.class.equals(type)) {
+      res = getDTO();
+    } else if (ServiceReferenceDTO[].class.equals(type)) {
+      if (bundleContext != null) {
+        final Set<ServiceRegistrationImpl<?>> srs = fwCtx.services.getRegisteredByBundle(this);
+        ArrayList<ServiceReferenceDTO> srdtos = new ArrayList<ServiceReferenceDTO>();
+        for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : srs) {
+          ServiceReferenceDTO srdto = serviceRegistrationImpl.getDTO();
+          if (srdto != null) {
+            srdtos.add(srdto);
+          }
+        }
+        res = srdtos.toArray(new ServiceReferenceDTO [srdtos.size()]);
+      }
+    } else if (BundleRevisionDTO.class.equals(type)) {
+      BundleRevisionImpl rev = current().bundleRevision;
+      if (rev != null) {
+        res = rev.getDTO();
+      }
+    } else if (BundleRevisionDTO[].class.equals(type)) {
+      if (state != UNINSTALLED) {
+        BundleGeneration [] gens = generations.toArray(new BundleGeneration [generations.size()]);
+        ArrayList<BundleRevisionDTO> brdtos = new ArrayList<BundleRevisionDTO>();
+        for (BundleGeneration bg : gens) {
+          if (bg.bundleRevision != null) {
+            brdtos.add(bg.bundleRevision.getDTO());
+          }
+        }
+        res = brdtos.toArray(new BundleRevisionDTO [brdtos.size()]);
+      }
+    } else if (BundleWiringDTO.class.equals(type)) {
+      BundleRevisionImpl bundleRevision = current().bundleRevision;
+      if (bundleRevision != null) {
+        res = bundleRevision.getWiringImpl().getDTO();
+      }
+    } else if (BundleWiringDTO[].class.equals(type)) {
+      if (state != UNINSTALLED) {
+        BundleGeneration [] gens = generations.toArray(new BundleGeneration [generations.size()]);
+        ArrayList<BundleWiringDTO> bwdtos = new ArrayList<BundleWiringDTO>();
+        for (BundleGeneration bg : gens) {
+          if (bg.bundleRevision != null) {
+            bwdtos.add(bg.bundleRevision.getWiringImpl().getDTO());
+          }
+        }
+        res = bwdtos.toArray(new BundleWiringDTO [bwdtos.size()]);
+      }
+    } else if (BundleStartLevelDTO.class.equals(type)) {
+      if (state != UNINSTALLED && fwCtx.startLevelController != null) {
+        res = fwCtx.startLevelController.bundleStartLevel(this).getDTO();
+      }
     }
     return (A) res;
   }
@@ -1873,6 +1927,16 @@ public class BundleImpl implements Bundle {
     bundleThread = null;
   }
 
+
+  BundleDTO getDTO() {
+    BundleDTO res = new BundleDTO();
+    res.id = id;
+    res.lastModified = current().timeStamp;
+    res.state = state;
+    res.symbolicName = current().symbolicName;
+    res.version = current().version.toString();
+    return res;
+  }
 
   //
   // Private methods
@@ -1906,7 +1970,7 @@ public class BundleImpl implements Bundle {
     }
     final Set<ServiceRegistrationImpl<?>> s = fwCtx.services.getUsedByBundle(this);
     for (final ServiceRegistrationImpl<?> sri : s) {
-      sri.ungetService(this, false);
+      sri.ungetService(this, false, null);
     }
   }
 

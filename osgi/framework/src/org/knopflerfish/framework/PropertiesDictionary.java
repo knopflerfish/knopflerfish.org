@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,13 @@
 
 package org.knopflerfish.framework;
 
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.osgi.dto.DTO;
 import org.osgi.framework.Constants;
 
 /**
@@ -48,31 +52,42 @@ import org.osgi.framework.Constants;
  */
 class PropertiesDictionary extends Dictionary<String, Object>
 {
-  private final String [] keys;
-  private final Object [] values;
-  private int size;
-
-  private int ocIndex = -1;
-  private int sidIndex = -1;
+  private final int ocIndex = 0;
+  private final int sidIndex = 1;
+  private final int sbidIndex = 2;
+  private final int ssIndex = 3;
 
   private static long nextServiceID = 1;
 
-  PropertiesDictionary(@SuppressWarnings("rawtypes") Dictionary in) {
-    final int max_size = in != null ? in.size() + 2 : 2;
+  private final String [] keys;
+  private final Object [] values;
+
+  private int size = ssIndex + 1;
+
+
+  PropertiesDictionary(@SuppressWarnings("rawtypes") Dictionary in,
+                       String[] classes, Long sid, Long bid, String scope)
+  {
+    final int max_size = (in != null ? in.size() : 0) + size;
     keys = new String[max_size];
     values = new Object[max_size];
-    size = 0;
+    keys[ocIndex] = Constants.OBJECTCLASS;
+    values[ocIndex] = classes;
+    keys[sidIndex] = Constants.SERVICE_ID;
+    values[sidIndex] = sid != null ? sid : new Long(nextServiceID++);
+    keys[sbidIndex] = Constants.SERVICE_BUNDLEID;
+    values[sbidIndex] = bid;
+    keys[ssIndex] = Constants.SERVICE_SCOPE;
+    values[ssIndex] = scope;
     if (in != null) {
       try {
         for (@SuppressWarnings("rawtypes")
         final Enumeration e = in.keys(); e.hasMoreElements();) {
           final String key = (String) e.nextElement();
-          if (ocIndex == -1 && key.equalsIgnoreCase(Constants.OBJECTCLASS)) {
-            ocIndex = size;
-          } else if (sidIndex == -1
-                     && key.equalsIgnoreCase(Constants.SERVICE_ID)) {
-            sidIndex = size;
-          } else {
+          if (!key.equalsIgnoreCase(Constants.OBJECTCLASS) &&
+              !key.equalsIgnoreCase(Constants.SERVICE_ID) &&
+              !key.equalsIgnoreCase(Constants.SERVICE_BUNDLEID) &&
+              !key.equalsIgnoreCase(Constants.SERVICE_SCOPE)) {
             for (int i = size - 1; i >= 0; i--) {
               if (key.equalsIgnoreCase(keys[i])) {
                 throw new IllegalArgumentException(
@@ -80,9 +95,9 @@ class PropertiesDictionary extends Dictionary<String, Object>
                                                        + key);
               }
             }
+            keys[size] = key;
+            values[size++] = in.get(key);
           }
-          keys[size] = key;
-          values[size++] = in.get(key);
         }
       } catch (final ClassCastException ignore) {
         throw new IllegalArgumentException(
@@ -91,28 +106,16 @@ class PropertiesDictionary extends Dictionary<String, Object>
     }
   }
 
-  PropertiesDictionary(@SuppressWarnings("rawtypes") Dictionary in,
-                       String[] classes, Long sid)
-  {
-    this(in);
-    if (ocIndex == -1) {
-      keys[size] = Constants.OBJECTCLASS;
-      ocIndex = size++;
-    }
-    values[ocIndex] = classes;
-    if (sidIndex == -1) {
-      keys[size] = Constants.SERVICE_ID;
-      sidIndex = size++;
-    }
-    values[sidIndex] = sid != null ? sid : new Long(nextServiceID++);
-  }
-
   @Override
   public Object get(Object key) {
     if (key == Constants.OBJECTCLASS) {
       return (ocIndex >= 0) ? values[ocIndex] : null;
     } else if (key == Constants.SERVICE_ID) {
       return (sidIndex >= 0) ? values[sidIndex] : null;
+    } else if (key == Constants.SERVICE_BUNDLEID) {
+      return (sidIndex >= 0) ? values[sbidIndex] : null;
+    } else if (key == Constants.SERVICE_SCOPE) {
+      return (sidIndex >= 0) ? values[ssIndex] : null;
     }
     for (int i = size - 1; i >= 0; i--) {
       if (((String)key).equalsIgnoreCase(keys[i])) {
@@ -151,4 +154,14 @@ class PropertiesDictionary extends Dictionary<String, Object>
 
   @Override
   public Object remove(Object k) { throw new UnsupportedOperationException("Not implemented"); }
+
+
+  Map<String, Object> getDTO() {
+    Map<String, Object> res = new HashMap<String, Object>();
+    for (int i = 0; i < size; i++) {
+      res.put(keys[i], Util.safeDTOObject(values[i]));
+    }
+    return res;
+  }
+
 }

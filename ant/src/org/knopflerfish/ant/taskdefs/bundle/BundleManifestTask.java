@@ -56,6 +56,7 @@ import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 
 import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
 
@@ -480,6 +481,24 @@ public class BundleManifestTask extends Task {
    */
   public void setVerbose(boolean b) {
     verbose = b;
+  }
+
+  /**
+   * If set to true the bundle activator, export package and import
+   * package list in the written manifest will be printed on the
+   * console.
+   */
+  private String versionSuffix = "";
+
+  /**
+   * Set the verbosity of this task.
+   * If set to true the bundle activator, export package and import
+   * package list in the written manifest will be printed on the
+   * console.
+   * @param b verbose or not.
+   */
+  public void setVersionSuffix(String s) {
+    versionSuffix = s;
   }
 
   private void doVerbose(Manifest mf)
@@ -970,6 +989,31 @@ public class BundleManifestTask extends Task {
 
 
   /**
+   * If we have a bundle version suffix add it to the 
+   * <code>Bundle-Version</code> attribute.
+   */
+  private void appendVersionSuffix(Manifest mf)
+  {
+    if (versionSuffix != null && !versionSuffix.equals("")) {
+      final Manifest.Attribute bundleVerAttr
+        = mf.getMainSection().getAttribute("Bundle-Version");
+      if (null!=bundleVerAttr) {
+        final Version ver = new Version(bundleVerAttr.getValue());
+        String q = ver.getQualifier();
+        int major = ver.getMajor();
+        int minor = ver.getMinor();
+        int micro = ver.getMicro();
+        if (q.length() == 0) {
+          bundleVerAttr.setValue(new Version(major, minor, micro, versionSuffix).toString());
+        } else if (!q.endsWith(versionSuffix)) {
+          bundleVerAttr.setValue(new Version(major, minor, micro, q + "-" + versionSuffix).toString());
+        }
+      }
+    }
+  }
+
+
+  /**
    * Create or update the Manifest when used as a task.
    *
    * @throws BuildException if the manifest cannot be written.
@@ -1094,6 +1138,7 @@ public class BundleManifestTask extends Task {
     removeAttributesForOtherKinds(manifestToWrite);
     replaceEEminmum(manifestToWrite);
     replaceTrunkWithVersion(manifestToWrite);
+    appendVersionSuffix(manifestToWrite);
 
     if (null==manifestFile) {
       updatePropertiesFromMainSectionAttributeValues(manifestToWrite);

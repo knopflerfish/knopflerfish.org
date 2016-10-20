@@ -16,6 +16,7 @@
 
 package org.osgi.service.event;
 
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -25,9 +26,9 @@ import org.osgi.framework.Version;
 /**
  * Defines standard names for {@code EventHandler} properties.
  * 
- * @noimplement
- * @author $Id: 2d17e377cae498017ad739d27ff6972357e50ee3 $
+ * @author $Id: d002775d379d8da871d588ce6a6591e9089c3d09 $
  */
+@ProviderType
 public interface EventConstants {
 
 	/**

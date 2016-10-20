@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ package org.knopflerfish.framework;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.knopflerfish.framework.Util.HeaderEntry;
@@ -47,13 +48,17 @@ import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.resource.dto.RequirementDTO;
+import org.osgi.resource.dto.RequirementRefDTO;
+
 
 public class BundleRequirementImpl
+  extends DTOId
   implements BundleRequirement
 {
 
   private final BundleGeneration gen;
-  private final String nameSpace;
+  private final String namespace;
   private final Map<String, Object> attributes;
   private final Map<String,String> directives;
   private final Filter filter;
@@ -72,12 +77,12 @@ public class BundleRequirementImpl
   BundleRequirementImpl(final BundleGeneration gen, final HeaderEntry he)
   {
     this.gen = gen;
-    nameSpace = he.getKey();
+    namespace = he.getKey();
     for (final String ns : Arrays
         .asList(new String[] { BundleRevision.BUNDLE_NAMESPACE,
                                BundleRevision.HOST_NAMESPACE,
                                BundleRevision.PACKAGE_NAMESPACE })) {
-      if (ns.equals(nameSpace)) {
+      if (ns.equals(namespace)) {
         throw new IllegalArgumentException("Capability with name-space '" + ns
                                            + "' must not be required in the "
                                            + Constants.REQUIRE_CAPABILITY
@@ -93,7 +98,7 @@ public class BundleRequirementImpl
       } catch (final InvalidSyntaxException ise) {
         final String msg = "Invalid filter '" + filterStr + "' in "
                            + Constants.REQUIRE_CAPABILITY
-                           + " for name-space " + nameSpace + ": " + ise;
+                           + " for name-space " + namespace + ": " + ise;
         throw (IllegalArgumentException)
           new IllegalArgumentException(msg).initCause(ise);
       }
@@ -117,7 +122,7 @@ public class BundleRequirementImpl
   BundleRequirementImpl(final BundleGeneration gen, final String ee)
   {
     this.gen = gen;
-    nameSpace = ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE;
+    namespace = ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE;
 
     final StringBuffer filterStrB = new StringBuffer();
     final String[] l = Util.splitwords(ee, ",");
@@ -130,7 +135,7 @@ public class BundleRequirementImpl
         if (es.length == 2) {
           final int si = es[1].indexOf('/');
           new Version(si == -1 ? es[1] : es[1].substring(0, si));
-          filterStrB.append("(&(").append(nameSpace).append('=');
+          filterStrB.append("(&(").append(namespace).append('=');
           if (es[0].equalsIgnoreCase("J2SE")) {
             es[0]="JavaSE";
           }
@@ -164,14 +169,14 @@ public class BundleRequirementImpl
             }
           }
           if (v != null) {
-            filterStrB.append("(&(").append(nameSpace).append('=');
+            filterStrB.append("(&(").append(namespace).append('=');
             filterStrB.append(esStrB).append(")(version=");
             filterStrB.append(v).append("))");
             continue;
           }
         }
       } catch (IllegalArgumentException _ignore) { }
-      filterStrB.append('(').append(nameSpace).append('=');
+      filterStrB.append('(').append(namespace).append('=');
       filterStrB.append(e).append(')');
     }
     if (l.length > 1) {
@@ -188,39 +193,35 @@ public class BundleRequirementImpl
   }
 
   @Override
-  public String getNamespace()
-  {
-    return nameSpace;
+  public String getNamespace() {
+    return namespace;
   }
 
   @Override
-  public Map<String, String> getDirectives()
-  {
+  public Map<String, String> getDirectives() {
     return directives;
   }
 
   @Override
-  public Map<String, Object> getAttributes()
-  {
+  public Map<String, Object> getAttributes() {
     return attributes;
   }
 
   @Override
-  public BundleRevision getRevision()
-  {
+  public BundleRevision getRevision() {
     return gen.bundleRevision;
   }
 
 
   @Override
   public BundleRevision getResource() {
-	return gen.bundleRevision;
+    return gen.bundleRevision;
   }
 
 
   @Override
   public boolean matches(BundleCapability capability) {
-    if (nameSpace.equals(capability.getNamespace())) {
+    if (namespace.equals(capability.getNamespace())) {
       return null==filter ? true : filter.matches(capability.getAttributes());
     }
     return false;
@@ -233,7 +234,7 @@ public class BundleRequirementImpl
     sb.append("[")
     .append(BundleRequirement.class.getName())
     .append(": ")
-    .append(nameSpace)
+    .append(namespace)
     .append(" directives: ")
     .append(directives.toString())
     .append("]");
@@ -281,4 +282,24 @@ public class BundleRequirementImpl
   boolean isWired() {
     return wire != null;
   }
+
+
+  static RequirementDTO getDTO(BundleRequirement br, BundleRevisionImpl bri) {
+    RequirementDTO res = new RequirementDTO();
+    res.id = ((DTOId)br).dtoId;
+    res.namespace = br.getNamespace();
+    res.directives = new HashMap<String, String>(br.getDirectives());
+    res.attributes = Util.safeDTOMap(br.getAttributes());
+    res.resource = bri.dtoId;
+    return res;
+  }
+
+
+  static RequirementRefDTO getRefDTO(BundleRequirement br, BundleRevisionImpl bri) {
+    RequirementRefDTO res = new RequirementRefDTO();
+    res.requirement = ((DTOId)br).dtoId;
+    res.resource = bri.dtoId;
+    return res;
+  }
+
 }

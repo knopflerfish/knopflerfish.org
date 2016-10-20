@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import java.util.Date;
  * invalidated (due to timeout, fatal exceptions, or unexpectedly unregistered
  * plugins).
  * 
- * @author $Id: 8c7d14df8af76b1b07c75690a292aa8ec7b78eb1 $
+ * @author $Id: 8a52c7344f465e2cf9fb68f24c5d46c865501f34 $
  */
 public interface DmtSession {
 	/**
@@ -147,7 +147,7 @@ public interface DmtSession {
 	 * mechanism in the underlying plugins. As an example, if plugin A has
 	 * committed successfully but plugin B failed, the whole session must fail,
 	 * but there is no way to undo the commit performed by A. To provide
-	 * predictable behaviour, the commit operation should continue with the
+	 * predictable behavior, the commit operation should continue with the
 	 * remaining plugins even after detecting a failure. All exceptions received
 	 * from failed commits are aggregated into one {@code TRANSACTION_ERROR}
 	 * exception thrown by this method.
@@ -247,6 +247,7 @@ public interface DmtSession {
 	 *         <li> {@code PERMISSION_DENIED} if the session is associated with
 	 *         a principal and the ACL of the node does not allow the
 	 *         {@code Execute} operation for the associated principal</li><li>
+	 *         {@code COMMAND_NOT_ALLOWED} if the specified node is a scaffold node</li><li>
 	 *         {@code METADATA_MISMATCH} if the node cannot be executed
 	 *         according to the meta-data (does not have
 	 *         {@code MetaNode.CMD_EXECUTE} access type)</li><li>
@@ -295,6 +296,7 @@ public interface DmtSession {
 	 *         <li>{@code PERMISSION_DENIED} if the session is associated with a
 	 *         principal and the ACL of the node does not allow the
 	 *         {@code Execute} operation for the associated principal</li><li>
+	 *         {@code COMMAND_NOT_ALLOWED} if the specified node is a scaffold node</li><li>
 	 *         {@code METADATA_MISMATCH} if the node cannot be executed
 	 *         according to the meta-data (does not have
 	 *         {@code MetaNode.CMD_EXECUTE} access type)</li><li>

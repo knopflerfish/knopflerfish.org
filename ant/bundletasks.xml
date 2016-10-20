@@ -46,9 +46,15 @@
   <!-- ASM bytecode manipulation and analysis framework -->
   <property name="asm.version" value="3.2"/>
   <property name="asm.jar"
-            location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
+	    location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
   <path id="asm.path">
     <pathelement location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
+  </path>
+  
+  <property name="asm-all.version"	value="4.0"/>
+  <property name="asm-all.jar"		value="asm-all-${asm-all.version}.jar" />
+  <path id="asm-all.path">
+    <pathelement location="${ant.lib}/${asm-all.jar}" />
   </path>
 
   <!-- Download and install repoindex -->
@@ -181,16 +187,59 @@
     </taskdef>
   </target>
 
+  <property name="pegdown.version"	value="1.6.0"/>
+  <property name="pegdown.jar"		value="pegdown-${pegdown.version}.jar" />
+  <property name="pegdown.url"		value="http://repo1.maven.org/maven2/org/pegdown/pegdown/${pegdown.version}/${pegdown.jar}" />
 
+  <property name="parboiled-core.version"	value="1.1.7"/>
+  <property name="parboiled-core.jar"		value="parboiled-core-${parboiled-core.version}.jar" />
+  <property name="parboiled-core.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-core/${parboiled-core.version}/${parboiled-core.jar}" />
+  <property name="parboiled-java.version"	value="1.1.7"/>
+  <property name="parboiled-java.jar"		value="parboiled-java-${parboiled-java.version}.jar" />
+  <property name="parboiled-java.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-java/${parboiled-java.version}/${parboiled-java.jar}" />
+
+  <property name="asm-all.url"		value="http://maven.wso2.org/nexus/content/shadows/central-m1/org.ow2.asm/jars/${asm-all.jar}" />
+
+  <target name="install_pegdown">
+    <get src="${pegdown.url}"
+	 dest="${ant.lib}/${pegdown.jar}"
+	 verbose="true"
+	 skipexisting="true" />
+    <get src="${parboiled-core.url}"
+	 dest="${ant.lib}/${parboiled-core.jar}"
+	 verbose="true"
+	 skipexisting="true" />
+    <get src="${parboiled-java.url}"
+	 dest="${ant.lib}/${parboiled-java.jar}"
+	 verbose="true"
+	 skipexisting="true" />
+    <get src="${asm-all.url}"
+	 dest="${ant.lib}/${asm-all.jar}"
+	 verbose="true"
+	 skipexisting="true" />
+  </target>
+  
   <!-- Compile and pack the Knopflerfish bundle tasks.  -->
   <property name="bundle_tasks.jar" location="${ant.lib}/bundle_tasks.jar"/>
+  <property name="kf_ant_util_tasks.jar" location="${ant.lib}/kf_ant_util_tasks.jar"/>
+
+  <property name="osgi_annotation.jar" location="${osgi.dir}/annotations/osgi.annotation-6.0.1.jar"/>
 
   <path id="bundle_tasks.path">
     <pathelement location="${antclasses}"/>
     <pathelement location="${bundle_tasks.jar}"/>
+    <pathelement location="${osgi_annotation.jar}"/>
     <path refid="asm.path"/>
   </path>
 
+  <path id="util_tasks.path">
+    <pathelement location="${antclasses}"/>
+    <path refid="asm-all.path"/>
+    <pathelement location="${ant.lib}/pegdown-1.6.0.jar"/>
+    <pathelement location="${ant.lib}/parboiled-core-1.1.7.jar"/>
+    <pathelement location="${ant.lib}/parboiled-java-1.1.7.jar"/>
+    <path refid="asm-all.path"/>
+  </path>
 
   <target name="chkBundleTaskSrc">
     <condition property="bundleTasksBuild.notRequired">
@@ -220,15 +269,35 @@
     </condition>
   </target>
 
+  <target name="build_util_tasks"
+	  depends="install_pegdown">
+    <mkdir dir="${antclasses}"/>
+    <javac destdir="${antclasses}"
+           classpathref="util_tasks.path"
+           includeAntRuntime="true"
+           debug="on">
+      <src path="${ant.dir}/src"/>
+      <include name="org/knopflerfish/ant//taskdefs/util/**"/>
+      <include name="org/knopflerfish/ant//taskdefs/bundle/FileUtil.java"/>
+    </javac>
 
-  <available property="jdk1.7+" classname="java.lang.ClassValue"/>
-
-  <condition property="javac.source" value="1.5" else="1.5">
-    <isset property="jdk1.7+"/>
-  </condition>
-  <condition property="javac.target" value="1.5" else="jsr14">
-    <isset property="jdk1.7+"/>
-  </condition>
+    <jar destfile="${kf_ant_util_tasks.jar}"
+         compress="true"
+         update="false"
+         filesonly="true">
+      <manifest>
+        <attribute name="Implementation-Vendor" value="Knopflerfish"/>
+        <attribute name="Implementation-Title"
+                   value="Knopflerfish Bundle Tasks"/>
+        <attribute name="Knopflerfish-Version" value="${version}"/>
+      </manifest>
+      <zipfileset dir="${ant.dir}/src"
+		  includes="org/knopflerfish/ant/taskdefs/util/*.xml"/>
+      <zipfileset dir="${antclasses}"
+		  includes="org/knopflerfish/ant/taskdefs/util/**,
+			    org/knopflerfish/ant/taskdefs/bundle/FileUtil.class" />
+    </jar>
+  </target>
 
   <target name="build_bundle_tasks"
           depends="chkBundleTaskSrc,chkBundleTasksBuild"
@@ -237,18 +306,17 @@
     <javac destdir="${antclasses}"
            classpathref="bundle_tasks.path"
            includeAntRuntime="true"
-           source="${javac.source}"
-           target="${javac.target}"
            debug="on">
       <src path="${ant.dir}/src"/>
       <!-- org.osgi.framework.Version is used by BundleLocator. -->
       <src path="${framework.dir}/src"/>
-      <include name="org/knopflerfish/ant/**"/>
+      <include name="org/knopflerfish/ant/taskdefs/bundle/**"/>
       <include name="org/osgi/framework/Constants.java"/>
       <include name="org/osgi/framework/Version.java"/>
       <include name="org/osgi/framework/VersionRange.java"/>
     </javac>
 
+    
     <jar destfile="${bundle_tasks.jar}"
          compress="true"
          update="false"
@@ -262,9 +330,12 @@
       <zipfileset dir="${ant.dir}/src"
                   includes="**/antlib.xml"/>
       <zipfileset dir="${antclasses}"/>
-      <zipfileset src="${asm.jar}" includes="org/**"/>
+      <zipfileset src="${asm.jar}" includes="org/**"/> 
     </jar>
   </target>
+
+  <target name="build_ant_tasks"
+	  depends="build_bundle_tasks, build_util_tasks" />
 
   <target name="define_bundle_tasks"
           description="Defines the Knopflerfish bundle tasks">
@@ -275,10 +346,29 @@
     </taskdef>
   </target>
 
+  <target name="define_util_tasks"
+          description="Defines the Knopflerfish utl tasks">
+    <taskdef resource="org/knopflerfish/ant/taskdefs/util/antlib.xml">
+      <classpath>
+        <pathelement location="${kf_ant_util_tasks.jar}"/>
+	<pathelement location="${ant.lib}/pegdown-1.6.0.jar"/>
+	<pathelement location="${ant.lib}/parboiled-core-1.1.7.jar"/>
+	<pathelement location="${ant.lib}/parboiled-java-1.1.7.jar"/>
+	<pathelement location="${ant.lib}/asm-all-4.0.jar"/>
+      </classpath>
+    </taskdef>
+  </target>
+  
   <target name="bundle_tasks"
           description="Builds and defines the Knopflerfish bundle tasks"
           depends="build_bundle_tasks,
                    define_bundle_tasks">
+  </target>
+
+  <target name="util_tasks"
+          description="Builds and defines the Knopflerfish util tasks"
+          depends="build_util_tasks,
+                   define_util_tasks">
   </target>
 
   <target name="default" depends="bundle_tasks"/>

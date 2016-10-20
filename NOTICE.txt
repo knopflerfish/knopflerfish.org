@@ -23,7 +23,7 @@ This product includes the OSGi Service Platform API code from the OSGi
 Alliance provided under an Apache 2 license.
 http://www.osgi.org
 
-Copyright (c) OSGi Alliance (2000, 2009). All Rights Reserved.
+Copyright (c) OSGi Alliance (2000, 2014). All Rights Reserved.
 
 
 ----------------------------------------------------------------------

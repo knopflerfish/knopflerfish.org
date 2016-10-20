@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Dictionary;
  * It provides function to get the absolute mounted uri and a shortcut method to
  * post events via the DmtAdmin.
  * 
- * @author $Id: 6d6910e16554d58dfca19741425f6b314091865d $
+ * @author $Id: 61dc84e7afbaa405ee43e4de525d2ec87a264b41 $
  * @since 2.0
  */
 public interface MountPoint {
@@ -97,7 +97,7 @@ public interface MountPoint {
 	 *        permitted. In both cases the value of the events
 	 *        {@code EVENT_PROPERTY_NODES} property will be set to an empty
 	 *        array.
-	 * @param newRelativeURIs an array of affected node {@code URI}'s.The value
+	 * @param newRelativeURIs an array of affected node {@code URI}'s. The value
 	 *        of this parameter determines the value of the event property
 	 *        {@code EVENT_PROPERTY_NEW_NODES}. An empty array or {@code null}
 	 *        is permitted. In both cases the value of the events

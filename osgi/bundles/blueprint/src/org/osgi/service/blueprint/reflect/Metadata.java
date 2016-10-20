@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2009, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2009, 2015). All Rights Reserved.
  *  
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
- * Top level Metadata type. All Metdata types extends this base type.
+ * Top level Metadata type. All Metadata types extends this base type.
  * 
  * @ThreadSafe
- * @author $Id: ad96fa92753e9aaada5b1b8c5fae694e60c60186 $
+ * @author $Id: 074799a5dd453950d0b14c8612912b7c839858d6 $
  */
+@ConsumerType
 public interface Metadata {
 	// marker interface
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,21 +35,37 @@
 package org.knopflerfish.bundle.repository.xml;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import org.osgi.resource.Resource;
 
 public class Data {
-  String namespace;
-  Map<String, String> directives = new HashMap<String, String>();
-  Map<String, Object> attributes = new HashMap<String, Object>();
-  Resource resource;
+  public final String namespace;
+  public final HashMap<String, String> directives;
+  public final HashMap<String, Object> attributes;
+  public Resource resource;
+
+  public Data(String namespace) {
+    this.namespace = namespace;
+    directives = new HashMap<String, String>();
+    attributes = new HashMap<String, Object>();
+    resource = null;
+  }
+
+  @SuppressWarnings("unchecked")
+  public Data(Data d) {
+    namespace = d.namespace;
+    directives = (HashMap<String, String>) d.directives.clone();
+    attributes = (HashMap<String, Object>) d.attributes.clone();
+    resource = d.resource;
+  }
+
+  @Override
   public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append("[namespace=" + namespace + "]\n");
     sb.append("[directives=" + directives + "]\n");
     sb.append("[attributes=" + attributes + "]\n");
-    return sb.toString();
-    
+    return sb.toString();  
   }
+
 }

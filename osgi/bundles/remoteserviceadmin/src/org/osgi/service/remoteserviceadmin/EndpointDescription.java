@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package org.osgi.service.remoteserviceadmin;
 
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_FRAMEWORK_UUID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_ID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_PACKAGE_VERSION_;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.ENDPOINT_SERVICE_ID;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_IMPORTED_CONFIGS;
-import static org.osgi.service.remoteserviceadmin.RemoteConstants.SERVICE_INTENTS;
+import static org.osgi.service.remoteserviceadmin.RemoteConstants.*;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -62,7 +56,7 @@ import org.osgi.framework.Version;
  * provider. Qualified intents appear fully expanded on this property.
  * 
  * @Immutable
- * @author $Id: 535d484835c708e62f9f52f4facbda354e85664a $
+ * @author $Id: a5371a48ad089d08cafc0792f93b8dfe8be33e43 $
  */
 
 public class EndpointDescription {
@@ -107,10 +101,11 @@ public class EndpointDescription {
 		interfaces = verifyObjectClassProperty();
 		serviceId = verifyLongProperty(ENDPOINT_SERVICE_ID);
 		frameworkUUID = verifyStringProperty(ENDPOINT_FRAMEWORK_UUID);
-		id = verifyStringProperty(ENDPOINT_ID).trim();
-		if (id == null) {
+		String endpointId = verifyStringProperty(ENDPOINT_ID);
+		if (endpointId == null) {
 			throw new IllegalArgumentException(ENDPOINT_ID + " property must be set");
 		}
+		id = endpointId.trim();
 		if (getConfigurationTypes().isEmpty()) {
 			throw new IllegalArgumentException(SERVICE_IMPORTED_CONFIGS + " property must be set and non-empty");
 		}
@@ -141,7 +136,7 @@ public class EndpointDescription {
 	 * @throws IllegalArgumentException When the properties are not proper for
 	 *         an Endpoint Description
 	 */
-	public EndpointDescription(final ServiceReference reference, final Map<String, ?> properties) {
+	public EndpointDescription(final ServiceReference<?> reference, final Map<String, ?> properties) {
 		Map<String, Object> props = new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER);
 
 		if (properties != null) {
@@ -187,10 +182,11 @@ public class EndpointDescription {
 		interfaces = verifyObjectClassProperty();
 		serviceId = verifyLongProperty(ENDPOINT_SERVICE_ID);
 		frameworkUUID = verifyStringProperty(ENDPOINT_FRAMEWORK_UUID);
-		id = verifyStringProperty(ENDPOINT_ID).trim();
-		if (id == null) {
+		String endpointId = verifyStringProperty(ENDPOINT_ID);
+		if (endpointId == null) {
 			throw new IllegalArgumentException(ENDPOINT_ID + " property must be set");
 		}
+		id = endpointId.trim();
 		if (getConfigurationTypes().isEmpty()) {
 			throw new IllegalArgumentException(SERVICE_IMPORTED_CONFIGS + " property must be set and non-empty");
 		}
@@ -430,7 +426,7 @@ public class EndpointDescription {
 	private List<String> getStringPlusProperty(String key) {
 		Object value = properties.get(key);
 		if (value == null) {
-			return Collections.EMPTY_LIST;
+			return emptyList();
 		}
 
 		if (value instanceof String) {
@@ -460,17 +456,22 @@ public class EndpointDescription {
 			return Collections.unmodifiableList(result);
 		}
 
+		return emptyList();
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> List<T> emptyList() {
 		return Collections.EMPTY_LIST;
 	}
 
 	/**
 	 * Return the framework UUID for the remote service, if present.
 	 * 
-	 * The value of the remote framework uuid is stored in the
+	 * The value of the remote framework UUID is stored in the
 	 * {@link RemoteConstants#ENDPOINT_FRAMEWORK_UUID} endpoint property.
 	 * 
 	 * @return Remote Framework UUID, or {@code null} if this endpoint is not
-	 *         associated with an OSGi framework having a framework uuid.
+	 *         associated with an OSGi framework having a framework UUID.
 	 */
 	public String getFrameworkUUID() {
 		return frameworkUUID;
@@ -514,6 +515,7 @@ public class EndpointDescription {
 	 * 
 	 * @return An integer which is a hash code value for this object.
 	 */
+	@Override
 	public int hashCode() {
 		return getId().hashCode();
 	}
@@ -529,6 +531,7 @@ public class EndpointDescription {
 	 * @return {@code true} if {@code object} is a {@code EndpointDescription}
 	 *         and is equal to this object; {@code false} otherwise.
 	 */
+	@Override
 	public boolean equals(Object other) {
 		if (this == other) {
 			return true;
@@ -572,6 +575,7 @@ public class EndpointDescription {
 	 * 
 	 * @return String form of this EndpointDescription.
 	 */
+	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append('{');
@@ -632,34 +636,42 @@ public class EndpointDescription {
 			this.wrapped = wrapped;
 		}
 
+		@Override
 		public Enumeration<V> elements() {
 			return Collections.enumeration(wrapped.values());
 		}
 
+		@Override
 		public V get(Object key) {
 			return wrapped.get(key);
 		}
 
+		@Override
 		public boolean isEmpty() {
 			return wrapped.isEmpty();
 		}
 
+		@Override
 		public Enumeration<K> keys() {
 			return Collections.enumeration(wrapped.keySet());
 		}
 
+		@Override
 		public V put(K key, V value) {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public V remove(Object key) {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
 		public int size() {
 			return wrapped.size();
 		}
 
+		@Override
 		public String toString() {
 			return wrapped.toString();
 		}

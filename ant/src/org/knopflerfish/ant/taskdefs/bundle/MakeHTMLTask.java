@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -424,6 +424,8 @@ public class MakeHTMLTask
       content = Util.replace(content, "$(GIT_REPO_URL)",
                              proj.getProperty("git.repo.url"));
       content = Util.replace(content, "$(GIT_TAG)",proj.getProperty("git.tag"));
+      content = Util.replace(content, "$(GIT_BRANCH)",proj.getProperty("git.branch"));
+      content = Util.replace(content, "$(GIT_BROWSE_URL)",proj.getProperty("git.browse.url"));
       content = Util.replace(content, "$(JAVADOCPATH)", pathToJavadocDir);
       content = Util.replace(content, "$(JAVADOCLINK)",
                              pathToJavadocDir + "/index.html?");

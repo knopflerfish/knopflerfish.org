@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ import org.osgi.service.dmt.DmtSession;
 
 /**
  * An implementation of this interface takes the responsibility of handling node
- * execute requests requests in a subtree of the DMT.
+ * execute requests in a subtree of the DMT.
  * <p>
  * In an OSGi environment such implementations should be registered at the OSGi
  * service registry specifying the list of root node URIs in a {@code String}
  * array or in case of a single value as {@code String} in the
  * {@code execRootURIs} registration parameter.
  * 
- * @author $Id: b18683f61ddf6b3618719620382983d109ce39ed $
+ * @author $Id: 959b9f9e10f172edcb159af99344f8a8b391d0c3 $
  */
 public interface ExecPlugin {
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@
  * <p>
  * {@code  Import-Package: org.osgi.service.wireadmin; version="[1.0,1.1)"}
  * 
- * @version 1.0
- * @author $Id: fc7b37f8b61d83f66fd1df8cc50a3534b24dbb56 $
+ * @version 1.0.1
+ * @author $Id: b5af96bb0efa30657f384694823c759b07046850 $
  */
 
 package org.osgi.service.wireadmin;

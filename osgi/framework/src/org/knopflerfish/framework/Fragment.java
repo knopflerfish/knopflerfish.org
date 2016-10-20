@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ import org.osgi.framework.wiring.BundleRevision;
  * Fragment information
  */
 class Fragment
+  extends DTOId
   implements BundleRequirement
 {
   final BundleGeneration gen;
@@ -82,15 +83,19 @@ class Fragment
     }
 
     final Map<String,String>dirs = headerEntry.getDirectives();
-    final String extension = dirs.get(Constants.EXTENSION_DIRECTIVE);
-    if (Constants.EXTENSION_FRAMEWORK.equals(extension)
-        || Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
-      // an extension bundle must target the system bundle.
-      if (!Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(hostName)
-          && !BundleGeneration.KNOPFLERFISH_SYMBOLICNAME.equals(hostName)) {
-        throw new IllegalArgumentException("An extension bundle must target "
-            + "the system bundle(" + Constants.SYSTEM_BUNDLE_SYMBOLICNAME + " or "
-            + BundleGeneration.KNOPFLERFISH_SYMBOLICNAME + ")");
+    String extension = dirs.get(Constants.EXTENSION_DIRECTIVE);
+    if (Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(hostName)
+          || BundleGeneration.KNOPFLERFISH_SYMBOLICNAME.equals(hostName)) {
+      if (extension != null) {
+        if (!Constants.EXTENSION_FRAMEWORK.equals(extension)
+            && !Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
+          // an extension bundle must target the system bundle.
+          throw new IllegalArgumentException("An extension bundle must target "
+              + "the system bundle(" + Constants.SYSTEM_BUNDLE_SYMBOLICNAME + " or "
+              + BundleGeneration.KNOPFLERFISH_SYMBOLICNAME + ")");
+        }
+      } else {
+        extension = Constants.EXTENSION_FRAMEWORK;
       }
 
       if (gen.archive.getAttribute(Constants.IMPORT_PACKAGE) != null
@@ -169,7 +174,8 @@ class Fragment
 
   boolean isTarget(BundleGeneration bg)
   {
-    return hostName.equals(bg.symbolicName)
+    return (hostName.equals(bg.symbolicName) 
+            || extension != null && BundleGeneration.KNOPFLERFISH_SYMBOLICNAME == bg.symbolicName)
            && (versionRange == null || versionRange.includes(bg.version))
            && bg.bsnAttrMatch(attributes);
   }

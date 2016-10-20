@@ -16,4 +16,6 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/repository/repository_api
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
-api-Import-Package: org.osgi.resource,org.osgi.service.repository;version="[1,1.1)"
+api-Import-Package: org.osgi.util.promise;version="[1.0,2)",
+ org.osgi.resource;version="[1.0,2)",
+ org.osgi.service.repository;version="[1.1,1.2)"

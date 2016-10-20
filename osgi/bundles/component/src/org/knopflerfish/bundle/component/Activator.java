@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,6 @@ import org.osgi.util.tracker.ServiceTracker;
 
 public class Activator implements BundleActivator
 {
-  static boolean TCK_BUG_COMPLIANT = true;
-
   private static ServiceTracker<LogService,LogService> logTracker;
 
   private SCR scr;
@@ -56,8 +54,7 @@ public class Activator implements BundleActivator
    */
   public void start(BundleContext bc) throws Exception {
     logTracker = new ServiceTracker<LogService, LogService>(bc,
-                                                            LogService.class
-                                                                .getName(),
+                                                            LogService.class.getName(),
                                                             null);
     logTracker.open();
     scr = new SCR(bc);

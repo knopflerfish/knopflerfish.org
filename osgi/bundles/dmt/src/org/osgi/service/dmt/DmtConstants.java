@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.osgi.service.dmt;
 /**
  * Defines standard names for {@code DmtAdmin}.
  * 
- * @author $Id: f20702406eba3843afe619eb5fa19c8591dae239 $
+ * @author $Id: 53f8dc08c1dc71bc6415cdb2b82b0cc24a5aa703 $
  * @since 2.0
  */
 public class DmtConstants {
@@ -39,7 +39,7 @@ public class DmtConstants {
 	public static final String	DDF_SCAFFOLD				= "org.osgi/1.0/SCAFFOLD";
 
 	/**
-	 * A string defining a DDF URI, indicating that the node is a MAP node node.
+	 * A string defining a DDF URI, indicating that the node is a MAP node.
 	 */
 	public static final String	DDF_MAP						= "org.osgi/1.0/MAP";
 

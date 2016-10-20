@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,15 @@
 
 package org.knopflerfish.framework;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import org.osgi.framework.Bundle;
@@ -48,6 +52,7 @@ import org.osgi.framework.ServiceException;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.dto.ServiceReferenceDTO;
 
 
 /**
@@ -69,9 +74,14 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
   BundleImpl bundle;
 
   /**
-   * Service or ServiceFactory object.
+   * Service, ServiceFactory or ServiceFactory object.
    */
   Object service;
+
+  /**
+   * Service scope
+   */
+  final String scope;
 
   /**
    * Reference object to this service registration.
@@ -84,7 +94,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
   private PropertiesDictionary properties;
 
   /**
-   * Bundles dependent on this service. Integer is used as
+   * Bundles dependent on this service. An Integer is used as
    * reference counter, counting number of unbalanced getService().
    */
   private Hashtable<Bundle,Integer> dependents = new Hashtable<Bundle, Integer>();
@@ -92,7 +102,12 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
   /**
    * Object instances that factory has produced.
    */
-  private HashMap<Bundle,S> serviceInstances = new HashMap<Bundle, S>();
+  private HashMap<Bundle,S> serviceInstances = null;
+
+  /**
+   * Object instances that factory has produced.
+   */
+  private HashMap<Bundle,List<S>> prototypeServiceInstances = null;
 
   /**
    * Unget in progress for bundle in set.
@@ -132,13 +147,20 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
    * @param s Service object.
    * @param props Properties describing service.
    */
-  ServiceRegistrationImpl(BundleImpl b, Object s, PropertiesDictionary props) {
+  ServiceRegistrationImpl(BundleImpl b, Object s, String ss, PropertiesDictionary props) {
     fwCtx = b.fwCtx;
     bundle = b;
     service = s;
     properties = props;
     reference = new ServiceReferenceImpl<S>(this);
     available = true;
+    scope = ss;
+    if (scope == Constants.SCOPE_BUNDLE) {
+      serviceInstances = new HashMap<Bundle, S>();
+    } else if (scope == Constants.SCOPE_PROTOTYPE) {
+      serviceInstances = new HashMap<Bundle, S>();
+      prototypeServiceInstances = new HashMap<Bundle, List<S>>();
+    }
   }
 
   //
@@ -177,7 +199,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
             before = fwCtx.listeners.getMatchingServiceListeners(reference);
             final String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
             final Long sid = (Long)properties.get(Constants.SERVICE_ID);
-            properties = new PropertiesDictionary(props, classes, sid);
+            properties = new PropertiesDictionary(props, classes, sid, new Long(bundle.id), scope);
             final Object new_rank = properties.get(Constants.SERVICE_RANKING);
             if (old_rank != new_rank && new_rank instanceof Integer &&
                 !((Integer)new_rank).equals(old_rank)) {
@@ -235,7 +257,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
       final Bundle [] using = getUsingBundles();
       if (using != null) {
         for (final Bundle element : using) {
-          ungetService(element, false);
+          ungetService(element, false, null);
         }
       }
       synchronized (properties) {
@@ -244,6 +266,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
         reference = null;
         service = null;
         serviceInstances = null;
+        prototypeServiceInstances = null;
         unregistering = false;
       }
     }
@@ -252,6 +275,14 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
   //
   // Framework internal
   //
+
+  /**
+   * Is service available
+   */
+  boolean isAvailable() {
+    return available;
+  }
+
 
   /**
    * Get all properties
@@ -275,13 +306,23 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
    * @param bundle requester of service.
    * @return Service requested or null in case of failure.
    */
-  S getService(Bundle b) {
+  S getService(Bundle b, boolean multiple) {
     Integer ref;
     BundleImpl sBundle = null;
+
+    if (multiple && scope != Constants.SCOPE_PROTOTYPE) {
+      multiple = false;
+    }
     synchronized (properties) {
       if (available) {
         ref = dependents.get(b);
-        if (service instanceof ServiceFactory) {
+        if (scope == Constants.SCOPE_SINGLETON) {
+          dependents.put(b, new Integer(ref != null ? ref.intValue() + 1 : 1));
+          @SuppressWarnings("unchecked")
+          final
+          S res = (S) service;
+          return res;
+        } else if (!multiple) {
           if (ref == null) {
             dependents.put(b, new Integer(0));
             factoryThread = Thread.currentThread();
@@ -290,12 +331,6 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
               throw new IllegalStateException("Recursive call of getService");
             }
           }
-        } else {
-          dependents.put(b, new Integer(ref != null ? ref.intValue() + 1 : 1));
-          @SuppressWarnings("unchecked")
-          final
-          S res = (S) service;
-          return res;
         }
         sBundle = bundle;
       } else {
@@ -303,7 +338,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
       }
     }
     S s = null;
-    if (ref == null) {
+    if (ref == null || multiple) {
       try {
         s = sBundle.fwCtx.perm.callGetService(this, b);
         if (s == null) {
@@ -318,8 +353,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
       }
       if (s != null) {
         final String[] classes = (String[])getProperty(Constants.OBJECTCLASS);
-        for (final String classe : classes) {
-          final String cls = classe;
+        for (final String cls : classes) {
           if (!sBundle.fwCtx.services.checkServiceClass(s, cls)) {
             sBundle.fwCtx.frameworkError(sBundle,
                 new ServiceException("ServiceFactory produced an object " +
@@ -331,13 +365,15 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
         }
       }
       if (s == null) {
-        synchronized (properties) {
-          if (dependents != null) {
-            dependents.remove(b);
+        if (!multiple) {
+          synchronized (properties) {
+            if (dependents != null && ref == null) {
+              dependents.remove(b);
+            }
+            factoryThread = null;
           }
-          factoryThread = null;
-          return null;
         }
+        return null;
       }
     }
 
@@ -359,11 +395,20 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
           }
         }
       } else {
-        factoryThread = null;
-        serviceInstances.put(b, s);
-        properties.notifyAll();
+        if (multiple) {
+          List<S> il = prototypeServiceInstances.get(b);
+          if (il == null) {
+            il = new LinkedList<S>();
+            prototypeServiceInstances.put(b, il);
+          }
+          il.add(s);
+        } else {
+          factoryThread = null;
+          serviceInstances.put(b, s);
+          properties.notifyAll();
+        }
       }
-      if (s != null) {
+      if (s != null && !multiple) {
         ref = dependents != null ? (Integer)dependents.get(b) : null;
         if (ref != null) {
           dependents.put(b, new Integer(ref.intValue() + 1));
@@ -390,16 +435,14 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
     final Hashtable<Bundle, Integer> d = dependents;
     if (d != null) {
       synchronized (d) {
-        int size = d.size() + ungetInProgress.size();
-        if (size > 0) {
-          final Bundle[] res =  new Bundle[size];
-          for (final Enumeration<Bundle> e = d.keys(); e.hasMoreElements(); ) {
-            res[--size] = e.nextElement();
-          }
-          for (final Bundle b : ungetInProgress) {
-            res[--size] = b;
-          }
-          return res;
+        HashSet<Bundle> bs = new HashSet<Bundle>();
+        bs.addAll(d.keySet());
+        bs.addAll(ungetInProgress);
+        if (prototypeServiceInstances != null) {
+          bs.addAll(prototypeServiceInstances.keySet());
+        }
+        if (!bs.isEmpty()) {
+          return bs.toArray(new Bundle[bs.size()]);
         }
       }
     }
@@ -415,10 +458,15 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
   boolean isUsedByBundle(Bundle b) {
     final Hashtable<Bundle, Integer> deps = dependents;
     if (deps != null) {
-      return deps.containsKey(b);
-    } else {
-      return false;
+      boolean res = deps.containsKey(b);
+      if (!res) {
+        if (prototypeServiceInstances != null) {
+          res = prototypeServiceInstances.containsKey(b);
+        }
+      }
+      return res;
     }
+    return false;
   }
 
   /**
@@ -431,46 +479,107 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
    * @return True if service was used, otherwise false.
    *
    */
-  boolean ungetService(Bundle b, boolean checkRefCounter) {
-    S serviceToRemove = null;
-    Hashtable<Bundle,Integer> deps;
+  boolean ungetService(Bundle b, boolean checkRefCounter,  S uservice) {
+    List<S> servicesToRemove = new ArrayList<S>();
+    Hashtable<Bundle,Integer> deps = null;
     BundleImpl sBundle;
+    boolean res = false;
+
     synchronized (properties) {
       if (dependents == null) {
         return false;
       }
-      final Object countInteger = dependents.get(b);
-      if (countInteger == null) {
-        return false;
-      }
-
-      final int count = ((Integer) countInteger).intValue();
-      if (checkRefCounter && count > 1) {
-        dependents.put(b, new Integer(count - 1));
-      } else {
-        synchronized (dependents) {
-          ungetInProgress.add(b);
-          dependents.remove(b);
+      if (scope == Constants.SCOPE_PROTOTYPE) {
+        if (uservice != null) {
+          List<S> sl = prototypeServiceInstances.get(b);
+          if (sl != null) {
+            for (Iterator<S> i = sl.iterator(); i.hasNext(); ) {
+              if (i.next() == uservice) {
+                i.remove();
+                servicesToRemove.add(uservice);
+                res = true;
+                break;
+              }
+            }
+          }
+          if (!res) {
+            throw new IllegalArgumentException("Service is not in use or not from this service reference");
+          }
+        } else if (!checkRefCounter) {
+          List<S> sl = prototypeServiceInstances.get(b);
+          if (sl != null && !sl.isEmpty()) {
+            servicesToRemove.addAll(sl);
+            sl.clear();
+            res = true;
+          }
         }
-        serviceToRemove = serviceInstances.remove(b);
       }
-      deps = dependents;
+      if (uservice == null || scope != Constants.SCOPE_PROTOTYPE) {
+        final Object countInteger = dependents.get(b);
+        if (countInteger != null) {
+          if (uservice != null) {
+            S s = scope == Constants.SCOPE_SINGLETON ? (S)service : serviceInstances.get(b);
+            if (s != uservice) {
+              throw new IllegalArgumentException("Service is not in user or not from this service reference");
+            }
+          }
+
+          final int count = ((Integer) countInteger).intValue();
+          if (checkRefCounter && count > 1) {
+            dependents.put(b, new Integer(count - 1));
+          } else {
+            synchronized (dependents) {
+              ungetInProgress.add(b);
+              dependents.remove(b);
+              deps = dependents;
+            }
+            if (scope != Constants.SCOPE_SINGLETON) {
+              S s = serviceInstances.remove(b);
+              if (s != null) {
+                servicesToRemove.add(s);
+              }
+            }
+          }
+          res = true;
+        }
+      }
       sBundle = bundle;
     }
 
-    if (serviceToRemove != null) {
-      if (service instanceof ServiceFactory) {
-        try {
-          sBundle.fwCtx.perm.callUngetService(this, b, serviceToRemove);
-        } catch (final Throwable e) {
-          sBundle.fwCtx.frameworkError(sBundle, e);
-        }
+    for (S s : servicesToRemove) {
+      try {
+        sBundle.fwCtx.perm.callUngetService(this, b, s);
+      } catch (final Throwable e) {
+        sBundle.fwCtx.frameworkError(sBundle, e);
       }
     }
-    synchronized (deps) {
-      ungetInProgress.remove(b);
+    if (deps != null) {
+      synchronized (deps) {
+        ungetInProgress.remove(b);
+      }
     }
-    return true;
+    return res;
   }
 
+  ServiceReferenceDTO getDTO() {
+    ServiceReferenceDTO res = new ServiceReferenceDTO();
+    PropertiesDictionary p = properties;
+    res.id = ((Long)p.get(Constants.SERVICE_ID)).longValue();
+    res.properties = p.getDTO();
+    Bundle [] using = getUsingBundles();
+    if (using != null) {
+      res.usingBundles = new long [using.length];
+      for (int i = 0; i < using.length; i++) {
+        res.usingBundles[i] = using[i].getBundleId();
+      }
+    } else {
+      res.usingBundles = new long [0];
+    }
+    BundleImpl b = bundle;
+    if (b == null) {
+      return null;
+    }
+    res.bundle = b.id;
+    return res;
+  }
 }

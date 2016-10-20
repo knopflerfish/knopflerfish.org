@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ package org.osgi.service.prefs;
  * preference data.
  * 
  * @noimplement
- * @author $Id: faefeec3c75c0a45324035226f71728f69358cd4 $
+ * @author $Id: c4075de1ffb1ccb4b0f7c9f933ed79ef6bc25661 $
  */
 public interface Preferences {
 	/**
@@ -442,7 +442,7 @@ public interface Preferences {
 	 *         associated value does not exist or cannot be interpreted as a
 	 *         {@code double} type.
 	 * @throws IllegalStateException if this node (or an ancestor) has been
-	 *         removed with the the {@link #removeNode()} method.
+	 *         removed with the {@link #removeNode()} method.
 	 * @throws NullPointerException if {@code key} is {@code null}.
 	 * @see #putDouble(String,double)
 	 * @see #get(String,String)

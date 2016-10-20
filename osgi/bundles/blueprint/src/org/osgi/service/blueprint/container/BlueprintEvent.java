@@ -60,7 +60,7 @@ import org.osgi.framework.Bundle;
  * @see BlueprintListener
  * @see EventConstants
  * @Immutable
- * @author $Id: 6155890329cf5bb2593958ad07bbb6ff9b161bc5 $
+ * @author $Id: ebfb3422a27688252ca9ea3473b4944324fb5bc5 $
  */
 public class BlueprintEvent {
 
@@ -223,7 +223,7 @@ public class BlueprintEvent {
 		this.timestamp = System.currentTimeMillis();
 		this.bundle = bundle;
 		this.extenderBundle = extenderBundle;
-		this.dependencies = dependencies == null ? null : (String[]) dependencies.clone();;
+		this.dependencies = dependencies == null ? null : (String[]) dependencies.clone();
 		this.cause = cause;
 		this.replay = false;
 		if (bundle == null) {

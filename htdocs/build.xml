@@ -46,6 +46,11 @@
     <property name="css_navigation_disabled"    value="navigation_disabled"/>
     <property name="navigation_pages"           value="INDEX PROG ECLIPSE LICENSE INSTALLING RUNNING BUILDING TESTING PROG COMP DESKTOP UBICORE CHANGELOG GIT TUTORIALS"/>
 
+    <property name="release_notes.in.md.file"		location="${knopflerfish.dir}/release_notes.in.md"/>
+    <property name="release_notes.distrib.md.file"      location="${distrib.dir}/release_notes.md"/>
+    <property name="release_notes.distrib.html.file"    location="${distrib.dir}/release_notes.html"/>
+    <property name="release_notes.tmp.html.file"	location="${distrib.tmp.dir}/release_notes.html"/>
+
     <antcall target="htdocs"/>
  </target>
 
@@ -58,6 +63,17 @@
      </filterset>
    </copy>
 
+   <makehtml description=""
+             title=""
+             template="${htdocs.ht.dir}/blank"
+             outdir="${distrib.dir}"
+             tofile="release_notes.md"
+             fromfile="${release_notes.in.md.file}"
+             disable=""/>
+
+   <md2html fromfile="${release_notes.distrib.md.file}"
+	    tofile="${release_notes.tmp.html.file}"/>
+   
    <makehtml title="${htdocs.distname} Open Source OSGi Serivce Platform"
              description="The ${htdocs.distname} is an Open Source OSGi Service Platform designed to be compliant with the OSGi R5 specifications"
              template="${template.html}"
@@ -82,8 +98,6 @@
               fromfile="${distrib.out.dir}/license.html"
               disable="LICENSE"/>
 
-    <property name="release_notes.file"
-	      location="${knopflerfish.dir}/release_notes.in.html"/>
     <!-- Standalone HTML version used by the desktop in its update check. -->
     <!-- Ensure that the text "Knopflerfish <VERSION>" is present on -->
     <!-- a singel line. -->
@@ -92,7 +106,7 @@
               template="${htdocs.ht.dir}/release_notes.html"
               outdir="${distrib.dir}"
               tofile="release_notes.html"
-              fromfile="${knopflerfish.dir}/release_notes.in.html"
+              fromfile="${release_notes.tmp.html.file}"
               disable="CHANGELOG"/>
     <!-- Version for the local documentation site. -->
     <makehtml title="${htdocs.distname} Release Notes"
@@ -100,7 +114,7 @@
               template="${template.html}"
               outdir="${htdocs.out}"
               tofile="release_notes.html"
-              fromfile="${knopflerfish.dir}/release_notes.in.html"
+              fromfile="${release_notes.tmp.html.file}"
               disable="CHANGELOG"/>
 
     <makehtml title="${htdocs.distname} What is included in the Knopflerfish distribution"

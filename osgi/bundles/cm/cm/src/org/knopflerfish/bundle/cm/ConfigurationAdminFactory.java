@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,11 +45,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
@@ -88,8 +91,8 @@ class ConfigurationAdminFactory
 
   // The service reference is either for a ManagedService or a
   // ManagedServiceFactory
-  private final Hashtable<String, Hashtable<String, ServiceReference<?>>> locationToPids =
-    new Hashtable<String, Hashtable<String, ServiceReference<?>>>();
+  private final Hashtable<String, Hashtable<String, TreeSet<ServiceReference<?>>>> locationToPids =
+    new Hashtable<String, Hashtable<String, TreeSet<ServiceReference<?>>>>();
 
   private final Hashtable<String, String> existingBundleLocations =
     new Hashtable<String, String>();
@@ -409,19 +412,19 @@ class ConfigurationAdminFactory
     if (pids == null || pids.length == 0) {
       return;
     }
-    Hashtable<String, ServiceReference<?>> pidsForLocation =
+    Hashtable<String, TreeSet<ServiceReference<?>>> pidsForLocation =
       locationToPids.get(bundleLocation);
     if (pidsForLocation == null) {
-      pidsForLocation = new Hashtable<String, ServiceReference<?>>();
+      pidsForLocation = new Hashtable<String, TreeSet<ServiceReference<?>>>();
       locationToPids.put(bundleLocation, pidsForLocation);
     }
     for (final String pid : pids) {
-      if (pidsForLocation.containsKey(pid)) {
-        Activator.log
-            .error("[CM] Multiple ManagedServices registered from bundle "
-                   + bundleLocation + " for " + pid);
+      TreeSet<ServiceReference<?>> ssr = pidsForLocation.get(pid);
+      if (ssr == null) {
+        ssr = new TreeSet<ServiceReference<?>>();
+        pidsForLocation.put(pid, ssr);        
       }
-      pidsForLocation.put(pid, sr);
+      ssr.add(sr);
     }
   }
 
@@ -438,16 +441,15 @@ class ConfigurationAdminFactory
     }
     final String bundleLocation = sr.getBundle().getLocation();
 
-    final Hashtable<String, ServiceReference<?>> oldPids =
+    final Hashtable<String, TreeSet<ServiceReference<?>>> oldPids =
       locationToPids.get(bundleLocation);
     final String[] newPids = getPids(sr);
     if (newPids == null || newPids.length == 0) {
       if (oldPids == null || oldPids.size() == 0) {
         return null;
       } else {
-        removeFromLocationToPids(sr);
         final ChangedPids changes = new ChangedPids();
-        changes.deleted.addAll(oldPids.keySet());
+        changes.deleted.addAll(removeFromLocationToPids(sr));
         return changes;
       }
     } else if (oldPids == null || oldPids.size() == 0) {
@@ -458,22 +460,20 @@ class ConfigurationAdminFactory
     } else {
       final ChangedPids changes = new ChangedPids();
       for (final String pid : newPids) {
-        final ServiceReference<?> osr = oldPids.get(pid);
-        if (osr == null) {
+        final TreeSet<ServiceReference<?>> osrs = oldPids.get(pid);
+        if (osrs == null) {
           changes.added.add(pid);
         } else {
-          if (osr.equals(sr)) {
-            oldPids.remove(pid);
+          if (osrs.remove(sr)) {
+            if (osrs.isEmpty()) {
+              oldPids.remove(pid);
+            }
           } else {
-            oldPids.remove(pid);
             changes.added.add(pid);
           }
         }
       }
-      if (oldPids.size() > 0) {
-        changes.deleted.addAll(oldPids.keySet());
-      }
-      removeFromLocationToPids(sr);
+      changes.deleted.addAll(removeFromLocationToPids(sr));
       addToLocationToPidsAndCheck(sr, newPids);
       return changes.added.isEmpty() && changes.deleted.isEmpty()
         ? null
@@ -481,26 +481,30 @@ class ConfigurationAdminFactory
     }
   }
 
-  private void removeFromLocationToPids(ServiceReference<?> sr)
+  private Set<String> removeFromLocationToPids(ServiceReference<?> sr)
   {
-    if (sr == null) {
-      return;
-    }
-    final String bundleLocation = sr.getBundle().getLocation();
-    final Hashtable<String, ServiceReference<?>> pidsForLocation =
-      locationToPids.get(bundleLocation);
-
-    for (final Iterator<Entry<String, ServiceReference<?>>> it =
-      pidsForLocation.entrySet().iterator(); it.hasNext();) {
-      final Entry<String, ServiceReference<?>> entry = it.next();
-      if (entry.getValue().equals(sr)) {
-        it.remove();
+    HashSet<String> res = new HashSet<String>();
+    if (sr != null) {
+      Bundle bundle = sr.getBundle();
+      final String bundleLocation = bundle.getLocation();
+      final Hashtable<String, TreeSet<ServiceReference<?>>> pidsForLocation =
+        locationToPids.get(bundleLocation);
+      for (final Iterator<Entry<String, TreeSet<ServiceReference<?>>>> it =
+        pidsForLocation.entrySet().iterator(); it.hasNext();) {
+        final Entry<String, TreeSet<ServiceReference<?>>> entry = it.next();
+        TreeSet<ServiceReference<?>> ssrs = entry.getValue();
+        if (ssrs.remove(sr)) {
+          res.add(entry.getKey());
+          if (ssrs.isEmpty()) {
+            it.remove();
+          }
+        }
+      }
+      if (pidsForLocation.isEmpty()) {
+        locationToPids.remove(bundleLocation);
       }
     }
-
-    if (pidsForLocation.isEmpty()) {
-      locationToPids.remove(bundleLocation);
-    }
+    return res;
   }
 
   void updateTargetServicesMatching(ConfigurationDictionary cd)
@@ -1203,10 +1207,7 @@ class ConfigurationAdminFactory
     {
       throwIfDeleted();
       final String location = getLocation();
-      if (callingBundle != null
-          && !callingBundle.getLocation().equals(location)) {
-        checkConfigPerm(location == null ? "*" : location);
-      }
+      checkConfigPerm(location == null ? "*" : location);
       return location;
     }
 
@@ -1264,9 +1265,6 @@ class ConfigurationAdminFactory
       checkConfigPerm(oldLoc == null ? "*" : oldLoc);
       setBundleLocationAndPersist(bundleLocation);
 
-      ConfigurationAdminFactory.this
-          .sendEvent(createEvent(ConfigurationEvent.CM_LOCATION_CHANGED));
-
       Collection<ServiceReference<ManagedService>> srs = null;
       Collection<ServiceReference<ManagedServiceFactory>> srsF = null;
       if (factoryPid == null) {
@@ -1316,28 +1314,31 @@ class ConfigurationAdminFactory
 
     void setBundleLocationAndPersist(String bundleLocation, boolean dynamic)
     {
-      final ConfigurationDictionary old = properties;
       if (properties == null) {
         properties = new ConfigurationDictionary();
-      } else {
-        properties = properties.createCopy();
       }
+      Object oldLoc = properties.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+      boolean newLoc = bundleLocation == null ? oldLoc != null : !bundleLocation.equals(oldLoc);
       if (dynamic) {
         properties.put(DYNAMIC_BUNDLE_LOCATION, Boolean.TRUE);
       } else {
         properties.remove(DYNAMIC_BUNDLE_LOCATION);
       }
-
-      if (bundleLocation == null) {
-        properties.remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
-      } else {
-        putLocation(bundleLocation);
+      if (newLoc) {
+        if (bundleLocation == null) {
+          properties.remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+        } else {
+          putLocation(bundleLocation);
+        }
       }
       try {
         update(false, false);
       } catch (final IOException e) {
-        e.printStackTrace();
-        this.properties = old;
+        Activator.log.error("Property save failed", e);
+      }
+      if (newLoc) {
+        ConfigurationAdminFactory.this
+        .sendEvent(createEvent(ConfigurationEvent.CM_LOCATION_CHANGED));
       }
     }
 
@@ -1408,14 +1409,16 @@ class ConfigurationAdminFactory
 
     void copyBundleLocationFrom(ConfigurationDictionary old)
     {
-      final String location = old.getLocation();
-      if (location != null) {
-        putLocation(location);
-      }
-
-      final Object dynamic = old.get(DYNAMIC_BUNDLE_LOCATION);
-      if (dynamic != null) {
-        properties.put(DYNAMIC_BUNDLE_LOCATION, dynamic);
+      if (old != null) {
+        final String location = old.getLocation();
+        if (location != null) {
+          putLocation(location);
+        }
+  
+        final Object dynamic = old.get(DYNAMIC_BUNDLE_LOCATION);
+        if (dynamic != null) {
+          properties.put(DYNAMIC_BUNDLE_LOCATION, dynamic);
+        }
       }
     }
 
@@ -1507,8 +1510,12 @@ class ConfigurationAdminFactory
         new ConfigurationImpl(callingBundle, callingBundleLocation, factoryPid,
                               ConfigurationAdminFactory.this
                                   .generatePid(factoryPid));
-      c.update(false, false);
-      return c;
+      if (locationFactoryPidIsBoundTo != null) {
+        c.update(false, false);
+      } else {
+        c.setBundleLocationAndPersist(callingBundleLocation, true);
+      }
+        return c;
     }
 
     @Override
@@ -1539,7 +1546,7 @@ class ConfigurationAdminFactory
       if (d == null) {
         final ConfigurationImpl c =
           new ConfigurationImpl(callingBundle, callingBundleLocation, null, pid);
-        c.setBundleLocationAndPersist(callingBundleLocation);
+        c.setBundleLocationAndPersist(callingBundleLocation, true);
         return c;
       }
 
@@ -1548,7 +1555,7 @@ class ConfigurationAdminFactory
         final ConfigurationImpl c =
           new ConfigurationImpl(callingBundle, callingBundleLocation, null,
                                 pid, d);
-        c.setBundleLocationAndPersist(callingBundleLocation);
+        c.setBundleLocationAndPersist(callingBundleLocation, true);
         return c;
       } else if (!bundleLocation.equals(callingBundleLocation)
                  && !callingBundle

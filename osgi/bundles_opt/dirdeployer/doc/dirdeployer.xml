@@ -22,5 +22,11 @@
     <property name="org.knopflerfish.fileinstall.startlevel">
       <value type="Integer">8</value>
     </property>
+    <property name="org.knopflerfish.fileinstall.filemarkers.use">
+      <value type="Boolean">false</value>
+    </property>
+    <property name="org.knopflerfish.fileinstall.bundlecontrols.use">
+      <value type="Boolean">false</value>
+    </property>
   </configuration>
 </cm_data>

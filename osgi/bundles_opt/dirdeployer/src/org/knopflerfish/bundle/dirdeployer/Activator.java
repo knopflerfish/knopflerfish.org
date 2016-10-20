@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2013, KNOPFLERFISH project
+ * Copyright (c) 2004-2016 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 import org.knopflerfish.service.dirdeployer.DirDeployerService;
+import org.knopflerfish.service.log.LogRef;
 
 public class Activator
   implements BundleActivator
@@ -48,11 +49,13 @@ public class Activator
   static BundleContext bc;
 
   DirDeployerImpl deployer;
-
+  static LogRef logger;
+  
   public void start(BundleContext bc)
   {
     Activator.bc = bc;
-
+    logger = new LogRef(bc);
+    
     deployer = new DirDeployerImpl();
     deployer.start();
 

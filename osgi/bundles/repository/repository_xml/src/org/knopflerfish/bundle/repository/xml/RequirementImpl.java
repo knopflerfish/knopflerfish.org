@@ -42,7 +42,7 @@ import org.osgi.resource.Resource;
 public class RequirementImpl implements Requirement {
   final Data d;
 
-  RequirementImpl(Data d) {
+  public RequirementImpl(Data d) {
     this.d = d;
   }
 

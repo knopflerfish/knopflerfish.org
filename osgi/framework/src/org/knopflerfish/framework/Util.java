@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,8 @@ import java.util.Vector;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.dto.DTO;
+
 
 public class Util {
 
@@ -1304,6 +1306,39 @@ public class Util {
     {
       return directives;
     }
+  }
+
+  public static Map<String, Object> safeDTOMap(Map<String, Object> m) {
+    Map<String, Object> res = new HashMap<String, Object>();
+    for (Map.Entry<String, Object> e : m.entrySet()) {
+      res.put(e.getKey(), safeDTOObject(e.getValue()));
+    }
+    return res;
+  }
+
+  public static Object safeDTOObject(Object val) {
+    Class c = val.getClass();
+    Object res = val;
+    if (c.isArray()) {
+      if (!validDTOType(c.getComponentType())) {
+        Object [] oa = (Object[])val;
+        String [] sa = new String [oa.length];
+        for (int i = 0; i < sa.length; i++) {
+          sa[i] = oa[i].toString();
+        }
+        res = sa;
+      }
+    } else if (!validDTOType(c)) {
+      res = val.toString();
+    }
+    return res;
+  }
+
+  public static boolean validDTOType(Class c) {
+    return c == String.class || c == Boolean.class || 
+      (c.isPrimitive() && c != Boolean.TYPE && c != Character.TYPE) ||
+      Number.class.isAssignableFrom(c) ||
+      DTO.class.isAssignableFrom(c);
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,9 @@ package org.knopflerfish.bundle.component;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.cm.Configuration;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentFactory;
@@ -67,7 +67,7 @@ class FactoryComponent extends Component
    *
    */
   @Override
-  void satisfied() {
+  ComponentConfiguration [] satisfied() {
     Activator.logInfo(bc, "Satisfied: " + toString());
     state = STATE_SATISFIED;
     componentFactory = new ComponentFactoryImpl(this);
@@ -75,6 +75,7 @@ class FactoryComponent extends Component
     p.put(ComponentConstants.COMPONENT_NAME, compDesc.getName());
     p.put(ComponentConstants.COMPONENT_FACTORY, compDesc.getFactory());
     factoryService = bc.registerService(ComponentFactory.class.getName(), componentFactory, p);
+    return null;
   }
 
 
@@ -105,14 +106,8 @@ class FactoryComponent extends Component
     if (!isSatisfied()) {
       throw new ComponentException("Factory is not satisfied");
     }
-    String cmPid;
-    if (cmDicts != null && !cmDicts.isEmpty()) {
-      // Factory components only have one pid
-      cmPid = cmDicts.keySet().iterator().next();
-    } else {
-      cmPid = NO_PID;
-    }
-    final ComponentConfiguration cc = newComponentConfiguration(cmPid, instanceProps);
+    String ccId = cmConfig.isEmpty() ? NO_CCID : cmConfig.getCCIds()[0];
+    final ComponentConfiguration cc = newComponentConfiguration(ccId, instanceProps);
     scr.postponeCheckin();
     ComponentContextImpl cci;
     try {
@@ -135,22 +130,16 @@ class FactoryComponent extends Component
    *
    */
   @Override
-  void cmConfigUpdated(String pid, Configuration c) {
-    if (c.getFactoryPid() != null) {
-      Activator.logError(bc, "FactoryComponent can not have factory config, ignored", null);
-      return;
-    }
-    final boolean isEmpty = cmDicts.isEmpty();
-    Activator.logDebug("Factory cmConfigUpdate for pid = " + pid + " is empty = " + isEmpty);
-    final Dictionary<String, Object> d = c.getProperties();
-    cmDicts.put(pid, d);
-    if (isEmpty && !cmConfigOptional) {
+  void cmConfigUpdated(String ccid, boolean first) {
+    Activator.logDebug("Factory cmConfigUpdate for ccid = " + ccid + " first = " + first);
+    final Map<String, Object> d = cmConfig.getProperties(ccid);
+    if (first && cmConfig.isRequired()) {
       // First mandatory config, remove constraint
       resolvedConstraint();
     } else {
       for (final ComponentConfiguration [] componentConfigurations : compConfigs.values()) {
         for (final ComponentConfiguration cc : componentConfigurations) {
-          cc.cmConfigUpdated(pid, d);
+          cc.cmConfigUpdated(ccid, d);
         }
       }
     }
@@ -161,15 +150,14 @@ class FactoryComponent extends Component
    *
    */
   @Override
-  void cmConfigDeleted(String pid) {
-    cmDicts.remove(pid);
-    Activator.logDebug("cmConfigDeleted for pid = " + pid);
+  void cmConfigDeleted(String ccid) {
+    Activator.logDebug("cmConfigDeleted for ccid = " + ccid);
     for (final ComponentConfiguration [] componentConfigurations : compConfigs.values()) {
       for (final ComponentConfiguration cc : componentConfigurations) {
-        cc.cmConfigUpdated(pid, null);
+        cc.cmConfigUpdated(ccid, null);
       }
     }
-    if (!cmConfigOptional) {
+    if (cmConfig.isRequired()) {
       unresolvedConstraint(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
     }
   }

@@ -42,7 +42,7 @@ import java.util.Set;
  * 
  * @Immutable
  * @since 1.3
- * @author $Id: 8e4c47e16aca69e725321223fcd388ee7e3ee7ba $
+ * @author $Id: 548895a006a37a393ae418947e62d179b0b777b3 $
  */
 public class EventProperties implements Map<String, Object> {
 	/**
@@ -227,6 +227,7 @@ public class EventProperties implements Map<String, Object> {
 	 * @return {@code true} if {@code object} is a {@code EventProperties} and
 	 *         is equal to this object; {@code false} otherwise.
 	 */
+	@Override
 	public boolean equals(Object object) {
 		if (this == object) {
 			return true;
@@ -243,6 +244,7 @@ public class EventProperties implements Map<String, Object> {
 	 * 
 	 * @return An integer which is a hash code value for this object.
 	 */
+	@Override
 	public int hashCode() {
 		return properties.hashCode();
 	}
@@ -252,6 +254,7 @@ public class EventProperties implements Map<String, Object> {
 	 * 
 	 * @return The string representation of this object.
 	 */
+	@Override
 	public String toString() {
 		return properties.toString();
 	}

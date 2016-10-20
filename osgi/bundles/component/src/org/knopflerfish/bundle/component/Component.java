@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,26 +33,30 @@
  */
 package org.knopflerfish.bundle.component;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.cm.Configuration;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentInstance;
+import org.osgi.util.promise.Deferred;
 
 
 public abstract class Component implements org.apache.felix.scr.Component {
 
-  final static String NO_PID = "";
+  final static String NO_CCID = "";
   final private static int DISABLED_OFFSET = -999999999;
   final private static int STATE_DISPOSED = 0;
   final private static int STATE_DISPOSING = 1;
@@ -70,6 +74,9 @@ public abstract class Component implements org.apache.felix.scr.Component {
   final SCR scr;
   final ComponentDescription compDesc;
   final BundleContext bc;
+  final CMConfig cmConfig;
+  final ComponentServiceListener listener;
+
   /**
    * UnresolvedConstraints is the number of unsatisfied constraints,
    * a negative value means that we are in the process of enabling
@@ -77,9 +84,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   Long id = new Long(-1);
   private int unresolvedConstraints;
-  HashMap<String, Dictionary<String,Object>> cmDicts;
   HashMap<String, ComponentConfiguration []> compConfigs = new HashMap<String, ComponentConfiguration []>();
-  boolean cmConfigOptional;
   ComponentMethod activateMethod;
   ComponentMethod deactivateMethod;
   ComponentMethod modifiedMethod = null;
@@ -95,6 +100,12 @@ public abstract class Component implements org.apache.felix.scr.Component {
     this.scr = scr;
     this.bc = cd.bundle.getBundleContext();
     this.compDesc = cd;
+    String [] cp = compDesc.getConfigurationPid();
+    if (cp == null) {
+      cp = new String [] { compDesc.getName() };
+    }
+    this.cmConfig = new CMConfig(scr.cmHandler, cp, cd.getConfigPolicy(), cd.bundle, this);
+    this.listener = scr.getComponentServiceListener(bc);
   }
 
   // Felix Component interface impl.
@@ -240,6 +251,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
     return res;
   }
 
+
   /**
    * @see org.apache.felix.scr.Component.getReferences
    */
@@ -258,7 +270,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
     final ComponentConfiguration cc = getFirstComponentConfiguration();
     if (cc != null) {
       // TODO: what about factories
-      final ComponentContext ctxt = cc.getContext(null);
+      final ComponentContext ctxt = cc.getActiveContext(null, null);
       if (ctxt != null) {
         return ctxt.getComponentInstance();
       }
@@ -323,13 +335,15 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * @see org.apache.felix.scr.Component.enable
    */
   public void enable() {
-    Activator.logInfo(bc, "Enable " + toString());
-    synchronized (lock) {
-      if (!isEnabled()) {
-        enableTrackConstraints();
-      }
+    Deferred<Void> d = new Deferred<Void>();
+    enable(d);
+    try {
+      d.getPromise().getValue();
+    } catch (InvocationTargetException e) {
+    } catch (InterruptedException e) {
     }
   }
+
 
   /**
    * Disable component. Dispose of all ComponentConfigurations and
@@ -338,29 +352,130 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * @see org.apache.felix.scr.Component.disable
    */
   public void disable() {
-    disable(ComponentConstants.DEACTIVATION_REASON_DISABLED);
+    Deferred<Void> d = new Deferred<Void>();
+    disable(d);
+    try {
+      d.getPromise().getValue();
+    } catch (InvocationTargetException e) {
+    } catch (InterruptedException e) {
+    }
   }
+
+
+  void disable(final Deferred<Void> d) {
+    final Object disabling = new Object();
+    synchronized(disabling) {
+      try {
+        new Thread(new Runnable() {
+          @Override
+          public void run()
+          {
+            try {
+              if (isEnabled()) {
+               synchronized (lock) {
+                  if (isEnabled()) {
+                    state = STATE_DISABLING;
+                    synchronized(disabling) {
+                      disabling.notifyAll();
+                    }
+                    disable(ComponentConstants.DEACTIVATION_REASON_DISABLED, d);
+                  } else {
+                    d.resolve(null);
+                  }
+                }
+              } else {
+                d.resolve(null);
+              }
+            } catch (Exception failure) {
+              d.fail(failure);
+            }
+            synchronized(disabling) {
+              disabling.notifyAll();
+            }
+          }
+        }).start();
+        disabling.wait();
+      } catch (Exception failure) {
+        d.fail(failure);
+      }
+    }
+  }
+
+
+  void enable(final Deferred<Void> d) {
+    final Object enabling = new Object();
+    synchronized(enabling) {
+      try {
+        Activator.logInfo(bc, "Enable " + toString());
+        new Thread(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              if (!isEnabled()) {
+               synchronized (lock) {
+                  if (!isEnabled()) {
+                    state = STATE_ENABLING;
+                    synchronized(enabling) {
+                      enabling.notifyAll();
+                    }
+                    enableTrackConstraints(d);
+                  } else {
+                    d.resolve(null);
+                  }
+                }
+              } else {
+                d.resolve(null);
+              }
+            } catch (Exception failure) {
+              d.fail(failure);
+            }
+            synchronized(enabling) {
+              enabling.notifyAll();
+            }
+          }
+        }).start();
+        enabling.wait();
+      } catch (Exception failure) {
+        d.fail(failure);
+      }
+    }
+  }
+
+
+  String getScope()
+  {
+    return compDesc.getScope();
+  }
+
+
+  Map<String, Object> getPropertiesMap()
+  {
+    return new HashMap(compDesc.getProperties());
+  }
+
 
   /**
    * Disable component. Dispose of all ComponentConfigurations and
    * stop listening for constraint changes.
    */
-  void disable(int reason) {
+  void disable(int reason, Deferred<Void> d) {
     Activator.logInfo(bc, "Disable " + toString());
     synchronized (lock) {
        final boolean dispose =  reason == ComponentConstants.DEACTIVATION_REASON_DISPOSED ||
          reason == ComponentConstants.DEACTIVATION_REASON_BUNDLE_STOPPED;
-      if (isEnabled()) {
+      if (d != null || isEnabled()) {
         state = dispose ? STATE_DISPOSING : STATE_DISABLING;
         disposeComponentConfigs(reason);
         untrackConstraints();
         refs = null;
-        cmDicts = null;
         id = new Long(-1);
         state = dispose ? STATE_DISPOSED : STATE_DISABLED;
       } else if (dispose && state == STATE_DISABLED) {
         state = STATE_DISPOSED;
       }
+    }
+    if (d != null) {
+      d.resolve(null);
     }
   }
 
@@ -369,13 +484,14 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * Component is satisfied. Create ComponentConfiguration and
    * register service depending on component type.
    */
-  void satisfied() {
+  ComponentConfiguration [] satisfied() {
     Activator.logInfo(bc, "Satisfied: " + toString());
     state = STATE_SATISFIED;
     ComponentConfiguration [] cc = newComponentConfigurations();
     for (int i = 0; i < cc.length; i++) {
       activateComponentConfiguration(cc[i]);
     }
+    return cc;
   }
 
   abstract void activateComponentConfiguration(ComponentConfiguration cc);
@@ -394,28 +510,14 @@ public abstract class Component implements org.apache.felix.scr.Component {
   /**
    * Start tracking services and CM config
    */
-  private void enableTrackConstraints() {
+  private void enableTrackConstraints(Deferred<Void> d) {
     // unresolvedConstraints set to DISABLED_OFFSET, so that we don't satisfy until
     // end of this method
     unresolvedConstraints = DISABLED_OFFSET;
     id = scr.getNextComponentId();
-    state = STATE_ENABLING;
-    final int policy = compDesc.getConfigPolicy();
-    Configuration [] config = null;
-    if (policy == ComponentDescription.POLICY_IGNORE) {
-      cmDicts = null;
-    } else {
-      cmDicts = new HashMap<String, Dictionary<String,Object>>();
-      cmConfigOptional = policy == ComponentDescription.POLICY_OPTIONAL;
-      config = scr.subscribeCMConfig(this);
-      if (config != null) {
-        for (final Configuration element : config) {
-          cmDicts.put(element.getPid(), element.getProperties());
-        }
-      } else if (!cmConfigOptional) {
-        // If we have no mandatory CM data, add constraint
-        unresolvedConstraints++;
-      }
+    if (!cmConfig.subscribe()) {
+      // If we have no mandatory CM data, add constraint
+      unresolvedConstraints++;
     }
     final ArrayList<ReferenceDescription> rds = compDesc.getReferences();
     if (rds != null) {
@@ -424,12 +526,12 @@ public abstract class Component implements org.apache.felix.scr.Component {
       for (int i = 0; i < refs.length; i++) {
         final Reference r = new Reference(this, rds.get(i));
         refs[i] = r;
-        if (r.isOptional()) {
+        if (r.isRefOptional()) {
           // Optional references does not need to be check
           // if they are available
           unresolvedConstraints--;
         }
-        r.start(config);
+        r.start();
       }
     }
     // Remove blocking constraint, to see if we are satisfied
@@ -438,6 +540,8 @@ public abstract class Component implements org.apache.felix.scr.Component {
       satisfied();
     } else {
       state = STATE_ENABLED;
+      Activator.logDebug("Component enabled: " + toString() +
+                         ", unresolvedConstraints=" + unresolvedConstraints);
       if (compDesc.getServices() != null) {
         // No satisfied, check if we have circular problems.
         // Only applicable if component registers a service.
@@ -448,7 +552,9 @@ public abstract class Component implements org.apache.felix.scr.Component {
         }
       }
     }
+    d.resolve(null);
   }
+
 
   /**
    * Stop tracking services and CM config
@@ -460,7 +566,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
         ref.stop();
       }
     }
-    scr.unsubscribeCMConfig(this);
+    cmConfig.unsubscribe();
   }
 
 
@@ -490,12 +596,12 @@ public abstract class Component implements org.apache.felix.scr.Component {
   }
 
 
-  String getCMPid() {
-    String id = compDesc.getConfigurationPid();
-    if (id == null) {
-      id = compDesc.getName();
+  String [] getConfigurationPid() {
+    String [] res = new String[cmConfig.pids.length];
+    for (int i = 0; i < res.length; i++) {
+      res[i] = cmConfig.pids[i].pid;
     }
-    return id;
+    return res;
   }
 
 
@@ -504,40 +610,39 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * FactoryComponents have overridden method
    *
    */
-  void cmConfigUpdated(String pid, Configuration c) {
+  void cmConfigUpdated(String ccid, final boolean first) {
     // First mandatory config, remove constraint
-    final boolean first = cmDicts.isEmpty();
-    Activator.logDebug("cmConfigUpdate for pid = " + pid + ", comp=" +
+    Activator.logDebug("cmConfigUpdate for ccid = " + ccid + ", comp=" +
                        toString() + " is first = " + first);
-    cmDicts.put(pid, c.getProperties());
     ComponentConfiguration [] cc = null;
+    Map<String, Object> dict = cmConfig.getProperties(ccid);
     synchronized (lock) {
       if (first) {
-        cc = compConfigs.remove(NO_PID);
+        cc = compConfigs.remove(NO_CCID);
       }
       if (refs != null) {
         for (final Reference ref : refs) {
           // TODO do we need to move this outside synchronized
-          ref.update(c, first);
+          ref.update(ccid, dict, first);
         }
       }
       if (cc != null) {
         // We have a first config for component configuration
-        // Connect pid  and component config, pid in CC
+        // Connect ccid  and component config, ccid in CC
         // changes when update it
-        compConfigs.put(pid, cc);
+        compConfigs.put(ccid, cc);
       } else {
-        cc = compConfigs.get(pid);
+        cc = compConfigs.get(ccid);
       }
     }
     if (cc != null) {
       // We have an updated config, check it
-      cc[0].cmConfigUpdated(pid, c.getProperties());
-    } else if (first && !cmConfigOptional) {
+      cc[0].cmConfigUpdated(ccid, dict);
+    } else if (first && cmConfig.isRequired()) {
       resolvedConstraint();
     } else if (unresolvedConstraints == 0) {
-      // New factory pid
-      ComponentConfiguration ncc = newComponentConfiguration(pid, null);
+      // New factory ccid
+      ComponentConfiguration ncc = newComponentConfiguration(ccid, null);
       if (ncc != null) {
         activateComponentConfiguration(ncc);
       }
@@ -550,18 +655,17 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * FactoryComponents have overridden method
    *
    */
-  void cmConfigDeleted(String pid) {
-    Activator.logDebug("ConfigurationEvent deleted, pid=" + pid + ", comp=" + toString());
-    cmDicts.remove(pid);
+  void cmConfigDeleted(String ccid) {
+    Activator.logDebug("ConfigurationEvent deleted, ccid=" + ccid + ", comp=" + toString());
     ComponentConfiguration [] cc;
     synchronized (lock) {
       if (refs != null) {
         for (final Reference ref : refs) {
-          ref.remove(pid);
+          ref.remove(ccid);
         }
       }
-      if (cmDicts.isEmpty()) {
-        if (!cmConfigOptional) {
+      if (!cmConfig.isSatisfied()) {
+        if (cmConfig.isRequired()) {
           if (unresolvedConstraints++ == 0) {
             // TODO do we need to move this outside synchronized
             unsatisfied(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
@@ -569,11 +673,12 @@ public abstract class Component implements org.apache.felix.scr.Component {
           }
         }
       }
-      // We remove cc here since cmConfigUpdate loses old pid info
-      cc = compConfigs.remove(pid);
+      // We move cc here since cmConfigUpdate loses old ccid info
+      cc = compConfigs.remove(ccid);
+      compConfigs.put(NO_CCID, cc);
     }
     if (cc != null) {
-      cc[0].cmConfigUpdated(NO_PID, null);
+      cc[0].cmConfigUpdated(NO_CCID, null);
     }
   }
 
@@ -586,7 +691,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * @return True, if component was satisfied otherwise false.
    */
   boolean refAvailable(Reference r) {
-    if (!r.isOptional()) {
+    if (!r.isRefOptional()) {
       synchronized (lock) {
         if (--unresolvedConstraints == 0) {
           // TODO do we need to move this outside synchronized
@@ -604,7 +709,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   boolean refUnavailable(Reference r) {
     Activator.logDebug("Reference unavailable, unresolved=" + unresolvedConstraints);
-    if (!r.isOptional()) {
+    if (!r.isRefOptional()) {
       synchronized (lock) {
         if (unresolvedConstraints++ == 0) {
           // TODO do we need to move this outside synchronized
@@ -625,18 +730,17 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   ComponentConfiguration [] newComponentConfigurations() {
     final ArrayList<ComponentConfiguration> res = new ArrayList<ComponentConfiguration>();
-    if (cmDicts != null && !cmDicts.isEmpty()) {
-      final String [] pids = cmDicts.keySet().toArray(new String [cmDicts.size()]);
-      for (final String pid : pids) {
-        if (compConfigs.get(pid) == null) {
-          ComponentConfiguration cc = newComponentConfiguration(pid, null);
+    if (!cmConfig.isEmpty()) {
+      for (final String ccid : cmConfig.getCCIds()) {
+        if (compConfigs.get(ccid) == null) {
+          ComponentConfiguration cc = newComponentConfiguration(ccid, null);
           if (cc != null) {
             res.add(cc);
           }
         }
       }
-    } else if (compConfigs.get(NO_PID) == null) {
-      res.add(newComponentConfiguration(NO_PID, null));
+    } else if (compConfigs.get(NO_CCID) == null) {
+      res.add(newComponentConfiguration(NO_CCID, null));
     }
     return res.toArray(new ComponentConfiguration [res.size()]);
   }
@@ -645,23 +749,32 @@ public abstract class Component implements org.apache.felix.scr.Component {
   /**
    * Create a new ComponentConfiguration.
    */
-  ComponentConfiguration newComponentConfiguration(String cmPid,
+  ComponentConfiguration newComponentConfiguration(String ccId,
                                                    Dictionary<String, Object> instanceProps)
   {
-    final Dictionary<String, Object> cmDict = cmDicts != null ? cmDicts.get(cmPid) : null;
-    if (refs != null && !cmPid.equals(NO_PID) && instanceProps == null) {
+    if (refs != null && !ccId.equals(NO_CCID) && instanceProps == null) {
       for (final Reference ref : refs) {
-        ref.updateNoPid(cmPid);
-        if (!ref.isOptional() && !ref.getListener(cmPid).isAvailable()) {
+        ref.updateNoPid(ccId);
+        if (ref.getListener(ccId).numAvailable() < ref.getMinimumCardinality()) {
           return null;
         }
       }
     }
-    final ComponentConfiguration cc = new ComponentConfiguration(this, cmPid,
-                                                                 cmDict, instanceProps);
+    Map<String, Object> props = cmConfig.getProperties(ccId);
+    ComponentConfiguration cc;
+    final String scope = getScope();
+    if (Constants.SCOPE_SINGLETON.equals(scope)) {
+      cc = new SingletonComponentConfiguration(this, ccId, props, instanceProps);
+    } else if (Constants.SCOPE_BUNDLE.equals(scope)) {
+      cc = new FactoryComponentConfiguration(this, ccId, props);
+    } else if (Constants.SCOPE_PROTOTYPE.equals(scope)) {
+      cc = new PrototypeComponentConfiguration(this, ccId, props);
+    } else {
+      throw new RuntimeException("Internal error");
+    }
     synchronized (compConfigs) {
       ComponentConfiguration [] next;
-      ComponentConfiguration [] old = compConfigs.get(cc.getCMPid());
+      ComponentConfiguration [] old = compConfigs.get(ccId);
       
       if (old != null) {
         next = new ComponentConfiguration [old.length + 1];
@@ -676,7 +789,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
       } else {
         next = new ComponentConfiguration [] { cc };
       }
-      compConfigs.put(cc.getCMPid(), next);
+      compConfigs.put(ccId, next);
     }
     return cc;
   }
@@ -697,9 +810,9 @@ public abstract class Component implements org.apache.felix.scr.Component {
   /**
    * Remove mapping for ComponentConfiguration to this Component.
    */
-  void removeComponentConfiguration(ComponentConfiguration cc, int reason) {
+  ComponentConfiguration [] removeComponentConfiguration(ComponentConfiguration cc, int reason) {
     synchronized (compConfigs) {
-      ComponentConfiguration [] ccs = compConfigs.remove(cc.getCMPid());
+      ComponentConfiguration [] ccs = compConfigs.remove(cc.getCCId());
       if (ccs != null && ccs.length > 1) {
         int i = Arrays.binarySearch(ccs, cc);
         ComponentConfiguration [] next = new ComponentConfiguration [ccs.length - 1];
@@ -709,7 +822,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
         if (i < next.length) {
           System.arraycopy(ccs, i + 1, next, i, next.length - i);
         }
-        compConfigs.put(cc.getCMPid(), next);
+        compConfigs.put(cc.getCCId(), next);
       }
     }
     Activator.logDebug("Component Config removed, check if still satisfied: " + getName() + ", " + state);
@@ -719,8 +832,9 @@ public abstract class Component implements org.apache.felix.scr.Component {
          reason == ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED ||
          reason == KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED)) {
       // If still satisfied, create missing component configurations
-      satisfied();
+      return satisfied();
     }
+    return null;
   }
 
 
@@ -731,10 +845,12 @@ public abstract class Component implements org.apache.felix.scr.Component {
    *           we are searching for.
    */
   ComponentConfiguration getComponentConfiguration(ServiceReference<?> sr) {
-    for (final ComponentConfiguration [] ccs : compConfigs.values()) {
-      for (final ComponentConfiguration cc : ccs) {
-        if (cc.getServiceReference() == sr) {
-          return cc;
+    synchronized (compConfigs) {
+      for (final ComponentConfiguration [] ccs : compConfigs.values()) {
+        for (final ComponentConfiguration cc : ccs) {
+          if (cc.getServiceReference() == sr) {
+            return cc;
+          }
         }
       }
     }
@@ -783,7 +899,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   void scanForMethods(HashMap<String, ComponentMethod[]> lookFor)
   {
-    final boolean atleastSCR11 = compDesc.getScrNSminor() > 0;
+    final int minor = compDesc.getScrNSminor();
     Class<?> clazz = componentClass;
     while (clazz != null && !lookFor.isEmpty()) {
       final Method[] methods = clazz.getDeclaredMethods();
@@ -793,7 +909,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
         final ComponentMethod[] cm = lookFor.get(m.getName());
         if (cm != null) {
           for (final ComponentMethod element : cm) {
-            if (element.updateMethod(atleastSCR11, m, clazz)) {
+            if (element.updateMethod(minor, m, clazz)) {
               // Found one candidate, don't look in superclass
               nextLookfor.remove(m.getName());
             }
@@ -824,6 +940,22 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   boolean isSatisfied() {
     return state == STATE_SATISFIED;
+  }
+
+  /**
+   * Get all ComponentConfigurations.
+   *
+   */
+  Collection<ComponentConfiguration> getComponentConfigurations() {
+    Collection<ComponentConfiguration> res = new ArrayList<ComponentConfiguration>();
+    synchronized (compConfigs) {
+      for (final ComponentConfiguration [] ccs : compConfigs.values()) {
+        for (final ComponentConfiguration cc : ccs) {
+          res.add(cc);
+        }
+      }
+    }
+    return res;
   }
 
   //

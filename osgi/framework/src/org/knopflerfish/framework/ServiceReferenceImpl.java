@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -175,11 +175,7 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
    * ServiceReference, i.e., whose usage count for this service
    * is greater than zero.
    *
-   * @return array of bundles whose usage count for the service wrapped by
-   * this ServiceReference is greater than zero, or <tt>null</tt> if no
-   * bundles currently are using this service
-   *
-   * @since 1.1
+   * @see org.osgi.framework.ServiceReference#getUsingBundles
    */
   public Bundle[] getUsingBundles() {
     return registration.getUsingBundles();
@@ -193,11 +189,23 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
    * Get the service object.
    *
    * @param bundle requester of service.
+   * @param multiple get multiple services if possible.
    * @return Service requested or null in case of failure.
    */
-  S getService(final BundleImpl bundle) {
+  S getService(final BundleImpl bundle, boolean multiple) {
     bundle.fwCtx.perm.checkGetServicePerms(this);
-    return registration.getService(bundle);
+    return registration.getService(bundle, multiple);
+  }
+
+
+  /**
+   * Get the service object for system bundle.
+   *
+   * @param bundle requester of service.
+   * @return Service requested or null in case of failure.
+   */
+  S getService() {
+    return registration.getService(registration.fwCtx.systemBundle, false);
   }
 
 
@@ -205,10 +213,11 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
    * Unget the service object.
    *
    * @param bundle Bundle who wants remove service.
+   * @param service Specific service to unget is we have multiple services.
    * @return True if service was used, otherwise false.
    */
-  boolean ungetService(BundleImpl bundle) {
-    return registration.ungetService(bundle, true);
+  boolean ungetService(BundleImpl bundle, S service) {
+    return registration.ungetService(bundle, true, service);
   }
 
 
@@ -220,6 +229,15 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
    */
   PropertiesDictionary getProperties() {
     return registration.getProperties();
+  }
+
+  /**
+   * Check if registration is available.
+   *
+   * @return True if service is registered, otherwise false.
+   */
+  boolean isAvailable() {
+    return registration.isAvailable();
   }
 
   //
@@ -326,10 +344,7 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
           if (sService == null) {
             throw new IllegalStateException("Service is unregistered");
           }
-          if (p.providers.size() == 1) {
-            // Only one version available, allow.
-            return true;
-          } else if (sService instanceof ServiceFactory) {
+          if (sService instanceof ServiceFactory) {
             // Factory, allow.
             return true;
           } else {

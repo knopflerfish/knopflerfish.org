@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ import java.util.Dictionary;
  * The filter is specified in a property named "upnp.filter" and has as a value
  * an object of type {@code org.osgi.framework.Filter}.
  * <p>
- * When the Filter is evaluated, the folowing keywords are recognized as defined
- * as literal constants in the {@code UPnPDevice} class.
+ * When the Filter is evaluated, the following keywords are recognized as
+ * defined as literal constants in the {@code UPnPDevice} class.
  * <p>
  * The valid subset of properties for the registration of UPnP Event Listener
  * services are:
@@ -55,7 +55,7 @@ import java.util.Dictionary;
  * events.</li>
  * </ul>
  * 
- * @author $Id: 0daf43c61659b736b6d83fd3c8126fd7ef955ba6 $
+ * @author $Id: 80582d96d7a175bdc866166b386a38e2a8fe9e64 $
  */
 public interface UPnPEventListener {
 	/**

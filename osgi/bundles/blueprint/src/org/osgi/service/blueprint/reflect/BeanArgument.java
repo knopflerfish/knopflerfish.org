@@ -16,6 +16,8 @@
 
 package org.osgi.service.blueprint.reflect;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 /**
  * Metadata for a factory method or constructor argument of a bean. The
  * arguments of a bean are obtained from {@link BeanMetadata#getArguments()}.
@@ -23,8 +25,9 @@ package org.osgi.service.blueprint.reflect;
  * This is specified by the {@code argument} elements of a bean.
  * 
  * @ThreadSafe
- * @author $Id: 523de7bd6539ff62ab33d50f15a22c8579deb5c4 $
+ * @author $Id: eecdcb6ce14c42d47dc725a15f02d24a3d22b5b0 $
  */
+@ConsumerType
 public interface BeanArgument {
 
 	/**

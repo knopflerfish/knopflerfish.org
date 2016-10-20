@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,11 @@
  * <p>
  * {@code  Import-Package: org.osgi.framework.hooks.resolver; version="[1.0,2.0)"}
  * 
- * @version $Id: 3621469ed02ccc323f6d8e1715f74537ec58e6df $
+ * @author $Id: de050037c6b835045603f09b12ad58a6353d1229 $
  */
 
+@Version("1.0")
 package org.osgi.framework.hooks.resolver;
+
+import org.osgi.annotation.versioning.Version;
 

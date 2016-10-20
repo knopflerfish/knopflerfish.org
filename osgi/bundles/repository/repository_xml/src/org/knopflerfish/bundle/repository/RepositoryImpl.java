@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,17 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
+import org.osgi.service.repository.ExpressionCombiner;
 import org.osgi.service.repository.Repository;
+import org.osgi.service.repository.RequirementBuilder;
+import org.osgi.service.repository.RequirementExpression;
+import org.osgi.util.promise.Deferred;
+import org.osgi.util.promise.Promise;
+
+import org.knopflerfish.bundle.repository.expression.ExpressionCombinerImpl;
+import org.knopflerfish.bundle.repository.expression.ExpressionResolver;
+import org.knopflerfish.bundle.repository.expression.RequirementBuilderImpl;
+
 
 public class RepositoryImpl implements Repository {
   Collection<Resource> rs;
@@ -86,6 +96,30 @@ public class RepositoryImpl implements Repository {
       }
     }
     return ps;
+  }
+
+
+  @Override
+  public Promise<Collection<Resource>> findProviders(RequirementExpression expression) {
+    Deferred<Collection<Resource>> d = new Deferred<Collection<Resource>>();
+    try {
+      new ExpressionResolver(this, expression, d).start();
+    } catch (Exception e) {
+      d.fail(e);
+    }
+    return d.getPromise();
+  }
+
+
+  @Override
+  public ExpressionCombiner getExpressionCombiner() {
+    return new ExpressionCombinerImpl();
+  }
+
+
+  @Override
+  public RequirementBuilder newRequirementBuilder(String namespace) {
+    return new RequirementBuilderImpl(namespace);
   }
 
 }

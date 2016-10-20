@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2013, KNOPFLERFISH project
+ * Copyright (c) 2004-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,5 +76,7 @@ interface DeployedFile
    * latest update time.
    */
   boolean needUpdate();
+
+  boolean isControlFile(File f);
 
 }

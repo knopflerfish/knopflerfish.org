@@ -5,6 +5,7 @@
   <!-- Internal target that calls a specified target in all sub-dirs. -->
   <target name="doAntBuild">
     <ant target="${the.target}" dir="namespace"/>
+    <ant target="${the.target}" dir="promise"/>
     <ant target="${the.target}" dir="util"/>
     <ant target="${the.target}" dir="cm/cm"/>
     <ant target="${the.target}" dir="event"/>

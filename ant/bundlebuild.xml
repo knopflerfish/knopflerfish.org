@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   ** Copyright (c) 2003-2015, KNOPFLERFISH project
+   ** Copyright (c) 2003-2016, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -57,85 +57,8 @@
   <!-- ************************************************************ -->
 
   <!-- The default encoding is UTF8, other values that may be       -->
-  <!-- usefull: ISO8859_1, UTF-16, ${file.encoding}                 -->
+  <!-- useful: ISO8859_1, UTF-16, ${file.encoding}                 -->
   <property name="javac.encoding"     value="UTF8"/>
-
-  <available property="jdk1.7+" classname="java.lang.ClassValue"/> 
-  <condition property="javac.source" value="1.5" else="1.5">
-    <isset property="jdk1.7+"/>
-  </condition>
-  <condition property="javac.target" value="1.5" else="jsr14">
-    <isset property="jdk1.7+"/>
-  </condition>
-  <!-- Since we currently can not do a strict compilation using    -->
-  <!-- OSGi/Minimum EE when on jdk 1.7, we replace any requirement -->
-  <!-- on OSGu/Minum EE with one on the JavaSE 5.                  -->
-  <condition property="ee.min.replacement"
-             value="(&amp;(osgi.ee=JavaSE)(version>=1.5))"
-             else="">
-    <isset property="jdk1.7+"/>
-  </condition>
-
-  <!-- The bundle Execution Environment to use when compiling.       -->
-  <!-- The value is the id of a path that will be used as boot class -->
-  <!-- path during the compilation.                                  -->
-  <!-- Predefined values: ee.minimum ee.foundation                   -->
-  <!-- Used but currently undefined EE:s: ee.JavaSE_1.4, ee.JavaSE_1.5   -->
-  <property name="bundle.compile.EE" value="ee.minimum"/>
-
-
-  <!-- Define the EEs that we have (stub-)jars for.                  -->
-  <!-- The OSGi Minimum EE.                                          -->
-  <path id="ee.minimum">
-    <pathelement location="${osgi.dir}/ee/ee.minimum.jar"/>
-    <!-- Outside EE, but usefull when compling -->
-    <pathelement location="${osgi.dir}/ee/src_annotations.jar"/>
-  </path>
-
-  <!-- The OSGi Foundation EE.                                       -->
-  <path id="ee.foundation">
-    <pathelement location="${osgi.dir}/ee/ee.foundation.jar"/>
-    <pathelement location="${osgi.dir}/ee/src_annotations.jar"/>
-  </path>
-
-
-  <!-- If the EE selected by bundle.compile.EE does not exist, i.e., -->
-  <!-- is not a valid reference to a path then tell javac to use the -->
-  <!-- EE from the runtime it is executing on by setting             -->
-  <!-- includeJavaRuntime to true.                                   -->
-  <!-- For Java 7, the predefined EEs (minimum/foundation) are       -->
-  <!-- missing some interfaces (e.g., Iterable) that Java 6 with     -->
-  <!-- target jsr14 does not need, thus we let the runtime leak      -->
-  <!-- through for Java 7 and set the required EE to JavaSE 5.       -->
-  <condition property="javac.includeJavaRuntime" value="true" else="false">
-    <or>
-      <isset property="jdk1.7+"/>
-      <not>
-        <isreference refid="${bundle.compile.EE}" type="path"/>
-      </not>
-    </or>
-  </condition>
-
-  <!-- Empty path to get a valid path refid when having no class     -->
-  <!-- path the selected EE.                                         -->
-  <path id="ee.empty">
-  </path>
-
-  <!-- If the EE selected by bundle.compile.EE does not exist, i.e., -->
-  <!-- is not a valid reference to a path then use a dummy (empty)   -->
-  <!-- path as the value for bundle.bootclasspath.ref                -->
-  <!-- For Java 7, allways use the dummy EE.                         -->
-  <condition property="bundle.bootclasspath.ref"
-             value="ee.empty"
-             else="${bundle.compile.EE}">
-    <or>
-      <isset property="jdk1.7+"/>
-      <not>
-        <isreference refid="${bundle.compile.EE}" type="path"/>
-      </not>
-    </or>
-  </condition>
-
 
   <!-- ************************************************************ -->
   <!-- Properties configuring bundle contents and manifest.         -->
@@ -350,6 +273,9 @@
   <!-- and the exported and imported packages on the console.      -->
   <property name="bundlemanifest.verbose" value="true"/>
 
+  <!-- Extra suffix to bundle version -->
+  <property name="bundle.version.suffix" value=""/>
+
   <patternset id="jars.pattern">
     <include name="${ant.project.name}.jar" />
     <include name="${ant.project.name}-*.jar" />
@@ -358,11 +284,14 @@
     <include name="${ant.project.name}_lib-*.jar" />
   </patternset>
 
-  <!-- Path that finds the framework API packages.                 -->
+  <!-- Path that finds the framework API and annotation packages.  -->
   <path id="framework.path">
     <pathelement location="${jars.dir}/../framework.jar"/>
     <pathelement location="${osgi.jars.dir}/../framework.jar"/>
     <pathelement location="${osgi.dir}/framework.jar"/>
+    <pathelement location="${jars.dir}/../annotations/osgi.annotation-6.0.1.jar"/>
+    <pathelement location="${osgi.jars.dir}/../annotations/osgi.annotation-6.0.1.jar"/>
+    <pathelement location="${osgi.dir}/annotations/osgi.annotation-6.0.1.jar"/>
   </path>
 
   <!-- Default compile path for a bundle. The referenced path,     -->
@@ -435,6 +364,7 @@
     <!-- on their values in the manifest template file (if present). -->
     <bundlemanifest mode="templateOnly"
                     attributePropertyPrefix="${bundle.mf.attr.prefix}"
+                    versionSuffix="${bundle.version.suffix}"
                     templateFile="${bundlemanifest.template}">
     </bundlemanifest>
 
@@ -534,13 +464,9 @@
       <javac destdir="${classes.out.dir}"
              debug="on"
              includeAntRuntime="false"
-             includeJavaRuntime="${javac.includeJavaRuntime}"
              srcdir="${src.dir}"
-             target="${javac.target}"
-             source="${javac.source}"
              encoding="${javac.encoding}"
              classpathref="bundle.path.Expanded"
-             bootclasspathref="${bundle.bootclasspath.ref}"
              includes="@{includes}"
              excludes="**/package-info.java"
              >
@@ -685,7 +611,7 @@
                default="lib, api, impl, all"
                description="All kinds for the bundlemanifest task."/>
     <attribute name="replaceEEmin"
-               default="${ee.min.replacement}"
+               default="(&amp;(osgi.ee=JavaSE)(version>=1.6))"
                description="If set replace osgi.ee capability requirement for OSGi/Minimum with the given requirement filter."/>
     <attribute name="imports"
                description="Name of property holding Import-Package"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2015, KNOPFLERFISH project
+ * Copyright (c) 2009-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ package org.knopflerfish.framework;
 
 import java.net.URLClassLoader;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Map;
@@ -150,6 +151,17 @@ public class FWProps {
   public static final String KEY_KEYS = "org.knopflerfish.framework.bundleprops.keys";
 
   /**
+   * Set to true if resolver should in case that no uses directive is specified
+   * implicitly check all imported packages for class conflicts.
+   */
+  public final static String RESOLVER_IMPLICIT_USES = "org.knopflerfish.framework.resolver.implicituses";
+
+  /**
+   * Set to true if resolver should provide system bundle packages from start.
+   */
+  public final static String RESOLVER_PREFER_SB = "org.knopflerfish.framework.resolver.prefersystembundle";
+
+  /**
    * Common true string.
    */
   public final static String TRUE = "true";
@@ -178,13 +190,13 @@ public class FWProps {
   /**
    * The properties for this framework instance.
    */
-  protected Map<String, String> props = new Hashtable<String, String>();
+  protected Hashtable<String, String> props = new Hashtable<String, String>();
 
   /**
    * The default properties for this framework instance. TBD, maybe we should
    * make this JVM global!?
    */
-  protected Map<String, String> props_default = new Hashtable<String, String>();
+  protected Hashtable<String, String> props_default = new Hashtable<String, String>();
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
@@ -511,6 +523,13 @@ public class FWProps {
     setPropertyDefault(STARTLEVEL_COMPAT_PROP, FALSE);
     setPropertyDefault(STARTLEVEL_USE_PROP, TRUE);
     setPropertyDefault(READ_ONLY_PROP, FALSE);
+    setPropertyDefault(RESOLVER_IMPLICIT_USES, FALSE);
+    setPropertyDefault(RESOLVER_PREFER_SB, FALSE);
+  }
+
+
+  Map<String,Object> getFWProperties() {
+    return new HashMap(props);
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2016, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,13 +53,15 @@ class ComponentContextImpl implements ComponentContext
   final static int DEACTIVE = 3;
   final static int FAILED = 4;
 
-  final private ComponentConfiguration cc;
-  final private Bundle usingBundle;
+  final ComponentConfiguration cc;
+  private final Bundle usingBundle;
   private Thread activityThread;
   private volatile ComponentInstanceImpl componentInstance = null;
   private volatile int state = ACTIVATING;
-  final private HashMap<String, ReferenceListener> boundReferences
-    = new HashMap<String, ReferenceListener>();
+  private final HashMap<String, ReferenceListener> boundReferences =
+      new HashMap<String, ReferenceListener>();
+  private final HashMap<ServiceReference<?>, ComponentServiceObjectsImpl<?>> cciBound =
+      new HashMap<ServiceReference<?>, ComponentServiceObjectsImpl<?>>();
 
 
   /**
@@ -86,11 +88,11 @@ class ComponentContextImpl implements ComponentContext
    */
   public Dictionary<String, Object> getProperties() {
     // TBD, remove this when TCK is correct
-    if (Activator.TCK_BUG_COMPLIANT) {
-      return cc.getProperties().writeableCopy();
-    } else {
+//    if (Activator.TCK_BUG_COMPLIANT) {
+//      return cc.getProperties().writeableCopy();
+//    } else {
       return cc.getProperties();
-    }
+//    }
   }
 
 
@@ -109,6 +111,7 @@ class ComponentContextImpl implements ComponentContext
   /**
    *
    */
+  @SuppressWarnings("unchecked")
   public Object locateService(String name,
                               @SuppressWarnings("rawtypes") ServiceReference sRef)
   {
@@ -195,7 +198,7 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   void dispose() {
-    cc.deactivate(this, ComponentConstants.DEACTIVATION_REASON_DISPOSED, true, true, true);
+    cc.deactivate(this, ComponentConstants.DEACTIVATION_REASON_DISPOSED, true, true);
   }
 
 
@@ -225,6 +228,14 @@ class ComponentContextImpl implements ComponentContext
     Activator.logDebug("Bind service " + Activator.srInfo(s) + " to " + cc);
     try {
       ComponentException ce = null;
+      ComponentField f = rl.ref.getField();
+      if (f != null && !f.isMissing(true)) {
+        ce = f.set(this, s, rl, false);
+        rl.bound(s, null, this);
+        boundReferences.put(rl.getName(), rl);
+      } else {
+        f = null;
+      }
       final ComponentMethod m = rl.ref.getBindMethod();
       if (m != null && !m.isMissing(true)) {
         final ComponentMethod.Operation bindOp = m.prepare(this, s, rl);
@@ -232,7 +243,7 @@ class ComponentContextImpl implements ComponentContext
         rl.bound(s, null, this);
         boundReferences.put(rl.getName(), rl);
         ce = bindOp.invoke();
-      } else {
+      } else if (f == null) {
         // Get service so that it is bound in correct order
         if (null != rl.getService(s, this)) {
           boundReferences.put(rl.getName(), rl);
@@ -273,14 +284,17 @@ class ComponentContextImpl implements ComponentContext
   /**
    *
    */
-  void unbind(String name) {
+  void unbind(String name, boolean last) {
     Activator.logDebug("Unbind " + name + " for " + cc);
     final ReferenceListener rl = boundReferences.get(name);
     if (rl == null) {
       return;
     }
     for (final ServiceReference<?> sr : rl.getBoundServiceReferences(this)) {
-      unbind(rl, sr);
+      unbind(rl, sr, true);
+    }
+    if (last) {
+      rl.setSelected(null);
     }
   }
 
@@ -288,10 +302,14 @@ class ComponentContextImpl implements ComponentContext
   /**
    *
    */
-  void unbind(ReferenceListener rl, ServiceReference<?> sr) {
+  void unbind(ReferenceListener rl, ServiceReference<?> sr, boolean resetField) {
     Activator.logDebug("Check unbind service " + Activator.srInfo(sr) + " from " + cc);
-    if (rl.doUnbound(sr, this)) {
+    if (rl.isBound(sr, this)) {
       try {
+        final ComponentField f = rl.ref.getField();
+        if (f != null && !f.isMissing(true)) {
+          f.unset(this, sr, rl, resetField);
+        }
         final ComponentMethod m = rl.ref.getUnbindMethod();
         if (m != null && !m.isMissing(true)) {
           try {
@@ -301,6 +319,7 @@ class ComponentContextImpl implements ComponentContext
         }
       } finally {
         rl.unbound(sr, this);
+        removeCciBound(sr, rl);
         Activator.logDebug("Unbound service " + Activator.srInfo(sr) + " from " + cc);
       }
     }
@@ -310,6 +329,10 @@ class ComponentContextImpl implements ComponentContext
   void updated(ReferenceListener rl, ServiceReference<?> sr) {
     Activator.logDebug("Check updated service " + Activator.srInfo(sr) + " from " + cc);
     try {
+      final ComponentField f = rl.ref.getField();
+      if (f != null && !f.isMissing(true)) {
+        f.set(this, sr, rl, true);
+      }
       final ComponentMethod m = rl.ref.getUpdatedMethod();
       if (m != null && !m.isMissing(true)) {
         try {
@@ -413,6 +436,57 @@ class ComponentContextImpl implements ComponentContext
       try {
         cc.wait();
       } catch (final InterruptedException _ignore) { }
+    }
+  }
+
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  ComponentServiceObjectsImpl<?> getComponentServiceObjects(ServiceReference<?> sr, ReferenceListener rl) {
+    synchronized (cciBound) {
+      ComponentServiceObjectsImpl<?> cso = cciBound.get(sr);
+      if (cso == null) {
+        cso = new ComponentServiceObjectsImpl(this, sr, rl);
+        cciBound.put(sr, cso);
+      } else {
+        cso.addReferenceListener(rl);
+      }
+      return cso;
+    }
+  }
+
+
+  /**
+   * This method should only be called by ReferenceListener
+   * 
+   * @param sr ServiceReference to get
+   * @return cci bounded service
+   */
+  Object getCciBound(ServiceReference<?> sr, ReferenceListener rl)
+  {
+    synchronized (cciBound) {
+      ComponentServiceObjectsImpl<?> cso = getComponentServiceObjects(sr, rl);
+      if (cso != null) {
+        return cso.getCciService(rl);
+      }
+    }
+    return null;
+  }
+
+
+  void removeCciBound(ServiceReference<?> sr, ReferenceListener rl) {
+    synchronized (cciBound) {
+      ComponentServiceObjectsImpl<?> cso = getComponentServiceObjects(sr, rl);
+      if (cso != null) {
+        cso.removeReferenceListener(rl);
+      }
+    }
+  }
+
+
+  void nullField(ReferenceListener rl) {
+    final ComponentField f = rl.ref.getField();
+    if (f != null && !f.isMissing(true)) {
+      f.unset(this, null, rl, true);
     }
   }
 

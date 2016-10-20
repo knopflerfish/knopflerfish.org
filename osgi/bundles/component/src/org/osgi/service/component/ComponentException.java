@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2014). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.osgi.service.component;
 
 /**
- * Unchecked exception which may be thrown by the Service Component Runtime.
+ * Unchecked exception which may be thrown by Service Component Runtime.
  * 
- * @author $Id: 86b3c4ee6ae880dac98ba734556bbe6d2fbed971 $
+ * @author $Id: 6b47774608ff37a2076b9f58090509093314a67a $
  */
 public class ComponentException extends RuntimeException {
 	static final long	serialVersionUID	= -7438212656298726924L;
@@ -57,6 +57,7 @@ public class ComponentException extends RuntimeException {
 	 * 
 	 * @return The cause of this exception or {@code null} if no cause was set.
 	 */
+	@Override
 	public Throwable getCause() {
 		return super.getCause();
 	}
@@ -71,6 +72,7 @@ public class ComponentException extends RuntimeException {
 	 * @throws IllegalStateException If the cause of this exception has already
 	 *         been set.
 	 */
+	@Override
 	public Throwable initCause(Throwable cause) {
 		return super.initCause(cause);
 	}

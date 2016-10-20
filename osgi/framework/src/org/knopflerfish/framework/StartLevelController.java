@@ -45,6 +45,8 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
+import org.osgi.framework.startlevel.dto.BundleStartLevelDTO;
+import org.osgi.framework.startlevel.dto.FrameworkStartLevelDTO;
 import org.osgi.service.startlevel.StartLevel;
 
 
@@ -193,6 +195,9 @@ public class StartLevelController
 
   void setStartLevel(final int startLevel, final FrameworkListener... listeners)
   {
+    if (!bRun) {
+      throw new IllegalStateException("StartLevelService isn't running yet");
+    }
     fwCtx.perm.checkStartLevelAdminPerm();
     if (startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is "
@@ -269,7 +274,8 @@ public class StartLevelController
       final Vector<BundleImpl> set = new Vector<BundleImpl>();
 
       for (final BundleImpl bs : fwCtx.bundles.getBundles()) {
-        if (canStart(bs)) {
+        BundleArchive archive = bs.current().archive;
+        if (archive != null) {
           if (bs.getStartLevel() == currentLevel) {
             if (bs.current().archive.getAutostartSetting()!=-1) {
               set.addElement(bs);
@@ -282,21 +288,24 @@ public class StartLevelController
 
       for (int i = 0; i < set.size(); i++) {
         final BundleImpl bs = set.elementAt(i);
-        try {
-          if (bs.current().archive.getAutostartSetting()!=-1) {
-            if (fwCtx.debug.startlevel) {
-              fwCtx.debug.println("startlevel: start " + bs);
+        BundleArchive archive = bs.current().archive;
+        if (archive != null) {
+          try {
+            if (bs.current().archive.getAutostartSetting()!=-1) {
+              if (fwCtx.debug.startlevel) {
+                fwCtx.debug.println("startlevel: start " + bs);
+              }
+              int startOptions = Bundle.START_TRANSIENT;
+              if (isBundleActivationPolicyUsed(bs.current().archive)) {
+                startOptions |= Bundle.START_ACTIVATION_POLICY;
+              }
+              bs.start(startOptions);
             }
-            int startOptions = Bundle.START_TRANSIENT;
-            if (isBundleActivationPolicyUsed(bs.current().archive)) {
-              startOptions |= Bundle.START_ACTIVATION_POLICY;
-            }
-            bs.start(startOptions);
+          } catch (final IllegalStateException ignore) {
+            // Tried to start an uninstalled bundle, skip
+          } catch (final Exception e) {
+            fwCtx.frameworkError(bs, e);
           }
-        } catch (final IllegalStateException ignore) {
-          // Tried to start an uninstalled bundle, skip
-        } catch (final Exception e) {
-          fwCtx.frameworkError(bs, e);
         }
       }
     }
@@ -539,7 +548,7 @@ public class StartLevelController
 
   }
 
-  BundleStartLevel bundleStartLevel(final BundleImpl bi) {
+  BundleStartLevelImpl bundleStartLevel(final BundleImpl bi) {
     return new BundleStartLevelImpl(this, bi);
   }
 
@@ -579,6 +588,16 @@ public class StartLevelController
       return st.isBundleActivationPolicyUsed(getBundleArchive());
     }
 
+    BundleStartLevelDTO getDTO()
+    {
+      BundleStartLevelDTO res = new BundleStartLevelDTO();
+      res.bundle = bi.id;
+      res.startLevel = getStartLevel();
+      res.activationPolicyUsed = isActivationPolicyUsed();
+      res.persistentlyStarted = isPersistentlyStarted();
+      return res;
+    }
+
     private BundleArchive getBundleArchive() {
       final BundleArchive res = bi.current().archive;
       if (res == null && bi.id != 0) {
@@ -589,9 +608,9 @@ public class StartLevelController
 
   }
 
-  FrameworkStartLevel frameworkStartLevel(final BundleImpl bi)
+  FrameworkStartLevelImpl frameworkStartLevel()
   {
-    return new FrameworkStartLevelImpl(this, bi);
+    return new FrameworkStartLevelImpl(this, fwCtx.systemBundle);
   }
 
   static class FrameworkStartLevelImpl
@@ -630,6 +649,14 @@ public class StartLevelController
     public void setInitialBundleStartLevel(int startlevel)
     {
       st.setInitialBundleStartLevel(startlevel);
+    }
+
+    FrameworkStartLevelDTO getDTO()
+    {
+      FrameworkStartLevelDTO res = new FrameworkStartLevelDTO();
+      res.startLevel = getStartLevel();
+      res.initialBundleStartLevel = getInitialBundleStartLevel();
+      return res;
     }
   }
 }

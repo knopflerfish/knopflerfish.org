@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,11 @@ import java.util.List;
  * </li>
  * <li>Implement the {@code Condition} interface and define a public constructor
  * that takes a {@code Bundle} object and a {@code ConditionInfo} object as
- * arguments.
+ * arguments.</li>
  * </ul>
  * 
  * @Immutable
- * @version $Id: c2497fefba5a0011a141f9548c3d383b34d3dc8d $
+ * @author $Id: 3302f4293746b44923f1cbc602dd907e3400eed5 $
  */
 public class ConditionInfo {
 	private final String	type;
@@ -171,9 +171,9 @@ public class ConditionInfo {
 	 * </pre>
 	 * 
 	 * where <i>argN</i> are strings that must be encoded for proper parsing.
-	 * Specifically, the {@code &quot;}, {@code \}, carriage return, and line
-	 * feed characters must be escaped using {@code \&quot;}, {@code \\},
-	 * {@code \r}, and {@code \n}, respectively.
+	 * Specifically, the {@code "}, {@code \}, carriage return, and line feed
+	 * characters must be escaped using {@code \"}, {@code \\}, {@code \r}, and
+	 * {@code \n}, respectively.
 	 * 
 	 * <p>
 	 * The encoded string contains no leading or trailing whitespace characters.
@@ -205,6 +205,7 @@ public class ConditionInfo {
 	 * 
 	 * @return The string representation of this {@code ConditionInfo}.
 	 */
+	@Override
 	public String toString() {
 		return getEncoded();
 	}
@@ -242,6 +243,7 @@ public class ConditionInfo {
 	 *         the same type and args as this {@code ConditionInfo} object;
 	 *         {@code false} otherwise.
 	 */
+	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) {
 			return true;
@@ -268,7 +270,7 @@ public class ConditionInfo {
 	 * 
 	 * @return A hash code value for this object.
 	 */
-
+	@Override
 	public int hashCode() {
 		int h = 31 * 17 + type.hashCode();
 		for (int i = 0; i < args.length; i++) {
