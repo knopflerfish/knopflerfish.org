@@ -50,11 +50,6 @@
  </target>
 
  <target name="htdocs" depends="bundle_tasks">
-   <antcall target="txt2html">
-     <param name="fromfile" value="${changelog.txt}"/>
-     <param name="tofile"   value="${distrib.dir}/changelog.html"/>
-   </antcall>
-
    <loadfile property="htdocs.license.content" srcFile="${LICENSE.txt}"/>
    <copy file="${license.html}"
          tofile="${distrib.out.dir}/license.html">
@@ -86,16 +81,6 @@
               tofile="license.html"
               fromfile="${distrib.out.dir}/license.html"
               disable="LICENSE"/>
-
-    <property name="changelog.file"
-	      location="${distrib.dir}/changelog.html"/>
-    <makehtml description="List of changes in ${htdocs.distname}"
-              title="${htdocs.distname} Changelog"
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              tofile="changelog.html"
-              fromfile="${changelog.file}"
-              disable="CHANGELOG"/>
 
     <property name="release_notes.file"
 	      location="${knopflerfish.dir}/release_notes.in.html"/>
