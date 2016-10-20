@@ -11,7 +11,7 @@ Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=cm_cmd/index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/cm/cm_cmd/
 Bundle-Activator: org.knopflerfish.bundle.cm.commands.impl.Activator
 Bundle-Category: management

@@ -597,7 +597,7 @@ public class BundleManifestTask extends Task {
     "Bundle-Name",
     "Bundle-NativeCode",
     "Bundle-RequiredExecutionEnvironment",
-    "Bundle-SubversionURL",
+    "Bundle-GitURL",
     "Bundle-SymbolicName",
     "Bundle-UUID",
     "Bundle-UpdateLocation",
@@ -913,8 +913,8 @@ public class BundleManifestTask extends Task {
 
   private final static String DOC_URL_PREFIX
     = "http://www.knopflerfish.org/releases/current/";
-  private final static String SVN_URL_PREFIX
-    = "https://www.knopflerfish.org/svn/knopflerfish.org/trunk/";
+  private final static String GIT_URL_PREFIX
+    = "https://github.com/knopflerfish/knopflerfish.org/tree/master/";
 
   /**
    * If this is a distribution build (the
@@ -923,8 +923,8 @@ public class BundleManifestTask extends Task {
    * <ul>
    *   <li>the <code>current</code>-part of a Bundle-DocURL
    *       value that start with {@link #DOC_URL_PREFIX}.
-   *   <li>the <code>trunk</code>-part of a Bundle-SubversionURL
-   *       value that start with {@link #SVN_URL_PREFIX}.
+   *   <li>the <code>trunk</code>-part of a Bundle-GitURL
+   *       value that start with {@link #GIT_URL_PREFIX}.
    * </ul>
    */
   private void replaceTrunkWithVersion(Manifest mf)
@@ -953,15 +953,15 @@ public class BundleManifestTask extends Task {
       }
 
       if (!isSnapshot) {
-        final Manifest.Attribute svnAttr
-          = mf.getMainSection().getAttribute("Bundle-SubversionURL");
-        if (null!=svnAttr) {
-          final String svnURL = svnAttr.getValue();
-          if (svnURL.startsWith(SVN_URL_PREFIX)) {
-            final String newSvnURL
-              = SVN_URL_PREFIX.substring(0,SVN_URL_PREFIX.indexOf("trunk/"))
-              +"tags/" +version +svnURL.substring(SVN_URL_PREFIX.length()-1);
-            svnAttr.setValue(newSvnURL);
+        final Manifest.Attribute gitAttr
+          = mf.getMainSection().getAttribute("Bundle-GitURL");
+        if (null!=gitAttr) {
+          final String gitURL = gitAttr.getValue();
+          if (gitURL.startsWith(GIT_URL_PREFIX)) {
+            final String newGitURL
+              = GIT_URL_PREFIX.substring(0,GIT_URL_PREFIX.indexOf("master/"))
+              +version +gitURL.substring(GIT_URL_PREFIX.length()-1);
+            gitAttr.setValue(newGitURL);
           }
         }
       }

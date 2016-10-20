@@ -8,7 +8,7 @@ Bundle-Description: AWT framework desktop
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles_opt/desktop_awt/
 Bundle-Activator: org.knopflerfish.bundle.desktopawt.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.4))"

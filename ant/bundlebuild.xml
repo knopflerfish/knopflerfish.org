@@ -424,8 +424,8 @@
     <fail if="bundle.uuid"    message="bundle.uuid->bmfa.Bundle-UUID"/>
     <fail if="bundle.config"  message="bundle.config->bmfa.Bundle-Config"/>
     <fail if="bundle.icon"    message="bundle.icon->bmfa.Bundle-Icon"/>
-    <fail if="bundle.subversionurl"
-          message="bundle.subversionurl->bmfa.Bundle-SubversionURL"/>
+    <fail if="bundle.giturl"
+          message="bundle.giturl->bmfa.Bundle-GitURL"/>
     <fail if="bundle.apivendor"
           message="bundle.apivendor->bmfa.Bundle-APIVendor"/>
     <fail if="service.component"

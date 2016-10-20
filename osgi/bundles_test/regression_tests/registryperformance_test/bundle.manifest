@@ -10,4 +10,3 @@ Bundle-Category: testing
 Export-Package: org.knopflerfish.service.perf.servicereg
 Import-Package: junit.framework,org.knopflerfish.service.perf.servicer
  eg,org.osgi.framework
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/

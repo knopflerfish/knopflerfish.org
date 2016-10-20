@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-    ** Copyright (c) 2004-2013, KNOPFLERFISH project
+    ** Copyright (c) 2004-2016, KNOPFLERFISH project
     ** All rights reserved.
     **
     ** Redistribution and use in source and binary forms, with or without
@@ -38,23 +38,57 @@
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
-  <property name="version"            value="5.2.1.svn-0000"/>
+  <tstamp>
+    <format property="build.time"
+            pattern="yyMMddHHmm"/>
+    <format property="distrib_bintray.tstamp"
+            pattern="yyyy-MM-dd'T'HH:mm"
+            locale="en"/>
+  </tstamp>
+  <condition property="version.suffix"
+             value="${build.time}-${version.branch}"
+             else="${build.time}">
+    <isset property="version.branch"/>
+  </condition>
+
+  <!-- Set default bundle suffix if no version is set -->
+  <condition property="bundle.version.suffix"
+             value=""
+             else="${version.suffix}">
+    <isset property="version"/>
+  </condition>
+
+
+  <property name="version.base"       value="5.2.1.snapshot"/>
+  <condition property="version"
+             value="${version.base}"
+             else="${version.base}-${version.suffix}">
+    <equals arg1="${version.suffix}" arg2=""/>
+  </condition>
 
   <!-- The release date of this release -->
   <!-- *** Un-comment and set here on release branch. *** -->
   <!-- Defaults to current date, set here if another value is wanted. -->
-  <!-- property name="release.date"     value="2015-07-10"/-->
+  <!-- property name="release.date"     value="2016-10-20"/-->
 
   <!-- The previous official release version for this build -->
   <property name="version.previous"   value="5.2.0"/>
 
-  <!-- The URL to the root of the SVN-repository -->
-  <property name="svn.repo.url"
-            value="https://www.knopflerfish.org/svn/knopflerfish.org"/>
+  <!-- The URL to the root of the git-repository -->
+  <property name="git.repo.url"
+            value="https://github.com/knopflerfish/knopflerfish.org"/>
 
-  <!-- The subversion tag / branch that this build is made on -->
+  <!-- The git tag / branch that this build is made on -->
   <!-- E.g., "trunk", "tags/2.3.2", "branches/kf_1_support". -->
-  <property name="svn.tag"    value="tags/${version}"/>
+  <property name="git.tag"    value="releases/tag/${version}"/>
+
+  <exec executable="/usr/bin/git" outputproperty="git.branch">
+    <arg value="rev-parse"/>
+    <arg value="--abbrev-ref"/>
+    <arg value="HEAD"/>
+  </exec>
+
+  <property name="git.browse.url"    value="${git.repo.url}/tree/${git.branch}"/>
 
   <!-- The kind of build, used on the index page for the release. -->
   <property name="build.kind" value="release build"/>
@@ -74,8 +108,10 @@
             location="${distrib.out.dir}/exported_pkgs.txt"/>
 
   <!-- Where to place the results of a distrib build in. -->
+  <property name="distrib.name"
+	    value="distrib_${version}" />
   <property name="distrib.dir"
-            location="${distrib.out.dir}/distrib_${version}"/>
+            location="${distrib.out.dir}/${distrib.name}"/>
   <property name="distrib.doc.dir"
             location="${distrib.dir}/docs"/>
   <property name="distrib.javadoc.dir"
@@ -86,6 +122,8 @@
             location="${distrib.doc.dir}/bundledoc"/>
   <property name="distrib.mvn.repo.dir"
             location="${distrib.dir}/maven2"/>
+  <property name="distrib.sdk.name"
+	    value="knopflerfish_osgi_sdk_${version}" />
   <property name="distrib.sdk.file"
             location="${distrib.dir}/knopflerfish_osgi_sdk_${version}.jar"/>
   <property name="distrib.tiny.file"
@@ -95,17 +133,16 @@
   <property name="distrib.junit_grunt.dir"
             location="${distrib.dir}/junit_grunt"/>
 
-
-  <!-- The URL that this release will be available on after installation. -->
-  <property name="base.url" value="http://www.knopflerfish.org/releases"/>
-
-  <property name="jarunpacker.dir" location="tools/jarunpacker"/>
-
   <!-- Current date is default for the relesase.date property -->
   <tstamp>
     <format property="release.date"
             pattern="yyyy-MM-dd"/>
   </tstamp>
+
+  <!-- The URL that this release will be available on after installation. -->
+  <property name="base.url" value="http://www.knopflerfish.org/releases"/>
+
+  <property name="jarunpacker.dir" location="tools/jarunpacker"/>
 
   <!-- Load support for KF bundle related ant tasks. -->
   <property name="ant.dir" location="ant"/>
@@ -175,10 +212,12 @@
       <property name="bundle.build.javadoc.jar" value="true"/>
       <property name="javadoc.jarfile"
                 location="${distrib.osgi.dir}/framework-javadoc.jar"/>
+      <property name="version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
     <ant dir="${osgi.dir}/framework" inheritall="false">
       <property name="jarfile"
                 location="${distrib.osgi.dir}/framework.jar"/>
+      <property name="jars.dir" location="${distrib.osgi.dir}/jars"/>
       <property name="version" value="${version}"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>
@@ -191,6 +230,7 @@
       <property name="bundle.build.javadoc.jar" value="true"/>
       <property name="javadoc.jarfile"
                 location="${distrib.osgi.dir}/framework-javadoc.jar"/>
+      <property name="version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
   </target>
 
@@ -208,6 +248,7 @@
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="bundle.build.source.jar"   value="true"/>
       <property name="bundle.build.javadoc.jar"  value="true"/>
+      <property name="bundle.version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
   </target>
 
@@ -225,6 +266,7 @@
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="bundle.build.source.jar"   value="true"/>
       <property name="bundle.build.javadoc.jar"  value="true"/>
+      <property name="bundle.version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
   </target>
 
@@ -244,6 +286,7 @@
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="bundle.build.source.jar"   value="true"/>
       <property name="bundle.build.javadoc.jar"  value="true"/>
+      <property name="bundle.version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
   </target>
 
@@ -326,7 +369,7 @@
                 includeSourceFiles="false"
                 includeSourceFileRepositoryLinks="true"
                 rootDir="${knopflerfish.dir}"
-                repositoryURL="${svn.repo.url}/${svn.tag}/">
+                repositoryURL="${git.repo.url}/${git.tag}/">
       <fileset dir="${distrib.osgi.dir}/jars">
         <include name="**/*.jar"/>
         <exclude name="**/*-source.jar"/>
@@ -362,10 +405,7 @@
     </bundleMvnAnt>
 
     <!-- Time to execute the generated build file. -->
-    <!--
-	<ant dir="${distrib.tmp.dir}" antfile="toMvn.xml"/>
-    -->
-    
+    <ant dir="${distrib.tmp.dir}" antfile="toMvn.xml"/>
   </target>
 
   <target name="distrib_bundle_doc" depends="bundle_tasks">
@@ -512,6 +552,7 @@
         <include name="NOTICE.txt"/>
         <include name="README.txt"/>
         <include name="release_notes.html"/>
+        <include name="release_notes.md"/>
       </zipfileset>
 
       <zipfileset dir="${distrib.doc.dir}" prefix="docs">
@@ -533,7 +574,6 @@
         <exclude name="**/*.jbf"/>
         <exclude name="**/out/**"/>
         <exclude name="**/*.class"/>
-        <exclude name="**/.svn"/>
 
         <include name="ant/**"/>
         <exclude name="ant/classes/**"/>
@@ -547,6 +587,7 @@
 
         <include name="osgi/*.xargs.in"/>
         <include name="osgi/kf2"/>
+        <include name="osgi/annotations/**"/>
         <include name="osgi/ee/**"/>
         <include name="osgi/build.xml"/>
 
@@ -587,6 +628,7 @@
         <include name="osgi/bundles/metatype/**"/>
         <include name="osgi/bundles/repository/**"/>
         <include name="osgi/bundles/resolver/**"/>
+        <include name="osgi/bundles/promise/**"/>
 
         <include name="osgi/bundles/component/**"/>
         <include name="osgi/bundles/scrcommands/**"/>
@@ -610,6 +652,8 @@
         <include name="osgi/bundles/serviceloader/**"/>
         <include name="osgi/bundles/subsystem/**"/>
 
+        <include name="osgi/bundles/dal/**"/>
+
         <include name="osgi/bundles/demos/**"/>
 
         <include name="osgi/bundles/trayicon/build.xml"/>
@@ -619,6 +663,7 @@
         <include name="osgi/bundles/remotefw/**"/>
 
         <include name="osgi/bundles_opt/build.xml"/>
+        <include name="osgi/bundles_opt/httpclient_connector/**"/>
         <include name="osgi/bundles_opt/classpatcher/**"/>
         <include name="osgi/bundles_opt/commons-logging/**"/>
         <include name="osgi/bundles_opt/desktop_awt/**"/>
@@ -711,9 +756,9 @@
       <replacefilter token="@YEAR@"
                      value="${distrib_index.tstamp.year}"/>
       <replacefilter token="@REPO_URL@"
-                     value="${svn.repo.url}"/>
+                     value="${git.repo.url}"/>
       <replacefilter token="@TAG@"
-                     value="${svn.tag}"/>
+                     value="${git.tag}"/>
       <replacefilter token="@BUILD_KIND@"
                      value="${build.kind}"/>
       <replacefilter token="@DISTRIB_SDK_FILE_LENGTH@"
@@ -743,6 +788,48 @@
     <antcall target="distrib_mvn_repo"/>
     <echo message="Build result placed in ${distrib.dir} and repo"/>
   </target>
+
+
+  <!-- Creates a Bintray configuration file and a matching archive of a release build.-->
+  <target name="distrib_bintray" depends="distrib">
+    <copy file="tools/bintray/template_bintray.cfg"
+          tofile="${distrib.out.dir}/bintray.cfg">
+    </copy>
+    <replace file="${distrib.out.dir}/bintray.cfg">
+      <replacefilter token="@VERSION@"
+                     value="${version}"/>
+      <replacefilter token="@DATE@"
+                     value="${distrib_bintray.tstamp}"/>
+      <replacefilter token="@REPO_URL@"
+                     value="${git.repo.url}"/>
+      <replacefilter token="@TAG@"
+                     value="${git.tag}"/>
+      <replacefilter token="@BUILD_KIND@"
+                     value="${build.kind}"/>
+      <replacefilter token="@BRANCH@"
+                     value="${version.branch}"/>
+    </replace>
+    <copy file="tools/bintray/bin/travis_credentials.sh"
+          tofile="${distrib.out.dir}/.travis_credentials.sh">
+    </copy>
+    <copy file="tools/bintray/bin/travis_upload.sh"
+          tofile="${distrib.out.dir}/.travis_upload.sh">
+    </copy>
+    <replace file="${distrib.out.dir}/.travis_upload.sh">
+      <replacefilter token="@VERSION@"
+                     value="${version}"/>
+      <replacefilter token="@DISTRIB_NAME@"
+                     value="${distrib.name}"/>
+      <replacefilter token="@SDK_NAME@"
+                     value="${distrib.sdk.name}"/>
+    </replace>
+    <chmod perm="u+x">
+      <fileset dir="${distrib.out.dir}">
+	<include name=".travis_*.sh" />
+      </fileset>
+    </chmod>
+  </target>
+
 
   <!--|
       | The program used to check for broken links is the W3C checklink program:

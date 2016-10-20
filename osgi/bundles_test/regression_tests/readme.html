@@ -15,12 +15,10 @@ source, via the <a href="http://www.knopflerfish.org">Knopflerfish</a> project.
 </p>
 
 <p>
-The tests can be compiled stand-alone from the main KF distrib, by just checking out the regression_tests/ dir and compile using ant:
+The tests can be compiled stand-alone from the main KF distrib, by just entering the regression_tests/ dir and compile using ant:
 
 <pre>
- &gt; svn co \
-https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests
- &gt; cd regression_tests
+ &gt; cd bundles_test/regression_tests
  &gt; ant -Dosgi.jar=&lt;path to osgi lib&gt;
 </pre>
 ...and you'll get a new dir jars/, full of test bundles. 
@@ -28,19 +26,8 @@ https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regres
 </p>
 
 <p>
-The KF nightly build runs these test, and saves the results at <br/>
-<tt>http://www.knopflerfish.org/snapshots/&lt;<i>RELEASE</i>&gt;/junit_grunt/index.xml</tt>
-</p>
-
-<p>
-A precompiled zip file of the necessary test bundles can be found at <br/>
-<tt>http://www.knopflerfish.org/snapshots/&lt;<i>RELEASE</i>&gt;/knopflerfish_osgi_tests_&lt;<i>RELEASE</i>&gt;-trunk.zip"></tt>
-</p>
-
-
-<p>
-The tests can also be accessed/browsed using subversion, from <br/>
-<a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests/">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests/</a>
+The tests can also be accessed/browsed using github, from <br/>
+<a href="https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles_test/regression_tests/">https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles_test/regression_tests/</a>
 </p>
 
 <h4 class="shadow">Available test suites</h4>
@@ -102,7 +89,7 @@ used as embedded bundles.
 <p>
 Most of the tests have been ported from a log-based test system, to a
 JUnit-based system (see <a
-href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt">JUnit
+href="https://https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles_opt/junit/readme.txt">JUnit
 testing on OSGi</a>), and the test in themselves may thus contain
 porting errors.
 </p>
@@ -128,9 +115,9 @@ The rest of this page describes how to run the tests by hand.
 
 <p>
 The test cases above can be run using the <a
-href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/readme.txt">junit
+href="https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles_opt/junit/readme.txt">junit
 bundle</a>. It can also be run without the http server, using the <a
-href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/junit/junit_runner/readme.txt">junit_runner
+href="https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles_opt/junit/junit_runner/readme.txt">junit_runner
 bundle</a>.
 </p>
 
@@ -170,7 +157,7 @@ XSLT styles for HTML presentation). The default output directory is
 
 <p>
 An KF .xargs file doing exactly this can be found at <a
-href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/init-tests.xargs">init-tests.xargs</a>. This
+href="https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/init-tests.xargs">init-tests.xargs</a>. This
 is the same file used for the nightly test runs.
 </p>
 

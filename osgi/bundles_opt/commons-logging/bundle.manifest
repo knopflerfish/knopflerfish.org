@@ -9,9 +9,9 @@ Bundle-Description: Apache Commons logging. Publishced under Apache Li
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish/Apache
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+Bundle-DocURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles_opt/commons-logging/readme.txt
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles_opt/commons-logging/
 Bundle-Classpath: .
 Bundle-Activator: org.knopflerfish.bundle.commons.logging.Activator

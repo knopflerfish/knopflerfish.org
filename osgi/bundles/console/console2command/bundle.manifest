@@ -9,7 +9,7 @@ Bundle-APIVendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/console/console2command/
 Bundle-Category: utility
 Bundle-Activator: org.knopflerfish.bundle.console2command.Activator

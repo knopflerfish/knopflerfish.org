@@ -23,8 +23,8 @@
   <property name="bmfa.Bundle-Vendor"         value="knopflerfish"/>
   <property name="bmfa.Bundle-Category"       value="service"/>
   <property name="bmfa.Bundle-Version"        value="2.0.0"/>
-  <property name="bmfa.Bundle-SubversionURL"
-	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/metatype/metatype_demo/"/>
+  <property name="bmfa.Bundle-GitURL"
+	    value="https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles/metatype/metatype_demo/"/>
 
   <property name="bmfa.Require-Capability"
             value="osgi.ee;filter:=&quot;(&amp;(osgi.ee=OSGi/Minimum)

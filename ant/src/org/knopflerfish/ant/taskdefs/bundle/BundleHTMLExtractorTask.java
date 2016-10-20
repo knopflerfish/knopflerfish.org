@@ -949,7 +949,7 @@ public class BundleHTMLExtractorTask
       }
       sb.append("</table>");
     } else {
-      // No source files extracted, shall we create links to SVN?
+      // No source files extracted
       if (includeSourceFileRepositoryLinks) {
         final Map<String, String> srcRepositoryLinkMap =
           ba.getSrcRepositoryLinks(rootDir, repositoryURL);

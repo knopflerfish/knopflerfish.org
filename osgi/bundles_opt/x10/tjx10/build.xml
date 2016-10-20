@@ -39,8 +39,8 @@
 
 
   <property name="bmfa.Bundle-DocURL"    value="http://x10.homelinux.org/"/>
-  <property name="bmfa.Bundle-SubversionURL"
-	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/"/>
+  <property name="bmfa.Bundle-GitURL"
+	    value="https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles_opt/x10/tjx10/"/>
 
   <property name="bmfa.Require-Capability"
             value="osgi.ee;filter:=&quot;(&amp;(osgi.ee=JavaSE)

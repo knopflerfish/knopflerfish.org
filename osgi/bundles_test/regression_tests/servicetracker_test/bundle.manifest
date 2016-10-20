@@ -7,5 +7,3 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: testing
 Import-Package: junit.framework,org.osgi.framework,org.osgi.util.tracker
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-

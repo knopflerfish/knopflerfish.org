@@ -10,7 +10,7 @@ Bundle-Vendor: Apache/Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=xalan/index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/xml/xalan/
 Bundle-Activator: org.osgi.util.xml.XMLTransformerActivator
 Bundle-Classpath: .,xml-apis.jar,xalan.jar

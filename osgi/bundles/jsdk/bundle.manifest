@@ -12,7 +12,7 @@ Bundle-License: http://opensource.org/licenses/Apache-2.0;
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/jsdk/
 Bundle-Category: lib
 Export-Package: javax.servlet; version=2.5,

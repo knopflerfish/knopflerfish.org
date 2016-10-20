@@ -19,6 +19,8 @@ osgi/bundles_test/regression_tests/restart_test/resources/
 osgi/bundles_test/regression_tests/servicetracker_test/resources/
 osgi/bundles_test/regression_tests/startlevel_test/resources/
 osgi/dex_jars/
+osgi/framework-javadoc.jar
+osgi/framework-source.jar
 osgi/framework.jar
 osgi/framework/resources/exports
 osgi/framework/resources/release

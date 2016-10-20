@@ -948,14 +948,14 @@ public class BundleArchives {
 
     /**
      * Build a mapping holding one entry for each source file found in the
-     * SVN-repository for the bundle. The repository URL of a source file is the
+     * Git-repository for the bundle. The repository URL of a source file is the
      * repoUrl followed by the part of the file path that remains when the
      * pathPrefix has been removed.
      *
      * @param pathPrefix
      *          The path of source files to include must start with this value.
      * @param repoURL
-     *          The URL to the SVN repository.
+     *          The URL to the Git repository.
      *
      * @return Mapping where the key is the name (path) of the source file and
      *         the value the repository URL to it.

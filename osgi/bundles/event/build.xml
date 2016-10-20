@@ -31,8 +31,8 @@
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
   <property name="bmfa.Bundle-DocURL"
             value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=event/index.html"/>
-  <property name="bmfa.Bundle-SubversionURL"
-            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/event/"/>
+  <property name="bmfa.Bundle-GitURL"
+            value="https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles/event/"/>
 
   <property name="bmfa.Require-Capability"
             value="osgi.ee;filter:=&quot;(&amp;(osgi.ee=OSGi/Minimum)

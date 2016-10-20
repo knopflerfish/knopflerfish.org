@@ -31,7 +31,6 @@
     <property name="formatted.html" location="${htdocs.ht.dir}/formatted.html"/>
     <property name="license.html"   location="${htdocs.hs.dir}/license.html"/>
 
-    <property name="changelog.txt"  location="${distrib.dir}/changelog.txt"/>
     <property name="LICENSE.txt"    location="${distrib.dir}/LICENSE.txt"/>
 
     <property name="htdocs.distname" value="Knopflerfish OSGi, version ${version} - "/>
@@ -45,7 +44,7 @@
               value="${base.url}/${version}/docs/javadoc"/>
     <property name="css_navigation_enabled"     value="navigation_enabled"/>
     <property name="css_navigation_disabled"    value="navigation_disabled"/>
-    <property name="navigation_pages"           value="INDEX PROG ECLIPSE LICENSE INSTALLING RUNNING BUILDING TESTING PROG COMP DESKTOP UBICORE CHANGELOG SVN TUTORIALS"/>
+    <property name="navigation_pages"           value="INDEX PROG ECLIPSE LICENSE INSTALLING RUNNING BUILDING TESTING PROG COMP DESKTOP UBICORE CHANGELOG GIT TUTORIALS"/>
 
     <antcall target="htdocs"/>
  </target>
