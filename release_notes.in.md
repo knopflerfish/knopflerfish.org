@@ -88,7 +88,7 @@ OSGi Compendium Specification
 ### Measurement 4.1.0
 *   Updated API classes to match OSGi R6. 
 
-### Metatype API 5.1.0
+### Metatype API 4.1.0
 *   Updated API classes to match OSGi R6, new minor version 1.3.
 
 ### Metatype Annotations API 1.0.0

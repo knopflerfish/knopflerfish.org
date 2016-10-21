@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: upnp
 Bundle-SymbolicName: org.knopflerfish.bundle.upnp
-Bundle-Version: 4.0.0
+Bundle-Version: 4.1.0
 Bundle-Category: osgi
 Bundle-Description: UPnP
 Bundle-Vendor: Knopflerfish

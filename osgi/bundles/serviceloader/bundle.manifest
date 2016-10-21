@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Service Loader
 Bundle-SymbolicName: org.knopflerfish.bundle.serviceloader
-Bundle-Version: 1.0.0
+Bundle-Version: 1.1.0
 Bundle-Category: osgi
 Bundle-Description: OSGi specified serviceloader service
 Bundle-Vendor: Knopflerfish
@@ -16,4 +16,4 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/serviceloader/
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
-api-Import-Package: org.osgi.resource,org.osgi.service.serviceloader;version="[1,1.1)"
+api-Import-Package: org.osgi.resource,org.osgi.service.serviceloader;version="[1.1,1.2)"

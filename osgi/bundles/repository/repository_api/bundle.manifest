@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Repository
 Bundle-SymbolicName: org.knopflerfish.bundle.repository
-Bundle-Version: 1.0.0
+Bundle-Version: 1.1.0
 Bundle-Category: osgi
 Bundle-Description: Repository API
 Bundle-Vendor: Knopflerfish

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: position
 Bundle-SymbolicName: org.knopflerfish.bundle.position
-Bundle-Version: 4.0.0
+Bundle-Version: 4.1.0
 Bundle-Description: Position API
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
