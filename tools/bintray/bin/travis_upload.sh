@@ -10,7 +10,7 @@ DOWNLOAD_SDK_PATH="@DISTRIB_NAME@/@SDK_NAME@.jar"
 
 BINTRAY_URL="https://bintray.com/api/v1"
 
-RELEASE_NOTES_PATH="packages/knopflerfish/master/KnopflerfishBuild/versions/${RELEASE_VERSION}/release_notes"
+RELEASE_NOTES_PATH="packages/knopflerfish/master/Travis_CI/versions/${RELEASE_VERSION}/release_notes"
 RELEASE_NOTES_FILE="${DIR}/@DISTRIB_NAME@/release_notes.md"
 
 if [ ! -f $RELEASE_NOTES_FILE ]; then
