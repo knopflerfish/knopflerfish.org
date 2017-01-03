@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2016, KNOPFLERFISH project
+ * Copyright (c) 2003-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -430,37 +430,39 @@ class BundlePackages {
     if (ii >= 0) {
       return okImports.get(ii).provider.bpkgs;
     }
-    BundlePackages res = null;
-    BundleImpl [] trigger = null;
     final FrameworkContext fwCtx = bg.bundle.fwCtx;
-    try {
-      for (final ImportPkg ip : dImportPatterns) {
-        if (ip.name == EMPTY_STRING ||
-            (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
-            pkg.equals(ip.name)) {
-          if (trigger == null) {
-            trigger = new BundleImpl[] { bg.bundle };
-            fwCtx.resolverHooks.beginResolve(trigger);
-          }
-          final ImportPkg nip = new ImportPkg(ip, pkg);
-          final ExportPkg ep = fwCtx.resolver.registerDynamicImport(nip);
-          if (ep != null) {
-            nip.provider = ep;
-            nip.dynId = ++nextDynId;
-            okImports.add(-ii - 1, nip);
-            res = ep.bpkgs;
-            break;
+    BundlePackages res = null;
+    synchronized (fwCtx.resolver) {
+      BundleImpl [] trigger = null;
+      try {
+        for (final ImportPkg ip : dImportPatterns) {
+          if (ip.name == EMPTY_STRING ||
+              (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
+              pkg.equals(ip.name)) {
+            if (trigger == null) {
+              trigger = new BundleImpl[] { bg.bundle };
+              fwCtx.resolverHooks.beginResolve(trigger);
+            }
+            final ImportPkg nip = new ImportPkg(ip, pkg);
+            final ExportPkg ep = fwCtx.resolver.registerDynamicImport(nip);
+            if (ep != null) {
+              nip.provider = ep;
+              nip.dynId = ++nextDynId;
+              okImports.add(-ii - 1, nip);
+              res = ep.bpkgs;
+              break;
+            }
           }
         }
-      }
-    } catch (BundleException be) {
-      fwCtx.frameworkError(bg.bundle, be);
-    }
-    if (trigger != null) {
-      try {
-        fwCtx.resolverHooks.endResolve(trigger);      
       } catch (BundleException be) {
         fwCtx.frameworkError(bg.bundle, be);
+      }
+      if (trigger != null) {
+        try {
+          fwCtx.resolverHooks.endResolve(trigger);      
+        } catch (BundleException be) {
+          fwCtx.frameworkError(bg.bundle, be);
+        }
       }
     }
     return res;
