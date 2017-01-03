@@ -16,6 +16,16 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
+### Framework 8.0.2
+
+* Fixed issue #8. Could not start on Java 9 because of new version
+  schema.
+
+* Set default value for framework property
+  **org.knopflerfish.framework.is_doublechecked_locking_safe**
+  to **TRUE** for all instances since we don't run on Java 1.4
+  anymore.
+
 ### Framework 8.0.1
 
 * Fixed issue #12. Could cause NPE if there were concurrent dynamic

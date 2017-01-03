@@ -392,8 +392,12 @@ public class FWProps {
       ee.append(",OSGi/Minimum-1.1");
       ee.append(",OSGi/Minimum-1.2");
       // Set up the default ExecutionEnvironment
-      if (1 == javaVersionMajor) {
-        for (int i = javaVersionMinor; i > 1; i--) {
+      if (javaVersionMajor > 0) {
+        if (javaVersionMajor >= 9) {
+          ee.append(",JavaSE-").append(javaVersionMajor);
+        }
+        int maxMinor = javaVersionMajor == 1 ? javaVersionMinor : 8;
+        for (int i = maxMinor; i > 1; i--) {
           ee.append((i > 5) ? ",JavaSE-1." : ",J2SE-1.");
           ee.append(i);
         }
@@ -509,10 +513,17 @@ public class FWProps {
     setPropertyDefault(SERVICE_PERMISSIONADMIN_PROP, TRUE);
     setPropertyDefault(SYSTEM_PACKAGES_BASE_PROP, "");
     setPropertyDefault(SYSTEM_PACKAGES_FILE_PROP, "");
-    setPropertyDefault(SYSTEM_PACKAGES_VERSION_PROP, Integer.toString(javaVersionMajor) + "."
-        + javaVersionMinor);
-    setPropertyDefault(IS_DOUBLECHECKED_LOCKING_SAFE_PROP, (javaVersionMajor >= 1
-        && javaVersionMinor >= 5) || androidApiLevel >= 0 ? TRUE : FALSE);
+    StringBuffer pver = new StringBuffer();
+    if (javaVersionMajor >= 0) {
+      pver.append(javaVersionMajor);
+      if (javaVersionMinor >= 0) {
+        pver.append('.').append(javaVersionMinor);
+      }
+    } else {
+      pver.append(0);
+    }
+    setPropertyDefault(SYSTEM_PACKAGES_VERSION_PROP, pver.toString());
+    setPropertyDefault(IS_DOUBLECHECKED_LOCKING_SAFE_PROP, TRUE);
     setPropertyDefault(LDAP_NOCACHE_PROP, FALSE);
     setPropertyDefault(MAIN_CLASS_ACTIVATION_PROP, "");
     setPropertyDefault(STRICTBOOTCLASSLOADING_PROP, FALSE);
