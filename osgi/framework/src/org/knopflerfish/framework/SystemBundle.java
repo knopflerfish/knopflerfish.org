@@ -561,9 +561,17 @@ public class SystemBundle extends BundleImpl implements Framework {
             // use default set of packages.
             String jver = fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_VERSION_PROP);
 
-            Version jv;
+            Version jv = new Version(1, 7, 0);
             if (jver == null) {
-              jv = new Version(FWProps.javaVersionMajor, FWProps.javaVersionMinor, 0);
+              if (FWProps.javaVersionMajor >= 0) {
+                int minor = FWProps.javaVersionMinor > 0 ? FWProps.javaVersionMinor : 0;
+                jv = new Version(FWProps.javaVersionMajor, minor, 0);
+              } else {
+                if (fwCtx.debug.framework) {
+                  fwCtx.debug.println("No built in list of Java packages to be exported "
+                      + "by the system bundle for JRE with unknown version, using the list for " + jv);
+                }
+              }
             } else {
               try {
                 jv = new Version(jver);
@@ -571,9 +579,8 @@ public class SystemBundle extends BundleImpl implements Framework {
                 if (fwCtx.debug.framework) {
                   fwCtx.debug.println("No built in list of Java packages to be exported "
                       + "by the system bundle for JRE with version '" + jver
-                      + "', using the list for 1.7.");
+                      + "', using the list for " + jv);
                 }
-                jv = new Version(1,7,0);
               }
             }
             addSysPackagesFromFile(sp, "packages.txt", jv);

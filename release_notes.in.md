@@ -18,6 +18,9 @@ Knopflerfish Framework - OSGi Core Specification
 
 ### Framework 8.0.1
 
+* Fixed issue #8. Could not start on Java 9 because of new version
+  schema.
+
 * Fixed issue #12. Could cause NPE if there were concurrent dynamic
   imports by different bundles being resolved.
 
