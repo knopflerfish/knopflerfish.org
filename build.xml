@@ -72,7 +72,7 @@
   <!-- property name="release.date"     value="2016-10-20"/-->
 
   <!-- The previous official release version for this build -->
-  <property name="version.previous"   value="5.2.0"/>
+  <property name="version.previous"   value="5.2.1"/>
 
   <!-- The URL to the root of the git-repository -->
   <property name="git.repo.url"
