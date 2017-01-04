@@ -549,14 +549,16 @@ public class SystemBundle extends BundleImpl implements Framework {
         fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES));
     if (sp.length() == 0) {
       // Try the system packages file
-      addSysPackagesFromFile(sp, fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_FILE_PROP), null);
-      if (sp.length() == 0) {
+      String sysPkgFile = fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_FILE_PROP);
+      if (sysPkgFile.length() != 0) {
+        addSysPackagesFromFile(sp, sysPkgFile, null);
+      } else {
         // Try the system packages base property.
         sp.append(fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_BASE_PROP));
 
         if (sp.length() == 0) {
           if (FWProps.androidApiLevel >= 0) {
-            addSysPackagesFromFile(sp, "android_packages.txt", new Version(FWProps.androidApiLevel, 0, 0));
+            addSysPackagesFromResource(sp, "android_packages.txt", new Version(FWProps.androidApiLevel, 0, 0));
           } else {
             // use default set of packages.
             String jver = fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_VERSION_PROP);
@@ -583,14 +585,14 @@ public class SystemBundle extends BundleImpl implements Framework {
                 }
               }
             }
-            addSysPackagesFromFile(sp, "packages.txt", jv);
+            addSysPackagesFromResource(sp, "packages.txt", jv);
           }
         } else {
           if (sp.charAt(sp.length() - 1) == ',') {
             sp.deleteCharAt(sp.length() - 1);
           }
         }
-        addSysPackagesFromFile(sp, "exports", null);
+        addSysPackagesFromResource(sp, "exports", null);
       }
     }
     final String extraPkgs = fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
@@ -681,55 +683,85 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
-   * Read a file with package names and add them to a stringbuffer. The file is
-   * searched for in the current working directory, then on the class path.
+   * Read a file with package names and add them to a stringbuffer.
    * Each line can have a java version guard at the end with format <tt>!VersionRange</tt>.
    *
    * @param sp Buffer to append the exports to. Same format as the
    *          Export-Package manifest header.
-   * @param sysPkgFile Name of the file to load packages to be exported from.
+   * @param sysPkgFile File name.
    * @param guard Version to test version guarded lines against.
    */
   private void addSysPackagesFromFile(StringBuffer sp, String sysPkgFile, Version guard) {
-    if (null == sysPkgFile || 0 == sysPkgFile.length()) {
-      return;
-    }
-
     if (fwCtx.debug.resolver) {
       fwCtx.debug.println("Will add system packages from file " + sysPkgFile);
     }
-
-    URL url = null;
     final File f = new File(new File(sysPkgFile).getAbsolutePath());
 
     if (!f.exists() || !f.isFile()) {
-      url = SystemBundle.class.getResource(sysPkgFile);
-      if (null == url) {
-        url = SystemBundle.class.getResource("/" + sysPkgFile);
+      throw new IllegalArgumentException("Could not add system bundle package exports from '"
+                                         + sysPkgFile + "', file not found.");
+    } else {
+      try {
+        addSysPackagesFromStream(sp, new FileReader(f), guard);
+      } catch (final IOException e) {
+        throw new IllegalArgumentException("Failed to read " + sysPkgFile + ": " + e);
+      } catch (final IllegalArgumentException e) {
+        throw new  IllegalArgumentException("Failed to parse " + sysPkgFile + ": " + e);
       }
-      if (null == url) {
-        if (fwCtx.debug.resolver) {
-          fwCtx.debug.println("Could not add system bundle package exports from '" + sysPkgFile
-              + "', file not found.");
-        }
+      if (fwCtx.debug.resolver) {
+        fwCtx.debug.println("\treading from " + f.getAbsolutePath());
       }
     }
+  }
+
+
+  /**
+   * Read a resource with package names and add them to a stringbuffer.
+   * Each line can have a java version guard at the end with format <tt>!VersionRange</tt>.
+   *
+   * @param sp Buffer to append the exports to. Same format as the
+   *          Export-Package manifest header.
+   * @param sysPkgResource Resource name.
+   * @param guard Version to test version guarded lines against.
+   */
+  private void addSysPackagesFromResource(StringBuffer sp, String sysPkgResource, Version guard) {
+    if (fwCtx.debug.resolver) {
+      fwCtx.debug.println("Will add system packages from resource " + sysPkgResource);
+    }
+    URL url = SystemBundle.class.getResource(sysPkgResource);
+    if (null == url) {
+      url = SystemBundle.class.getResource("/" + sysPkgResource);
+    }
+    if (null != url) {
+      try {
+        addSysPackagesFromStream(sp, new InputStreamReader(url.openStream()), guard);
+      } catch (final IOException e) {
+        throw new IllegalArgumentException("Failed to read resource " + sysPkgResource + ": " + e);
+      } catch (final IllegalArgumentException e) {
+        throw new  IllegalArgumentException("Failed to parse resource " + sysPkgResource + ": " + e);
+      }
+      if (fwCtx.debug.resolver) {
+        fwCtx.debug.println("\treading from " + url);
+      }
+    }
+  }
+
+
+  /**
+   * Read a stream with package names and add them to a stringbuffer.
+   * Each line can have a java version guard at the end with format <tt>!VersionRange</tt>.
+   *
+   * @param sp Buffer to append the exports to. Same format as the
+   *          Export-Package manifest header.
+   * @param reader Reader for stream to load packages to be exported from.
+   * @param guard Version to test version guarded lines against.
+   */
+  private void addSysPackagesFromStream(StringBuffer sp, Reader reader, Version guard)
+    throws IOException
+  {
     BufferedReader in = null;
     try {
-      Reader reader = null;
-      String source = null;
-
-      if (null == url) {
-        reader = new FileReader(f);
-        source = f.getAbsolutePath().toString();
-      } else {
-        reader = new InputStreamReader(url.openStream());
-        source = url.toString();
-      }
       in = new BufferedReader(reader);
-      if (fwCtx.debug.resolver) {
-        fwCtx.debug.println("\treading from " + source);
-      }
 
       String line;
       for (line = in.readLine(); line != null; line = in.readLine()) {
@@ -737,14 +769,12 @@ public class SystemBundle extends BundleImpl implements Framework {
         if (line.length() > 0 && !line.startsWith("#")) {
           int idx = line.lastIndexOf('!');
           if (idx != -1) {
-            try {
-              if (new VersionRange(line.substring(idx +1)).includes(guard)) {
-                line = line.substring(0, idx);
-              } else {
-                // Not in version range skip.
-                continue;
-              }
-            } catch (IllegalArgumentException _ignore) { }
+            if (new VersionRange(line.substring(idx +1)).includes(guard)) {
+              line = line.substring(0, idx);
+            } else {
+              // Not in version range skip.
+              continue;
+            }
           }
           if (sp.length() > 0) {
             sp.append(",");
@@ -752,8 +782,6 @@ public class SystemBundle extends BundleImpl implements Framework {
           sp.append(line);
         }
       }
-    } catch (final IOException e) {
-      throw new IllegalArgumentException("Failed to read " + sysPkgFile + ": " + e);
     } finally {
       try {
         in.close();
