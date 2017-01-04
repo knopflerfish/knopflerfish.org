@@ -16,6 +16,15 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
+### Framework 8.0.3
+
+* Fixed issue #7. Always allow start of read-only unpacked bundles.
+
+* Fixed issue #11. Do not try to override framework internal export
+  package resources with matching files from current directory.
+  To override, use framework property
+  **org.knopflerfish.framework.system.packages.file**
+
 ### Framework 8.0.2
 
 * Fixed issue #8. Could not start on Java 9 because of new version

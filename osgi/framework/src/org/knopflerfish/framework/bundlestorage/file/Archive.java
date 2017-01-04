@@ -1222,7 +1222,7 @@ public class Archive implements FileArchive {
     Util.parseManifestHeader(Constants.IMPORT_PACKAGE,
                              a.getValue(Constants.IMPORT_PACKAGE), false, true,
                              false);
-    if (ba.storage.isReadOnly() && needUnpack(a)) {
+    if (ba.storage.isReadOnly() && !file.isDirectory() && needUnpack(a)) {
       throw new IllegalArgumentException("Framework is in read-only mode, we can not " +
                                          "install bundles that needs to be downloaded " +
                                          "(e.g. has native code or an internal Bundle-ClassPath)");
