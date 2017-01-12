@@ -541,6 +541,16 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     classPath.attachFragment(gen);
   }
 
+  /**
+   *  Check if we have loaded any classes from named package.
+   *
+   * @param pkg Package name
+   * @return True if any class loaded, otherwise false.
+   */
+  boolean isPackageLoaded(String pkg) {
+    return getPackage(pkg) != null;
+  }
+
   Collection<String> listResources(String path, String filePattern, int options) {
     if (debug.classLoader) {
       debug.println(this + " List bundle resources: " + path + ", pattern=" + filePattern);

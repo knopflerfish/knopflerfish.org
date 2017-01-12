@@ -298,12 +298,12 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
 
   /**
-   * Check that we can do an internal wire to the exported package.
+   * Check if resolution is mandatory.
    *
    * @return True if okay, otherwise false.
    */
   boolean mustBeResolved() {
-    return resolution == Constants.RESOLUTION_MANDATORY && internalOk == null;
+    return resolution == Constants.RESOLUTION_MANDATORY;
   }
 
 

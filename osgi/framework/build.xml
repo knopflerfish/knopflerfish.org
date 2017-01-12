@@ -18,7 +18,7 @@
   <property name="frameworkdoc_template"
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.impl.version"   value="7.2.5"/>
+  <property name="fw.impl.version"   value="7.2.6"/>
 
   <property name="jarfile"
             location="${topdir}/${ant.project.name}.jar"/>
@@ -45,7 +45,7 @@
     <isset property="jdk1.7+"/>
   </condition>
 
-  <!-- When comipling with Java 7 we use the Java 7 runtime -->
+  <!-- When compiling with Java 7 we use the Java 7 runtime -->
   <!-- as libraryjar in proguard since ee.minimum does not contain -->
   <!-- java.lang.StringBuilder which is used by the compiler for -->
   <!-- string concatenation in the code. -->

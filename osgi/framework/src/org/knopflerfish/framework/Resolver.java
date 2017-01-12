@@ -396,6 +396,13 @@ class Resolver {
       if (!addTempResolved(bg)) {
         res = RESOLVER_HOOK_VETO;
       }
+      if (bg.isFragmentHost()) {
+        for (BundleGeneration fbg : bg.fragments) {
+          if (!addTempResolved(fbg)) {
+            res = RESOLVER_HOOK_VETO;
+          }
+        }
+      }
     } catch (BundleException be) {
       tempResolved = null;
       resolveThread = null;
@@ -819,17 +826,22 @@ class Resolver {
         }
       }
       if (provider == null) {
-        if (ip.mustBeResolved()) {
-          res = false;
-          if (failReason != null) {
-            failReason.append(FWProps.NL);
-            failReason.append(ip.pkgString());
-            failReason.append(" -- ");
-            failReason.append(pkgFail);
-          }
-        } else {
-          if (framework.debug.resolver) {
-            framework.debug.println("resolvePackages: Ok, no provider for optional " + ip.name);
+        if (ip.internalOk == null) {
+          if (ip.mustBeResolved()) {
+            res = false;
+            if (failReason != null) {
+              failReason.append(FWProps.NL);
+              failReason.append(ip.pkgString());
+              failReason.append(" -- ");
+              failReason.append(pkgFail);
+            }
+            if (framework.debug.resolver) {
+              framework.debug.println("resolvePackages: Failed to find provider for, " + ip.name);
+            }
+          } else {
+            if (framework.debug.resolver) {
+              framework.debug.println("resolvePackages: Ok, no provider for optional, " + ip.name);
+            }
           }
         }
       }
@@ -875,7 +887,7 @@ class Resolver {
       if (ep.bpkgs.bg.isFragment()) {
         continue;
       }
-      if (ip.bpkgs == ep.bpkgs) {
+      if (ip.internalOk == null && ip.bpkgs.bg == ep.bpkgs.bg) {
         if (framework.debug.resolver) {
           framework.debug.println("pickProvider: internal wire ok for - " + ep);
         }
@@ -1014,10 +1026,10 @@ class Resolver {
               framework.debug.println("checkResolve: fragment export of " + ep + " attach to:" + rbg);
             }
             if (rbg.bundle.isResolved()) {
-              rbp = new BundlePackages(rbg.bpkgs, bg.bpkgs, true);
+              rbp = new BundlePackages(rbg.bpkgs, bg.bpkgs);
             } else {
               if (checkResolve(rbg, null)) {
-                rbp = new BundlePackages(rbg.bpkgs, bg.bpkgs, false);
+                rbp = new BundlePackages(rbg.bpkgs, bg.bpkgs);
                 savedState2 = new SavedTempState();
               } else {
                 continue;

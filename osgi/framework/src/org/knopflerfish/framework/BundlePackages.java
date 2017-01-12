@@ -203,7 +203,7 @@ class BundlePackages {
   /**
    * Create package entry used to clone fragment bundle.
    */
-  BundlePackages(BundlePackages host, BundlePackages frag, boolean noNew) {
+  BundlePackages(BundlePackages host, BundlePackages frag) {
     this.bg = host.bg;
     /*
      * make sure that the fragment's bundle does not conflict with this bundle's
@@ -222,9 +222,9 @@ class BundlePackages {
             continue;
           }
         }
-      } else if (noNew){
+      } else if (host.isActive()) {
         if (fip.mustBeResolved()) {
-          throw new IllegalStateException("Resolve host bundle package would " +
+          throw new IllegalStateException("Resolved host bundle, internal package might " +
               "be shadow by new fragment import.");
         } else {
           continue;
@@ -920,7 +920,7 @@ class BundlePackages {
         throw new BundleException("Internal error, can't find fragment");
       }
     } else {
-      nfbpkgs = new BundlePackages(this, fbpkgs, resolvedHost);
+      nfbpkgs = new BundlePackages(this, fbpkgs);
       nfbpkgs.registerPackages();
     }
     if (resolvedHost) {
