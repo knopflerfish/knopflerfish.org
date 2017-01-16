@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016, KNOPFLERFISH project
+ * Copyright (c) 2010-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,8 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   Bundle buG;
   Bundle buH;
   Bundle buI;
+  Bundle buJ;
+  Bundle buK;
 
   PrintStream out = System.out;
 
@@ -98,6 +100,9 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Cleanup());
     addTest(new Setup());
     addTest(new Frame550b());
+    addTest(new Cleanup());
+    addTest(new Setup());
+    addTest(new Frame555a());
     addTest(new Cleanup());
     addTest(new Setup());
     addTest(new Frame560a());
@@ -157,7 +162,9 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
         buF,
         buG,
         buH,
-        buI
+        buI,
+        buJ,
+        buK
       };
       for(int i = 0; i < bundles.length; i++) {
         if (bundles[i] != null) {
@@ -176,6 +183,8 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       buG = null;
       buH = null;
       buI = null;
+      buJ = null;
+      buK = null;
 
       if (pa != null) {
         bc.ungetService(paSR);
@@ -238,7 +247,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
 
       assertTrue("Fragment should not be resolved", buB.getState() == Bundle.INSTALLED);
       assertTrue("Exporter should be resolved", buD.getState() == Bundle.RESOLVED);
-      
+
       out.println("### framework test bundle :FRAME510A:PASS");
     }
 
@@ -274,7 +283,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       assertTrue("Fragment should be resolved", buB.getState() == Bundle.RESOLVED);
       assertTrue("Exporter 1.0 should be resolved", buC.getState() == Bundle.RESOLVED);
       assertTrue("Exporter 2.0 should NOT be resolved", buD.getState() == Bundle.INSTALLED);
-      
+
       out.println("### framework test bundle :FRAME520A:PASS");
     }
 
@@ -310,7 +319,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       assertTrue("Fragment 1.0 should NOT be resolved", buB.getState() == Bundle.INSTALLED);
       assertTrue("Exporter 1.0 should be resolved", buC.getState() == Bundle.RESOLVED);
       assertTrue("Fragment 2.0 should be resolved", buE.getState() == Bundle.RESOLVED);
-      
+
       out.println("### framework test bundle :FRAME530A:PASS");
     }
 
@@ -398,6 +407,36 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       }
 
       out.println("### framework test bundle :FRAME550B:PASS");
+    }
+
+  }
+
+
+  public final static String [] HELP_FRAME555A =  {
+    "Check that we attach of fragments with external imports"
+  };
+
+  class Frame555a extends FWTestCase {
+
+    public void runTest() throws Throwable {
+      buK = Util.installBundle(bc, "fb_K-1.0.0.jar");
+      assertNotNull(buK);
+      buJ = Util.installBundle(bc, "fb_J_api-1.0.0.jar");
+      assertNotNull(buJ);
+      buA = Util.installBundle(bc, "fb_A-1.0.0.jar");
+      assertNotNull(buA);
+      try {
+        buA.start();
+      } catch (BundleException bexcR) {
+        fail("framework test bundle "+ bexcR
+             +"(" + bexcR.getNestedException() + ") :FRAME555A:FAIL");
+      } catch (SecurityException secR) {
+        fail("framework test bundle "+ secR +" :FRAME555A:FAIL");
+      }
+      assertTrue("Fragment K should be resolved", buK.getState() == Bundle.RESOLVED);
+      assertTrue("Fragment J should be resolved", buJ.getState() == Bundle.RESOLVED);
+
+      out.println("### framework test bundle :FRAME555A:PASS");
     }
 
   }
