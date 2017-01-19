@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016, KNOPFLERFISH project
+ * Copyright (c) 2006-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ class FactoryComponent extends Component
    *
    */
   @Override
-  ComponentConfiguration [] satisfied() {
+  ComponentConfiguration [] satisfied(ComponentConfiguration old) {
     Activator.logInfo(bc, "Satisfied: " + toString());
     state = STATE_SATISFIED;
     componentFactory = new ComponentFactoryImpl(this);
@@ -80,7 +80,7 @@ class FactoryComponent extends Component
 
 
   @Override
-  void activateComponentConfiguration(ComponentConfiguration cc) {
+  void activateComponentConfiguration(ComponentConfiguration cc, ComponentConfiguration old) {
     throw new IllegalStateException("Internal error! Factory component only created with newInstance");
   }
 
@@ -116,7 +116,7 @@ class FactoryComponent extends Component
       scr.postponeCheckout();
     }
     if (isSatisfied()) {
-      cc.registerService();
+      cc.registerComponentService(null);
       return cci.getComponentInstance();
     } else {
       // Make sure it is disposed, perhaps we should "lock" protect this code instead
@@ -133,6 +133,7 @@ class FactoryComponent extends Component
   void cmConfigUpdated(String ccid, boolean first) {
     Activator.logDebug("Factory cmConfigUpdate for ccid = " + ccid + " first = " + first);
     final Map<String, Object> d = cmConfig.getProperties(ccid);
+    incrementCMRev(ccid);
     if (first && cmConfig.isRequired()) {
       // First mandatory config, remove constraint
       resolvedConstraint();
@@ -152,6 +153,7 @@ class FactoryComponent extends Component
   @Override
   void cmConfigDeleted(String ccid) {
     Activator.logDebug("cmConfigDeleted for ccid = " + ccid);
+    resetCMRev(ccid);
     for (final ComponentConfiguration [] componentConfigurations : compConfigs.values()) {
       for (final ComponentConfiguration cc : componentConfigurations) {
         cc.cmConfigUpdated(ccid, null);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,7 +148,7 @@ class ComponentField
                          ServiceReference<?> sr,
                          ReferenceListener rl,
                          boolean update) {
-    if (isMissing(true)) {
+    if (isMissing()) {
       return new ComponentException("Missing specified field: " + name);
     }
     try {
@@ -192,7 +192,7 @@ class ComponentField
                            ReferenceListener rl,
                            boolean resetField)
   {
-    if (isMissing(true)) {
+    if (isMissing()) {
       return new ComponentException("Missing specified field: " + name);
     }
     try {
@@ -216,11 +216,9 @@ class ComponentField
   /**
    *
    */
-  boolean isMissing(boolean logError) {
+  boolean isMissing() {
     if (field == null) {
-      if (logError) {
         Activator.logError(comp.bc, "Didn't find field \"" + name + "\" in " + comp, null);
-      }
       return true;
     }
     return false;

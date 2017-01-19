@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,13 +52,13 @@ import org.osgi.service.cm.ConfigurationAdmin;
  */
 class CMConfig
 {
-  final CMHandler handler;
-  final int policy;
-  final Bundle bundle;
-  final Component component;
   final CMPid [] pids;
-  CMPid factory = null;
-  int nMissing;
+  private final CMHandler handler;
+  private final int policy;
+  private final Bundle bundle;
+  private final Component component;
+  private CMPid factory = null;
+  private int nMissing;
   
 
   /**

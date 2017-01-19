@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,14 @@
 package org.knopflerfish.bundle.component;
 
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
+import org.osgi.dto.DTO;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.dto.BundleDTO;
+import org.osgi.framework.dto.ServiceReferenceDTO;
 import org.osgi.service.component.runtime.ServiceComponentRuntime;
 import org.osgi.service.component.runtime.dto.ComponentConfigurationDTO;
 import org.osgi.service.component.runtime.dto.ComponentDescriptionDTO;
@@ -53,7 +55,7 @@ import org.osgi.util.promise.Promise;
 class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
 {
 
-  final SCR scr;
+  private final SCR scr;
 
   ServiceComponentRuntimeImpl(final SCR scr) {
     this.scr = scr;
@@ -233,12 +235,29 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
 
   private SatisfiedReferenceDTO createSatisfiedReferenceDTO(Reference r) {
     SatisfiedReferenceDTO res = new SatisfiedReferenceDTO();
+    res.name = r.getName();
+    res.target = r.getTarget();
+    HashSet<ServiceReference<?>> services = new HashSet<ServiceReference<?>>();
+    for (ReferenceListener rl : r.getAllReferenceListeners()) {
+      ServiceReference<?>[] bound = rl.getBoundServiceReferences();
+      if (bound != null) {
+        Collections.addAll(services, bound);
+      }
+    }
+    res.boundServices = getServiceReferenceDTOs(services);
     return res;
   }
 
 
   private UnsatisfiedReferenceDTO createUnsatisfiedReferenceDTO(Reference r) {
     UnsatisfiedReferenceDTO res = new UnsatisfiedReferenceDTO();
+    res.name = r.getName();
+    res.target = r.getTarget();
+    HashSet<ServiceReference<?>> services = new HashSet<ServiceReference<?>>();
+    for (ReferenceListener rl : r.getAllReferenceListeners()) {
+      Collections.addAll(services, rl.getServiceReferences());
+    }
+    res.targetServices = getServiceReferenceDTOs(services);
     return res;
   }
 
@@ -271,6 +290,68 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
       }
     }
     return res;
+  }
+
+
+  private ServiceReferenceDTO [] getServiceReferenceDTOs(Set<ServiceReference<?>> services) {
+    ServiceReferenceDTO[] res = new ServiceReferenceDTO[services.size()];
+    int i = 0;
+    for (ServiceReference sr : services) {
+      res[i++] = getServiceReferenceDTO(sr);
+    }
+    return res;
+  }
+
+
+  private ServiceReferenceDTO getServiceReferenceDTO(ServiceReference<?> sr) {
+    ServiceReferenceDTO res = new ServiceReferenceDTO();
+    res.properties = new HashMap<String, Object>();
+    for (String key : sr.getPropertyKeys()) {
+      Object val = safeDTOObject(sr.getProperty(key));
+      res.properties.put(key, val);
+    }
+    res.id = ((Long)sr.getProperty(Constants.SERVICE_ID)).longValue();
+    Bundle [] using = sr.getUsingBundles();
+    if (using != null) {
+      res.usingBundles = new long [using.length];
+      for (int i = 0; i < using.length; i++) {
+        res.usingBundles[i] = using[i].getBundleId();
+      }
+    } else {
+      res.usingBundles = new long [0];
+    }
+    Bundle b = sr.getBundle();
+    if (b == null) {
+      return null;
+    }
+    res.bundle = b.getBundleId();
+    return res;
+  }
+
+
+  private Object safeDTOObject(Object val) {
+    Class c = val.getClass();
+    Object res = val;
+    if (c.isArray()) {
+      if (!validDTOType(c.getComponentType())) {
+        Object [] oa = (Object[])val;
+        String [] sa = new String [oa.length];
+        for (int i = 0; i < sa.length; i++) {
+          sa[i] = oa[i].toString();
+        }
+        res = sa;
+      }
+    } else if (!validDTOType(c)) {
+      res = val.toString();
+    }
+    return res;
+  }
+
+  private boolean validDTOType(Class c) {
+    return c == String.class || c == Boolean.class ||
+        (c.isPrimitive() && c != Boolean.TYPE && c != Character.TYPE) ||
+        Number.class.isAssignableFrom(c) ||
+        DTO.class.isAssignableFrom(c);
   }
 
 }

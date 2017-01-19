@@ -1,4 +1,4 @@
-/* Copyright (c) 2016-2016, KNOPFLERFISH project
+/* Copyright (c) 2016-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,10 @@ import java.util.HashSet;
 import java.util.Map;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.PrototypeServiceFactory;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentInstance;
 
 public class PrototypeComponentConfiguration
-  extends ComponentConfiguration implements PrototypeServiceFactory<Object>
+  extends ComponentConfiguration
 {
 
   final HashSet<ComponentContextImpl> ccis = new HashSet<ComponentContextImpl>();
@@ -103,20 +101,9 @@ public class PrototypeComponentConfiguration
     ccis.remove(cci);
   }
 
-
   @Override
-  public Object getService(Bundle bundle, ServiceRegistration<Object> registration)
-  {
-    return super.getService(bundle, registration);
-  }
-
-
-  @Override
-  public void ungetService(Bundle bundle,
-                           ServiceRegistration<Object> registration,
-                           Object service)
-  {
-    super.ungetService(bundle, registration, service);
+  ComponentService createComponentService() {
+    return new PrototypeComponentService(component, this);
   }
 
 }

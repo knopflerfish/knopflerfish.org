@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2017, KNOPFLERFISH project
+ * Copyright (c) 2017-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,31 +33,18 @@
  */
 package org.knopflerfish.bundle.component;
 
+import org.osgi.framework.PrototypeServiceFactory;
 
 
-class DelayedComponent extends Component {
+/**
+ * Component service that is a prototype service.
+ */
+public class PrototypeComponentService
+   extends ComponentService implements PrototypeServiceFactory<Object>
+{
 
-  DelayedComponent(SCR scr, ComponentDescription cd) {
-    super(scr, cd);
-  }
-
-
-  @Override
-  public String toString() {
-    return "Delayed component: " + compDesc.getName();
-  }
-
-
-  /**
-   * Delayed component satisfied, create a component configuration
-   * for each CM pid available or a single component configuration
-   * if no CM data is available. Register component service if
-   * there is one for each component configuration.
-   *
-   */
-  @Override
-  void activateComponentConfiguration(ComponentConfiguration cc, ComponentConfiguration old) {
-    cc.registerComponentService(old);
+  PrototypeComponentService(Component component, ComponentConfiguration componentConfiguration) {
+    super(component, componentConfiguration);
   }
 
 }

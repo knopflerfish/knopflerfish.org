@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016, KNOPFLERFISH project
+ * Copyright (c) 2010-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,6 @@ import org.osgi.service.component.ComponentConstants;
  */
 class ReferenceListener
 {
-  private static final int NO_OP = 0;
   private static final int ADD_OP = 1;
   private static final int DELETE_OP = 2;
   private static final int UPDATE_OP = 3;
@@ -69,12 +68,12 @@ class ReferenceListener
       new HashMap<ServiceReference<?>, Object>();
   private final SortedSet<ServiceReference<?>> serviceRefs =
       Collections.synchronizedSortedSet(new TreeSet<ServiceReference<?>>());
-  private HashSet<ServiceReference<?>> unbinding = new HashSet<ServiceReference<?>>();
+  private final HashSet<ServiceReference<?>> unbinding = new HashSet<ServiceReference<?>>();
   private ServiceReference<?> selectedServiceRef = null;
   private final TreeSet<String> ids = new TreeSet<String>();
   private Filter cmTarget;
   private final LinkedList<RefServiceEvent> sEventQueue = new LinkedList<RefServiceEvent>();
-  private HashMap<ServiceReference<?>, HashSet<ComponentContextImpl>> cciBound =
+  private final HashMap<ServiceReference<?>, HashSet<ComponentContextImpl>> cciBound =
       new HashMap<ServiceReference<?>, HashSet<ComponentContextImpl>>();
 
 
@@ -213,7 +212,7 @@ class ReferenceListener
    *
    */
   boolean isOnlyId(String id) {
-    return ids == null || (ids.size() == 1 && ids.contains(id));
+    return ids.size() == 1 && ids.contains(id);
   }
 
 
@@ -376,7 +375,7 @@ class ReferenceListener
   }
 
 
-  Object getBound(ServiceReference<?> sr, ComponentContextImpl cci) {
+  private Object getBound(ServiceReference<?> sr, ComponentContextImpl cci) {
     synchronized (cciBound) {
       Object res;
       if (ref.isScopeBundle()) {
@@ -457,12 +456,12 @@ class ReferenceListener
   }
 
 
-  void serviceChanged(RefServiceEvent se) {
+  private void serviceChanged(RefServiceEvent se) {
     ref.comp.scr.postponeCheckin();
     try {
       do {
         boolean wasSelected = false;
-        int op = NO_OP;
+        int op;
         synchronized (serviceRefs) {
           if (sEventQueue.isEmpty()) {
             if (se == null) {
@@ -621,7 +620,7 @@ class ReferenceListener
       for (String id : ccs.inactive) {
         ComponentConfiguration cc = ref.comp.newComponentConfiguration(id, null);
         if (cc != null) {
-          ref.comp.activateComponentConfiguration(cc);
+          ref.comp.activateComponentConfiguration(cc, null);
         }
       }
     }
@@ -768,9 +767,7 @@ class ReferenceListener
     for (String id : getIds()) {
       final ComponentConfiguration [] componentConfigurations = ref.comp.compConfigs.get(id);
       if (componentConfigurations != null) {
-        for (final ComponentConfiguration cc : componentConfigurations) {
-          active.add(cc);
-        }
+        Collections.addAll(active, componentConfigurations);
       } else if (!(ref.comp instanceof FactoryComponent)) {
         inactive.add(id);
       }
