@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2016, KNOPFLERFISH project
+ * Copyright (c) 2005-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -301,12 +301,12 @@ class ImportPkg
 
 
   /**
-   * Check that we can do an internal wire to the exported package.
+   * Check if resolution is mandatory.
    *
    * @return True if okay, otherwise false.
    */
   boolean mustBeResolved() {
-    return resolution == Constants.RESOLUTION_MANDATORY && internalOk == null;
+    return resolution == Constants.RESOLUTION_MANDATORY;
   }
 
 
