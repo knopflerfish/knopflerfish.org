@@ -44,6 +44,14 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
+### Component (SCR) 6.0.1
+
+* Fixed issue #14, StackOverflowError when using JAXRS publisher.
+  Removed a faulty re-register of service during deactivation of
+  a delayed component configuration.
+
+* Fixed missing reference DTOs for
+  ServiceComponentRuntime.getComponentConfigurationDTOs.
 
 
 Knopflerfish Services

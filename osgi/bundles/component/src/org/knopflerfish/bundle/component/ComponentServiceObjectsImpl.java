@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -143,7 +143,7 @@ class ComponentServiceObjectsImpl<S>
   }
 
 
-  Object getCciService(ReferenceListener rl)
+  Object getCciService()
   {
     synchronized (rls) {
       if (cciService == null) {

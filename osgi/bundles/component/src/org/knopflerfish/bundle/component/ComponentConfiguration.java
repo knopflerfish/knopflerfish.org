@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016, KNOPFLERFISH project
+ * Copyright (c) 2010-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,14 +40,12 @@ import java.util.Map;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentException;
 
 
-public abstract class ComponentConfiguration implements ServiceFactory<Object>, Comparable<ComponentConfiguration> {
+abstract class ComponentConfiguration implements Comparable<ComponentConfiguration> {
 
   final static int STATE_ACTIVATING = 0;
   final static int STATE_REGISTERED = 1;
@@ -62,14 +60,15 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
   private String ccId;
   private Map<String, Object> cmDict;
   private final Dictionary<String, Object> instanceProps;
-  private ServiceRegistration<?> serviceRegistration = null;
+  private ComponentService componentService = null;
+  private ComponentService blockedService = null;
   private volatile boolean unregisterInProgress = false;
   private volatile int activeCount = 0;
   private volatile int state = STATE_ACTIVATING;
-  private volatile ServiceEvent lastReactiveateEvent = null;
+  private volatile ServiceEvent lastReactivateEvent = null;
 
   private volatile static int count = 0;
-  private static Object countLock = new Object();
+  private final static Object countLock = new Object();
 
   /**
    *
@@ -189,9 +188,9 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
    *
    */
   void deactivate(ComponentContextImpl cci, int reason, boolean checkActive, boolean removeCompConfig) {
-    Activator.logDebug("CC.deactive this=" + this +
+    Activator.logDebug("CC.deactivate this=" + this +
                        ", activateCount=" + activeCount);
-    boolean last = false;
+    boolean last;
     synchronized (this) {
       if (checkActive && !cci.waitForActivation()) {
         // Deactivate an already deactivated
@@ -210,14 +209,21 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
       cci.setDeactive();
     }
     if (last) {
-      Activator.logDebug("CC.deactive last, dispose this=" +
+      Activator.logDebug("CC.deactivate last, dispose this=" +
                          this + ", unregisterInProgress=" +
                          unregisterInProgress);
       if (unregisterInProgress) {
         // We are already disposing
         return;
       }
-      unregisterService();
+      if (removeCompConfig && component.keepService(reason)) {
+        Activator.logDebug("CC.deactivate last, dispose this=" +
+                               this + ", block service for reuse");
+        blockService();
+      } else {
+        unregisterComponentService(componentService);
+        componentService = null;
+      }
     }
     if (component.deactivateMethod != null) {
       component.deactivateMethod.invoke(cci, reason);
@@ -234,7 +240,22 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
       if (removeCompConfig) {
         // TODO: Do we need to synchronize this?
         remove(reason);
+        discardBlockedService();
       }
+    }
+  }
+
+
+  /**
+   * Discard any blocked service
+   */
+  private void discardBlockedService() {
+    if (blockedService != null && blockedService.isBlocked()) {
+      Activator.logDebug("CC.discardBlockedService, this=" + this);
+      ComponentService cs = blockedService;
+      blockedService = null;
+      cs.setComponentConfiguration(null);
+      unregisterComponentService(cs);
     }
   }
 
@@ -261,7 +282,8 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
       // Mark all as deactivated?
       activeCount = 0;
     }
-    unregisterService();
+    unregisterComponentService(componentService);
+    componentService = null;
     if (ccis.length > 0) {
       for (final ComponentContextImpl cci : ccis) {
         if (cci != null) {
@@ -326,7 +348,7 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
    * with a period ".".
    *
    */
-  private PropertyDictionary getServiceProperties() {
+  PropertyDictionary getServiceProperties() {
     return new PropertyDictionary(component, cmDict, instanceProps, true);
   }
 
@@ -334,17 +356,36 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
   /**
    *
    */
-  void registerService() {
-    final ComponentDescription cd = component.compDesc;
-    final String [] services = cd.getServices();
-    if (services != null) {
-      serviceRegistration = component.bc.registerService(services, this, getServiceProperties());
+  void registerComponentService(ComponentConfiguration old) {
+    if (old != null) {
+      componentService = old.getBlockedComponentService();
+    }
+    if (componentService != null) {
+      componentService.setComponentConfiguration(this);
+      componentService.unblock();
       synchronized (this) {
         if (state == STATE_ACTIVATING) {
           state = STATE_REGISTERED;
         }
       }
+    } else {
+      final ComponentDescription cd = component.compDesc;
+      final String[] services = cd.getServices();
+      if (services != null) {
+        componentService = createComponentService();
+        componentService.registerService();
+        synchronized (this) {
+          if (state == STATE_ACTIVATING) {
+            state = STATE_REGISTERED;
+          }
+        }
+      }
     }
+  }
+
+
+  ComponentService createComponentService() {
+    return new ComponentService(component, this);
   }
 
 
@@ -354,8 +395,8 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
    *
    */
   private void modifyService() {
-    if (serviceRegistration != null) {
-      serviceRegistration.setProperties(getServiceProperties());
+    if (componentService != null) {
+      componentService.setProperties();
     }
   }
 
@@ -364,16 +405,28 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
    * Unregister service registered for this component configuration.
    *
    */
-  private void unregisterService() {
-    if (serviceRegistration != null) {
+  private void unregisterComponentService(ComponentService cs) {
+    if (cs != null) {
       unregisterInProgress = true;
       try {
-        serviceRegistration.unregister();
+        cs.unregisterService();
       } catch (final IllegalStateException ignored) {
         // Nevermind this, it might have been unregistered previously.
       }
-      serviceRegistration = null;
       unregisterInProgress = false;
+    }
+  }
+
+
+  /**
+   * Block registered service for this component configuration.
+   *
+   */
+  private void blockService() {
+    if (componentService != null) {
+      componentService.block();
+      blockedService = componentService;
+      componentService = null;
     }
   }
 
@@ -405,8 +458,8 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
    * component configuration.
    */
   ServiceReference<?> getServiceReference() {
-    if (serviceRegistration != null) {
-      return serviceRegistration.getReference();
+    if (componentService != null) {
+      return componentService.getReference();
     }
     return null;
   }
@@ -481,22 +534,26 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
     }
   }
 
+  /**
+   *
+   */
   synchronized void waitForDeactivate() {
     for (final ComponentContextImpl cci : getAllContexts()) {
       cci.waitForDeactivation();
     }
   }
 
-  //
-  // ServiceFactory interface
-  //
+  @Override
+  public int compareTo(ComponentConfiguration o) {
+    return id - o.id;
+  }
+
 
   /**
    * Get service registered for component
    *
    */
-  public Object getService(Bundle usingBundle,
-                           ServiceRegistration<Object> reg) {
+  Object getService(Bundle usingBundle) {
     Activator.logDebug("CC.getService(), " + toString() + ", activeCount = " + activeCount);
     component.scr.postponeCheckin();
     try {
@@ -518,9 +575,7 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
    * Release service previously gotten via getService.
    *
    */
-  public void ungetService(Bundle usingBundle,
-                           ServiceRegistration<Object> reg,
-                           Object obj) {
+  void ungetService(Bundle usingBundle, Object obj) {
     if (!unregisterInProgress) {
       Activator.logDebug("CC.ungetService(), " + toString() + ", activeCount = " + activeCount);
       final ComponentContextImpl cci = getActiveContext(usingBundle, obj);
@@ -561,13 +616,13 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
    * Bind a component to its references. The references are bound
    * in order specified by the component description.
    */
-  void bindReferences(ComponentContextImpl cci) {
+  private void bindReferences(ComponentContextImpl cci) {
     final Reference [] refs = component.getRawReferences();
     if (refs != null) {
-      for (int i = 0; i < refs.length; i++) {
-        final ReferenceListener rl = refs[i].getListener(ccId);
+      for (Reference ref : refs) {
+        final ReferenceListener rl = ref.getListener(ccId);
         if (rl.isAvailable()) {
-          if (!cci.bind(rl) && !refs[i].isRefOptional()) {
+          if (!cci.bind(rl) && !ref.isRefOptional()) {
             throw new ComponentException("Failed to bind: " + rl);
           }
         } else {
@@ -597,24 +652,33 @@ public abstract class ComponentConfiguration implements ServiceFactory<Object>, 
   }
 
 
-  @Override
-  public int compareTo(ComponentConfiguration o) {
-    return id - o.id;
-  }
-
 
   boolean setAndTestLastReactivateEvent(ServiceEvent se)
   {
-    if (lastReactiveateEvent  != se) {
-      lastReactiveateEvent = se;
+    if (lastReactivateEvent != se) {
+      lastReactivateEvent = se;
       return true;
     }
     return false;
   }
+
 
   boolean isUnregistering()
   {
     return unregisterInProgress;
   }
 
+
+  private ComponentService getBlockedComponentService() {
+    return blockedService;
+  }
+
+
+  String getServicePropertiesId() {
+    String res = ccId + ":" + component.getCMPidRev(ccId);
+    if (instanceProps != null) {
+      res += ":" + Integer.toString(instanceProps.hashCode());
+    }
+    return  res;
+   }
 }

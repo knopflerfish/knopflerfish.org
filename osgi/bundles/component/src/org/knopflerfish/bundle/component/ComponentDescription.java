@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016, KNOPFLERFISH project
+ * Copyright (c) 2010-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ public class ComponentDescription {
   private String modifiedMethod = null;
   private int confPolicy = POLICY_OPTIONAL;
   private String [] configurationPid = null;
-  private Properties properties = new Properties();
+  private final Properties properties = new Properties();
   private String [] services = null;
   private ArrayList<ReferenceDescription> references = null;
   private String scope = Constants.SCOPE_SINGLETON;
@@ -88,7 +88,7 @@ public class ComponentDescription {
    *
    */
   public static ComponentDescription parseComponent(Bundle b, XmlPullParser p)
-    throws IOException, IllegalXMLException, XmlPullParserException
+    throws IOException, XmlPullParserException
   {
     while (findNextStartTag(p, true)) {
       Activator.logDebug("Check for component description: " +
@@ -112,7 +112,7 @@ public class ComponentDescription {
    *
    */
   private ComponentDescription(Bundle b, XmlPullParser p)
-    throws IOException, IllegalXMLException, XmlPullParserException
+    throws IOException, XmlPullParserException
   {
     this.bundle = b;
     if (SCR_NAMESPACE_V1_3_0_URI.equals(p.getNamespace())) {
@@ -261,7 +261,7 @@ public class ComponentDescription {
       </component>
    */
   private void parseAttributes(XmlPullParser p)
-    throws IOException, IllegalXMLException, XmlPullParserException
+    throws IOException, XmlPullParserException
   {
     try {
       for (int i = 0; i < p.getAttributeCount(); i++) {
@@ -329,7 +329,7 @@ public class ComponentDescription {
     Parsers a <implementation class="<classname>"/>
   */
   private void parseImplementation(XmlPullParser p)
-    throws IOException, IllegalXMLException, XmlPullParserException
+    throws IOException, XmlPullParserException
   {
     if (implementation != null) {
       throw new IllegalXMLException("Only one implementation tag allowed", p);
@@ -348,7 +348,7 @@ public class ComponentDescription {
     and then reads a property specified by <url>
    */
   private void parseProperties(XmlPullParser p)
-    throws IOException, IllegalXMLException, XmlPullParserException
+    throws IOException, XmlPullParserException
   {
     String entry = getSingleAttribute(p, "entry");
     // read a property-file and adds it contents to conf's properties.
@@ -374,7 +374,7 @@ public class ComponentDescription {
      The latter will produce an array
   */
   private void parseProperty(XmlPullParser p)
-    throws IOException, IllegalXMLException, XmlPullParserException
+    throws IOException, XmlPullParserException
   {
 
     String type = null;
@@ -508,7 +508,7 @@ public class ComponentDescription {
 
    */
   private void parseReference(XmlPullParser p)
-    throws IOException, IllegalXMLException, XmlPullParserException
+    throws IOException, XmlPullParserException
   {
     String name = null;
     String interfaceName = null;
@@ -652,7 +652,7 @@ public class ComponentDescription {
              </service>
    */
   private void parseService(XmlPullParser p)
-      throws IOException, IllegalXMLException, XmlPullParserException
+      throws IOException, XmlPullParserException
   {
     if (services != null) {
       throw new IllegalXMLException(

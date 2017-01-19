@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,8 +56,8 @@ class ImmediateComponent extends Component {
    *
    */
   @Override
-  void activateComponentConfiguration(ComponentConfiguration cc) {
-    cc.registerService();
+  void activateComponentConfiguration(ComponentConfiguration cc, ComponentConfiguration old) {
+    cc.registerComponentService(old);
     scr.postponeCheckin();
     try {
       cc.activate(null, true);

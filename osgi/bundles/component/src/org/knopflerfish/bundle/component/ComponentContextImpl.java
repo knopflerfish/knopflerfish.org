@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016, KNOPFLERFISH project
+ * Copyright (c) 2010-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -229,7 +229,7 @@ class ComponentContextImpl implements ComponentContext
     try {
       ComponentException ce = null;
       ComponentField f = rl.ref.getField();
-      if (f != null && !f.isMissing(true)) {
+      if (f != null && !f.isMissing()) {
         ce = f.set(this, s, rl, false);
         rl.bound(s, null, this);
         boundReferences.put(rl.getName(), rl);
@@ -307,7 +307,7 @@ class ComponentContextImpl implements ComponentContext
     if (rl.isBound(sr, this)) {
       try {
         final ComponentField f = rl.ref.getField();
-        if (f != null && !f.isMissing(true)) {
+        if (f != null && !f.isMissing()) {
           f.unset(this, sr, rl, resetField);
         }
         final ComponentMethod m = rl.ref.getUnbindMethod();
@@ -330,7 +330,7 @@ class ComponentContextImpl implements ComponentContext
     Activator.logDebug("Check updated service " + Activator.srInfo(sr) + " from " + cc);
     try {
       final ComponentField f = rl.ref.getField();
-      if (f != null && !f.isMissing(true)) {
+      if (f != null && !f.isMissing()) {
         f.set(this, sr, rl, true);
       }
       final ComponentMethod m = rl.ref.getUpdatedMethod();
@@ -466,7 +466,7 @@ class ComponentContextImpl implements ComponentContext
     synchronized (cciBound) {
       ComponentServiceObjectsImpl<?> cso = getComponentServiceObjects(sr, rl);
       if (cso != null) {
-        return cso.getCciService(rl);
+        return cso.getCciService();
       }
     }
     return null;
@@ -485,7 +485,7 @@ class ComponentContextImpl implements ComponentContext
 
   void nullField(ReferenceListener rl) {
     final ComponentField f = rl.ref.getField();
-    if (f != null && !f.isMissing(true)) {
+    if (f != null && !f.isMissing()) {
       f.unset(this, null, rl, true);
     }
   }

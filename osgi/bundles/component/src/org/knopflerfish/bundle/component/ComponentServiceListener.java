@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 
-public class ComponentServiceListener
+class ComponentServiceListener
   implements ServiceListener
 {
   private final BundleContext bc;

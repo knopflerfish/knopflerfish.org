@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016, KNOPFLERFISH project
+ * Copyright (c) 2006-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,7 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -475,6 +470,16 @@ class Reference implements org.apache.felix.scr.Reference
     return false;
   }
 
+
+  Set<ReferenceListener> getAllReferenceListeners() {
+    Set<ReferenceListener> res = new HashSet<ReferenceListener>();
+    if (listener != null) {
+      res.add(listener);
+    } else if (factoryListeners != null) {
+      res.addAll(factoryListeners.values());
+    }
+    return res;
+  }
 
 
   private void assertFieldAndMethods() {

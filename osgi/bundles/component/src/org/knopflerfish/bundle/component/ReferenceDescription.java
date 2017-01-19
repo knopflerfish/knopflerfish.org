@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016, KNOPFLERFISH project
+ * Copyright (c) 2010-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,8 +79,7 @@ class ReferenceDescription
                        int fieldCollectionType)
     throws InvalidSyntaxException
   {
-    Filter f = (target != null) ? FrameworkUtil.createFilter(target) : null;
-    targetFilter = f;
+    targetFilter = (target != null) ? FrameworkUtil.createFilter(target) : null;
     this.name = name;
     this.interfaceName = interfaceName;
     this.optional = optional;

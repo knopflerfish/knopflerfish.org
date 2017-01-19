@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016, KNOPFLERFISH project
+ * Copyright (c) 2010-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,14 +76,6 @@ class PropertyDictionary extends Dictionary<String, Object>
     }
     props.put(ComponentConstants.COMPONENT_ID, comp.id);
     props.put(ComponentConstants.COMPONENT_NAME, cd.getName());
-  }
-
-
-  /**
-   *
-   */
-  PropertyDictionary(Hashtable<String,Object> props) {
-    this.props = props;
   }
 
 
@@ -228,7 +220,7 @@ class PropertyDictionary extends Dictionary<String, Object>
    *
    */
   @Override
-  public void putAll(Map<? extends String, ? extends Object> m) {
+  public void putAll(Map<? extends String, ?> m) {
     throw new UnsupportedOperationException();
   }
 
@@ -266,17 +258,6 @@ class PropertyDictionary extends Dictionary<String, Object>
       // is less than if it has a higher ID.
       return -id1.compareTo((Long)id2);
     }
-  }
-
-  //
-  // Package methods
-  //
-
-  /**
-   *
-   */
-  Dictionary<String,Object> writeableCopy() {
-    return new Hashtable<String, Object>(props);
   }
 
   /**
