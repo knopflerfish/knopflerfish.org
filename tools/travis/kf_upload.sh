@@ -19,7 +19,7 @@ if [ ! -d "$RELEASE_DIR" ] ; then
 fi
 
 echo "Uploading KF release $1 to www.knopflerfish.org"
-scp -rpB -o "$SSH_OPT" -i $PRIVATE_KEY $RELEASE_DIR $KF_USER@$KF_SERVER:$KF_RELEASES_DIR/$1
+scp -rpqB -o "$SSH_OPT" -i $PRIVATE_KEY $RELEASE_DIR $KF_USER@$KF_SERVER:$KF_RELEASES_DIR/$1
 
 if [ "$2" == "master" ] ; then
     echo "Master build, update release soft-link"
