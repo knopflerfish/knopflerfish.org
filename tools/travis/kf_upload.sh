@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Script for uploading release builds to www.knopflerfish.org
+# Script for uploading Travis release builds to www.knopflerfish.org
 #
 # Takes 2 arguments <Release version> and <Git branch>
 #
@@ -15,6 +15,10 @@ KF_RELEASES_DIR=public_html-knopflerfish.org/releases/
 if [ ! -d "$RELEASE_DIR" ] ; then
     echo "Release not found at: $RELEASE_DIR"
     exit 1
+fi
+
+if [ -d .ssh ] ; then
+    echo -e "Host $KF_SERVER\n\tStrictHostKeyChecking no\n" >> .ssh/config
 fi
 
 echo "Uploading KF release $1 to www.knopflerfish.org"
