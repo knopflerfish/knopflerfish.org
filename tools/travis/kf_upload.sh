@@ -18,9 +18,10 @@ if [ ! -d "$RELEASE_DIR" ] ; then
 fi
 
 # Allow ssh to KF_SERVER
-mkdir -p .ssh
-echo "Host $KF_SERVER" >> .ssh/config
-echo "StrictHostKeyChecking no" >> .ssh/config
+# NOTE! You need to clean this if not run on a build server!
+mkdir -p ~/.ssh
+echo "Host $KF_SERVER" >> ~/.ssh/config
+echo "StrictHostKeyChecking no" >> ~/.ssh/config
 
 echo "Uploading KF release $1 to www.knopflerfish.org"
 scp -rpqBi $PRIVATE_KEY $RELEASE_DIR $KF_USER@$KF_SERVER:$KF_RELEASES_DIR/$1
