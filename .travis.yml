@@ -26,7 +26,7 @@ install: true
 script: apache-ant-1.9.8/bin/ant -Dbuild.kind=Travis_CI_$TRAVIS_JDK_VERSION -Dtravis.tag=$TRAVIS_TAG -Dtravis.suffix=$VER_SUF $EXTRA distrib
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_a3ffaab67d90_key -iv $encrypted_a3ffaab67d90_iv -in tools/travis/id_rsa.travis.enc -out tools/travis/id_rsa.travis -d
-- chmod 400 tools/travis/id_rsa.travis
+- chmod 600 tools/travis/id_rsa.travis
 deploy:
 - provider: releases
   api_key:
