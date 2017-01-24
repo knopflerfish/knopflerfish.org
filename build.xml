@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-    ** Copyright (c) 2004-2016, KNOPFLERFISH project
+    ** Copyright (c) 2004-2017, KNOPFLERFISH project
     ** All rights reserved.
     **
     ** Redistribution and use in source and binary forms, with or without
@@ -45,17 +45,68 @@
             pattern="yyyy-MM-dd'T'HH:mm"
             locale="en"/>
   </tstamp>
-  <condition property="version.suffix"
-             value="${build.time}-${version.branch}"
-             else="${build.time}">
-    <isset property="version.branch"/>
+  <!-- The current Git state -->
+  <exec executable="git" outputproperty="git.status">
+    <arg value="status"/>
+    <arg value="-s"/>
+  </exec>
+  <exec executable="git" outputproperty="git.tag" errorproperty="git.error">
+    <arg value="describe"/>
+    <arg value="--tags"/>
+  </exec>
+  <condition property="git.pristine">
+    <equals arg1="${git.status}" arg2=""/>
   </condition>
 
-  <!-- Set default bundle suffix if no version is set -->
+  <!-- Set version for travis tag builds -->
+  <property name="travis.suffix" value=""/>
+  <condition property="version"
+             value="${travis.tag}${travis.suffix}">
+    <and>
+      <isset property="travis.tag"/>
+      <not>
+        <equals arg1="${travis.tag}" arg2=""/>
+      </not>
+    </and>
+  </condition>
+
+  <!-- Release build assumed if we have a N.N.N version and pristine Git dir -->
+  <condition property="release.build">
+    <and>
+      <isset property="version"/>
+      <isset property="git.pristine"/>
+      <matches pattern="^[0-9]+\.[0-9]+\.[0-9]+$" string="${version}"/>
+      <equals arg1="${version}" arg2="${git.tag}"/>
+    </and>
+  </condition>
+
+  <!-- OSGi do not allow . in qualifiers -->
+  <loadresource property="git.tag.osgi">
+    <propertyresource name="git.tag"/>
+    <filterchain>
+      <tokenfilter>
+        <filetokenizer/>
+        <replacestring from="." to="_"/>
+      </tokenfilter>
+    </filterchain>
+  </loadresource>
+  <!-- Use Git tag if directory is pristine, otherwise a time-stamp -->
+  <condition property="version.suffix"
+             value="kf_${git.tag.osgi}"
+             else="${build.time}">
+    <and>
+      <isset property="git.pristine"/>
+      <not>
+        <equals arg1="${git.tag.osgi}" arg2=""/>
+      </not>
+    </and>
+  </condition>
+
+  <!-- Set default bundle suffix if not a release build -->
   <condition property="bundle.version.suffix"
              value=""
              else="${version.suffix}">
-    <isset property="version"/>
+    <isset property="release.build"/>
   </condition>
 
   <property name="version.base"       value="6.0.0.snapshot"/>
@@ -79,15 +130,7 @@
 
   <!-- The git tag / branch that this build is made on. Used for viewing -->
   <!-- E.g., "trunk", "tags/2.3.2", "branches/kf_1_support". -->
-  <property name="git.tag"    value="tree/${version}"/>
-
-  <exec executable="/usr/bin/git" outputproperty="git.branch">
-    <arg value="rev-parse"/>
-    <arg value="--abbrev-ref"/>
-    <arg value="HEAD"/>
-  </exec>
-
-  <property name="git.browse.url"    value="${git.repo.url}/tree/${git.branch}"/>
+  <property name="git.browse.url"    value="${git.repo.url}/tree/${git.tag}"/>
 
   <!-- The kind of build, used on the index page for the release. -->
   <property name="build.kind" value="release build"/>
@@ -368,7 +411,7 @@
                 includeSourceFiles="false"
                 includeSourceFileRepositoryLinks="true"
                 rootDir="${knopflerfish.dir}"
-                repositoryURL="${git.repo.url}/${git.tag}/">
+                repositoryURL="${git.browse.url}/">
       <fileset dir="${distrib.osgi.dir}/jars">
         <include name="**/*.jar"/>
         <exclude name="**/*-source.jar"/>
@@ -805,8 +848,6 @@
                      value="${git.tag}"/>
       <replacefilter token="@BUILD_KIND@"
                      value="${build.kind}"/>
-      <replacefilter token="@BRANCH@"
-                     value="${version.branch}"/>
     </replace>
     <copy file="tools/bintray/bin/travis_credentials.sh"
           tofile="${distrib.out.dir}/.travis_credentials.sh">

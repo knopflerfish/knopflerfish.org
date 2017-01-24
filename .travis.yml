@@ -5,6 +5,8 @@ addons:
 android:
   components:
   - build-tools-23.0.1
+git:
+  depth: 3
 jdk:
 - openjdk6
 - oraclejdk8
@@ -12,8 +14,6 @@ env:
   matrix:
   - DEPLOY=true  VER_SUF=      EXTRA=
   - DEPLOY=false VER_SUF=_dex  EXTRA=-DANDROID_HOME=$ANDROID_HOME
-  global:
-    secure: gC8WQOeTK5ZdDhNf9TWu/ig663ds5RIDEAzPIp05/CUD5XRF7oDpbD+IzzPXu7v3ryrcVmt3+1emHt+CfPrgDPAsOm57Zxfc0RDotWqOZNCNcwn/iRgKmw8tNO5e8915CDTnw8d6Rbl+C7cISnb3dLiYGJ/KY2+pVc1h9LQDSKwKRMTiLldn1T7IbLFCuJod+5BSA0wX49GyOPnlj+CKsj9/4zTIDxT97E+Ell5QUGcodBj8vqNGJIQ95U9wSF2qcg5P1PJXf8rYctVSnmsE16KKkmNwz9u3s8MC1jsCDYgJWPioP+8q7tYtkINYHoYoamJntEx7XovxWrehS4PQu0OdfPKfX3VimjNvMiyKFkERQaIOs4jVkii5bxRR0eSSBB/oXtO3wIM2OKujSkLWrz71X2UnSYd2wtK47U8TO/Kq9kUJRufQgE6uIMl9dsO+Vveh6/xHAoYF0LkxC86rN/idnHJCW1NM2EZYqgr5IWSwqtV4NRvsbyAD9IAgFz4PB83YzFlVnvmMC4PqdDYdPcgYgnH83YiFBoJxqPFdzpbS1fe9skmdcapaiVMBvrP/Pe9KZu1199jKf8E+oAuBQXqenbi7fd6Bcm+gQi3+nT/t/BtfgPx8ETC9v4Ke1C2xmhtCDCJOHVsgi2U5XwjlZ666zC9hWeLEvFD8tw2YGwQ=
 before_install:
 - sudo wget http://apache.mirrors.spacedump.net/ant/binaries/apache-ant-1.9.8-bin.tar.gz
 - sudo tar xzf apache-ant-1.9.8-bin.tar.gz
@@ -23,18 +23,26 @@ notifications:
     - devel@makewave.com
     on_success: always
 install: true
-script: apache-ant-1.9.8/bin/ant -Dbuild.kind=Travis_CI_$TRAVIS_JDK_VERSION -Dversion.branch=$TRAVIS_BRANCH$VER_SUF
-  $EXTRA -Dbundle.version.suffix="" distrib_bintray
+script: apache-ant-1.9.8/bin/ant -Dbuild.kind=Travis_CI_$TRAVIS_JDK_VERSION -Dtravis.tag=$TRAVIS_TAG -Dtravis.suffix=$VER_SUF $EXTRA distrib
+before_deploy:
+- openssl aes-256-cbc -K $encrypted_a3ffaab67d90_key -iv $encrypted_a3ffaab67d90_iv -in tools/travis/id_rsa.travis.enc -out tools/travis/id_rsa.travis -d
+- chmod 600 tools/travis/id_rsa.travis
 deploy:
-  provider: bintray
-  file: out/bintray.cfg
-  user: mkwv
-  key:
-    secure: bVBBqXgMaSDe709hwbGa12C57rshOGsSsgZYvV4H3dk76Feg/HGstnKWB2vqdNc8Vni3qL9i0UK04CcbZYlkKWOZcIhCzsV3WPkMOWsNfn24leBw0xourWaVDfPzApnYYU6OtcJ/Eb8ww1xioB+7vmOMO8lBFDb6/cfaczzhZCo1MY814RF+3wysLKSKzjrP+kRknEiOYWl9M1/HfZHjy20PIlHJ6uyP8A5G5/8l4GZuB8Mv3K/aajLggFj9fguu+Dp7+R39VxHin0ZDUDVmoN5lZ3pULPe5TlG6vUx75G/ytx61k9hBtHgZSdBNAU1985c1Lzku6TQGMM+zeEJytOC65DW0rkggwzPp/StPCWuaxfJlUQIfYmbFvxLUZenxkZ1TPdDMJwys8ZUGtWZEtiqE8p/hjAwfAitwVTpOmyb/PQR4BGUt3VmWeLb+X1+D16YFBp/wqtguJOBbzAz2IO4axznyjLo+qHd5Js4GBCUfU4k537fN9e9EMQtu6vQ/WV4qBZj7cZw58QMfN6z7fLifutSYbWRvIJu0Tbbo9OTXzhXycUVtwTlxvHctAeGKAzbCRIH/9GE9T8rwmeZ+R6dLBcItBQ+RRO3E0Zpntj7daIwkXXpDmpXUujNmjJ2TuhWagHJ7L6Pqd5VUgvK8Y4eGvSVHhDWbobkgTZka+jA=
+- provider: releases
+  api_key:
+    secure: rAYBAuFuv12I3BsJHS2Mw5dT1J+zpFx5XpXyVK6+IF1rkt4xL0PfrAjnhEMaBv1rvvliIyXpJQG+v9trrPjnZ5nZi+uqiWn1YAq//1m0ungvGNrrqt+jVRmiR8ma4HfKwoaevnDvT3uRzjw598FxbXhH+2bnUbKAnRkrm4VNTv+wkJDrVvvRBRbEmPX+A8trteSuTbJiDC3vCktWkE1eU6e5unHZMEN5G36BTvolWjoTevYaXjEAEue31jSsmqhGYjDhrU0D+Xl8V2+U75OuEm5FoYXHPIK2aytXwPySZkgBPAAbVY5NBRFi5fjDHXRY71gGusmWk/IDAy0ZzRV8EdaxGnhuBVnbb28T+yIz2L2gtl1qb7E0S8Xli/gjfLLD6lf/slOxRJ5/sjKEEd5Oe2xf7Q4K/rKCkNPnPSf1uvfkRGPSfyw7err0ifYvtIOqD/CvC7cQ32FUZd2zMq4mVtcFr8rovnBkAqlqKoeoWHmbYL0vpBb+kX1rRgQJ+5gKUV+2diDl770Bj44IbDYRBE3id0gI9yykOBzR33T9s7MurvwPcM+Mh3ShJrzB8ZBnmqfMTCoh5N3qTP6WgbIZ5gikdA3k7vrxbmYnPUkYmcGNTwgWTt0hXjL54SrVwK4PacylK5x7SSnc8f9zMuM2eflkaVf3m710uYQcL/QYpzI=
+  file:
+  - out/distrib_$TRAVIS_TAG$VER_SUF/knopflerfish_osgi_sdk_$TRAVIS_TAG$VER_SUF.jar
+  - out/distrib_$TRAVIS_TAG$VER_SUF/knopflerfish_osgi_tiny_$TRAVIS_TAG$VER_SUF.zip
   skip_cleanup: true
   on:
-    branch: master
+    tags: true
     jdk: openjdk6
     condition: $DEPLOY = true
-after_deploy:
-- '[ "$TRAVIS_PULL_REQUEST" = "false" ] && /bin/bash "out/.travis_credentials.sh" && /bin/bash "out/.travis_upload.sh"'
+- provider: script
+  script: tools/travis/kf_upload.sh $TRAVIS_TAG$VER_SUF $TRAVIS_BRANCH
+  skip_cleanup: true
+  on:
+    tags: true
+    jdk: openjdk6
+    condition: $DEPLOY = true
