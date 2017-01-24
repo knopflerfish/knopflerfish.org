@@ -10,7 +10,7 @@ PRIVATE_KEY=tools/travis/id_rsa.travis
 RELEASE_DIR=out/distrib_$1
 KF_SERVER=isora.oderland.com
 KF_USER=makewav1
-KF_RELEASES_DIR=public_html-knopflerfish.org/releases/
+KF_RELEASES_DIR=public_html-knopflerfish.org/releases
 SSH_OPT="StrictHostKeyChecking no"
 
 if [ ! -d "$RELEASE_DIR" ] ; then
@@ -19,7 +19,7 @@ if [ ! -d "$RELEASE_DIR" ] ; then
 fi
 
 echo "Uploading KF release $1 to www.knopflerfish.org"
-scp -rpqB -o "$SSH_OPT" -i $PRIVATE_KEY $RELEASE_DIR $KF_USER@$KF_SERVER:$KF_RELEASES_DIR/$1
+tar czpf - -C $RELEASE_DIR . | ssh -o "$SSH_OPT" -i $PRIVATE_KEY  -l $KF_USER $KF_SERVER "mkdir $KF_RELEASES_DIR/$1 && tar xzpf - -C $KF_RELEASES_DIR/$1"
 
 if [[ "$1" =~ [0-9]+\.[0-9]+\.[0-9]+ ]] ; then
     echo "Official release build, update release soft-link"
