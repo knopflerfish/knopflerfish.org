@@ -44,6 +44,11 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
+### Component (SCR) 6.0.2
+
+* Fixed issue #16, multiple Declarative Services component instances
+  are not created for multiple factory configurations.
+
 ### Component (SCR) 6.0.1
 
 * Fixed issue #14, StackOverflowError when using JAXRS publisher.
