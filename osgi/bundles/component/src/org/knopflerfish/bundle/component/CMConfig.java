@@ -238,7 +238,7 @@ class CMConfig
     }
     if (isSatisfied() && doReport) {
       if (c == factory) {
-        component.cmConfigUpdated(cmpid, true);
+        component.cmConfigUpdated(cmpid, first);
       } else {
         for (String id : getCCIds()) {
           component.cmConfigUpdated(id, first);
