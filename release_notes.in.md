@@ -44,6 +44,14 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
+### HTTP 5.2.1
+
+* Fixed issue #10. ServletResponse.setContentType(null) now resets
+  the content type to default values. This is the same behaviour as jetty.
+
+* ServletResponse.getContentType() is changed to only appends the
+  charset if it has been set explicitly. This is the correct behavior
+  according to the Servlet API Documentation. 
 
 
 Knopflerfish Services
