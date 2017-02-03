@@ -161,12 +161,13 @@ class ReferenceListener
    *
    */
   boolean checkTargetChanged(String ccid, Map<String, Object> dict) {
-    final Filter f = ref.getTarget(dict, "CC id = " + ccid);
-    if (f != null) {
-      return !f.equals(cmTarget);
-    } else {
-      return cmTarget != null;
+    if (dict != null) {
+      final Filter f = ref.getTarget(dict, "CC id = " + ccid);
+      if (f != null) {
+        return !f.equals(cmTarget);
+      }
     }
+    return cmTarget != null;
   }
 
 

@@ -675,23 +675,47 @@ abstract class Component implements org.apache.felix.scr.Component {
     ComponentConfiguration [] cc;
     synchronized (lock) {
       resetCMRev(ccid);
-      if (refs != null) {
-        for (final Reference ref : refs) {
-          ref.remove(ccid);
-        }
-      }
       if (!cmConfig.isSatisfied()) {
         if (cmConfig.isRequired()) {
           if (unresolvedConstraints++ == 0) {
+            state = STATE_ENABLED;
+            if (refs != null) {
+              for (final Reference ref : refs) {
+                ref.remove(ccid);
+              }
+            }
             // TODO do we need to move this outside synchronized
             unsatisfied(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
             return;
           }
         }
+        if (refs != null) {
+          for (final Reference ref : refs) {
+            ref.remove(ccid);
+          }
+        }
       }
       // We move cc here since cmConfigUpdate loses old ccid info
-      cc = compConfigs.remove(ccid);
-      compConfigs.put(NO_CCID, cc);
+      synchronized (compConfigs) {
+        cc = compConfigs.remove(ccid);
+        if (cc != null) {
+          ComponentConfiguration[] old = compConfigs.remove(NO_CCID);
+          if (old != null) {
+            ComponentConfiguration [] merged = new ComponentConfiguration[old.length + 1];
+            int i = -1 - Arrays.binarySearch(old, cc);
+            if (i > 0) {
+              System.arraycopy(old, 0, merged, 0, i);
+            }
+            if (i < old.length) {
+              System.arraycopy(old, i, merged, i+1, old.length - i);
+            }
+            merged[i] = cc[0];
+            compConfigs.put(NO_CCID, merged);
+          } else {
+            compConfigs.put(NO_CCID, cc);
+          }
+        }
+      }
     }
     if (cc != null) {
       cc[0].cmConfigUpdated(NO_CCID, null);

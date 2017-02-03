@@ -87,12 +87,7 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   public Dictionary<String, Object> getProperties() {
-    // TBD, remove this when TCK is correct
-//    if (Activator.TCK_BUG_COMPLIANT) {
-//      return cc.getProperties().writeableCopy();
-//    } else {
-      return cc.getProperties();
-//    }
+    return cc.getProperties();
   }
 
 
