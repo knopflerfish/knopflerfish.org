@@ -477,10 +477,8 @@ abstract class ComponentConfiguration implements Comparable<ComponentConfigurati
     int disposeReason = -1;
     List<ComponentContextImpl> ccis = null;
     synchronized (this) {
-      ccId = ccid;
-      cmDict = dict;
-      ccProps = null;
       if (state == STATE_ACTIVE) { // TODO check this for FactoryComponents
+        ccId = ccid;
         if (dict == null && component.compDesc.getScrNSminor() < 3) {
           disposeReason = ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED;
         } else if (component.modifiedMethod == null
@@ -489,9 +487,13 @@ abstract class ComponentConfiguration implements Comparable<ComponentConfigurati
           disposeReason = dict == null ? ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED
                           : ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_MODIFIED;
         } else {
+          cmDict = dict;
+          ccProps = null;
           ccis = getActiveContexts();
         }
       } else {
+        cmDict = dict;
+        ccProps = null;
         return;
       }
     }

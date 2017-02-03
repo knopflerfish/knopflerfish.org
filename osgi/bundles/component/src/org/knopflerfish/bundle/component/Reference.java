@@ -314,9 +314,9 @@ class Reference implements org.apache.felix.scr.Reference
           listener = null;
           // NYI, optimize, we don't have to checkTargetChanged again
         }
-      } else if (useNoId) {
-        // No change, just make sure that ccid is registered
-        listener.addId(ccid, true);
+      } else {
+        // No change, add new ccid or replace if was NO_CCID.
+        listener.addId(ccid, useNoId);
       }
     }
     if (factoryListeners != null) {
@@ -384,7 +384,11 @@ class Reference implements org.apache.felix.scr.Reference
     if (listener != null) {
       listener.removeId(ccid);
       if (listener.noIds()) {
-        listener.addId(Component.NO_CCID, false);
+        if (listener.checkTargetChanged(Component.NO_CCID, null)) {
+          listener.setTarget(null, null);
+        } else {
+          listener.addId(Component.NO_CCID, false);
+        }
       }
     } else if (factoryListeners != null) {
       final ReferenceListener rl = factoryListeners.remove(ccid);

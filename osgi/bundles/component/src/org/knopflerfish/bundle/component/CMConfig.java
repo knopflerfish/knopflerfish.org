@@ -182,14 +182,14 @@ class CMConfig
             conf = handler.listConfigurations(ConfigurationAdmin.SERVICE_FACTORYPID, cs[j]);
             if (conf != null) {
               for (Configuration c : conf) {
-                pids[i].set(c.getPid(), c.getProperties(), false);
+                pids[i].configSet(pids[i].pid, c.getPid(), c, false);
               }
             }
           }
           if (conf == null) {
             conf = handler.listConfigurations(Constants.SERVICE_PID, cs[j]);
             if (conf != null) {
-              pids[i].set(pids[i].pid, conf[0].getProperties(), false);
+              pids[i].configSet(null, pids[i].pid, conf[0], false);
             }
           }
         }
@@ -370,26 +370,30 @@ class CMConfig
     void configUpdated(String factoryPid, String cpid) {
       Configuration c = getConfiguration(factoryPid, cpid);
       if (c != null) {
-        String p;
-        if (factoryPid != null) {
-          if (component instanceof FactoryComponent) {
-            Activator.logError(bundle.getBundleContext(), "FactoryComponent can not have factory config, ignored", null);
-            return;
-          }
-          if (!factorySet(this)) {
-            Activator.logError(bundle.getBundleContext(), "Component " + component + " has at least two factory CM configurations, " +
-                               " ignoring " + factoryPid, null);
-            return;
-          }
-          p = cpid;
-        } else {
-          if (factoryReset(this)) {
-            resetAll();
-          }
-          p = pid;
-        }
-        set(p, c.getProperties(), true);
+        configSet(factoryPid, cpid, c, true);
       }
+    }
+
+    void configSet(String factoryPid, String cpid, Configuration c, boolean doReport) {
+      String p;
+      if (factoryPid != null) {
+        if (component instanceof FactoryComponent) {
+          Activator.logError(bundle.getBundleContext(), "FactoryComponent can not have factory config, ignored", null);
+          return;
+        }
+        if (!factorySet(this)) {
+          Activator.logError(bundle.getBundleContext(), "Component " + component + " has at least two factory CM configurations, " +
+                             " ignoring " + factoryPid, null);
+          return;
+        }
+        p = cpid;
+      } else {
+        if (factoryReset(this)) {
+          resetAll();
+        }
+        p = pid;
+      }
+      set(p, c.getProperties(), doReport);
     }
 
 

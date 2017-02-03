@@ -44,6 +44,19 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
+### Component (SCR) 6.0.3
+
+* Fixed issue #17, NPE in Component.newComponentConfiguration when
+  multiple component instances are bound to the same service and have
+  the same target propertymultiple Declarative Services component
+  instances are not created for multiple factory configurations.
+
+* Fixed NPE, that occured if you inspected a component with CM config
+  that had been disabled.
+
+* Fixed problem with components not getting factory configuration
+  data present before activation.
+ 
 ### Component (SCR) 6.0.2
 
 * Fixed issue #16, multiple Declarative Services component instances
