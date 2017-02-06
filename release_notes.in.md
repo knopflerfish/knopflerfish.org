@@ -53,6 +53,9 @@ OSGi Compendium Specification
   charset if it has been set explicitly. This is the correct behavior
   according to the Servlet API Documentation. 
 
+* Fixed issue #18. The HTTP server error pages could get an incorrect
+  page encoding.
+
 
 Knopflerfish Services
 ----------------------------------------------------------------------
