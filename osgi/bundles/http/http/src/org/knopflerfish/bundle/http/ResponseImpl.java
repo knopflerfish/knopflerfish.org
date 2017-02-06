@@ -557,32 +557,33 @@ public class ResponseImpl
   public void sendError(int statusCode, String statusMsg)
       throws IOException
   {
-    // Activator.log.info(Thread.currentThread().getName() + " send error: " + statusMsg);
     reset(false);
     
     setStatus(statusCode, statusMsg);
     setContentType("text/html");
-
+    
     @SuppressWarnings("resource")
-    final ServletOutputStream out = new ServletOutputStreamImpl(bodyOut);
-    out.println("<html>");
-    out.println("<head>");
-    out.print("<title>");
-    out.print(this.statusCode);
-    out.print(" ");
-    out.print(this.statusMsg);
-    out.println("</title>");
-    out.println("</head>");
-    out.println("<body>");
-    out.print("<h1>");
-    out.print(this.statusCode);
-    out.print(" ");
-    out.print(this.statusMsg);
-    out.println("</h1>");
-    out.println("</body>");
-    out.println("</html>");
+    // final ServletOutputStream out = new ServletOutputStreamImpl(bodyOut);
+    final PrintWriter pw = getWriter();
+    
+    pw.println("<html>");
+    pw.println("<head>");
+    pw.print("<title>");
+    pw.print(this.statusCode);
+    pw.print(" ");
+    pw.print(this.statusMsg);
+    pw.println("</title>");
+    pw.println("</head>");
+    pw.println("<body>");
+    pw.print("<h1>");
+    pw.print(this.statusCode);
+    pw.print(" ");
+    pw.print(this.statusMsg);
+    pw.println("</h1>");
+    pw.println("</body>");
+    pw.println("</html>");
 
-    commit();
+    // commit();
   }
 
   // HACK SMA added the method to handle 100-continue

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, KNOPFLERFISH project
+ * Copyright (c) 2015-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,7 +91,7 @@ public class BodyOutputStreamZip  extends BodyOutputStream
   public synchronized void write(int b)
       throws IOException
   {
-    if (!useGzip) {
+    if (useGzip) {
       byte[] buf = new byte[1];
       buf[0] = (byte)(b & 0xff);
       write(buf, 0, 1);
@@ -110,7 +110,7 @@ public class BodyOutputStreamZip  extends BodyOutputStream
       return;
     }
     
-    // log("write(): "  + " off=" + off + " len: " + len);
+    // log("BodyOutputStreamZip.write(): "  + " off=" + off + " len: " + len);
     // new Throwable("").printStackTrace(System.out);
     
     crc.update(b, off, len);
