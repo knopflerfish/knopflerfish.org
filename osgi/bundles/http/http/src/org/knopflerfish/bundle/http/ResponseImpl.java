@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013,2015 KNOPFLERFISH project
+ * Copyright (c) 2003-2017 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -420,21 +420,33 @@ public class ResponseImpl
   @Override
   public void setHeader(String name, String value)
   {
-    if (value == null) { // NYI: is this allowed?
-      if (name.equals(HeaderBase.CONTENT_LENGTH_HEADER_KEY)) {
+    if (HeaderBase.CONTENT_TYPE_HEADER_KEY.equalsIgnoreCase(name)) {
+      setContentType(value);
+      return;
+    }
+    else if (HeaderBase.CONTENT_LENGTH_HEADER_KEY.equalsIgnoreCase(name)) {
+      if (value == null) {
         bodyOut.setContentLength(Integer.MAX_VALUE);
       }
-      headers.remove(name);
-    } else {
-      if (name.equals(HeaderBase.CONTENT_LENGTH_HEADER_KEY)) {
+      else {
         bodyOut.setContentLength(Integer.parseInt(value));
       }
+    }
+      
+    doSetHeader(name, value);
+  }
+
+  private void doSetHeader(String name, String value) {
+    if (value == null) {
+      headers.remove(name);
+    }
+    else {
       final ArrayList<String> values = new ArrayList<String>(5);
       values.add(value);
       headers.put(name, values);
     }
   }
-
+  
   public String getHeader(String name)
   {
     final ArrayList<?> values = (ArrayList<?>) headers.get(name);
@@ -545,32 +557,33 @@ public class ResponseImpl
   public void sendError(int statusCode, String statusMsg)
       throws IOException
   {
-    // Activator.log.info(Thread.currentThread().getName() + " send error: " + statusMsg);
     reset(false);
     
     setStatus(statusCode, statusMsg);
     setContentType("text/html");
-
+    
     @SuppressWarnings("resource")
-    final ServletOutputStream out = new ServletOutputStreamImpl(bodyOut);
-    out.println("<html>");
-    out.println("<head>");
-    out.print("<title>");
-    out.print(this.statusCode);
-    out.print(" ");
-    out.print(this.statusMsg);
-    out.println("</title>");
-    out.println("</head>");
-    out.println("<body>");
-    out.print("<h1>");
-    out.print(this.statusCode);
-    out.print(" ");
-    out.print(this.statusMsg);
-    out.println("</h1>");
-    out.println("</body>");
-    out.println("</html>");
+    // final ServletOutputStream out = new ServletOutputStreamImpl(bodyOut);
+    final PrintWriter pw = getWriter();
+    
+    pw.println("<html>");
+    pw.println("<head>");
+    pw.print("<title>");
+    pw.print(this.statusCode);
+    pw.print(" ");
+    pw.print(this.statusMsg);
+    pw.println("</title>");
+    pw.println("</head>");
+    pw.println("<body>");
+    pw.print("<h1>");
+    pw.print(this.statusCode);
+    pw.print(" ");
+    pw.print(this.statusMsg);
+    pw.println("</h1>");
+    pw.println("</body>");
+    pw.println("</html>");
 
-    commit();
+    // commit();
   }
 
   // HACK SMA added the method to handle 100-continue
@@ -720,33 +733,37 @@ public class ResponseImpl
       // implement some other mechanism...
       // setCharacterEncoding(characterEncoding);
     }
-    if (null != contentTypeBare) {
-      setHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY,
-                HttpUtil.buildContentType(contentTypeBare,
-                                          getCharacterEncoding()));
-    }
+    // Changed to only set header before commit  
+    //  if (null != contentTypeBare) {
+    // setHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY,
+    //                HttpUtil.buildContentType(contentTypeBare,
+    //  getCharacterEncoding()));
+    //  }
   }
 
   @Override
   public void setContentType(String contentType)
   {
-    if (isCommitted()) {
+    if (isCommitted() || pw != null) {
       return;
     }
+    
+    // Allow reset of content type to compliant with Jetty
+    if (null == contentType) {
+      if (useGzip && bodyOut.inProgress()) {
+        useGzip = false;
+        bodyOut.reset(false);
+      }
+      contentTypeBare = null;
+      charEncoding = null;
+      headers.remove(HeaderBase.CONTENT_TYPE_HEADER_KEY);
+    	return;
+    }
+    
     final StringBuffer sb = new StringBuffer(contentType.length());
     final String newCharEncoding = HttpUtil.parseContentType(contentType, sb);
     contentTypeBare = sb.toString();
-    if (null == pw) {
-      if (null != newCharEncoding) {
-        setCharacterEncoding(newCharEncoding);
-      }
-    }
-    if (null != contentTypeBare) {
-      setHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY,
-                HttpUtil.buildContentType(contentTypeBare,
-                                          getCharacterEncoding()));
-    }
-    
+    setCharacterEncoding(newCharEncoding);
     if (!bodyOut.inProgress() &&
         httpConfig.checkCompressMimeType(contentTypeBare) &&
         HttpUtil.useGZIPEncoding(request)) {
@@ -754,16 +771,18 @@ public class ResponseImpl
       bodyOut.useGzip();
     }
   }
+  
 
-  @Override
+@Override
   public void setCharacterEncoding(String enc)
   {
-    charEncoding = enc;
-    if (null != contentTypeBare) {
-      setHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY,
-                HttpUtil.buildContentType(contentTypeBare,
-                                          getCharacterEncoding()));
+    if (null != contentTypeBare && 
+        (charEncoding != enc ||!containsHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY))) {
+      doSetHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY,
+                  HttpUtil.buildContentTypeSimple(contentTypeBare,
+                                                  enc));
     }
+    charEncoding = enc;
   }
 
   @Override

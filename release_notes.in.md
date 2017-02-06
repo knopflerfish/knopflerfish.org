@@ -82,6 +82,18 @@ OSGi Compendium Specification
 * Fixed missing reference DTOs for
   ServiceComponentRuntime.getComponentConfigurationDTOs.
 
+### HTTP 5.2.1
+
+* Fixed issue #10. ServletResponse.setContentType(null) now resets
+  the content type to default values. This is the same behaviour as jetty.
+
+* ServletResponse.getContentType() is changed to only appends the
+  charset if it has been set explicitly. This is the correct behavior
+  according to the Servlet API Documentation. 
+
+* Fixed issue #18. The HTTP server error pages could get an incorrect
+  page encoding.
+
 
 Knopflerfish Services
 ----------------------------------------------------------------------
@@ -90,4 +102,25 @@ Knopflerfish Services
 
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
