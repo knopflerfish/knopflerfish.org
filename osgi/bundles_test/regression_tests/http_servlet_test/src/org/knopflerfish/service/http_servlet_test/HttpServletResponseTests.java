@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 KNOPFLERFISH project
+ * Copyright (c) 2015-2017 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,8 @@ public class HttpServletResponseTests extends TestCase
   boolean isCommitted = false;
   int bufferSize;
   
+  static final String TEXT_HTML_UTF8 = "text/html;charset=UTF-8";
+  
   public HttpServletResponseTests() {
     super();
   }
@@ -79,18 +81,45 @@ public class HttpServletResponseTests extends TestCase
   public void testContentTypeAndCharacterEncoding() {
     String basetype = "text/html";
     String type = basetype;
-    String utf8_encoding="UTF-8";
-    
-    // The server seem to append the default charset, we assuem this is OK
+
+    // The server seem to append the default charset, we assume this is OK
+    assertNull("Expected null ContentType", response.getContentType());
     response.setContentType(type);
-    type += ";charset=" + TestData.ISO_ENCODING;
     assertEquals(type, response.getContentType());
-    
+ 
     assertEquals(TestData.ISO_ENCODING, response.getCharacterEncoding());
-    type = basetype + ";charset=" + utf8_encoding;
+
+    response.setCharacterEncoding(TestData.UTF_16_ENCODING);
+    assertEquals(TestData.UTF_16_ENCODING, response.getCharacterEncoding());
+    assertEquals(type + ";charset=" + TestData.UTF_16_ENCODING, response.getContentType());
+    
+    type = basetype + ";charset=" + TestData.UTF_8_ENCODING;
     response.setContentType(type);
     assertEquals(type, response.getContentType());
-    assertEquals(utf8_encoding, response.getCharacterEncoding());
+    assertEquals(TestData.UTF_8_ENCODING, response.getCharacterEncoding());
   }
-      
+  
+  public void testContentTypeViaSetHeader() {
+    String basetype = "text/html";
+    
+    response.setHeader("Content-Type", basetype);
+    assertEquals(basetype, response.getContentType());
+    assertEquals(TestData.ISO_ENCODING, response.getCharacterEncoding());
+    
+    response.setHeader("Content-Type", TEXT_HTML_UTF8);
+    assertEquals(TEXT_HTML_UTF8, response.getContentType());
+    assertEquals(TestData.UTF_8_ENCODING, response.getCharacterEncoding());
+  }
+
+  public void testResettingContentType() {
+    String type = "text/html";
+    
+    response.setContentType(type);
+    response.setCharacterEncoding(null);
+    assertEquals("Expected content type as set: " + type, type, response.getContentType());
+    response.setContentType(null);
+    assertNull("Expected null ContentType", response.getContentType());
+    assertEquals("Expected the default Character Encoding", TestData.ISO_ENCODING, response.getCharacterEncoding());
+  }
+    
 }

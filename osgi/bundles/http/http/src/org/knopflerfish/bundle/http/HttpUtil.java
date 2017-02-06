@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -416,6 +416,14 @@ public class HttpUtil
     return sb.toString();
   }
 
+  public static String buildContentTypeSimple(String contentTypeBare,
+                                              String characterEncoding)
+  {
+    if (characterEncoding == null)
+      return contentTypeBare;
+    
+    return contentTypeBare + ";charset=" + characterEncoding;
+  }
 
   /**
    * Class representing a parameter value in an HTTP {@code Access-XXX}-header.
