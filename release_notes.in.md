@@ -16,6 +16,13 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
+### Framework 8.0.4
+
+* Fixed issue #15. If you had two fragment or more that imports and
+  exports two packages or more between themselves and they had bundle
+  ids less than the host bundle, then if you resolved the host the
+  fragments would not attach properly.
+
 ### Framework 8.0.3
 
 * Fixed issue #7. Always allow start of read-only unpacked bundles.
@@ -56,6 +63,10 @@ OSGi Compendium Specification
 
 * Fixed problem with components not getting factory configuration
   data present before activation.
+ 
+* Fixed problem with component deactivation method not getting
+  factory configuration properties if multiple factory configuration
+  instances were registered.
  
 ### Component (SCR) 6.0.2
 
