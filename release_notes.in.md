@@ -87,13 +87,20 @@ OSGi Compendium Specification
 * Fixed issue #10. ServletResponse.setContentType(null) now resets
   the content type to default values. This is the same behaviour as jetty.
 
-* ServletResponse.getContentType() is changed to only appends the
+* ServletResponse.getContentType() is changed to only append the
   charset if it has been set explicitly. This is the correct behavior
   according to the Servlet API Documentation. 
 
 * Fixed issue #18. The HTTP server error pages could get an incorrect
   page encoding.
 
+### Log 6.0.0
+
+* Changed the bundle symbolic name to **org.knopflerfish.bundle.log**
+  from org.knopflerfish.log. This change will make the the log bundle's
+  symbolic name in line with the symbolic name's of all other
+  Knopflerfish bundle. See issue #20.
+  
 
 Knopflerfish Services
 ----------------------------------------------------------------------
