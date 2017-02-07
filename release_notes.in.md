@@ -110,6 +110,10 @@ Knopflerfish Services
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
 
+### Maven
+
+* The maven group id of all Knopflerfish artifacts has been changed to
+  include the Knopflerfish major version, e.g. **org.knopflerfish.kf6**.
 
 
 
