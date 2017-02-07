@@ -190,13 +190,19 @@ import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
  */
 public class BundleMvnAntTask extends Task {
 
+  
   private BundleArchives bas;
 
   public BundleMvnAntTask() {
   }
 
+  private String groupVersion = null;
+  public void setGroupVersion(final String s) {
+    this.groupVersion = s;
+  }
 
-  private String groupId = "org.knopflerfish";
+  private final static String BASE_GROUP_ID = "org.knopflerfish";
+  private String groupId = BASE_GROUP_ID;
   public void setGroupId(final String s) {
     this.groupId = s;
   }
@@ -291,6 +297,10 @@ public class BundleMvnAntTask extends Task {
       throw new BuildException("Mandatory attribute 'repoDir' missing.");
     }
 
+    if (null != groupVersion) {
+      groupId += "." + groupVersion;
+    }
+    
     log("Loading bundle information:", Project.MSG_VERBOSE);
     bas = new BundleArchives(this, rcs, true);
     bas.doProviders();
@@ -686,6 +696,7 @@ public class BundleMvnAntTask extends Task {
   private void addMavenCoordinates(final Element el,
                                    final BundleArchive ba)
   {
+    /*
     final int ix = ba.bsn.lastIndexOf('.');
     final String aId = -1==ix ? ba.bsn : ba.bsn.substring(ix+1);
     final String gId = -1==ix ? (String) groupId : ba.bsn.substring(0,ix);
@@ -696,6 +707,11 @@ public class BundleMvnAntTask extends Task {
     }
     el.setAttribute("artifactId", aId);
     el.setAttribute("version", v.toString());
+    */
+    el.setAttribute("groupId", getGroupId(ba));
+    el.setAttribute("artifactId", getArtifactId(ba));
+    el.setAttribute("version", getVersion(ba));
+
   }
 
   /**
@@ -1178,10 +1194,21 @@ public class BundleMvnAntTask extends Task {
     final int ix = ba.bsn.lastIndexOf('.');
     final String gId = -1==ix ? (String) groupId : ba.bsn.substring(0,ix);
 
-    if (null!=gId) 
-      return gId;
+    if (null!=gId) {
+      // return (groupVersion != null) ? gId + "." + groupVersion : gId;
+      if (gId.startsWith(groupId)) {
+	return gId;
+      }
+      else if (gId.startsWith(BASE_GROUP_ID)) {
+	return groupId + gId.substring(BASE_GROUP_ID.length());
+      }
+      else {
+	log("Suspicious groupId derived from BSN: " + gId + " resetting to default");
+	return groupId;
+      }
+    }
     else
-      return "org.knopflerfish";
+      return groupId; // "org.knopflerfish";
   }
 
   private String getArtifactId(final BundleArchive ba)  {
