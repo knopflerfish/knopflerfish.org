@@ -116,6 +116,8 @@
     <equals arg1="${version.suffix}" arg2=""/>
   </condition>
 
+  <property name="kf.groupversion"	value="kf6" />
+
   <!-- The release date of this release -->
   <!-- *** Un-comment and set here on release branch. *** -->
   <!-- Defaults to current date, set here if another value is wanted. -->
@@ -432,6 +434,7 @@
                   outDir="${distrib.tmp.dir}"
                   buildFile="toMvn.xml"
                   dependencyManagementFile="KF-${version}_dependencyManagement.xml"
+		  groupVersion="${kf.groupversion}"
                   version="${version}"
                   settingsFile="${knopflerfish.dir}/tools/mvnrepo/settings.xml">
       <!-- Include framework.jar -->
