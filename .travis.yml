@@ -23,7 +23,7 @@ notifications:
     - devel@makewave.com
     on_success: always
 install: true
-script: apache-ant-1.9.8/bin/ant -Dbuild.kind=Travis_CI_$TRAVIS_JDK_VERSION -Dtravis.tag=$TRAVIS_TAG -Dtravis.suffix=$VER_SUF -Dgit.pristine=true $EXTRA distrib
+script: apache-ant-1.9.8/bin/ant -Dbuild.kind=Travis_CI_$TRAVIS_JDK_VERSION -Dtravis.tag=$TRAVIS_TAG -Dtravis.suffix=$VER_SUF -Dgit.pristine=true $EXTRA distrib && ! (grep '<case ' junit_grunt/index.xml | grep -v passed)
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_a3ffaab67d90_key -iv $encrypted_a3ffaab67d90_iv -in tools/travis/id_rsa.travis.enc -out tools/travis/id_rsa.travis -d
 - chmod 600 tools/travis/id_rsa.travis
@@ -40,7 +40,7 @@ deploy:
     jdk: openjdk6
     condition: $DEPLOY = true
 - provider: script
-  script: tools/travis/kf_upload.sh $TRAVIS_TAG$VER_SUF $TRAVIS_BRANCH
+  script: tools/travis/kf_upload.sh $TRAVIS_TAG$VER_SUF
   skip_cleanup: true
   on:
     tags: true
