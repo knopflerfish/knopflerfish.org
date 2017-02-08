@@ -96,6 +96,7 @@
              else="${build.time}">
     <and>
       <isset property="git.pristine"/>
+      <isset property="git.tag.osgi"/>
       <not>
         <equals arg1="${git.tag.osgi}" arg2=""/>
       </not>
