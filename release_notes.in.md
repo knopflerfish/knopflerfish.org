@@ -115,23 +115,7 @@ Misc, start scripts, build system etc
 * The maven group id of all Knopflerfish artifacts has been changed to
   include the Knopflerfish major version, e.g. **org.knopflerfish.kf6**.
 
+### Regression tests
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+* Changed digest from MD5 to SHA256 for certificate test, since newer
+  java releases has disabled MD5.
