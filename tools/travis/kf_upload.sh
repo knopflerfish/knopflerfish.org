@@ -21,7 +21,7 @@ fi
 echo "Uploading KF release $1 to www.knopflerfish.org"
 tar czpf - -C $RELEASE_DIR . | ssh -o "$SSH_OPT" -i $PRIVATE_KEY  -l $KF_USER $KF_SERVER "mkdir $KF_RELEASES_DIR/$1 && tar xzpf - -C $KF_RELEASES_DIR/$1"
 
-if [[ "$1" =~ [0-9]+\.[0-9]+\.[0-9]+ ]] ; then
+if [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
     echo "Official release build, update release soft-link"
     MAJOR=`echo $1 | cut -d. -f1`
     LINK="current-kf_$MAJOR"
