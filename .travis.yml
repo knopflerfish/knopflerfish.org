@@ -15,7 +15,7 @@ env:
   - DEPLOY=true  VER_SUF=      EXTRA=
   - DEPLOY=false VER_SUF=_dex  EXTRA=-DANDROID_HOME=$ANDROID_HOME
 before_install:
-- sudo wget http://apache.mirrors.spacedump.net/ant/binaries/apache-ant-1.9.8-bin.tar.gz
+- sudo wget https://archive.apache.org/dist/ant/binaries/apache-ant-1.9.8-bin.tar.gz
 - sudo tar xzf apache-ant-1.9.8-bin.tar.gz
 notifications:
   email:
