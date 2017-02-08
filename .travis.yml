@@ -6,7 +6,7 @@ android:
   components:
   - build-tools-23.0.1
 git:
-  depth: 3
+  depth: 50
 jdk:
 - openjdk6
 - oraclejdk8
