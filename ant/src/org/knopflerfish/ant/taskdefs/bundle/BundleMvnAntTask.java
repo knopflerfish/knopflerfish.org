@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1203,8 +1203,9 @@ public class BundleMvnAntTask extends Task {
 	return groupId + gId.substring(BASE_GROUP_ID.length());
       }
       else {
-	log("Suspicious groupId derived from BSN: " + gId + " resetting to default");
-	return groupId;
+	// log("Suspicious groupId derived from BSN: " + gId + " resetting to default");
+	// return groupId;
+	return gId;
       }
     }
     else
