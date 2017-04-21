@@ -1239,6 +1239,8 @@ public class Archive implements FileArchive {
    * @exception IllegalArgumentException if we have a broken manifest.
    */
   private boolean needUnpack(Attributes a) {
+    if( fileIsReference && file.isDirectory())
+        return false;
     final List<HeaderEntry> nc = Util
         .parseManifestHeader(Constants.BUNDLE_NATIVECODE,
                              a.getValue(Constants.BUNDLE_NATIVECODE), false,
