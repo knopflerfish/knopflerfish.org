@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2016, KNOPFLERFISH project
+ * Copyright (c) 2003-2017, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -416,11 +416,11 @@ class Listeners {
 
     fwCtx.serviceHooks.filterServiceEventReceivers(evt, receivers);
 
+    final ServicePermission perm = secure.checkPermissions() ?
+      new ServicePermission(sr, ServicePermission.GET) : null;
     for (final ServiceListenerEntry l : receivers) {
       try {
-        if (!l.isRemoved()
-            && (!secure.checkPermissions() ||
-                l.bc.bundle.hasPermission(new ServicePermission(sr, ServicePermission.GET)))) {
+        if (perm == null || l.bc.bundle.hasPermission(perm)) {
           final boolean testAssignable = !(l.listener instanceof AllServiceListener);
           for (int i = 0; i < classes.length; i++) {
             if (testAssignable && !sr.isAssignableTo(l.bc.bundle, classes[i])){

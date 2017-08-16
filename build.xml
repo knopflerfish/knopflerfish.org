@@ -110,7 +110,7 @@
     <isset property="release.build"/>
   </condition>
 
-  <property name="version.base"       value="6.0.0.snapshot"/>
+  <property name="version.base"       value="6.1.0.snapshot"/>
   <condition property="version"
              value="${version.base}"
              else="${version.base}-${version.suffix}">
@@ -122,10 +122,10 @@
   <!-- The release date of this release -->
   <!-- *** Un-comment and set here on release branch. *** -->
   <!-- Defaults to current date, set here if another value is wanted. -->
-  <!-- property name="release.date"     value="2016-10-21"/-->
+  <!-- property name="release.date"     value="2017-02-08"/-->
 
   <!-- The previous official release version for this build -->
-  <property name="version.previous"   value="6.0.0"/>
+  <property name="version.previous"   value="6.1.0"/>
 
   <!-- The URL to the root of the git-repository -->
   <property name="git.repo.url"
