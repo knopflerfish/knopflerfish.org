@@ -198,7 +198,7 @@
   <property name="parboiled-java.jar"		value="parboiled-java-${parboiled-java.version}.jar" />
   <property name="parboiled-java.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-java/${parboiled-java.version}/${parboiled-java.jar}" />
 
-  <property name="asm-all.url"		value="http://maven.wso2.org/nexus/content/shadows/central-m1/org.ow2.asm/jars/${asm-all.jar}" />
+  <property name="asm-all.url"		value="http://central.maven.org/maven2/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" />
 
   <target name="install_pegdown">
     <get src="${pegdown.url}"
