@@ -35,7 +35,7 @@ run_gradle
 
 rsync -r -a -v -i -e "ssh -o $SSH_OPT -i $PRIVATE_KEY" $MVN_LOCAL_REMOTE_DIR/ "${KF_USER}@${KF_SERVER}:${MVN_REMOTE_DIR}"
 
-Echo "Uploading KF release $1 to www.knopflerfish.org"
+echo "Uploading KF release $1 to www.knopflerfish.org"
 tar czpf - -C $RELEASE_DIR . | ssh -o "$SSH_OPT" -i $PRIVATE_KEY  -l $KF_USER $KF_SERVER "mkdir $KF_RELEASES_DIR/$1 && tar xzpf - -C $KF_RELEASES_DIR/$1"
 
 if [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
