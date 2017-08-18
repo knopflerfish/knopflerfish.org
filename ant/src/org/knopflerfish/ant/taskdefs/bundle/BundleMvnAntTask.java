@@ -46,6 +46,8 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.io.FileWriter;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -258,6 +260,18 @@ public class BundleMvnAntTask extends Task {
     repoDir = f;
   }
 
+  private URL mergeRepoURL;
+  public void setMergeRepoURL(final String s) {
+    try {
+      mergeRepoURL = new URL(s);
+    }
+    catch (MalformedURLException e) {
+      final String msg = "Bad merge repo URL: " + s;
+      log(msg, Project.MSG_ERR);
+      throw new BuildException(msg, e);
+    }
+  }
+  
   private File settingsFile;
   public void setSettingsFile(File f) {
     if(null!=f && f.exists() && !f.canRead()) {
@@ -320,6 +334,12 @@ public class BundleMvnAntTask extends Task {
   private void writeGradleBuildFile()
     throws IOException
   {
+
+    if (mergeRepoURL == null) {
+      log("Merge repo URL not set, no gradle publish file created");
+      return;
+    }
+    
     String gradleBuildFileName = "build.gradle";
     
     log("Creating gradle build file: " + gradleBuildFileName, Project.MSG_VERBOSE);
@@ -329,9 +349,14 @@ public class BundleMvnAntTask extends Task {
     fw.write("apply plugin: 'maven-publish'\n");
     fw.write("publishing {\n");
     fw.write("repositories {\n");
+    // It's possible to create both maven repos, but not used at the moment
+    // fw.write("maven {\n");
+    // fw.write("url \"file:///" + repoDir.getAbsolutePath() + "\"\n");
+    // fw.write("}\n");
     fw.write("maven {\n");
-    fw.write("url \"file:///Users/cl/rkf/knopflerfish.github.io/maven2\"\n");
+    fw.write("url \"" + mergeRepoURL + "\"\n");
     fw.write("}\n");
+  
     fw.write("publications {\n");
 
     final String prefix1 = "  ";
