@@ -29,11 +29,11 @@ fi
 # Merge into the main maven repo, fetch, update and push back up
 mkdir -p $MVN_LOCAL_REMOTE_DIR
 
-rsync -r -a -v -e ssh -o "$SSH_OPT" -i $PRIVATE_KEY "${KF_USER}@${KF_SERVER}:${MVN_REMOTE_DIR}" $MVN_LOCAL_REMOTE_DIR
+rsync -r -a -v -e 'ssh -o "$SSH_OPT" -i $PRIVATE_KEY' "${KF_USER}@${KF_SERVER}:${MVN_REMOTE_DIR}" $MVN_LOCAL_REMOTE_DIR
 
 run_gradle
 
-rsync -r -a -v -i -e ssh -o "$SSH_OPT" -i $PRIVATE_KEY $MVN_LOCAL_REMOTE_DIR/ "${KF_USER}@${KF_SERVER}:${MVN_REMOTE_DIR}"
+rsync -r -a -v -i -e 'ssh -o "$SSH_OPT" -i $PRIVATE_KEY' $MVN_LOCAL_REMOTE_DIR/ "${KF_USER}@${KF_SERVER}:${MVN_REMOTE_DIR}"
 
 Echo "Uploading KF release $1 to www.knopflerfish.org"
 tar czpf - -C $RELEASE_DIR . | ssh -o "$SSH_OPT" -i $PRIVATE_KEY  -l $KF_USER $KF_SERVER "mkdir $KF_RELEASES_DIR/$1 && tar xzpf - -C $KF_RELEASES_DIR/$1"
