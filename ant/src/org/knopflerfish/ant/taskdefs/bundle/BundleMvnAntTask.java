@@ -46,6 +46,8 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.io.FileWriter;
+import java.net.URL;
+import java.net.MalformedURLException;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -223,7 +225,7 @@ public class BundleMvnAntTask extends Task {
   public void setOutDir(File f) {
     outDir = f;
   }
-
+  
   private String buildFileName;
   private File buildFile;
 
@@ -258,6 +260,11 @@ public class BundleMvnAntTask extends Task {
     repoDir = f;
   }
 
+  private File mergeRepoDir;
+  public void setMergeRepoDir(final File f) {
+    mergeRepoDir = f;
+  }
+  
   private File settingsFile;
   public void setSettingsFile(File f) {
     if(null!=f && f.exists() && !f.canRead()) {
@@ -320,6 +327,12 @@ public class BundleMvnAntTask extends Task {
   private void writeGradleBuildFile()
     throws IOException
   {
+
+    if (mergeRepoDir == null) {
+      log("Merge repo URL not set, no gradle publish file created");
+      return;
+    }
+    
     String gradleBuildFileName = "build.gradle";
     
     log("Creating gradle build file: " + gradleBuildFileName, Project.MSG_VERBOSE);
@@ -329,14 +342,19 @@ public class BundleMvnAntTask extends Task {
     fw.write("apply plugin: 'maven-publish'\n");
     fw.write("publishing {\n");
     fw.write("repositories {\n");
+    // It's possible to create both maven repos, but not used at the moment
+    // fw.write("maven {\n");
+    // fw.write("url \"file:///" + repoDir.getAbsolutePath() + "\"\n");
+    // fw.write("}\n");
     fw.write("maven {\n");
-    fw.write("url \"file:///Users/cl/rkf/knopflerfish.github.io/maven2\"\n");
+    fw.write("url \"file:///" + mergeRepoDir + "\"\n");
     fw.write("}\n");
+    
     fw.write("publications {\n");
-
+    
     final String prefix1 = "  ";
     final String prefix2 = prefix1 + "  ";
-
+    
     final StringBuffer targetNames = new StringBuffer(2048);
 
     for (final Entry<String,SortedSet<BundleArchive>> entry : bas.bsnToBundleArchives.entrySet()) {
@@ -390,11 +408,21 @@ public class BundleMvnAntTask extends Task {
 
       }
       fw.write("}\n");
-
+      
     }
     fw.write("}\n");
     fw.write("}\n");
     fw.write("}\n");
+    
+    // Task for copying the dependency file
+    fw.write("task updateMavenRepo(type: Copy) {\n");
+    fw.write("dependsOn publish\n");
+    fw.write("from '" + repoDir.getAbsolutePath() + "/" + getGroupIdPath() + "'\n");
+    fw.write("include '" + dependencyManagementFile.getName() + "'\n");
+    fw.write("rename ('KF-(.*)', 'KF-kf6-$1')\n");
+    fw.write("into '" + mergeRepoDir.getAbsolutePath() + "/" + getGroupIdPath() + "'\n");
+    fw.write("}\n");
+    
     fw.close();
     log("wrote " + gradleBuildFileName, Project.MSG_VERBOSE);
   }
@@ -1224,6 +1252,16 @@ public class BundleMvnAntTask extends Task {
 
   private static String fixGradleString(String s) {
     return replace(s, "'", "\\'");
+  }
+  
+  private String getGroupIdPath() {
+    String gid = BASE_GROUP_ID;
+
+    if (null != groupVersion) {
+      gid += "." + groupVersion;
+    }
+
+    return replace(gid, ".", "/");
   }
   
 }
