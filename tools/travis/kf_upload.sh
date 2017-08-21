@@ -34,15 +34,12 @@ if [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
     LINK="current-kf_$MAJOR"
     ssh -n -o "$SSH_OPT" -i $PRIVATE_KEY -l $KF_USER $KF_SERVER "cd $KF_RELEASES_DIR && rm $LINK && ln -s $1 $LINK"
     MVN_REMOTE_DIR=/home/makewav1/public_html-resources.knopflerfish.org/repo/maven2-release/
-else
-    MVN_REMOTE_DIR=/home/makewav1/public_html-resources.knopflerfish.org/repo/maven2-test/
+    # Merge into the main maven repo, fetch, update and push back up
+    mkdir -p $MVN_LOCAL_REMOTE_DIR
+
+    rsync -r -a -v -e "ssh -o $SSH_OPT -i $PRIVATE_KEY" "${KF_USER}@${KF_SERVER}:${MVN_REMOTE_DIR}" $MVN_LOCAL_REMOTE_DIR
+
+    run_gradle
+
+    rsync -r -a -v -i -e "ssh -o $SSH_OPT -i $PRIVATE_KEY" $MVN_LOCAL_REMOTE_DIR/ "${KF_USER}@${KF_SERVER}:${MVN_REMOTE_DIR}"
 fi
-
-# Merge into the main maven repo, fetch, update and push back up
-mkdir -p $MVN_LOCAL_REMOTE_DIR
-
-rsync -r -a -v -e "ssh -o $SSH_OPT -i $PRIVATE_KEY" "${KF_USER}@${KF_SERVER}:${MVN_REMOTE_DIR}" $MVN_LOCAL_REMOTE_DIR
-
-run_gradle
-
-rsync -r -a -v -i -e "ssh -o $SSH_OPT -i $PRIVATE_KEY" $MVN_LOCAL_REMOTE_DIR/ "${KF_USER}@${KF_SERVER}:${MVN_REMOTE_DIR}"
