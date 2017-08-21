@@ -18,7 +18,7 @@ SSH_OPT="StrictHostKeyChecking=no"
 MVN_LOCAL_REMOTE_DIR="$BUILD_TMP_DIR/remote_maven2"
 
 run_gradle() {
-    (cd $BUILD_TMP_DIR; gradle publish)
+    (cd $BUILD_TMP_DIR; $GRADLE_HOME/bin/gradle publish)
 }
 
 if [ ! -d "$RELEASE_DIR" ] ; then
