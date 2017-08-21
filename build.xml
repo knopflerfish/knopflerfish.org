@@ -167,6 +167,10 @@
             location="${distrib.doc.dir}/bundledoc"/>
   <property name="distrib.mvn.repo.dir"
             location="${distrib.dir}/maven2"/>
+  <property name="distrib.mvn.remote.repo.dir"
+            location="${distrib.tmp.dir}/remote_maven2"/>
+  <property name="distrib.mvn.remote.repo"
+	    value="file:///${distrib.mvn.remote.repo.dir}"/>
   <property name="distrib.sdk.name"
 	    value="knopflerfish_osgi_sdk_${version}" />
   <property name="distrib.sdk.file"
@@ -432,6 +436,7 @@
 
     <bundleMvnAnt templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
                   repoDir="${distrib.mvn.repo.dir}"
+		  mergeRepoDir="${distrib.mvn.remote.repo.dir}"
                   outDir="${distrib.tmp.dir}"
                   buildFile="toMvn.xml"
                   dependencyManagementFile="KF-${version}_dependencyManagement.xml"
