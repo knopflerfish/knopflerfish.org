@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <!--
+  <prerequisites>
+    <maven>2.2.1</maven>
+  </prerequisites>
+  -->
+
+  <groupId>org.knopflerfish.kf6</groupId>
+  <artifactId>mvntest-basic</artifactId>
+  <packaging>jar</packaging>
+  <version>0.1</version>
+
+  <name>KF Maven Test Build Bundle - Basic</name>
+
+  <repositories>
+    <repository>
+      <!-- <id>Knopflerfish 6 Repository</id> -->
+      <id>kf6</id>
+      <name>Knopflerfish 6 Releases Repository</name>
+      <url>http://resources.knopflerfish.org/repo/maven2/release/</url> 
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </releases>
+    </repository>
+  </repositories>
+
+  <properties>
+    <kf.main.version>kf6</kf.main.version>
+    <kf.groupid>org.knopflerfish.${kf.main.version}</kf.groupid>
+    <kf.groupid.bundle>${kf.groupid}.bundle</kf.groupid.bundle>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>versions-maven-plugin</artifactId>
+      <version>2.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${kf.groupid}</groupId>
+      <artifactId>framework</artifactId>
+      <version>8.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>${kf.groupid.bundle}</groupId>
+      <artifactId>log</artifactId>
+      <version>6.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>${kf.groupid.bundle}</groupId>
+      <artifactId>cm</artifactId>
+      <version>5.1.0</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+	  <groupId>org.codehaus.mojo</groupId>
+	  <artifactId>versions-maven-plugin</artifactId>
+	  <version>2.3</version>
+	</plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  
+</project>
+
+
