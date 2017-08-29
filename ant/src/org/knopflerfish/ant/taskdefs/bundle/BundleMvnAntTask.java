@@ -347,9 +347,10 @@ public class BundleMvnAntTask extends Task {
     // fw.write("url \"file:///" + repoDir.getAbsolutePath() + "\"\n");
     // fw.write("}\n");
     fw.write("maven {\n");
-    fw.write("url \"file:///" + mergeRepoDir + "\"\n");
+    fw.write("url \"file:///" + mergeRepoDir + "\"\n");   
     fw.write("}\n");
-    
+    fw.write("}\n");
+ 
     fw.write("publications {\n");
     
     final String prefix1 = "  ";
@@ -361,6 +362,19 @@ public class BundleMvnAntTask extends Task {
       final SortedSet<BundleArchive> bsnSet = entry.getValue();
       // Sorted set with bundle archives, same bsn, different versions
       for (final BundleArchive ba : bsnSet) {
+	// Determine if the artifact exist in the merge repo
+	File mavenVersionDir = new File(mergeRepoDir + "/" + 
+					getGroupId(ba).replace('.', '/') + "/" + 
+					getArtifactId(ba) + "/" +
+					getVersion(ba));
+	if (mavenVersionDir.exists()) {
+	  log("Existing artifact, skipping: " + mavenVersionDir);
+	  continue;
+	}
+	else {
+	  log("New artifact, preparing publication: " + mavenVersionDir);
+	}
+
 	fw.write(fixBsnName(ba) + "(MavenPublication) {\n");
 	fw.write("groupId '" + getGroupId(ba) + "'\n");
 	fw.write("artifactId '" + getArtifactId(ba) + "'\n" );
@@ -407,7 +421,7 @@ public class BundleMvnAntTask extends Task {
         // addJavadocAttachment(mvnDeployBundle, ba, prefix2);
 
       }
-      fw.write("}\n");
+      // fw.write("}\n");
       
     }
     fw.write("}\n");
