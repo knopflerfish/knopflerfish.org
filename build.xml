@@ -322,6 +322,8 @@
   <target name="distrib_mkdirs">
     <mkdir dir="${distrib.out.dir}"/>
     <mkdir dir="${distrib.dir}"/>
+    <echo file="${distrib.out.dir}/.distrib.buildname"
+	  message="${distrib.name}" />
   </target>
 
   <target name="distrib_build_framework">
