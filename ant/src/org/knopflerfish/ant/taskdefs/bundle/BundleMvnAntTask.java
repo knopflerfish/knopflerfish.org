@@ -260,9 +260,10 @@ public class BundleMvnAntTask extends Task {
     repoDir = f;
   }
 
-  private File mergeRepoDir;
-  public void setMergeRepoDir(final File f) {
-    mergeRepoDir = f;
+  private boolean overwriteExisting = true;
+  
+  public void setOverwriteExisting(final boolean b) {
+    overwriteExisting = b;
   }
   
   private File settingsFile;
@@ -274,6 +275,11 @@ public class BundleMvnAntTask extends Task {
     settingsFile = f;
   }
 
+  private boolean snapshotRelease = false;
+  public void setSnapshotRelease(boolean b) {
+    snapshotRelease = b;
+  }
+  
   private final List<ResourceCollection> rcs =
     new ArrayList<ResourceCollection>();
 
@@ -313,8 +319,10 @@ public class BundleMvnAntTask extends Task {
     bas.doProviders();
 
     try {
-      writeBuildFile();
-      writeGradleBuildFile();
+      if (buildFileName.endsWith(".xml"))
+        writeBuildFile();
+      if (buildFileName.endsWith(".gradle"))
+        writeGradleBuildFile(repoDir, !overwriteExisting);
       writeDependencyManagementFile();
     } catch (final Exception e) {
       final String msg = "Failed to create ant build file: " +e;
@@ -324,21 +332,21 @@ public class BundleMvnAntTask extends Task {
 
   }
 
-  private void writeGradleBuildFile()
+  private void writeGradleBuildFile(File repoDir, boolean skipExisting)
     throws IOException
   {
 
-    if (mergeRepoDir == null) {
-      log("Merge repo URL not set, no gradle publish file created");
-      return;
-    }
+//    if (mergeRepoDir == null) {
+//      log("Merge repo URL not set, no gradle publish file created");
+//      return;
+//    }
+//    
+//    String gradleBuildFileName = "build.gradle";
     
-    String gradleBuildFileName = "build.gradle";
-    
-    log("Creating gradle build file: " + gradleBuildFileName, Project.MSG_VERBOSE);
+    log("Creating gradle build file: " + buildFileName, Project.MSG_VERBOSE);
 
-    FileWriter fw = new FileWriter(new File(outDir, gradleBuildFileName));
-
+    // FileWriter fw = new FileWriter(new File(outDir, gradleBuildFileName));
+    FileWriter fw = new FileWriter(buildFile);
     fw.write("apply plugin: 'maven-publish'\n");
     fw.write("publishing {\n");
     fw.write("repositories {\n");
@@ -347,7 +355,7 @@ public class BundleMvnAntTask extends Task {
     // fw.write("url \"file:///" + repoDir.getAbsolutePath() + "\"\n");
     // fw.write("}\n");
     fw.write("maven {\n");
-    fw.write("url \"file:///" + mergeRepoDir + "\"\n");   
+    fw.write("url \"file:///" + repoDir + "\"\n");   
     fw.write("}\n");
     fw.write("}\n");
  
@@ -362,61 +370,67 @@ public class BundleMvnAntTask extends Task {
       final SortedSet<BundleArchive> bsnSet = entry.getValue();
       // Sorted set with bundle archives, same bsn, different versions
       for (final BundleArchive ba : bsnSet) {
-	// Determine if the artifact exist in the merge repo
-	File mavenVersionDir = new File(mergeRepoDir + "/" + 
-					getGroupId(ba).replace('.', '/') + "/" + 
-					getArtifactId(ba) + "/" +
-					getVersion(ba));
-	if (mavenVersionDir.exists()) {
-	  log("Existing artifact, skipping: " + mavenVersionDir);
-	  continue;
-	}
-	else {
-	  log("New artifact, preparing publication: " + mavenVersionDir);
-	}
+        // String version = getVersion(ba);
+//        if (snapshotRelease && version.endsWith("SNAPSHOT")) {
+//          version = version.substring(0, version.lastIndexOf('.')) + "-SNAPSHOT";
+//        }
+//        //  Determine if the artifact exist in the merge repo
+        if (skipExisting) {
+          File mavenVersionDir = new File(repoDir + "/" + 
+              getGroupId(ba).replace('.', '/') + "/" + 
+              getArtifactId(ba) + "/" +
+              getVersion(ba));
+          if (mavenVersionDir.exists()) {
+            log("Existing artifact, skipping: " + mavenVersionDir);
+            continue;
+          }
+          else {
+            log("New artifact, preparing publication: " + mavenVersionDir);
+          }
+        }
+        
+        fw.write(fixBsnName(ba) + "(MavenPublication) {\n");
+        fw.write("groupId '" + getGroupId(ba) + "'\n");
+        fw.write("artifactId '" + getArtifactId(ba) + "'\n" );
+        fw.write("version '" + version + "'\n" );
 
-	fw.write(fixBsnName(ba) + "(MavenPublication) {\n");
-	fw.write("groupId '" + getGroupId(ba) + "'\n");
-	fw.write("artifactId '" + getArtifactId(ba) + "'\n" );
-	fw.write("version '" + getVersion(ba) + "'\n" );
+        String archivePathName = ba.file.getAbsolutePath();
+        fw.write("artifact \"" + archivePathName + "\"\n");
+        // source and javadoc, if they exist
+        String javadocPath = archivePathName.substring(0, archivePathName.length()-4) + "-javadoc.jar";
+        File f = new File(javadocPath);
+        if (f.exists()) {
+          fw.write("artifact ('" + javadocPath + "') {\n");
+          fw.write("classifier = 'javadoc'}\n");
+        }
+        String sourcePath = archivePathName.substring(0, archivePathName.length()-4) + "-source.jar";
+        f = new File(sourcePath);
 
-	String archivePathName = ba.file.getAbsolutePath();
-	fw.write("artifact \"" + archivePathName + "\"\n");
-	// source and javadoc, if they exist
-	String javadocPath = archivePathName.substring(0, archivePathName.length()-4) + "-javadoc.jar";
-	File f = new File(javadocPath);
-	if (f.exists()) {
-	  fw.write("artifact ('" + javadocPath + "') {\n");
-	  fw.write("classifier = 'javadoc'}\n");
-	}
-	String sourcePath = archivePathName.substring(0, archivePathName.length()-4) + "-source.jar";
-	f = new File(sourcePath);
-	
-	if (f.exists()) {
-	  fw.write("artifact ('" + sourcePath + "') {\n");
-	  fw.write("classifier = 'sources'}\n");
-	}
-	// artifact(s)
-	// fw.write("version '" + getVersion(ba) + "'\n" );
+        if (f.exists()) {
+          fw.write("artifact ('" + sourcePath + "') {\n");
+          fw.write("classifier = 'sources'}\n");
+        }
+        // artifact(s)
+        // fw.write("version '" + getVersion(ba) + "'\n" );
 
         // Optional attributes & dependencies
-	fw.write("pom.withXml {\n");
+        fw.write("pom.withXml {\n");
 
         final String description = ba.getBundleDescription();
         if (null != description) {
-	  fw.write("asNode().appendNode('description', '" + fixGradleString(description) + "')\n");
+          fw.write("asNode().appendNode('description', '" + fixGradleString(description) + "')\n");
         }
-	
-	// Name and org
-	fw.write("asNode().appendNode('name', '" + ba.name + "')\n");
-	fw.write("def orgNode = asNode().appendNode('organization')\n");
-	fw.write("orgNode.appendNode('name', 'Knopflerfish')\n");
-	fw.write("orgNode.appendNode('url', 'http://www.knopflerfish.org')\n");
+
+        // Name and org
+        fw.write("asNode().appendNode('name', '" + ba.name + "')\n");
+        fw.write("def orgNode = asNode().appendNode('organization')\n");
+        fw.write("orgNode.appendNode('name', 'Knopflerfish')\n");
+        fw.write("orgNode.appendNode('url', 'http://www.knopflerfish.org')\n");
 
         addGradleLicense(fw, ba);
         addGradleDependencies(fw, ba);
 
-	fw.write("}\n");
+        fw.write("}\n}\n");
         // addSourceAttachment(mvnDeployBundle, ba, prefix2);
         // addJavadocAttachment(mvnDeployBundle, ba, prefix2);
 
@@ -424,21 +438,22 @@ public class BundleMvnAntTask extends Task {
       // fw.write("}\n");
       
     }
-    fw.write("}\n");
+    // fw.write("}\n");
     fw.write("}\n");
     fw.write("}\n");
     
     // Task for copying the dependency file
+    /*
     fw.write("task updateMavenRepo(type: Copy) {\n");
     fw.write("dependsOn publish\n");
     fw.write("from '" + repoDir.getAbsolutePath() + "/" + getGroupIdPath() + "'\n");
     fw.write("include '" + dependencyManagementFile.getName() + "'\n");
     fw.write("rename ('KF-(.*)', 'KF-kf6-$1')\n");
-    fw.write("into '" + mergeRepoDir.getAbsolutePath() + "/" + getGroupIdPath() + "'\n");
+    fw.write("into '" + repoDir.getAbsolutePath() + "/" + getGroupIdPath() + "'\n");
     fw.write("}\n");
-    
+    */
     fw.close();
-    log("wrote " + gradleBuildFileName, Project.MSG_VERBOSE);
+    log("wrote " + buildFileName, Project.MSG_VERBOSE);
   }
 
   private void writeBuildFile()
@@ -478,7 +493,7 @@ public class BundleMvnAntTask extends Task {
       for (final BundleArchive ba : bsnSet) {
         final String targetName = ba.bsn + "-" + ba.version;
         targetNames.append(",").append(targetName);
-
+	
         final Comment comment = doc.createComment(ba.relPath);
         final Element target = doc.createElement("target");
         target.setAttribute("name", targetName);
@@ -1261,7 +1276,11 @@ public class BundleMvnAntTask extends Task {
   }
 
   private String getVersion(final BundleArchive ba)  {
-    return ba.version.toString();
+    String version = ba.version.toString();
+    if (snapshotRelease && version.endsWith("SNAPSHOT")) {
+      version = version.substring(0, version.lastIndexOf('.')) + "-SNAPSHOT";
+    }
+    return version;
   }
 
   private static String fixGradleString(String s) {

@@ -35,12 +35,12 @@
   -->
 
 
-<project name="knopflerfish" default="default">
+<project name="knopflerfish" xmlns:if="ant:if" xmlns:unless="ant:unless" default="default">
 
   <!-- The default version of this build -->
   <tstamp>
     <format property="build.time"
-            pattern="yyMMddHHmm"/>
+            pattern="yyyyMMdd-HHmmss"/>
     <format property="distrib_bintray.tstamp"
             pattern="yyyy-MM-dd'T'HH:mm"
             locale="en"/>
@@ -60,7 +60,7 @@
 
   <!-- Set version for travis tag builds -->
   <property name="travis.suffix" value=""/>
-  <condition property="version"
+  <condition property="travis.version"
              value="${travis.tag}${travis.suffix}">
     <and>
       <isset property="travis.tag"/>
@@ -69,16 +69,67 @@
       </not>
     </and>
   </condition>
+  <property name="travis.version" value=""/>
 
   <!-- Release build assumed if we have a N.N.N version and pristine Git dir -->
   <condition property="release.build">
     <and>
-      <isset property="version"/>
+      <isset property="travis.version"/>
       <isset property="git.pristine"/>
-      <matches pattern="^[0-9]+\.[0-9]+\.[0-9]+$" string="${version}"/>
-      <equals arg1="${version}" arg2="${git.tag}"/>
+      <matches pattern="^[0-9]+\.[0-9]+\.[0-9]+$" string="${travis.version}"/>
+      <equals arg1="${travis.version}" arg2="${git.tag}"/>
     </and>
   </condition>
+
+  <condition property="snapshot.build">
+    <and>
+      <isset property="travis.version"/>
+      <isset property="git.pristine"/>
+      <matches pattern="^[0-9]+\.[0-9]+\.[0-9]+\.SNAPSHOT-.*" string="${travis.version}"/>
+      <equals arg1="${travis.version}" arg2="${git.tag}"/>
+    </and>
+  </condition>
+  
+  <!--
+  <propertyregexp propoerty="snapshot.build.name"
+		  input="${version}"
+		  regexp="^[0-9]+\.[0-9]+\.[0-9]+\.-SNAPSHOT-.*-[0-9]+$"
+		  select="\4" />
+  
+  <propertyregexp propoerty="snapshot.build.id"
+		  input="${version}"
+		  regexp="^[0-9]+\.[0-9]+\.[0-9]+\.-SNAPSHOT-.*-[0-9]+$"
+		  select="\5" />
+  -->
+  
+  <loadresource property="snapshot.build.name">
+    <!-- <concat>"${version}"</concat> -->
+    <propertyresource name="travis.version"/>
+    <filterchain>
+      <tokenfilter>
+	<!--
+	<replaceregex pattern="^[0-9]+\.[0-9]+\.[0-9]+\.SNAPSHOT-.*"
+		      flags="gs"
+		      replace=""/>
+-->
+	<replaceregex pattern="[0-9]+\.[0-9]+\.[0-9]+\.SNAPSHOT-"
+		      flags="gs"
+		      replace=""/>
+      </tokenfilter>
+    </filterchain>
+  </loadresource>
+
+  <loadresource property="snapshot.build.kf-version">
+    <!-- <concat>"${version}"</concat> -->
+    <propertyresource name="travis.version"/>
+    <filterchain>
+      <tokenfilter>
+	<replaceregex pattern="\.SNAPSHOT-.*"
+		      flags="gs"
+		      replace=""/>
+      </tokenfilter>
+    </filterchain>
+  </loadresource>
 
   <!-- OSGi do not allow . in qualifiers -->
   <loadresource property="git.tag.osgi">
@@ -90,6 +141,7 @@
       </tokenfilter>
     </filterchain>
   </loadresource>
+
   <!-- Use Git tag if directory is pristine, otherwise a time-stamp -->
   <condition property="version.suffix"
              value="kf_${git.tag.osgi}"
@@ -103,19 +155,49 @@
     </and>
   </condition>
 
-  <!-- Set default bundle suffix if not a release build -->
-  <condition property="bundle.version.suffix"
-             value=""
-             else="${version.suffix}">
+  <!-- The released version this build is is based on -->
+  <property name="version.base"       value="6.1.1.snapshot"/>
+
+  <!-- The previous official release version for this build -->
+  <property name="version.previous"   value="6.1.1"/>
+
+  
+  <!-- Set the version as follows:
+       travis release build: ${travis.tag}${travis.suffix}
+       travis snapshot build: KFVERSION(${travis.tag})${travis.suffix}.BUILDNAME(${travis.tag}
+       default build: ${version.base}
+  -->
+
+  <condition property="version"
+	     value="${travis.tag}${travis.suffix}">
     <isset property="release.build"/>
   </condition>
 
-  <property name="version.base"       value="6.1.0.snapshot"/>
+  <condition property="version"
+	      value="${snapshot.build.kf-version}${travis.suffix}.${snapshot.build.name}-${build.time}">
+    <isset property="snapshot.build"/>
+  </condition>
+
   <condition property="version"
              value="${version.base}"
              else="${version.base}-${version.suffix}">
     <equals arg1="${version.suffix}" arg2=""/>
   </condition>
+  
+
+  <!-- Set default bundle suffix if not a release build -->
+  <condition property="bundle.version.suffix"
+             value="">
+    <isset property="release.build"/>
+  </condition>
+
+  <condition property="bundle.version.suffix"
+             value="${build.time}-SNAPSHOT">
+    <isset property="snapshot.build"/>
+  </condition>
+  
+  <property name="bundle.version.suffix" value="${version.suffix}" />
+
 
   <property name="kf.groupversion"	value="kf6" />
 
@@ -124,8 +206,6 @@
   <!-- Defaults to current date, set here if another value is wanted. -->
   <!-- property name="release.date"     value="2017-02-08"/-->
 
-  <!-- The previous official release version for this build -->
-  <property name="version.previous"   value="6.1.0"/>
 
   <!-- The URL to the root of the git-repository -->
   <property name="git.repo.url"
@@ -182,6 +262,9 @@
   <property name="distrib.junit_grunt.dir"
             location="${distrib.dir}/junit_grunt"/>
 
+  <property name="kf.site.user"
+	    value="" />
+  
   <!-- Current date is default for the relesase.date property -->
   <tstamp>
     <format property="release.date"
@@ -431,17 +514,41 @@
     </bundlehtml>
   </target>
 
+  <condition property="do_repo_merge">
+    <or>
+      <isset property="release.build"/>
+      <isset property="snapshot.build"/>
+    </or>
+  </condition>
+      
+	
+  <target name="kfrelease_repo_download"
+	  if="do_repo_merge">
+    <exec executable="rsync" dir="." failonerror="true">
+      <arg value="-r"/>
+      <arg value="-a"/>
+      <arg value="-v"/>
+      <arg value="-e"/>
+      <arg value="ssh -o StrictHostKeyChecking=no -i "/>
+      <arg value="${username}@${host}:${dir}"/>
+      <arg value="--exclude-from=rsync.excludes"/>
+      <arg value="-v"/>
+    </exec>
+  </target>
+  
   <target name="distrib_mvn_repo" depends="bundle_tasks">
     <mkdir dir="${distrib.mvn.repo.dir}/org/knopflerfish"/>
 
-    <bundleMvnAnt templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
+    <bundleMvnAnt unless:set="snapshot.build"
+		  templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
                   repoDir="${distrib.mvn.repo.dir}"
-		  mergeRepoDir="${distrib.mvn.remote.repo.dir}"
                   outDir="${distrib.tmp.dir}"
                   buildFile="toMvn.xml"
                   dependencyManagementFile="KF-${version}_dependencyManagement.xml"
 		  groupVersion="${kf.groupversion}"
                   version="${version}"
+		  snapshotRelease="${snapshot.build}"
+		  overwriteExisting="true"
                   settingsFile="${knopflerfish.dir}/tools/mvnrepo/settings.xml">
       <!-- Include framework.jar -->
       <fileset dir="${distrib.osgi.dir}">
@@ -455,9 +562,67 @@
       </fileset>
     </bundleMvnAnt>
 
-    <!-- Time to execute the generated build file. -->
-    <ant dir="${distrib.tmp.dir}" antfile="toMvn.xml"/>
+    <!-- Execute the generated build file. -->
+    <ant unless:set="snapshot.build" dir="${distrib.tmp.dir}" antfile="toMvn.xml"/>
+
+    <bundleMvnAnt if:set="snapshot.build"
+		  templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
+                  repoDir="${distrib.mvn.repo.dir}"
+                  outDir="${distrib.tmp.dir}"
+                  buildFile="build-release-repo.gradle"
+                  dependencyManagementFile="KF-${version}_dependencyManagement.xml"
+		  groupVersion="${kf.groupversion}"
+                  version="${version}"
+		  snapshotRelease="${snapshot.build}"
+		  overwriteExisting="true"
+                  settingsFile="${knopflerfish.dir}/tools/mvnrepo/settings.xml">
+      <!-- Include framework.jar -->
+      <fileset dir="${distrib.osgi.dir}">
+        <include name="framework.jar"/>
+      </fileset>
+      <!-- and all bunldes in the jars-directory -->
+      <fileset dir="${distrib.osgi.dir}/jars">
+        <include name="**/*.jar"/>
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
+      </fileset>
+    </bundleMvnAnt>
+
+    <!-- Execute the  call to gradle -->
+    <exec if:set="snapshot.build" executable="gradle" dir="${distrib.tmp.dir}">
+      <arg value="-b" />
+      <arg value="build-release-repo.gradle"/>
+      <arg value="publish"/>
+    </exec>
+
+    <bundleMvnAnt if:set="release.build"
+		  templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
+                  repoDir="${distrib.mvn.remote.repo.dir}"
+                  outDir="${distrib.tmp.dir}"
+                  buildFile="build-merge-repo.gradle"
+                  dependencyManagementFile="KF-${version}_dependencyManagement.xml"
+		  groupVersion="${kf.groupversion}"
+                  version="${version}"
+		  snapshotRelease="${snapshot.build}"
+		  overwriteExisting="false"
+                  settingsFile="${knopflerfish.dir}/tools/mvnrepo/settings.xml">
+      <!-- Include framework.jar -->
+      <fileset dir="${distrib.osgi.dir}">
+        <include name="framework.jar"/>
+      </fileset>
+      <!-- and all bunldes in the jars-directory -->
+      <fileset dir="${distrib.osgi.dir}/jars">
+        <include name="**/*.jar"/>
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
+      </fileset>
+    </bundleMvnAnt>
+
+    <!-- Gradle is invoked from the build script for release build -->
+
   </target>
+
+
 
   <target name="distrib_bundle_doc" depends="bundle_tasks">
     <mkdir dir="${distrib.bundledoc.dir}"/>
@@ -901,5 +1066,22 @@
       <arg value="${distrib.doc.dir}/index.html"/>
     </exec>
   </target>
- 
+
+  <target name="infobuild"
+	  description="Describes the type of build, including versions, build-suffixes and bundle versions">
+    <echo message="release.build         : ${release.build}" />
+    <echo message="snaphost.build        : ${snapshot.build}" />
+    <echo message="version               : ${version}" />
+    <echo message="version.suffix        : ${version.suffix}" />
+    <echo message="version.previous      : ${version.previous}" />
+    <echo message="bundle.version.suffix : ${bundle.version.suffix}" />
+
+    <echo message="travis.version        : ${travis.version}" />
+    <echo message="travis.suffix         : ${travis.suffix}" />
+    <echo message="git.tag               : ${git.tag}" />
+    <echo message="git.pristine          : ${git.pristine}" />
+    <echo message="distrib.sdk.name      : ${distrib.sdk.name}" />
+    
+  </target>
+  
 </project>
