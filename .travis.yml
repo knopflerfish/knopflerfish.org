@@ -31,20 +31,21 @@ script: apache-ant-1.9.8/bin/ant -Dbuild.kind=Travis_CI_$TRAVIS_JDK_VERSION -Dtr
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_a3ffaab67d90_key -iv $encrypted_a3ffaab67d90_iv -in tools/travis/id_rsa.travis.enc -out tools/travis/id_rsa.travis -d
 - chmod 600 tools/travis/id_rsa.travis
+- export KF_SDK_BUILDNAME=`cat out/.distrib.buildname`
 deploy:
 - provider: releases
   api_key:
     secure: rAYBAuFuv12I3BsJHS2Mw5dT1J+zpFx5XpXyVK6+IF1rkt4xL0PfrAjnhEMaBv1rvvliIyXpJQG+v9trrPjnZ5nZi+uqiWn1YAq//1m0ungvGNrrqt+jVRmiR8ma4HfKwoaevnDvT3uRzjw598FxbXhH+2bnUbKAnRkrm4VNTv+wkJDrVvvRBRbEmPX+A8trteSuTbJiDC3vCktWkE1eU6e5unHZMEN5G36BTvolWjoTevYaXjEAEue31jSsmqhGYjDhrU0D+Xl8V2+U75OuEm5FoYXHPIK2aytXwPySZkgBPAAbVY5NBRFi5fjDHXRY71gGusmWk/IDAy0ZzRV8EdaxGnhuBVnbb28T+yIz2L2gtl1qb7E0S8Xli/gjfLLD6lf/slOxRJ5/sjKEEd5Oe2xf7Q4K/rKCkNPnPSf1uvfkRGPSfyw7err0ifYvtIOqD/CvC7cQ32FUZd2zMq4mVtcFr8rovnBkAqlqKoeoWHmbYL0vpBb+kX1rRgQJ+5gKUV+2diDl770Bj44IbDYRBE3id0gI9yykOBzR33T9s7MurvwPcM+Mh3ShJrzB8ZBnmqfMTCoh5N3qTP6WgbIZ5gikdA3k7vrxbmYnPUkYmcGNTwgWTt0hXjL54SrVwK4PacylK5x7SSnc8f9zMuM2eflkaVf3m710uYQcL/QYpzI=
   file:
-  - out/distrib_$TRAVIS_TAG$VER_SUF/knopflerfish_osgi_sdk_$TRAVIS_TAG$VER_SUF.jar
-  - out/distrib_$TRAVIS_TAG$VER_SUF/knopflerfish_osgi_tiny_$TRAVIS_TAG$VER_SUF.zip
+  - out/distrib_$KF_SDK_BUILDNAME/knopflerfish_osgi_sdk_$KF_SDK_BUILDNAME.jar
+  - out/distrib_$KF_SDK_BUILDNAME/knopflerfish_osgi_tiny_$KF_SDK_BUILDNAME.zip
   skip_cleanup: true
   on:
     tags: true
     jdk: openjdk6
     condition: $DEPLOY = true
 - provider: script
-  script: tools/travis/kf_upload.sh $TRAVIS_TAG$VER_SUF
+  script: tools/travis/kf_upload.sh $KF_SDK_BUILDNAME
   skip_cleanup: true
   on:
     tags: true
