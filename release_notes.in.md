@@ -16,14 +16,6 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
-### Framework 8.0.5
-
-* Fixed issue #23. If you change the filtering of a service listener
-  by calling BundleContext.addServiceListener() when an event
-  delivery is in progress, then the event calls that are queued will
-  be dropped. This is true even if the event matched the filte both
-  before and after the filtering change.
-
 
 OSGi Compendium Specification
 ----------------------------------------------------------------------
@@ -38,6 +30,10 @@ Knopflerfish Services
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
 
-### Build system
+### Maven snapshot bundles / artifactcs
 
-* Changed download location for asm_all jar.
+* In a Knopflerfish snaphost release the release specific maven2 repo
+  will be a snapshot repository, i.e. include snaphost versions of
+  all bundles only. 
+
+
