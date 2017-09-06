@@ -26,6 +26,9 @@ notifications:
     recipients:
     - devel@makewave.com
     on_success: always
+  notifications:
+    slack:
+      secure: "N7wIngdP4XsrDwyAzB2qa0vXoVWoSQY+hGMeGmwvitJpWsvCFHPH6HmCJ/FXZCziZAzDsPp7RKud5pZDQdJjjqSvnU+v/PPWPrRWP6sWCg/asm0bnRbu+O//WVJuBMWm4BVp7hDpAHbvbMNWkgxNC7dBsaqcxoTbaFIQo8gKRi8+Y/5pXSBgxCyN4gVFL6cxgxXGeJRTtTKKSkk1AhiB3ika2rmP58VDkxjCuU/sg+j4ctP8gBD6x6qFuF4ZjTQIL6Yx+6CpCTjKq5ZZjgGRlstHUo8bsqPsEOI8kzeGB7qCfbSg+UDRRHn/uGAQRauLm+a+kj9Orx5TwGM3TbRD8bofTPfoz+pChcsKV6H5Wuqak36xAO+Bap1bvlmEGkDHJsqfg0rxmCSA2lrt6YngqlSRH7lulyVt9UUDk9n0VRVkq8kpofFIJDAQcRKtv3n1lxiavm8xvr2qeCfR9BQcV9DIBJfOIAdl2CuLzEPOFCPlvur49XdBQSpMpuov1MBcQWj3ZIDovlZZ6i54YtRbpZeSvd3AAngpmUawbdz8YIXKaVe0tof7R6ituXX6QZNXaVG4POsY+zliOPZncK8EoqLkHR9j73oDWEcB3QPqEAHh9UAq1tW9R4YBj6q2hu7toVXBZd0StGhnOqufNTzk+qsDD9su+B+fGEgwkutC7C8="
 install: true
 script: apache-ant-1.9.8/bin/ant -Dbuild.kind=Travis_CI_$TRAVIS_JDK_VERSION -Dtravis.tag=$TRAVIS_TAG -Dtravis.suffix=$VER_SUF -Dgit.pristine=true $EXTRA distrib && ! (grep '<case ' out/distrib_*/junit_grunt/index.xml | grep -v passed)
 before_deploy:
