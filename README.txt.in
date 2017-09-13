@@ -1,0 +1,101 @@
+======================================================================
+	Knopflerfish Release  @VERSION@
+======================================================================
+
+Contents:
+----------------------------------------
+ README.txt         - this file.
+ release_notes.md   - the release notes for the current release.
+ release_notes.html - the html version of the same release notes
+ NOTICE.txt         - notice file on included third party software.
+ LICENSE.txt        - the Knopflerfish license.
+
+ ant                - Ant related code and build include files.
+ docs               - online documentation (html),
+ docs/index.html    - Starting point for reading the documentation.
+ osgi               - all OSGi related code.
+ osgi/bundles       - bundles included in distribution.
+ osgi/bundles_opt   - some extra optional bundles.
+ osgi/bundles_test  - test bundles.
+ osgi/framework     - core OSGi framework
+ osgi/framework.jar - Precompiled Knopflerfish framework
+ osgi/jars          - Precompiled bundles.
+ osgi/test_jars     - Precompiled JUnit test suite bundles.
+ tools              - tools
+ tools/andorid      - tools for the android environment
+
+
+Basic: How to start
+----------------------------------------
+ Prerequisites
+
+   - JRE 6 or later, available from Oracle.
+
+1. Step into the osgi dir
+
+2. Start the OSGi framework by:
+   > java -jar framework.jar
+
+3. This starts the framework + a predefined set of bundles, including
+   the Knopflerfish desktop bundle
+
+4. Restart can be done in two ways:
+
+   Restart from the previous state
+   > java -jar framework.jar
+
+   Make a clean start
+   > java -jar framework.jar -init
+
+
+Building:
+----------------------------------------
+
+Please note: building, or rebuilding, a downloaded Knopflerfish SDK
+will overwrite the pre-compiled bundles shipped with the Knopflerfish
+SDK.
+
+ Prerequisites
+
+   - JDK 6 or later, available from Open JDK, Oracle or elsewhere.
+   - Ant 1.9.1 or later, available from ant.apache.org.
+   - openssl, to create and manipulate certificates when using
+     security and the Conditional Permission Admin (CPA) service. Test
+     suites for CPA can not be built and executed without openssl.
+   - ProGuard 4.10 or later, tested with 5.2. This is only need if you want
+     to build the compact version of the framework. You need ProGuard 5
+     or later if you want to build with Java 8.
+
+1. Step into the osgi dir
+2. Start the build by:
+   > ant all
+
+
+Java compatibility
+----------------------------------------
+
+The Knopflerfish SDK is compiled with JDK6
+
+The Knopflerfish run-time will run on JDK6 and upwards.
+
+The Knopflerfish SDK can be rebuilt for another JDK versions. See the
+Building section above.
+
+For a comprehensive explanation of running and building Knopflerfish
+with different JDK versions please consult:
+http://www.knopflerfish.org/osgi_java_compatibility_guide.html
+
+
+About Knopflerfish
+----------------------------------------
+
+Knopflerfish is a leading universal open source OSGi Service
+Platform.
+http://www.knopflerfish.org
+
+The development is led and maintained by Makewave
+http://www.makewave.com
+
+As a complement to the freely available Knopflerfish, Makewave offers
+Knopflerfish Pro, the certified and fully supported edition of
+Knopflerfish. 

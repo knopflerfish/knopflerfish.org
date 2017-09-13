@@ -521,19 +521,27 @@
       <format property="distrib_docs.tstamp.year" pattern="yyyy" locale="en"/>
     </tstamp>
 
+    <filterset id="distrib_txt_files" begintoken="@" endtoken="@">
+      <filter token="YEAR"         value="${distrib_docs.tstamp.year}"/>
+      <filter token="VERSION"      value="${version}"/>
+      <filter token="DOWNLOAD_URL" value="${base.url}/${version}"/>
+    </filterset>
+
     <copy todir="${distrib.dir}">
       <fileset dir=".">
-        <include name="README.txt"/>
         <include name="NOTICE.txt"/>
         <include name="LICENSE.txt"/>
-        <include name="changelog.txt"/>
       </fileset>
-      <filterset begintoken="@" endtoken="@">
-        <filter token="YEAR"         value="${distrib_docs.tstamp.year}"/>
-        <filter token="VERSION"      value="${version}"/>
-        <filter token="DOWNLOAD_URL" value="${base.url}/${version}"/>
-      </filterset>
+      <filterset refid="distrib_txt_files" />
     </copy>
+    <copy todir="${distrib.dir}">
+      <fileset dir=".">
+        <include name="README.txt.in"/>
+      </fileset>
+      <filterset refid="distrib_txt_files" />
+      <globmapper from="*.txt.in" to="*.txt"/>
+    </copy>
+
 
     <copy todir="${distrib.doc.dir}">
       <fileset dir="${htdocs.dir}">
