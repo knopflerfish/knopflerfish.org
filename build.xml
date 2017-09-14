@@ -544,7 +544,6 @@
     <bundleMvnAnt unless:set="snapshot.build"
 		  templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
                   repoDir="${distrib.mvn.repo.dir}"
-		  mergeRepoDir="${distrib.mvn.remote.repo.dir}"
                   outDir="${distrib.tmp.dir}"
                   buildFile="toMvn.xml"
                   dependencyManagementFile="KF-${version}_dependencyManagement.xml"
