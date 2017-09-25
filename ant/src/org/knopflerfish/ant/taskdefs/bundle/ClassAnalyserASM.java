@@ -47,14 +47,14 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
-
+import org.objectweb.asm.Opcodes;
 
 /**
  * Visitor implementation that populates a BundlePackagesInfo object
  * with data about the given class.
  */
 public class ClassAnalyserASM
-  implements ClassVisitor
+  extends ClassVisitor
 {
 
   /**
@@ -75,10 +75,12 @@ public class ClassAnalyserASM
   // The File of the current class.
   File currentClassFile = null;
 
-
+  
   public ClassAnalyserASM(final BundlePackagesInfo bpInfo,
                           final Task task)
   {
+    super(Opcodes.ASM4);
+    this.cv = this;
     this.bpInfo = bpInfo;
     this.task   = task;
   }

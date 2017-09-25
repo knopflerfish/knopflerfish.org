@@ -38,6 +38,7 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.Opcodes;
 
 
 /**
@@ -45,7 +46,7 @@ import org.objectweb.asm.Type;
  * with data about the method it visits.
  */
 public class MethodAnalyserASM
-  implements MethodVisitor
+  extends MethodVisitor
 {
 
   // The ClassAnalyserASM instance that this method analyzer is
@@ -56,6 +57,7 @@ public class MethodAnalyserASM
 
   public MethodAnalyserASM(final ClassAnalyserASM ca, final String name)
   {
+    super(Opcodes.ASM4);
     this.ca     = ca;
     this.methodName = name;
   }

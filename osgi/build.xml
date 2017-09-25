@@ -286,6 +286,7 @@
         <pathelement location="${osgi.dir}/bundles/io/io/resources/javax.microedition.io.jar"/>
         <pathelement location="${osgi.dir}/bundles/metatype/kf_metatype/resources/nanoxml-2.2.1.jar"/>
         <pathelement location="${osgi.dir}/bundles/xml/kxml/lib/xmlpull_1_1_3_1.jar"/>
+        <pathelement location="${osgi.dir}/bundles_opt/httpclient_connector/resources/codec/commons-codec-1.3.jar"/>
         <pathelement location="${osgi.dir}/bundles_opt/jini/jinidriver/resources/lib/jini-core.jar"/>
         <pathelement location="${osgi.dir}/bundles_opt/jini/jinidriver/resources/lib/jini-ext.jar"/>
         <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>

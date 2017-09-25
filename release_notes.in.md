@@ -21,19 +21,40 @@ OSGi Compendium Specification
 ----------------------------------------------------------------------
 
 
-
 Knopflerfish Services
 ----------------------------------------------------------------------
+
+### Crimson is no longer redistributed
+
+* The Knopflerfish redistribution of crimson has been removed.
 
 
 
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
 
-### Maven snapshot bundles / artifactcs
+### Build with Java 9 / JDK9
 
-* In a Knopflerfish snaphost release the release specific maven2 repo
-  will be a snapshot repository, i.e. include snaphost versions of
-  all bundles only. 
+* Updated the build system to support building with JDK9 with the following
+  remarks / limitations:
+    - Compact version of framework is not built since the proguard compactor
+      does not support Java 9
+      - Updated asm to version 6.0. Older versions does not support Java 9.
+      - Crimson does not support Java 9 and has been removed.
+  
+### asm 6.0
+
+* asm has been updated to version 6.0, with support for Java 9
+
+### Knopflerfish installer - jarunpacker
+
+* Updated to support building with JDK9
+
+### Maven snapshot bundles / artifacts
+
+* In a Knopflerfish snapshot release the release specific maven2 repo
+  will be a snapshot repository, i.e. include snapshot versions of
+  all bundles only.
+
 
 

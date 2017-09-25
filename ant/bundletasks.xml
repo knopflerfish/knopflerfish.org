@@ -44,7 +44,8 @@
 
 
   <!-- ASM bytecode manipulation and analysis framework -->
-  <property name="asm.version" value="3.2"/>
+  <property name="asm.version"	value="6.0"/>
+
   <property name="asm.jar"
 	    location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
   <path id="asm.path">

@@ -326,11 +326,17 @@
 	  message="${version}" />
   </target>
 
+  <condition property="build-compact">
+    <not>
+      <equals arg1="9" arg2="${ant.java.version}" />
+    </not>
+  </condition>
+
   <target name="distrib_build_framework">
     <mkdir dir="${distrib.osgi.dir}"/>
 
     <!-- Note: This will build the bundle_tasks.jar -->
-    <ant dir="${osgi.dir}/framework" inheritall="false">
+    <ant if:set="build-compact" dir="${osgi.dir}/framework" inheritall="false">
       <property name="compact" value="true"/>
       <property name="jarfile_compact"
                 location="${distrib.osgi.dir}/framework_compact.jar"/>
@@ -348,6 +354,7 @@
                 location="${distrib.osgi.dir}/framework-javadoc.jar"/>
       <property name="version.suffix"  value="${bundle.version.suffix}"/>
     </ant>
+
     <ant dir="${osgi.dir}/framework" inheritall="false">
       <property name="jarfile"
                 location="${distrib.osgi.dir}/framework.jar"/>
@@ -1091,7 +1098,13 @@
     <echo message="git.tag               : ${git.tag}" />
     <echo message="git.pristine          : ${git.pristine}" />
     <echo message="distrib.sdk.name      : ${distrib.sdk.name}" />
-    
+    <echo message="--------------------" />
+    <echo message="ant.version           : ${ant.version}" />  
+    <echo message="ant.java.version      : ${ant.java.version}" />
+    <echo message="os.name               : ${os.name}" />
+    <echo message="os.arch               : ${os.arch}" />
+    <echo message="os.version            : ${os.version}" />
+  
   </target>
   
 </project>

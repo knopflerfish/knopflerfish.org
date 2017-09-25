@@ -30,7 +30,7 @@ $(AWT)-istart @trayicon_fw-N.N.N.jar@
 ## Some library bundles
 -initlevel 2
 -install @util-N.N.N.jar@
--install @crimson-N.N.N.jar@
+#-install @crimson-N.N.N.jar@
 -install @jsdk_api-N.N.N.jar@
 -install @kxml-N.N.N.jar@
 
@@ -73,7 +73,7 @@ $(OS_ARGS)
 # order dependencies much easier
 
 -start @log_all-N.N.N.jar@
--start @crimson-N.N.N.jar@
+#-start @crimson-N.N.N.jar@
 -start @cm_all-N.N.N.jar@
 -start @console_all-N.N.N.jar@
 -start @component_all-N.N.N.jar@

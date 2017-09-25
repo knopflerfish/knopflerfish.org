@@ -52,7 +52,7 @@
   <path id="compile.path">
     <pathelement location="${topdir}/framework/resources"/>
     <pathelement location="${osgi.annotation.jar}"/>
-    <pathelement location="libs/asm-3.2.jar"/>
+    <pathelement location="libs/asm-6.0.jar"/>
   </path>
 
   <path id="android.system.path">
@@ -92,19 +92,20 @@
       <compilerarg value="-Xlint:-options"/>
     </javac>
     <!-- Android parts (uses dalvik.*) -->
+    <!-- bootclasspathref  = "${android.class.path.name}" -->
     <javac destdir           = "${classout}"
            srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-           includejavaruntime = "true"
+           includejavaruntime = "false"
            includes          = "${androidSrcs}"
            excludes          = "**/package-info.java"
            source            = "1.6"
            target            = "1.6"
-           bootclasspathref  = "${android.class.path.name}"
            classpathref      = "compile.path"
            >
       <compilerarg value="-Xlint:-options"/>
+      <compilerarg value="-Xbootclasspath/p:${osgi.dir}/ee/android.jar"/>
     </javac>
   </target>
 
