@@ -56,5 +56,6 @@ Misc, start scripts, build system etc
   will be a snapshot repository, i.e. include snapshot versions of
   all bundles only.
 
+### Documentation
 
-
+* Corrected broken links, causing 404 Not Found error
