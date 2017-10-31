@@ -49,26 +49,25 @@
       <div id="leftmenu">
 	<dl class="leftmenu2">
 	  <dt class="leftmenu2"><a class="navigation_disabled" href="index.html">Knopflerfish @VERSION@</a></dt>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="docs/changelog.html">Change log</a></dd>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="docs/release_notes.html">Release note</a></dd>
+	  <!-- <dd class="leftmenu2"><a class="navigation_enabled" href="docs/changelog.html">Change log</a></dd> -->
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="docs/release_notes.html">Release notes</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="docs/index.html">Documentation</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="junit_grunt/index.xml">Test results (XML)</a></dd>
 	</dl>
 
 	<dl class="leftmenu2">
-	  <dt class="leftmenu2"><a class="navigation_enabled" href="http://www.knopflerfish.org/">www.knopflerfish.org</a></dt>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="https://sourceforge.net/forum/forum.php?forum_id=328005">KF Forum</a></dd>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://github.com/knopflerfish/knopflerfish.org/issues">Bug tracker</a></dd>
+	  <dt class="leftmenu2"><a class="navigation_enabled" href="https://www.knopflerfish.org/">www.knopflerfish.org</a></dt>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="@REPO_URL@/tree/@TAG@">Source (GitHub)</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://github.com/knopflerfish/knopflerfish.org/issues">Issues</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="osgi/jars/index.xml">Bundle repository</a></dd>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="@REPO_URL@/@TAG@">Source (GitHub)</a></dd>
 	</dl>
 
 	<dl class="leftmenu2_last">
-	  <dt class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/">Maintained by Makewave</a></dt>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro</a></dd>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services</a></dd>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_training.shtml">Training</a></dd>
-	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com"><img src="docs/images/makewave_logo_126x16.gif" border="0"></a><br>
+	  <dt class="leftmenu2"><a class="navigation_enabled" href="https://www.makewave.com/">Maintained by Makewave</a></dt>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="https://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="https://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="https://www.makewave.com/site.en/products/osgi_training.shtml">Training</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="https://www.makewave.com"><img src="docs/images/makewave_logo_126x16.gif" border="0"></a><br>
 	  <dd>
 	    <div style="font-size: 0.75em; color: #444444;
 			font-family: Helvetica, Sans-Serif;
@@ -83,8 +82,23 @@
 
 	<h1 class="kf">Knopflerfish @VERSION@</h1>
 
-	This is the release page for Knopflerfish @VERSION@
-	@BUILD_KIND@ from @REPO_URL@/@TAG@, made on @DATE@.
+	This is the release page for the Knopflerfish @VERSION@ build.
+	<table cellpadding="2">
+	  <tr>
+	    <td>Built on:</td>
+	    <td> @DATE@</td>
+	  </tr>
+	  <tr>
+	    <td>Built from:</td>
+	    <td><a href="@REPO_URL@/tree/@TAG@"> @REPO_URL@/tree/@TAG@</a></td>
+	  </tr>
+	  <tr>
+	  <td>Build type:</td>
+	  <td>@BUILD_KIND@</td>
+	  </tr>
+	</table>
+	
+	<!-- @BUILD_KIND@ from @REPO_URL@/@TAG@, made on @DATE@. -->
 
 	<h2 class="kf">Downloads</h2>
 
