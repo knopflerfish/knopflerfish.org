@@ -218,42 +218,17 @@ with Maven Knopflerfish offers a Maven 2 repository with all released
 artifacts (framework and bundles).
 
 This Maven2 repository id called "Knopflerfish Releases Repository"
-and can be found at<br/>
+and can be found at:<br/>
 
 <a
-href="http://www.knopflerfish.org/maven2/"><code>http://www.knopflerfish.org/maven2/</code></a><br/>
-
-It contains all artifacts from Knopflerfish release builds starting with
-2.3.3, 2.4, 3.0, 3.1, ...
-
-<p/>
-
-To make it easy to find artifacts that belongs to the same
-Knopflerfish release the repository contains an xml-document for each
-release that lists all artifacts with group id, artifact id and
-version. These documents are located in<br/>
-
-<a href="http://www.knopflerfish.org./maven2/org/knopflerfish/"><code>http://www.knopflerfish.org/maven2/org/knopflerfish/</code><br/></a>
-
-and are named like
-<code>KF-<i>VERSION</i>_dependencyManagement.xml</code>.<br/>
-
-E.g., the file with URL <a
-href="http://www.knopflerfish.org/maven2/org/knopflerfish/KF-3.1.0_dependencyManagement.xml"><code>http://www.knopflerfish.org/maven2/org/knopflerfish/KF-3.1.0_dependencyManagement.xml</code></a>
-will list all artifacts from the Knopflerfish 3.1 release.
-
-<p/>
-
-Each nightly build and release build (as of Knopflerfish 3.2) will also
-have a build specific Maven2 repository that contains exactly those
-artifacts that belongs to the build. The URL of these repositories are
-on the form<br/>
-
-<a
-href="http://www.knopflerfish.org/snapshots/current_trunk/maven2/"><code>http://www.knopflerfish.org/snapshots/current_trunk/maven2/</code></a></br>
-
-<a
-href="http://www.knopflerfish.org/releases/3.2.0/maven2/"><code>http://www.knopflerfish.org/releases/3.2.0/maven2/</code></a>
+href="http://resources.knopflerfish.org/repo/maven2/release"><code>http://resources.knopflerfish.org/repo/maven2/release</code></a><br/>
+<p>
+It contains all artifacts from Knopflerfish release builds starting with KF6.
+</p>
+<p>
+  There is also a maven repo for Knopflerfish 5 an older. The different maven repos are explained in more detailed in the
+  <a href="https://www.knopflerfish.org/maven.html"> Knopflerfish Maven Repositories</a> page.
+</p>
 
 
 <h3 class="kf">A sample POM file for building a simple bundle</h3>
