@@ -422,17 +422,20 @@ class BundlePackages {
    * @param pkg Package name
    * @return Bundle exporting
    */
-  synchronized BundlePackages getDynamicProviderBundlePackages(String pkg) {
-    if (okImports == null) {
-      return null;
-    }
-    final int ii = Util.binarySearch(okImports, ipFind, pkg);
-    if (ii >= 0) {
-      return okImports.get(ii).provider.bpkgs;
-    }
+  BundlePackages getDynamicProviderBundlePackages(String pkg) {
     final FrameworkContext fwCtx = bg.bundle.fwCtx;
-    BundlePackages res = null;
     synchronized (fwCtx.resolver) {
+      int ii;
+      synchronized (this) {
+        if (okImports == null) {
+          return null;
+        }
+        ii = Util.binarySearch(okImports, ipFind, pkg);
+        if (ii >= 0) {
+          return okImports.get(ii).provider.bpkgs;
+        }
+      }
+      BundlePackages res = null;
       BundleImpl [] trigger = null;
       try {
         for (final ImportPkg ip : dImportPatterns) {
@@ -448,7 +451,9 @@ class BundlePackages {
             if (ep != null) {
               nip.provider = ep;
               nip.dynId = ++nextDynId;
-              okImports.add(-ii - 1, nip);
+              synchronized (this) {
+                okImports.add(-ii - 1, nip);
+              }
               res = ep.bpkgs;
               break;
             }
@@ -464,8 +469,8 @@ class BundlePackages {
           fwCtx.frameworkError(bg.bundle, be);
         }
       }
+      return res;
     }
-    return res;
   }
 
 
