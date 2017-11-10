@@ -31,7 +31,7 @@ notifications:
       secure: "aPlxQLIbdlWdopMiuFmKvceKsgQ7YfB0XTh5SlVHdoJdi4IdovDbk9b6BoEka5hRAQTW8Px4vPQLR90VzQeTlCiDZyRhZVlVTdQaaOLEY5kBRfATWOEYiVReqG2s7rsxUH6s4OSYA/NVAkK6d2nOWttb72DDy8rdFT068guCUSpkdKku5p2MCPe8nQnvJRtAgJBimxUNdwI+Eb77s0I2YKQqyl6b80IgWrBv/TsgxGKWmOPYKtx16CdBuDZKhOq4oIqLbveTGlRBiCrzBBL2DFZJxCMtzhROlF8Rf6FGIl5YF2q0KkWIeEhCo3jqJ6fU9fWCSn3Lq//vlJK+QLHTA5k5OH+Worf/hiP+arY4ixRuNyknHHUc4jemCTo1d6/VI7ft+Cgz36FHPnTf1wB/fMJ8H7errnGU8zc4ymgESnDFoBAgxsU+4/rvVReBuNieVNGXEQ4jieJyr3K1HfEyZHRS+H6vKKRacYU6zssTFJEqKBWUXNXDX4wjXjsQSdgTF029QEKWA2ZkE0tWFMAj41xv6bZ6tWFllZR7COtXJH+Cq3DwcRA0CIIvQ5u3fyDP2QNm0MLOXkp+Tbeur27fHXWKCCfSGge3yIWzLQh83TIKKgzTIQoCZ3WpQqXttAPqzwu9VgxpZqo5TpNpsFwovlh6l+zLeT2E+29vjT0Cv48="
     on_success: always 
 install: true
-script: apache-ant-1.9.8/bin/ant -Dbuild.kind=Travis_CI_$TRAVIS_JDK_VERSION -Dtravis.tag=$TRAVIS_TAG -Dtravis.suffix=$VER_SUF -Dgit.pristine=true $EXTRA distrib && ! (grep '<case ' out/distrib_*/junit_grunt/index.xml | grep -v passed)
+script: apache-ant-1.9.8/bin/ant -Dbuild.kind=Travis_CI_$TRAVIS_JDK_VERSION -Dtravis.tag=$TRAVIS_TAG -Dtravis.suffix=$VER_SUF -Dgit.pristine=true -Dtravis.deploy=$DEPLOY $EXTRA distrib && ! (grep '<case ' out/distrib_*/junit_grunt/index.xml | grep -v passed)
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_a3ffaab67d90_key -iv $encrypted_a3ffaab67d90_iv -in tools/travis/id_rsa.travis.enc -out tools/travis/id_rsa.travis -d
 - chmod 600 tools/travis/id_rsa.travis

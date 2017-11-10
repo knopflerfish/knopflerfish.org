@@ -35,7 +35,7 @@
   -->
 
 
-<project name="knopflerfish" default="default">
+<project name="knopflerfish" xmlns:if="ant:if" xmlns:unless="ant:unless" default="default">
 
   <!-- The default version of this build -->
   <tstamp>
@@ -80,6 +80,14 @@
     </and>
   </condition>
 
+  <condition property="deploy.build">
+    <and>
+      <isset property="release.build" />
+      <isset property="travis.deploy" />
+      <equals arg1="${travis.deploy}" arg2="true"/>
+    </and>
+  </condition>
+  
   <!-- OSGi do not allow . in qualifiers -->
   <loadresource property="git.tag.osgi">
     <propertyresource name="git.tag"/>
@@ -171,6 +179,10 @@
             location="${distrib.tmp.dir}/remote_maven2"/>
   <property name="distrib.mvn.remote.repo"
 	    value="file:///${distrib.mvn.remote.repo.dir}"/>
+  <property name="kf.mvn.current.release.repo"
+	    value="current-release.tar.gz" />
+  <property name="kf.mvn.current.release.repo.url"
+	    value="http://resources.knopflerfish.org/repo/maven2-archives/${kf.mvn.current.release.repo}" />
   <property name="distrib.sdk.name"
 	    value="knopflerfish_osgi_sdk_${version}" />
   <property name="distrib.sdk.file"
@@ -431,9 +443,20 @@
     </bundlehtml>
   </target>
 
-  <target name="distrib_mvn_repo" depends="bundle_tasks">
+  <target name="download_mvn_repo" if="${deploy.build}">
     <mkdir dir="${distrib.mvn.repo.dir}/org/knopflerfish"/>
 
+    <get src="${kf.mvn.current.release.repo.url}"
+         dest="${distrib.tmp.dir}"
+         verbose="false"
+         skipexisting="true"/>
+
+    <untar src="${distrib.tmp.dir}/${kf.mvn.current.release.repo}"
+	   dest="${distrib.mvn.remote.repo.dir}" compression="gzip" />
+  </target>
+
+  <target name="distrib_mvn_repo" depends="bundle_tasks, download_mvn_repo">
+    
     <bundleMvnAnt templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
                   repoDir="${distrib.mvn.repo.dir}"
 		  mergeRepoDir="${distrib.mvn.remote.repo.dir}"
@@ -910,4 +933,32 @@
     </exec>
   </target>
  
+  <target name="infobuild"
+	  description="Describes the type of build, including versions, build-suffixes and bundle versions">
+    <echo message="release.build         : ${release.build}" />
+    <echo message="deploy.build          : ${deploy.build}" />
+    <echo message="version               : ${version}" />
+    <echo message="version.suffix        : ${version.suffix}" />
+    <echo message="version.previous      : ${version.previous}" />
+    <echo message="bundle.version.suffix : ${bundle.version.suffix}" />
+
+    <echo message="travis.version        : ${travis.version}" />
+    <echo message="travis.suffix         : ${travis.suffix}" />
+    <echo message="git.tag               : ${git.tag}" />
+    <echo message="git.pristine          : ${git.pristine}" />
+    <echo message="distrib.sdk.name      : ${distrib.sdk.name}" />
+    <echo message="--------------------" />
+    <echo message="ant.version           : ${ant.version}" />  
+    <echo message="ant.java.version      : ${ant.java.version}" />
+    <echo message="os.name               : ${os.name}" />
+    <echo message="os.arch               : ${os.arch}" />
+    <echo message="os.version            : ${os.version}" />
+  
+  </target>
+
+  <target name="cltest">
+    <untar src="${distrib.tmp.dir}/${kf.mvn.current.release.repo}"
+	   dest="out/tmp/apa" compression="gzip" />
+  </target>
+
 </project>
