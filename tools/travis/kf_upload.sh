@@ -34,11 +34,12 @@ tar czpf - -C $RELEASE_DIR . | ssh -o "$SSH_OPT" -i $PRIVATE_KEY  -l $KF_USER $K
 if [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
     echo "Official release build - preparing maven repo"
     
-    ssh -n -o "$SSH_OPT" -i $PRIVATE_KEY -l $KF_USER $KF_SERVER << ENDSSH 
+    ssh -n -T -o "$SSH_OPT" -i $PRIVATE_KEY -l $KF_USER $KF_SERVER << ENDSSH 
 if [ -d $KF_MVN_RELEASE_DIR ] ; then
 echo "Maven release dir already exist: $KF_MVN_RELEASE_DIR"
 exit 1
 fi
+echo "Maven repo dir set up: $KF_MVN_RELEASE_DIR"
 cp -pR $KF_MVN_REPO_DIR $KF_MVN_RELEASE_DIR
 ENDSSH
 
@@ -69,7 +70,7 @@ ENDSSH
     echo " updating release soft-links"
     MAJOR=`echo $1 | cut -d. -f1`
     LINK="current-kf_$MAJOR"
-    ssh -n -o "$SSH_OPT" -i $PRIVATE_KEY -l $KF_USER $KF_SERVER << ENDSSH 
+    ssh -n -T -o "$SSH_OPT" -i $PRIVATE_KEY -l $KF_USER $KF_SERVER << ENDSSH 
 cd $KF_RELEASES_DIR && rm $LINK && ln -s $1 $LINK && \
 cd ~/$KF_REPO_DIR/maven2 && rm release && ln -s ../maven2-release/$1 release && \
 cd ~/$KF_REPO_DIR && tar -zcv -C maven2-release/$1 -f maven2-archives/release/maven2-release-$1.tar.gz org
