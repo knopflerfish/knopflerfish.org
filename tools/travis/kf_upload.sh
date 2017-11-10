@@ -17,6 +17,9 @@ SSH_OPT="StrictHostKeyChecking=no"
 KF_REPO_DIR=public_html-resources.knopflerfish.org/repo
 KF_MVN_RELEASE_DIR=$KF_REPO_DIR/maven2-release/$1
 KF_MVN_REPO_DIR=$KF_REPO_DIR/maven2/release
+KF_MVN_ARCHIVE_DIR=maven2-archives
+KF_MVN_RELEASE_ARCHIVE=maven2-archives/release/maven2-release-$1
+KF_MVN_CURRENT_RELEASE_ARCHIVE=maven2-archives/current-release.tar.gz
 
 MVN_LOCAL_REMOTE_DIR="$BUILD_TMP_DIR/remote_maven2"
 
@@ -40,7 +43,8 @@ echo "Maven release dir already exist: $KF_MVN_RELEASE_DIR"
 exit 1
 fi
 echo "Maven repo dir set up: $KF_MVN_RELEASE_DIR"
-cp -pR $KF_MVN_REPO_DIR $KF_MVN_RELEASE_DIR
+cp -pR $KF_MVN_REPO_DIR/ $KF_MVN_RELEASE_DIR
+chmod -R u+w  $KF_MVN_RELEASE_DIR
 ENDSSH
 
     if [ $? -ne 0 ]; then
@@ -53,7 +57,7 @@ ENDSSH
 
 #    rsync -r -a -v -e "ssh -o $SSH_OPT -i $PRIVATE_KEY" "${KF_USER}@${KF_SERVER}:${MVN_REMOTE_DIR}" $MVN_LOCAL_REMOTE_DIR
 
-    echo "  building and uploading new maven2 release repo"
+    echo "Building and uploading new maven2 release repo"
     if [ ! -d "$MVN_LOCAL_REMOTE_DIR" ] ; then
 	echo "Local Maven release dir not found at: $MVN_LOCAL_REMOTE_DIR"
 	exit 1
@@ -67,13 +71,17 @@ ENDSSH
 	exit 1
     fi
 
-    echo " updating release soft-links"
+    echo "Updating soft links to new release"
     MAJOR=`echo $1 | cut -d. -f1`
     LINK="current-kf_$MAJOR"
     ssh -T -o "$SSH_OPT" -i $PRIVATE_KEY -l $KF_USER $KF_SERVER <<ENDSSH 
 cd $KF_RELEASES_DIR && rm $LINK && ln -s $1 $LINK && \
 cd ~/$KF_REPO_DIR/maven2 && rm release && ln -s ../maven2-release/$1 release && \
-cd ~/$KF_REPO_DIR && tar -zcv -C maven2-release/$1 -f maven2-archives/release/maven2-release-$1.tar.gz org
+cd ~/$KF_REPO_DIR && \
+chmod -R a=rX maven2-release/$1 && \
+tar -zcv -C maven2-release/$1 -f $KF_MVN_RELEASE_ARCHIVE org && \
+rm $KF_MVN_CURRENT_ARCHIVE && \
+ln -s $KF_MVN_RELEASE_ARCHIVE $KF_MVN_CURRENT_ARCHIVE
 ENDSSH
 
     if [ $? -ne 0 ]; then
