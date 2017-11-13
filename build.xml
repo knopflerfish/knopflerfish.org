@@ -180,7 +180,7 @@
   <property name="distrib.mvn.remote.repo"
 	    value="file:///${distrib.mvn.remote.repo.dir}"/>
   <property name="kf.mvn.current.release.repo"
-	    value="current-release.tar.gz" />
+	    value="current-maven-release.tar.gz" />
   <property name="kf.mvn.current.release.repo.url"
 	    value="http://resources.knopflerfish.org/repo/maven2-archives/${kf.mvn.current.release.repo}" />
   <property name="distrib.sdk.name"
@@ -444,15 +444,27 @@
   </target>
 
   <target name="download_mvn_repo" if="${deploy.build}">
-    <mkdir dir="${distrib.mvn.repo.dir}/org/knopflerfish"/>
 
     <get src="${kf.mvn.current.release.repo.url}"
          dest="${distrib.tmp.dir}"
          verbose="false"
          skipexisting="true"/>
 
+    <mkdir dir="${distrib.mvn.remote.repo.dir}" />
+    <!--
     <untar src="${distrib.tmp.dir}/${kf.mvn.current.release.repo}"
 	   dest="${distrib.mvn.remote.repo.dir}" compression="gzip" />
+    -->
+
+    <!-- Unix tar is explicitly used to make sure all time stamps are preserved -->
+    <exec executable="tar">
+      <arg value="-zx" />
+      <arg value="-C" />
+      <arg value="${distrib.mvn.remote.repo.dir}" />
+      <arg value="-f" />
+      <arg value="${distrib.tmp.dir}/${kf.mvn.current.release.repo}" />
+    </exec>
+      
   </target>
 
   <target name="distrib_mvn_repo" depends="bundle_tasks, download_mvn_repo">
