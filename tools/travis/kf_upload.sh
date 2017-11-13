@@ -18,8 +18,8 @@ KF_REPO_DIR=public_html-resources.knopflerfish.org/repo
 KF_MVN_RELEASE_DIR=$KF_REPO_DIR/maven2-release/$1
 KF_MVN_REPO_DIR=$KF_REPO_DIR/maven2/release
 KF_MVN_ARCHIVE_DIR=maven2-archives
-KF_MVN_RELEASE_ARCHIVE=maven2-archives/release/maven2-release-$1.tar.gz
-KF_MVN_CURRENT_RELEASE_ARCHIVE=maven2-archives/current-maven-release.tar.gz
+KF_MVN_RELEASE_ARCHIVE=release/maven2-release-$1.tar.gz
+KF_MVN_CURRENT_RELEASE_ARCHIVE=current-maven-release.tar.gz
 
 MVN_LOCAL_REMOTE_DIR="$BUILD_TMP_DIR/remote_maven2"
 
@@ -79,9 +79,9 @@ cd $KF_RELEASES_DIR && rm $LINK && ln -s $1 $LINK && \
 cd ~/$KF_REPO_DIR/maven2 && rm release && ln -s ../maven2-release/$1 release && \
 cd ~/$KF_REPO_DIR && \
 chmod -R a=rX maven2-release/$1 && \
-tar -zcv -C maven2-release/$1 -f $KF_MVN_RELEASE_ARCHIVE org && \
-rm $KF_MVN_CURRENT_RELEASE_ARCHIVE && \
-ln -s $KF_MVN_RELEASE_ARCHIVE $KF_MVN_CURRENT_RELEASE_ARCHIVE
+tar -zcv -C maven2-release/$1 -f $KF_MVN_ARCHIVE_DIR/$KF_MVN_RELEASE_ARCHIVE org && \
+rm $KF_MVN_ARCHIVE_DIR/$KF_MVN_CURRENT_RELEASE_ARCHIVE && \
+ln -s $KF_MVN_RELEASE_ARCHIVE $KF_MVN_ARCHIVE_DIR/$KF_MVN_CURRENT_RELEASE_ARCHIVE
 ENDSSH
 
     if [ $? -ne 0 ]; then
