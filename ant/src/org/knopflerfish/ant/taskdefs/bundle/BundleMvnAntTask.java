@@ -416,7 +416,7 @@ public class BundleMvnAntTask extends Task {
         addGradleLicense(fw, ba);
         addGradleDependencies(fw, ba);
 
-	fw.write("}\n");
+	fw.write("}\n}\n");
         // addSourceAttachment(mvnDeployBundle, ba, prefix2);
         // addJavadocAttachment(mvnDeployBundle, ba, prefix2);
 
@@ -424,7 +424,7 @@ public class BundleMvnAntTask extends Task {
       // fw.write("}\n");
       
     }
-    fw.write("}\n");
+    // fw.write("}\n");
     fw.write("}\n");
     fw.write("}\n");
     
