@@ -224,7 +224,7 @@
   <property name="bundle_tasks.jar" location="${ant.lib}/bundle_tasks.jar"/>
   <property name="kf_ant_util_tasks.jar" location="${ant.lib}/kf_ant_util_tasks.jar"/>
 
-  <property name="osgi_annotation.jar" location="${osgi.dir}/annotations/osgi.annotation-6.0.1.jar"/>
+  <property name="osgi_annotation.jar" location="${osgi.dir}/annotations/osgi.annotation-7.0.0.jar"/>
 
   <path id="bundle_tasks.path">
     <pathelement location="${antclasses}"/>

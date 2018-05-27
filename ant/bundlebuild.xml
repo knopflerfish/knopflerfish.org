@@ -289,9 +289,9 @@
     <pathelement location="${jars.dir}/../framework.jar"/>
     <pathelement location="${osgi.jars.dir}/../framework.jar"/>
     <pathelement location="${osgi.dir}/framework.jar"/>
-    <pathelement location="${jars.dir}/../annotations/osgi.annotation-6.0.1.jar"/>
-    <pathelement location="${osgi.jars.dir}/../annotations/osgi.annotation-6.0.1.jar"/>
-    <pathelement location="${osgi.dir}/annotations/osgi.annotation-6.0.1.jar"/>
+    <pathelement location="${jars.dir}/../annotations/osgi.annotation-7.0.0.jar"/>
+    <pathelement location="${osgi.jars.dir}/../annotations/osgi.annotation-7.0.0.jar"/>
+    <pathelement location="${osgi.dir}/annotations/osgi.annotation-7.0.0.jar"/>
   </path>
 
   <!-- Default compile path for a bundle. The referenced path,     -->

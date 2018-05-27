@@ -116,6 +116,7 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
     return false;
   }
 
+
   /**
    * Compare two ServiceReferences
    *
@@ -166,9 +167,6 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
     return registration.hashCode();
   }
 
-  //
-  // ServiceReference interface OSGI R2
-  //
 
   /**
    * Return the bundles that are using the service wrapped by this
@@ -179,6 +177,17 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
    */
   public Bundle[] getUsingBundles() {
     return registration.getUsingBundles();
+  }
+
+
+  /**
+   * Get all properties registered with this service.
+   *
+   * @return Dictionary containing properties or null
+   *         if service has been removed.
+   */
+  public PropertiesDictionary getProperties() {
+    return registration.getProperties();
   }
 
   //
@@ -220,16 +229,6 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
     return registration.ungetService(bundle, true, service);
   }
 
-
-  /**
-   * Get all properties registered with this service.
-   *
-   * @return Dictionary containing properties or null
-   *         if service has been removed.
-   */
-  PropertiesDictionary getProperties() {
-    return registration.getProperties();
-  }
 
   /**
    * Check if registration is available.

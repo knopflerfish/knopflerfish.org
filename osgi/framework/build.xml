@@ -43,7 +43,7 @@
   <property name="proguard.libraryjar" value="${java.home}/lib/rt.jar"/>
 
   <!-- OSGi annotations -->
-  <property name="osgi.annotation.jar" location="${topdir}/annotations/osgi.annotation-6.0.1.jar"/>
+  <property name="osgi.annotation.jar" location="${topdir}/annotations/osgi.annotation-7.0.0.jar"/>
 
   <property name="src.dir" location="src"/>
 

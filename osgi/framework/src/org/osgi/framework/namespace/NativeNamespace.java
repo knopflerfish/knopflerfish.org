@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2012, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2012, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ import org.osgi.resource.Namespace;
  * {@code String}, unless otherwise indicated.
  * 
  * @Immutable
- * @author $Id: 0e11cacf68a480d0a15a152870bb9da7f55073ce $
+ * @since 1.1
+ * @author $Id: fc914204c1ce823696c0217acd24080d12377d1c $
  */
 public final class NativeNamespace extends Namespace {
 
@@ -42,9 +43,9 @@ public final class NativeNamespace extends Namespace {
 	/**
 	 * The capability attribute contains alias values of the
 	 * {@link Constants#FRAMEWORK_OS_NAME org.osgi.framework.os.name} launching
-	 * property value according to the <a
-	 * href="http://www.osgi.org/Specifications/Reference">OSGi Specification
-	 * References</a>. The value of this attribute must be of type
+	 * property value according to the
+	 * <a href="https://www.osgi.org/developer/specifications/reference/">OSGi
+	 * Specification References</a>. The value of this attribute must be of type
 	 * {@code List<String>}.
 	 */
 	public final static String	CAPABILITY_OSNAME_ATTRIBUTE		= NATIVE_NAMESPACE + ".osname";
@@ -60,9 +61,9 @@ public final class NativeNamespace extends Namespace {
 	/**
 	 * The capability attribute contains alias values of the
 	 * {@link Constants#FRAMEWORK_PROCESSOR org.osgi.framework.processor}
-	 * launching property value according to the <a
-	 * href="http://www.osgi.org/Specifications/Reference">OSGi Specification
-	 * References</a>. The value of this attribute must be of type
+	 * launching property value according to the
+	 * <a href="https://www.osgi.org/developer/specifications/reference/">OSGi
+	 * Specification References</a>. The value of this attribute must be of type
 	 * {@code List<String>}.
 	 */
 	public final static String	CAPABILITY_PROCESSOR_ATTRIBUTE	= NATIVE_NAMESPACE + ".processor";
