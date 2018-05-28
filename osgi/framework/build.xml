@@ -86,7 +86,7 @@
            debug             = "on"
            includeantruntime = "false"
            includes          = "**/*.java"
-           excludes          = "${androidSrcs},**/package-info.java"
+           excludes          = "${androidSrcs}"
            classpathref      = "compile.path"
            >
       <compilerarg value="-Xlint:-options"/>
@@ -99,7 +99,7 @@
            includeantruntime = "false"
            includejavaruntime = "false"
            includes          = "${androidSrcs}"
-           excludes          = "**/package-info.java"
+           excludes          = "**"
            source            = "1.6"
            target            = "1.6"
            classpathref      = "compile.path"
@@ -146,7 +146,6 @@
 
     <delete file="${classout}/classes.dex"/>
 
-    <!-- TODO R7
     <loadfile srcfile="${src.dir}/org/osgi/framework/packageinfo"
               property="fw.spec.version">
       <filterchain>
@@ -154,7 +153,6 @@
         <replacestring from="version " to=""/>
       </filterchain>
     </loadfile>
-  -->
 
     <antcall target="jar_file_full"/>
     <antcall target="jar_file_compact"/>
@@ -169,7 +167,7 @@
       <manifest>
         <attribute name="Main-class"             value="org.knopflerfish.framework.Main"/>
         <attribute name="Specification-Title"    value="OSGi Framework API"/>
-        <!-- <attribute name="Specification-Version"  value="${fw.spec.version}"/> -->
+        <attribute name="Specification-Version"  value="${fw.spec.version}"/>
         <attribute name="Specification-Vendor"   value="Open Service Gateway initiative"/>
         <attribute name="Implementation-Title"   value="Knopflerfish OSGi Framework"/>
         <attribute name="Implementation-Version" value="${fw.impl.version}" />
@@ -295,7 +293,6 @@
     <jar basedir="${src.dir}"
          jarfile="${source.jarfile}"
          includes="**/*.java"
-         excludes="**/package-info.java"
          manifestencoding="UTF-8">
     </jar>
   </target>
