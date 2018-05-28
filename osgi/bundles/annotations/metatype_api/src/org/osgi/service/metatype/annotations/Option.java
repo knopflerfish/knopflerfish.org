@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2013, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * {@code Option} information for an {@link AttributeDefinition}.
  * 
  * @see AttributeDefinition#options()
- * @author $Id: 62ba7da6da943cb1b3d124a36c9861277c93a740 $
+ * @author $Id: 184005dc766e01640b4eff01b807ddde17f0e42d $
  */
 @Retention(RetentionPolicy.CLASS)
 @Target({})

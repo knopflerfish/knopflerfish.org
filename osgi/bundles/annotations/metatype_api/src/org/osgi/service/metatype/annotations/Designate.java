@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2014, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ import java.lang.annotation.Target;
  * and used to contribute to a Meta Type Resource document for the bundle.
  * 
  * @see "The Designate element of a Meta Type Resource."
- * @author $Id: 99cf054e1e37e4114494d492910fc2a2dc57ab0a $
+ * @author $Id: 0cd1813fef3a7a5e3afabaeadfdd17e6c86c0545 $
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)

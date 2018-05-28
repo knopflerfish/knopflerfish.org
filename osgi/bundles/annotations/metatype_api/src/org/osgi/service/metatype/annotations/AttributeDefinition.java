@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2013, 2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2013, 2018). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,49 +23,69 @@ import java.lang.annotation.Target;
 
 /**
  * {@code AttributeDefinition} information for the annotated method.
- * 
  * <p>
  * Each method of a type annotated by {@link ObjectClassDefinition} has an
  * implied AttributeDefinition annotation. This annotation is only used to
  * specify non-default AttributeDefinition information.
- * 
  * <p>
  * The {@code id} of this AttributeDefinition is generated from the name of the
- * annotated method. The annotated method name is processed from left to right
- * changing each character as follows:
+ * annotated method as follows:
  * <ul>
- * <li>A dollar sign ({@code '$'} &#92;u0024) is removed unless it is followed
- * by another dollar sign in which case the two consecutive dollar signs (
- * {@code '$$'}) are changed to a single dollar sign.</li>
+ * <li>A single dollar sign ({@code '$'} &#92;u0024) is removed unless it is
+ * followed by:
+ * <ul>
+ * <li>A low line ({@code '_'} &#92;u005F) and a dollar sign in which case the
+ * three consecutive characters ( {@code "$_$"}) are changed to a single
+ * hyphen-minus ({@code '-'} &#92;u002D).</li>
+ * <li>Another dollar sign in which case the two consecutive dollar signs (
+ * {@code "$$"}) are changed to a single dollar sign.</li>
+ * </ul>
+ * </li>
  * <li>A low line ({@code '_'} &#92;u005F) is changed to a full stop (
  * {@code '.'} &#92;u002E) unless is it followed by another low line in which
- * case the two consecutive low lines ({@code '__'}) are changed to a single low
+ * case the two consecutive low lines ({@code "__"}) are changed to a single low
  * line.</li>
  * <li>All other characters are unchanged.</li>
+ * <li>If the type declaring the method also declares a {@code PREFIX_} field
+ * whose value is a compile-time constant String, then the id is prefixed with
+ * the value of the {@code PREFIX_} field.</li>
+ * </ul>
+ * However, if the type annotated by {@link ObjectClassDefinition} is a
+ * <em>single-element annotation</em>, then the id for the {@code value} method
+ * is derived from the name of the annotation type rather than the name of the
+ * method. In this case, the simple name of the annotation type, that is, the
+ * name of the class without any package name or outer class name, if the
+ * annotation type is an inner class, must be converted to the {@code value}
+ * method's id as follows:
+ * <ul>
+ * <li>When a lower case character is followed by an upper case character, a
+ * full stop ({@code '.'} &#92;u002E) is inserted between them.</li>
+ * <li>Each upper case character is converted to lower case.</li>
+ * <li>All other characters are unchanged.</li>
+ * <li>If the annotation type declares a {@code PREFIX_} field whose value is a
+ * compile-time constant String, then the id is prefixed with the value of the
+ * {@code PREFIX_} field.</li>
  * </ul>
  * This id is the value of the id attribute of the generate AD element and is
  * used as the name of the corresponding configuration property.
- * 
  * <p>
  * This annotation is not processed at runtime. It must be processed by tools
  * and used to contribute to a Meta Type Resource document for the bundle.
  * 
  * @see "The AD element of a Meta Type Resource."
- * @author $Id: 366d21759b5562656dc97a391f61181970d71ec7 $
+ * @author $Id: 8d410ee50611b522d1727d146643e048000217c7 $
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)
 public @interface AttributeDefinition {
 	/**
 	 * The human readable name of this AttributeDefinition.
-	 * 
 	 * <p>
 	 * If not specified, the name of this AttributeDefinition is derived from
 	 * the name of the annotated method. For example, low line ({@code '_'}
-	 * &#92;u005F) and dollar sign ({@code '$'} &#92;u0024) are replaced with
-	 * space ({@code ' '} &#92;u0020) and space is inserted between camel case
-	 * words.
-	 * 
+	 * &#92;u005F), dollar sign ({@code '$'} &#92;u0024), and hyphen-minus
+	 * ({@code '-'} &#92;u002D) are replaced with space ({@code ' '} &#92;u0020)
+	 * and space is inserted between camel case words.
 	 * <p>
 	 * If the name begins with the percent sign ({@code '%'} &#92;u0025), the
 	 * name can be {@link ObjectClassDefinition#localization() localized}.
