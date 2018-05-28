@@ -862,6 +862,7 @@
         <include name="osgi/bundles/repository/**"/>
         <include name="osgi/bundles/resolver/**"/>
         <include name="osgi/bundles/promise/**"/>
+        <include name="osgi/bundles/pushstream/**"/>
 
         <include name="osgi/bundles/component/**"/>
         <include name="osgi/bundles/scrcommands/**"/>
