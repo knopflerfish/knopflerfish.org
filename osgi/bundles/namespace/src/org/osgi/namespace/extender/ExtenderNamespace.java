@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2012, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2012, 2014). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.osgi.resource.Namespace;
  * {@code String}, unless otherwise indicated.
  * 
  * @Immutable
- * @author $Id: fe63b5bbba781062586546e3ee5a980323648746 $
+ * @author $Id: 382b1f4aeae204895851c141f2f77d5723a7c3e7 $
  */
 public final class ExtenderNamespace extends Namespace {
 
@@ -47,19 +47,6 @@ public final class ExtenderNamespace extends Namespace {
 	 * type {@code Version}.
 	 */
 	public final static String	CAPABILITY_VERSION_ATTRIBUTE				= "version";
-
-	/**
-	 * The capability attribute contains the {@code Version} of the bundle
-	 * implementing the extender if one is specified or {@code 0.0.0} if not
-	 * specified. The value of this attribute must be of type {@code Version}.
-	 */
-	public static final String	CAPABILITY_BUNDLE_VERSION_ATTRIBUTE			= "bundle-version";
-
-	/**
-	 * The capability attribute contains the symbolic name of the bundle
-	 * providing the extender.
-	 */
-	public final static String	CAPABILITY_BUNDLE_SYMBOLICNAME_ATTRIBUTE	= "bundle-symbolic-name";
 
 	private ExtenderNamespace() {
 		// empty

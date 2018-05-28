@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2011, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2011, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ package org.osgi.service.component.annotations;
  * Admin service. A corresponding configuration is a Configuration object where
  * the PID is the name of the component.
  * 
- * @author $Id: 2bb2640aedd7d09de30e9ec3f471f6a8cccfcf3c $
+ * @author $Id: f77ad2e6d126521fd54a32bde2f6b612554e2bce $
  * @since 1.1
  */
 public enum ConfigurationPolicy {

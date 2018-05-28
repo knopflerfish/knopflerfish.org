@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2011, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2011, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ package org.osgi.service.component.annotations;
  * Specifies if the reference is optional and if the component implementation
  * support a single bound service or multiple bound services.
  * 
- * @author $Id: f01a55c3ea006d931dd3f066605da80b78c8bd9e $
+ * @author $Id: a1dac9ffbd1c21c4e58d165cc95bd4368da0ec05 $
  */
 public enum ReferenceCardinality {
 	/**

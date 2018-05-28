@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2012, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2012, 2017). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.osgi.resource.Namespace;
  * {@code String}, unless otherwise indicated.
  * 
  * @Immutable
- * @author $Id: e7a56de69908c72e3c8749a8f1f8c74cb21198ed $
+ * @author $Id: cc149def82f1b1379ef87b43a644416abb3fb183 $
  */
 public final class ContractNamespace extends Namespace {
 
@@ -42,9 +42,9 @@ public final class ContractNamespace extends Namespace {
 	public static final String	CONTRACT_NAMESPACE				= "osgi.contract";
 
 	/**
-	 * The capability attribute contains the {@code Version} of the
+	 * The capability attribute contains the {@code Version}s of the
 	 * specification of the contract. The value of this attribute must be of
-	 * type {@code Version}.
+	 * type {@code Version}, {@code Version[]}, or {@code List<Version>}.
 	 */
 	public final static String	CAPABILITY_VERSION_ATTRIBUTE	= "version";
 

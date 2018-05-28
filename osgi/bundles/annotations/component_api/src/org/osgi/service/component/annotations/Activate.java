@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2011, 2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2011, 2017). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,23 +22,34 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Identify the annotated method as the {@code activate} method of a Service
+ * Identify the annotated member as part of the activation of a Service
  * Component.
- * 
  * <p>
- * The annotated method is the activate method of the Component.
- * 
+ * When this annotation is applied to a:
+ * <ul>
+ * <li>Method - The method is the {@code activate} method of the Component.</li>
+ * <li>Constructor - The constructor will be used to construct the Component and
+ * can be called with activation objects and bound services as parameters.</li>
+ * <li>Field - The field will contain an activation object of the Component. The
+ * field must be set after the constructor is called and before calling any
+ * other method on the fully constructed component instance. That is, there is a
+ * <i>happens-before</i> relationship between the field being set and calling
+ * any method on the fully constructed component instance such as the
+ * {@code activate} method.</li>
+ * </ul>
  * <p>
  * This annotation is not processed at runtime by Service Component Runtime. It
  * must be processed by tools and used to add a Component Description to the
  * bundle.
  * 
- * @see "The activate attribute of the component element of a Component Description."
- * @author $Id: 6e320f37190ea29c600d8b8716052efcdcb6e856 $
+ * @see "The init, activate, and activation-fields attributes of the component element of a Component Description."
+ * @author $Id: 9a7c4028312af76895383eded76bf06fedb47d2a $
  * @since 1.1
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.METHOD)
+@Target({
+		ElementType.METHOD, ElementType.FIELD, ElementType.CONSTRUCTOR
+})
 public @interface Activate {
 	// marker annotation
 }

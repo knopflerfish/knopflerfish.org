@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2011, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2011, 2018). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,11 @@ import java.lang.annotation.Target;
  * bundle.
  * 
  * @see "The component element of a Component Description."
- * @author $Id: d44af93dcb1a5e97ef594074d075c86f68f3b3b7 $
+ * @author $Id: 2fb9a298948c5cf36a4bf9f2fb28bcd5bc276713 $
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
+@RequireServiceComponentRuntime
 public @interface Component {
 	/**
 	 * The name of this Component.
@@ -96,9 +97,8 @@ public @interface Component {
 	boolean servicefactory() default false;
 
 	/**
-	 * Declares whether this Component is enabled when the bundle containing it
+	 * Declares whether this Component is enabled when the bundle declaring it
 	 * is started.
-	 * 
 	 * <p>
 	 * If {@code true} or not specified, this Component is enabled. If
 	 * {@code false}, this Component is disabled.
@@ -130,17 +130,15 @@ public @interface Component {
 
 	/**
 	 * Properties for this Component.
-	 * 
 	 * <p>
 	 * Each property string is specified as {@code "name=value"}. The type of
 	 * the property value can be specified in the name as
 	 * {@code name:type=value}. The type must be one of the property types
-	 * supported by the type attribute of the property element of a Component
-	 * Description.
-	 * 
+	 * supported by the {@code type} attribute of the {@code property} element
+	 * of a Component Description.
 	 * <p>
 	 * To specify a property with multiple values, use multiple name, value
-	 * pairs. For example, {@code "foo=bar", "foo=baz"}.
+	 * pairs. For example, <code>{"foo=bar", "foo=baz"}</code>.
 	 * 
 	 * @see "The property element of a Component Description."
 	 */
@@ -200,18 +198,15 @@ public @interface Component {
 
 	/**
 	 * The configuration PIDs for the configuration of this Component.
-	 * 
 	 * <p>
 	 * Each value specifies a configuration PID for this Component.
-	 * 
 	 * <p>
 	 * If no value is specified, the name of this Component is used as the
 	 * configuration PID of this Component.
-	 * 
 	 * <p>
-	 * A special string (<code>{@value #NAME}</code>) can be used to specify the
-	 * name of the component as a configuration PID. The {@code NAME} constant
-	 * holds this special string. For example:
+	 * A special string (<code>"$"</code>) can be used to specify the name of
+	 * the component as a configuration PID. The {@link #NAME} constant holds
+	 * this special string. For example:
 	 * 
 	 * <pre>
 	 * &#64;Component(configurationPid={"com.acme.system", Component.NAME})
@@ -261,20 +256,55 @@ public @interface Component {
 
 	/**
 	 * The lookup strategy references of this Component.
-	 * 
 	 * <p>
 	 * To access references using the lookup strategy, {@link Reference}
 	 * annotations are specified naming the reference and declaring the type of
 	 * the referenced service. The referenced service can be accessed using one
 	 * of the {@code locateService} methods of {@code ComponentContext}.
-	 * 
 	 * <p>
-	 * To access references using the event strategy, bind methods are annotated
-	 * with {@link Reference}. To access references using the field strategy,
-	 * fields are annotated with {@link Reference}.
+	 * To access references using method injection, bind methods are annotated
+	 * with {@link Reference}. To access references using field injection,
+	 * fields are annotated with {@link Reference}. To access references using
+	 * constructor injection, constructor parameters are annotated with
+	 * {@link Reference}.
 	 * 
 	 * @see "The reference element of a Component Description."
 	 * @since 1.3
 	 */
 	Reference[] reference() default {};
+
+	/**
+	 * Factory properties for this Factory Component.
+	 * <p>
+	 * Each factory property string is specified as {@code "name=value"}. The
+	 * type of the factory property value can be specified in the name as
+	 * {@code name:type=value}. The type must be one of the factory property
+	 * types supported by the {@code type} attribute of the
+	 * {@code factory-property} element of a Component Description.
+	 * <p>
+	 * To specify a factory property with multiple values, use multiple name,
+	 * value pairs. For example, <code>{"foo=bar", "foo=baz"}</code>.
+	 * <p>
+	 * If specified, the {@link #factory()} element must also be specified to
+	 * indicate the component is a Factory Component.
+	 * 
+	 * @see "The factory-property element of a Component Description."
+	 * @since 1.4
+	 */
+	String[] factoryProperty() default {};
+
+	/**
+	 * Factory property entries for this Factory Component.
+	 * <p>
+	 * Specifies the name of an entry in the bundle whose contents conform to a
+	 * standard Java Properties File. The entry is read and processed to obtain
+	 * the factory properties and their values.
+	 * <p>
+	 * If specified, the {@link #factory()} element must also be specified to
+	 * indicate the component is a Factory Component.
+	 * 
+	 * @see "The factory-properties element of a Component Description."
+	 * @since 1.4
+	 */
+	String[] factoryProperties() default {};
 }

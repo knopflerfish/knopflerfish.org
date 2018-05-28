@@ -45,15 +45,16 @@
 
   <!-- ASM bytecode manipulation and analysis framework -->
   <property name="asm.version"	value="6.0"/>
-
   <property name="asm.jar"
 	    location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
   <path id="asm.path">
     <pathelement location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
   </path>
   
-  <property name="asm-all.version"	value="4.0"/>
-  <property name="asm-all.jar"		value="asm-all-${asm-all.version}.jar" />
+  <!-- The asm lib used by the build system (the '-all' part of the
+       name is a left over from old asm namings). -->
+  <property name="asm-all.version"	value="6.2"/>
+  <property name="asm-all.jar"		value="asm-${asm-all.version}.jar" />
   <path id="asm-all.path">
     <pathelement location="${ant.lib}/${asm-all.jar}" />
   </path>
@@ -199,7 +200,7 @@
   <property name="parboiled-java.jar"		value="parboiled-java-${parboiled-java.version}.jar" />
   <property name="parboiled-java.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-java/${parboiled-java.version}/${parboiled-java.jar}" />
 
-  <property name="asm-all.url"		value="http://central.maven.org/maven2/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" />
+  <property name="asm-all.url"		value="http://central.maven.org/maven2/org/ow2/asm/asm/${asm-all.version}/${asm-all.jar}" />
 
   <target name="install_pegdown">
     <get src="${pegdown.url}"
