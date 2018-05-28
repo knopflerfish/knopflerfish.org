@@ -82,7 +82,7 @@ class ExportPkg
   {
     this.bpkgs = b;
     this.name = name;
-    if (name.startsWith("java.")) {
+    if (name.startsWith("java.") && b.bg.bundle.id != 0) {
       throw new IllegalArgumentException("You can not export a java.* package");
     }
     this.uses = Util.parseEnumeration(Constants.USES_DIRECTIVE, he

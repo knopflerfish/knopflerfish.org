@@ -110,9 +110,6 @@ class ImportPkg
   {
     this.bpkgs = b;
     this.name = name;
-    if (name.startsWith("java.")) {
-      throw new IllegalArgumentException("You can not import a java.* package");
-    }
     final Map<String, String> dirs = he.getDirectives();
     final String res = dirs.get(Constants.RESOLUTION_DIRECTIVE);
     if (dynamic) {

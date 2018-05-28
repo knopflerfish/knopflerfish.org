@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2017). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.osgi.annotation.versioning.ConsumerType;
  * of a property/attribute.
  * 
  * @ThreadSafe
- * @author $Id: 057587a3ca5e0610db4c85d33c84eb614c3d2718 $
+ * @author $Id: 615bc535aed8cb050ec040a117d47fe36c2b5afb $
  */
 @ConsumerType
 public interface AttributeDefinition {
@@ -260,11 +260,10 @@ public interface AttributeDefinition {
 	String[] getOptionLabels();
 
 	/**
-	 * Validate an attribute in {@code String} form.
-	 * 
-	 * An attribute might be further constrained in value. This method will
-	 * attempt to validate the attribute according to these constraints. It can
-	 * return three different values:
+	 * Validate an attribute in {@code String} form. An attribute might be
+	 * further constrained in value. This method will attempt to validate the
+	 * attribute according to these constraints. It can return three different
+	 * values:
 	 * 
 	 * <pre>
 	 *  null           No validation present
@@ -280,12 +279,12 @@ public interface AttributeDefinition {
 	 * backslash. Escaped spaces must not be trimmed. For example:
 	 * 
 	 * <pre>
-	 * value="  a\,b,b\,c,\ c\\,d   " => [ "a,b", "b,c", " c\", "d" ]
+	 * value="  a\,b,b\,c,\ c\\,d   " =&gt; [ "a,b", "b,c", " c\", "d" ]
 	 * </pre>
 	 * 
 	 * @param value The value before turning it into the basic data type. If the
-	 *        cardinality indicates a multi-valued attribute then the given
-	 *        string must be escaped.
+	 *            cardinality indicates a multi-valued attribute then the given
+	 *            string must be escaped.
 	 * @return {@code null}, "", or another string
 	 */
 	String validate(String value);

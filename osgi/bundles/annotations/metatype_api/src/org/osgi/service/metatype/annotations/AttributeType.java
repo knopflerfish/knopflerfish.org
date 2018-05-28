@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2013, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package org.osgi.service.metatype.annotations;
  * Attribute types for the {@link AttributeDefinition} annotation.
  * 
  * @see AttributeDefinition#type()
- * @author $Id: 9ab62c08937c0f76ba6465cb95e4cd5cf6ca8e8f $
+ * @author $Id: 13a2158fa689b7e0d9ae7c691448b0bbf20ee187 $
  */
 public enum AttributeType {
 	/**
