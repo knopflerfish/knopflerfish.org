@@ -259,7 +259,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     Version newVer = Version.emptyVersion;
     if (mbv != null) {
       try {
-        newVer = new Version(mbv);
+        newVer = new Version(mbv.trim());
       } catch (final Exception ee) {
         if (v2Manifest) {
           throw new IllegalArgumentException("Bundle does not specify a valid "
