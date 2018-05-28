@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2011, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2011, 2017). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.osgi.service.component.annotations;
 /**
  * Policy for the {@link Reference} annotation.
  * 
- * @author $Id: 835125670fa25ca1205beacabbb2d4cfa5896fd4 $
+ * @author $Id: ed47ac8a5a202d5431898ebd99bca23f31e28ad0 $
  */
 public enum ReferencePolicy {
 	/**
@@ -37,10 +37,10 @@ public enum ReferencePolicy {
 	 * The dynamic policy is slightly more complex since the component
 	 * implementation must properly handle changes in the set of bound services.
 	 * With the dynamic policy, SCR can change the set of bound services without
-	 * deactivating a component configuration. If the component uses the event
-	 * strategy to access services, then the component instance will be notified
-	 * of changes in the set of bound services by calls to the bind and unbind
-	 * methods.
+	 * deactivating a component configuration. If the component uses method
+	 * injection to access services, then the component instance will be
+	 * notified of changes in the set of bound services by calls to the bind and
+	 * unbind methods.
 	 */
 	DYNAMIC("dynamic");
 
