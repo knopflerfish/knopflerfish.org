@@ -8,6 +8,7 @@
     <ant target="${the.target}" dir="promise"/>
     <ant target="${the.target}" dir="util"/>
     <ant target="${the.target}" dir="cm/cm"/>
+    <ant target="${the.target}" dir="metatype/metatype_api"/>
     <ant target="${the.target}" dir="annotations"/>
     <ant target="${the.target}" dir="event"/>
     <ant target="${the.target}" dir="threadio"/>
@@ -44,7 +45,6 @@
 
     <ant target="${the.target}" dir="measurement"/>
     <ant target="${the.target}" dir="position"/>
-    <ant target="${the.target}" dir="metatype/metatype_api"/>
 
     <ant target="${the.target}" dir="remotefw"/>
     <ant target="${the.target}" dir="desktop"/>
