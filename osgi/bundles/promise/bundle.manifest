@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: promise
 Bundle-SymbolicName: org.knopflerfish.bundle.promise
-Bundle-Version: 1.0.0
+Bundle-Version: 1.1.0
 Bundle-Description: Promise API
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi

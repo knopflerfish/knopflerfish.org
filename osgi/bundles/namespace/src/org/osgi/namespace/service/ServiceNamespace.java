@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2012, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2012, 2014). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import org.osgi.resource.Namespace;
  * {@code String}, unless otherwise indicated.
  * 
  * @Immutable
- * @author $Id: 8cb2c663d0a04d53e48f57457f0cce4fb0d1eb42 $
+ * @author $Id: b8a17850ffda896054607169eafabed4d14240f8 $
  */
 public final class ServiceNamespace extends Namespace {
 

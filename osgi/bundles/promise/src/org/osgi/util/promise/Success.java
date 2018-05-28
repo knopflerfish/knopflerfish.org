@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2014, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,10 @@ import org.osgi.annotation.versioning.ConsumerType;
  * @param <R> The value type of the returned Promise from this callback.
  * 
  * @ThreadSafe
- * @author $Id: c29fc4fb6df284dd08c4a18e231fe626e820ffab $
+ * @author $Id: cedefa1a5f2c891f892ec5c4013c56c74c362101 $
  */
 @ConsumerType
+@FunctionalInterface
 public interface Success<T, R> {
 	/**
 	 * Success callback for a Promise.

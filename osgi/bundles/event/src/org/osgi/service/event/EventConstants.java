@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2018). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.osgi.framework.Version;
 /**
  * Defines standard names for {@code EventHandler} properties.
  * 
- * @author $Id: d002775d379d8da871d588ce6a6591e9089c3d09 $
+ * @author $Id: b478c674515a1ae9cfbf45b5d2da7f2abf0c7170 $
  */
 @ProviderType
 public interface EventConstants {
@@ -234,10 +234,25 @@ public interface EventConstants {
 	public static final String	TIMESTAMP					= "timestamp";
 
 	/**
+	 * The name of the implementation capability for the Event Admin
+	 * specification
+	 * 
+	 * @since 1.4
+	 */
+	public static final String	EVENT_ADMIN_IMPLEMENTATION			= "osgi.event";
+	/**
+	 * The version of the implementation capability for the Event Admin
+	 * specification
+	 * 
+	 * @since 1.4
+	 */
+	public static final String	EVENT_ADMIN_SPECIFICATION_VERSION	= "1.4.0";
+
+	/**
 	 * This constant was released with an incorrectly spelled name. It has been
 	 * replaced by {@link #EXCEPTION_CLASS}
 	 * 
-	 * @deprecated As of 1.1, replaced by EXCEPTION_CLASS
+	 * @deprecated As of 1.1. Replaced by {@link #EXCEPTION_CLASS}.
 	 */
 	public static final String	EXECPTION_CLASS				= "exception.class";
 }

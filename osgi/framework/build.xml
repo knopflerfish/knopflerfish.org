@@ -19,7 +19,7 @@
   <property name="frameworkdoc_template"
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.base.version"   value="8.0.6"/>
+  <property name="fw.base.version"   value="8.99.0"/>
   <property name="version.suffix"    value=""/>
   <condition property="fw.impl.version"
              value="${fw.base.version}"
@@ -86,7 +86,7 @@
            debug             = "on"
            includeantruntime = "false"
            includes          = "**/*.java"
-           excludes          = "${androidSrcs},**/package-info.java"
+           excludes          = "${androidSrcs}"
            classpathref      = "compile.path"
            >
       <compilerarg value="-Xlint:-options"/>
@@ -99,7 +99,7 @@
            includeantruntime = "false"
            includejavaruntime = "false"
            includes          = "${androidSrcs}"
-           excludes          = "**/package-info.java"
+           excludes          = "**"
            source            = "1.6"
            target            = "1.6"
            classpathref      = "compile.path"
@@ -119,7 +119,7 @@
            debug             = "on"
            includeantruntime = "false"
            includes          = "**/*.java"
-           excludes          = "org/knopflerfish/framework/validator/*.java,org/knopflerfish/framework/bundlestorage/dex/*.java,org/knopflerfish/framework/bundlestorage/memory/*.java,**/package-info.java,org/knopflerfish/framework/SecurePermissionOps.java,org/knopflerfish/framework/permissions/*.java"
+           excludes          = "org/knopflerfish/framework/validator/*.java,org/knopflerfish/framework/bundlestorage/dex/*.java,org/knopflerfish/framework/bundlestorage/memory/*.java,org/knopflerfish/framework/SecurePermissionOps.java,org/knopflerfish/framework/permissions/*.java"
            classpathref      = "compile.path"
            >
     </javac>
@@ -293,7 +293,6 @@
     <jar basedir="${src.dir}"
          jarfile="${source.jarfile}"
          includes="**/*.java"
-         excludes="**/package-info.java"
          manifestencoding="UTF-8">
     </jar>
   </target>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ package org.osgi.service.permissionadmin;
  * Permission class has been exported by a bundle.
  * 
  * @Immutable
- * @author $Id: b6cc8440e07c61e1d4d53a58ac3610c99e5c34f7 $
+ * @author $Id: 7ca97aeef2f56fafd7aebe6e7e0e0cdad9968489 $
  */
 public class PermissionInfo {
 	private final String	type;
@@ -230,7 +230,9 @@ public class PermissionInfo {
 	 * @return The string encoding of this {@code PermissionInfo}.
 	 */
 	public final String getEncoded() {
-		StringBuffer output = new StringBuffer(8 + type.length() + ((((name == null) ? 0 : name.length()) + ((actions == null) ? 0 : actions.length())) << 1));
+		StringBuilder output = new StringBuilder(
+				8 + type.length() + ((((name == null) ? 0 : name.length())
+						+ ((actions == null) ? 0 : actions.length())) << 1));
 		output.append('(');
 		output.append(type);
 		if (name != null) {
@@ -347,9 +349,9 @@ public class PermissionInfo {
 
 	/**
 	 * This escapes the quotes, backslashes, \n, and \r in the string using a
-	 * backslash and appends the newly escaped string to a StringBuffer.
+	 * backslash and appends the newly escaped string to a StringBuilder.
 	 */
-	private static void escapeString(String str, StringBuffer output) {
+	private static void escapeString(String str, StringBuilder output) {
 		int len = str.length();
 		for (int i = 0; i < len; i++) {
 			char c = str.charAt(i);
@@ -376,7 +378,7 @@ public class PermissionInfo {
 	 * Takes an encoded character array and decodes it into a new String.
 	 */
 	private static String unescapeString(char[] str, int begin, int end) {
-		StringBuffer output = new StringBuffer(end - begin);
+		StringBuilder output = new StringBuilder(end - begin);
 		for (int i = begin; i < end; i++) {
 			char c = str[i];
 			if (c == '\\') {

@@ -23,6 +23,8 @@
   <path id="bundle.compile.path">
    <pathelement location="log_api-N.N.N.jar"/>
    <pathelement location="cm_api-N.N.N.jar"/>
+   <pathelement location="namespace_api-N.N.N.jar"/>
+   <pathelement location="component_annotations_api-N.N.N.jar"/>
   </path>
 
   <property name="bmfa.Bundle-Name"           value="Event-Admin"/>

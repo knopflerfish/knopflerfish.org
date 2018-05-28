@@ -8,6 +8,7 @@
     <ant target="${the.target}" dir="promise"/>
     <ant target="${the.target}" dir="util"/>
     <ant target="${the.target}" dir="cm/cm"/>
+    <ant target="${the.target}" dir="annotations"/>
     <ant target="${the.target}" dir="event"/>
     <ant target="${the.target}" dir="threadio"/>
     <ant target="${the.target}" dir="command"/>
@@ -30,7 +31,6 @@
     <ant target="${the.target}" dir="prefs"/>
     <ant target="${the.target}" dir="scrcommands"/>
 
-    <ant target="${the.target}" dir="annotations"/>
     <ant target="${the.target}" dir="applicationadmin"/>
     <ant target="${the.target}" dir="blueprint"/>
     <ant target="${the.target}" dir="coordinator"/>
@@ -55,7 +55,6 @@
     <ant target="${the.target}" dir="trayicon"/>
     <ant target="${the.target}" dir="upnp"/>
     <ant target="${the.target}" dir="provisioning"/>
-    <ant target="${the.target}" dir="resolver"/>
     <ant target="${the.target}" dir="repository"/>
   </target>
 

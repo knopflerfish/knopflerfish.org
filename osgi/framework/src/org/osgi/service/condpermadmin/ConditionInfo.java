@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import java.util.List;
  * </ul>
  * 
  * @Immutable
- * @author $Id: 3302f4293746b44923f1cbc602dd907e3400eed5 $
+ * @author $Id: f96821be9ea49552285ed5eb699b05371f7f9ba8 $
  */
 public class ConditionInfo {
 	private final String	type;
@@ -143,7 +143,7 @@ public class ConditionInfo {
 					}
 				}
 			}
-			this.args = argsList.toArray(new String[argsList.size()]);
+			this.args = argsList.toArray(new String[0]);
 
 			/* the final character must be ']' */
 			char c = encoded[pos];
@@ -183,7 +183,7 @@ public class ConditionInfo {
 	 * @return The string encoding of this {@code ConditionInfo}.
 	 */
 	public final String getEncoded() {
-		StringBuffer output = new StringBuffer();
+		StringBuilder output = new StringBuilder();
 		output.append('[');
 		output.append(type);
 
@@ -281,9 +281,9 @@ public class ConditionInfo {
 
 	/**
 	 * This escapes the quotes, backslashes, \n, and \r in the string using a
-	 * backslash and appends the newly escaped string to a StringBuffer.
+	 * backslash and appends the newly escaped string to a StringBuilder.
 	 */
-	private static void escapeString(String str, StringBuffer output) {
+	private static void escapeString(String str, StringBuilder output) {
 		int len = str.length();
 		for (int i = 0; i < len; i++) {
 			char c = str.charAt(i);
@@ -310,7 +310,7 @@ public class ConditionInfo {
 	 * Takes an encoded character array and decodes it into a new String.
 	 */
 	private static String unescapeString(char[] str, int begin, int end) {
-		StringBuffer output = new StringBuffer(end - begin);
+		StringBuilder output = new StringBuilder(end - begin);
 		for (int i = begin; i < end; i++) {
 			char c = str[i];
 			if (c == '\\') {

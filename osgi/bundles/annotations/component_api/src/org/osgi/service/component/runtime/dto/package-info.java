@@ -1,6 +1,6 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
- * 
+ * Copyright (c) OSGi Alliance (2014, 2016). All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,28 +15,28 @@
  */
 
 /**
- * Resolver Service Package Version 1.0.
- * 
+ * Service Component Runtime Data Transfer Objects Package Version 1.4.
  * <p>
  * Bundles wishing to use this package must list the package in the
  * Import-Package header of the bundle's manifest. This package has two types of
  * users: the consumers that use the API in this package and the providers that
  * implement the API in this package.
- * 
  * <p>
  * Example import for consumers using the API in this package:
  * <p>
- * {@code  Import-Package: org.osgi.service.resolver; version="[1.0,2.0)"}
+ * {@code  Import-Package: org.osgi.service.component.runtime.dto; version="[1.4,2.0)"}
  * <p>
  * Example import for providers implementing the API in this package:
  * <p>
- * {@code  Import-Package: org.osgi.service.resolver; version="[1.0,1.1)"}
- * 
- * @author $Id: 4fab41bbdf232d40360ee52e0c8f6ddb1f206082 $
+ * {@code  Import-Package: org.osgi.service.component.runtime.dto; version="[1.4,1.5)"}
+ *
+ * @author $Id: 017778a97488199d901d051e7ded2baf6384b0c0 $
  */
 
-@Version("1.0.1")
-package org.osgi.service.resolver;
+@Version(COMPONENT_SPECIFICATION_VERSION)
+package org.osgi.service.component.runtime.dto;
+
+import static org.osgi.service.component.ComponentConstants.COMPONENT_SPECIFICATION_VERSION;
 
 import org.osgi.annotation.versioning.Version;
 

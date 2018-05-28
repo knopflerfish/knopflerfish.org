@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2012, 2014). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@
  * the types in this package just contain constants for capability and 
  * requirement namespaces specified by the OSGi Alliance.
  * 
- * @version 1.0
- * @author $Id: 4acec73d0eeb7aab73bf6e9f951c6c6ff538c715 $
+ * @author $Id: dac399397078f566be0fd1f3fa44386a46f3b715 $
  */
 
+@Version("1.0")
 package org.osgi.namespace.service;
+
+import org.osgi.annotation.versioning.Version;
 

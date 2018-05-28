@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2011, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2011, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,18 @@
  */
 
 /**
- * Service Component Annotations Package Version 1.3.
- *
+ * Service Component Annotations Package Version 1.4.
  * <p>
- * This package is not used at runtime. Annotated classes are processed by
- * tools to generate Component Descriptions which are used at runtime.
+ * This package is not used at runtime. Annotated classes are processed by tools
+ * to generate Component Descriptions which are used at runtime.
  *
- * @author $Id: bcb93c6d8ba44a16451c4e5455038376b074b914 $
+ * @author $Id: acb8ddef1debef746d5decda18739e8c67b8fee5 $
  */
 
-@Version("1.3")
+@Version(COMPONENT_SPECIFICATION_VERSION)
 package org.osgi.service.component.annotations;
+
+import static org.osgi.service.component.ComponentConstants.COMPONENT_SPECIFICATION_VERSION;
 
 import org.osgi.annotation.versioning.Version;
 
