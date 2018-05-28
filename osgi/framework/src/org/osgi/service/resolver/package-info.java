@@ -15,22 +15,26 @@
  */
 
 /**
- * Tracker Package Version 1.5.
- * 
+ * Resolver Service Package Version 1.1.
  * <p>
  * Bundles wishing to use this package must list the package in the
- * Import-Package header of the bundle's manifest.
- * 
+ * Import-Package header of the bundle's manifest. This package has two types of
+ * users: the consumers that use the API in this package and the providers that
+ * implement the API in this package.
  * <p>
  * Example import for consumers using the API in this package:
  * <p>
- * {@code  Import-Package: org.osgi.util.tracker; version="[1.5,2.0)"}
+ * {@code  Import-Package: org.osgi.service.resolver; version="[1.1,2.0)"}
+ * <p>
+ * Example import for providers implementing the API in this package:
+ * <p>
+ * {@code  Import-Package: org.osgi.service.resolver; version="[1.1,1.2)"}
  * 
- * @author $Id: b72e066d2d62b1d1d7f4891a91cbc5044aa79458 $
+ * @author $Id: 6ac829e72173e50ab58bedd13edd66a1b50e58bd $
  */
 
-@Version("1.5.2")
-package org.osgi.util.tracker;
+@Version("1.1")
+package org.osgi.service.resolver;
 
 import org.osgi.annotation.versioning.Version;
 

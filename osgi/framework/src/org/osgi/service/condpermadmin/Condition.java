@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.osgi.annotation.versioning.ConsumerType;
  * Info can only be used if the associated Conditions are satisfied.
  * 
  * @ThreadSafe
- * @author $Id: 87718d0133d588bbc10729bb5cf43cfeb86fa391 $
+ * @author $Id: 063aea77ef6a63260bda4b9725f86c8788e1a65e $
  */
 @ConsumerType
 public interface Condition {
@@ -118,18 +118,22 @@ final class BooleanCondition implements Condition {
 		this.satisfied = satisfied;
 	}
 
+	@Override
 	public boolean isPostponed() {
 		return false;
 	}
 
+	@Override
 	public boolean isSatisfied() {
 		return satisfied;
 	}
 
+	@Override
 	public boolean isMutable() {
 		return false;
 	}
 
+	@Override
 	public boolean isSatisfied(Condition[] conds, Dictionary<Object, Object> context) {
 		for (int i = 0, length = conds.length; i < length; i++) {
 			if (!conds[i].isSatisfied())

@@ -19,7 +19,7 @@
   <property name="frameworkdoc_template"
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.base.version"   value="8.0.6"/>
+  <property name="fw.base.version"   value="8.99.0"/>
   <property name="version.suffix"    value=""/>
   <condition property="fw.impl.version"
              value="${fw.base.version}"
@@ -119,7 +119,7 @@
            debug             = "on"
            includeantruntime = "false"
            includes          = "**/*.java"
-           excludes          = "org/knopflerfish/framework/validator/*.java,org/knopflerfish/framework/bundlestorage/dex/*.java,org/knopflerfish/framework/bundlestorage/memory/*.java,**/package-info.java,org/knopflerfish/framework/SecurePermissionOps.java,org/knopflerfish/framework/permissions/*.java"
+           excludes          = "org/knopflerfish/framework/validator/*.java,org/knopflerfish/framework/bundlestorage/dex/*.java,org/knopflerfish/framework/bundlestorage/memory/*.java,org/knopflerfish/framework/SecurePermissionOps.java,org/knopflerfish/framework/permissions/*.java"
            classpathref      = "compile.path"
            >
     </javac>
@@ -146,6 +146,7 @@
 
     <delete file="${classout}/classes.dex"/>
 
+    <!-- TODO R7
     <loadfile srcfile="${src.dir}/org/osgi/framework/packageinfo"
               property="fw.spec.version">
       <filterchain>
@@ -153,6 +154,7 @@
         <replacestring from="version " to=""/>
       </filterchain>
     </loadfile>
+  -->
 
     <antcall target="jar_file_full"/>
     <antcall target="jar_file_compact"/>
@@ -167,7 +169,7 @@
       <manifest>
         <attribute name="Main-class"             value="org.knopflerfish.framework.Main"/>
         <attribute name="Specification-Title"    value="OSGi Framework API"/>
-        <attribute name="Specification-Version"  value="${fw.spec.version}"/>
+        <!-- <attribute name="Specification-Version"  value="${fw.spec.version}"/> -->
         <attribute name="Specification-Vendor"   value="Open Service Gateway initiative"/>
         <attribute name="Implementation-Title"   value="Knopflerfish OSGi Framework"/>
         <attribute name="Implementation-Version" value="${fw.impl.version}" />
