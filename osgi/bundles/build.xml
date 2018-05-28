@@ -55,7 +55,6 @@
     <ant target="${the.target}" dir="trayicon"/>
     <ant target="${the.target}" dir="upnp"/>
     <ant target="${the.target}" dir="provisioning"/>
-    <ant target="${the.target}" dir="resolver"/>
     <ant target="${the.target}" dir="repository"/>
   </target>
 
