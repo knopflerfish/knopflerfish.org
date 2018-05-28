@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2014, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2014, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package org.osgi.service.component.annotations;
  * Field options for the {@link Reference} annotation.
  * 
  * @since 1.3
- * @author $Id: 35bfd6c67110ff6c5cd5c9c1764398e4024dbb59 $
+ * @author $Id: b71306feab537b34f304278a83b6d6297ba96aa2 $
  */
 public enum FieldOption {
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2011, 2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2011, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.osgi.service.component.annotations;
 /**
  * Service scope for the {@link Component} annotation.
  * 
- * @author $Id: 3c43d5feab4f5f8782acd72b0461feab464db2f8 $
+ * @author $Id: c777f743cda10fcb0e5c4f0b25584585fa72e2e6 $
  * @since 1.3
  */
 public enum ServiceScope {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2011, 2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2011, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
  * bundle.
  * 
  * @see "The modified attribute of the component element of a Component Description."
- * @author $Id: c4d0c68f20f6237ebd97ae7199394fb5240870d4 $
+ * @author $Id: c45d1061c83c280366468af658ac167fd306b137 $
  * @since 1.1
  */
 @Retention(RetentionPolicy.CLASS)

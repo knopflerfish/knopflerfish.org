@@ -13,6 +13,7 @@
   <property name = "bundle.build.all"   value = "false"/>
 
   <path id="bundle.compile.path">
+    <pathelement location="namespace_api-N.N.N.jar"/>
   </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
