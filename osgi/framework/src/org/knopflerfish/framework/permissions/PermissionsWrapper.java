@@ -335,6 +335,7 @@ public class PermissionsWrapper extends PermissionCollection {
     pc.add(new PropertyPermission("org.osgi.framework.*", "read"));
     pc.add(new CapabilityPermission(ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE,
                                     CapabilityPermission.REQUIRE));
+    pc.add(new PackagePermission("java.*", PackagePermission.IMPORT));
     return pc;
   }
 
