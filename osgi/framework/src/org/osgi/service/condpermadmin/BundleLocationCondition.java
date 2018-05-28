@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import org.osgi.framework.InvalidSyntaxException;
  * Pattern matching is done according to the filter string matching rules.
  * 
  * @ThreadSafe
- * @author $Id: 262e82a5ba72bf4e142179cf037e09a761743382 $
+ * @author $Id: 8a79c1452911de1f8401fe88c1439fa666b004e2 $
  */
 public class BundleLocationCondition {
 	private static final String	CONDITION_TYPE	= "org.osgi.service.condpermadmin.BundleLocationCondition";
@@ -67,6 +67,7 @@ public class BundleLocationCondition {
 		if (args.length != 1 && args.length != 2)
 			throw new IllegalArgumentException("Illegal number of args: " + args.length);
 		String bundleLocation = AccessController.doPrivileged(new PrivilegedAction<String>() {
+			@Override
 			public String run() {
 				return bundle.getLocation();
 			}
