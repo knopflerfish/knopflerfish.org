@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2014, 2017). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.osgi.util.promise;
 
-import static org.osgi.util.promise.PromiseImpl.requireNonNull;
+import static java.util.Objects.requireNonNull;
+
+import org.osgi.annotation.versioning.ProviderType;
 
 /**
  * A Deferred Promise resolution.
@@ -36,20 +38,43 @@ import static org.osgi.util.promise.PromiseImpl.requireNonNull;
  * @param <T> The value type associated with the created Promise.
  * 
  * @Immutable
- * @author $Id: e9ff0a6fa2189934a38d3cf210d5418f8cfaeac7 $
+ * @author $Id: 6ab8f936f6bdb4e7dfc9497dfa76283d3fa880f2 $
  */
+@ProviderType
 public class Deferred<T> {
-	private final PromiseImpl<T>	promise;
+	/**
+	 * The Promise associated with this Deferred.
+	 */
+	private final DeferredPromiseImpl<T> promise;
 
 	/**
-	 * Create a new Deferred with an associated Promise.
+	 * Create a new Deferred.
+	 * <p>
+	 * The {@link #getPromise() associated promise} will use the default
+	 * callback executor and default scheduled executor.
+	 * 
+	 * @see PromiseFactory#deferred()
 	 */
 	public Deferred() {
-		promise = new PromiseImpl<T>();
+		this(PromiseFactory.defaultFactory);
+	}
+
+	/**
+	 * Create a new Deferred with the specified callback and scheduled
+	 * executors.
+	 * 
+	 * @param factory The factory to use for callbacks and scheduled operations.
+	 * @since 1.1
+	 */
+	Deferred(PromiseFactory factory) {
+		promise = new DeferredPromiseImpl<>(factory);
 	}
 
 	/**
 	 * Returns the Promise associated with this Deferred.
+	 * <p>
+	 * All Promise objects created by the associated Promise will use the
+	 * executors of the associated Promise.
 	 * 
 	 * @return The Promise associated with this Deferred.
 	 */
@@ -64,7 +89,7 @@ public class Deferred<T> {
 	 * After the associated Promise is resolved with the specified value, all
 	 * registered {@link Promise#onResolve(Runnable) callbacks} are called and
 	 * any {@link Promise#then(Success, Failure) chained} Promises are resolved.
-	 * 
+	 * This may occur asynchronously to this method.
 	 * <p>
 	 * Resolving the associated Promise <i>happens-before</i> any registered
 	 * callback is called. That is, in a registered callback,
@@ -87,7 +112,7 @@ public class Deferred<T> {
 	 * After the associated Promise is resolved with the specified failure, all
 	 * registered {@link Promise#onResolve(Runnable) callbacks} are called and
 	 * any {@link Promise#then(Success, Failure) chained} Promises are resolved.
-	 * 
+	 * This may occur asynchronously to this method.
 	 * <p>
 	 * Resolving the associated Promise <i>happens-before</i> any registered
 	 * callback is called. That is, in a registered callback,
@@ -118,7 +143,7 @@ public class Deferred<T> {
 	 * After the associated Promise is resolved with the specified Promise, all
 	 * registered {@link Promise#onResolve(Runnable) callbacks} are called and
 	 * any {@link Promise#then(Success, Failure) chained} Promises are resolved.
-	 * 
+	 * This may occur asynchronously to this method.
 	 * <p>
 	 * Resolving the associated Promise <i>happens-before</i> any registered
 	 * callback is called. That is, in a registered callback,
@@ -138,5 +163,16 @@ public class Deferred<T> {
 	 */
 	public Promise<Void> resolveWith(Promise<? extends T> with) {
 		return promise.resolveWith(with);
+	}
+
+	/**
+	 * Returns a string representation of the associated Promise.
+	 * 
+	 * @return A string representation of the associated Promise.
+	 * @since 1.1
+	 */
+	@Override
+	public String toString() {
+		return promise.toString();
 	}
 }
