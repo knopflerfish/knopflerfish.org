@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2014, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,10 @@ import org.osgi.annotation.versioning.ConsumerType;
  * @param <T> The type of the predicate input.
  * 
  * @ThreadSafe
- * @author $Id: 0c2c61f78bede4e2afc4278af4f5e4b873769347 $
+ * @author $Id: 681b771c26c3d7c2d0719138986947f2592c474c $
  */
 @ConsumerType
+@FunctionalInterface
 public interface Predicate<T> {
 	/**
 	 * Evaluates this predicate on the specified argument.
@@ -38,6 +39,7 @@ public interface Predicate<T> {
 	 * @param t The input to this predicate.
 	 * @return {@code true} if the specified argument is accepted by this
 	 *         predicate; {@code false} otherwise.
+	 * @throws Exception An exception thrown by the method.
 	 */
-	boolean test(T t);
+	boolean test(T t) throws Exception;
 }

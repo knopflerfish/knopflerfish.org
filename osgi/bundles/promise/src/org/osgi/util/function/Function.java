@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2014, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,17 @@ import org.osgi.annotation.versioning.ConsumerType;
  * @param <R> The type of the function output.
  * 
  * @ThreadSafe
- * @author $Id: 5d812f75c0b4f88f01083189babb3ef7476b5ced $
+ * @author $Id: 3d17c97c7dc36185681b98caed5ee10bdeb2cd93 $
  */
 @ConsumerType
+@FunctionalInterface
 public interface Function<T, R> {
 	/**
 	 * Applies this function to the specified argument.
 	 * 
 	 * @param t The input to this function.
 	 * @return The output of this function.
+	 * @throws Exception An exception thrown by the method.
 	 */
-	R apply(T t);
+	R apply(T t) throws Exception;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2014, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,23 @@
  */
 
 /**
- * Function Package Version 1.0.
- * 
+ * Function Package Version 1.1.
  * <p>
  * Bundles wishing to use this package must list the package in the
  * Import-Package header of the bundle's manifest.
- * 
  * <p>
  * Example import for consumers using the API in this package:
  * <p>
- * {@code  Import-Package: org.osgi.util.function; version="[1.0,2.0)"}
+ * {@code  Import-Package: org.osgi.util.function; version="[1.1,2.0)"}
  * <p>
  * Example import for providers implementing the API in this package:
  * <p>
- * {@code  Import-Package: org.osgi.util.function; version="[1.0,1.1)"}
+ * {@code  Import-Package: org.osgi.util.function; version="[1.1,1.2)"}
  * 
- * @author $Id: 899d786b27012f55ed87b4c872a6ab2087a20a39 $
+ * @author $Id: 82ed82dc4e9ca67afa2d2616c077fd33bfdee298 $
  */
 
-@Version("1.0")
+@Version("1.1")
 package org.osgi.util.function;
 
 import org.osgi.annotation.versioning.Version;

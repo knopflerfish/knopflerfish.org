@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2014, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,10 @@ import org.osgi.annotation.versioning.ConsumerType;
  * lambda expression or method reference.
  * 
  * @ThreadSafe
- * @author $Id: 4e6a178846eef72f2ca385de547d3c13787c0986 $
+ * @author $Id: 9d491b5950e79ccfe0c5bcfddcb8bb5a8cf82407 $
  */
 @ConsumerType
+@FunctionalInterface
 public interface Failure {
 	/**
 	 * Failure callback for a Promise.
