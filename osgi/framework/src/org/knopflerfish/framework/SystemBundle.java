@@ -594,6 +594,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         }
         addSysPackagesFromResource(sp, "exports", null);
       }
+      fwCtx.props.props.put(Constants.FRAMEWORK_SYSTEMPACKAGES, sp.toString());
     }
     final String extraPkgs = fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
     if (extraPkgs.length() > 0) {
