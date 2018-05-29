@@ -75,6 +75,10 @@ OSGi Compendium Specification
 
 * New library bundle providing the `org.osgi.util.pushstream` package.
 
+### Wire Admin Service 7.0.0
+
+* Updated API classes to match OSGi R7
+
 
 Knopflerfish Services
 ----------------------------------------------------------------------
