@@ -63,6 +63,8 @@
   <target name="all" 
           description="Builds all bundles">
     <!-- Resolve cyclic dependecy by building selected APIs first. -->
+    <ant dir="promise" target="jar_lib"/>
+    <ant dir="pushstream" target="jar_lib"/>
     <ant dir="log" target="jar_api"/>
 
     <!-- Build it all. -->

@@ -42,6 +42,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
+import org.osgi.service.log.LogLevel;
 
 /**
  * This class implements the LogEntry interface defined by OSGi.
@@ -73,16 +74,19 @@ public final class LogEntryImpl implements LogEntry {
 
   // Log entry data.
   private final Bundle bundle;
-
   private final ServiceReference<?> sr;
-
   private final int level;
-
   private final String msg;
-
   private final Throwable e;
-
   private final long millis;
+
+  private final String threadInfo;
+  private StackTraceElement location;
+
+  //TODO: assign proper values
+  private final LogLevel logLevel = LogLevel.DEBUG;
+  private final String loggerName = "";
+  private final long sequence = 0;
 
   public LogEntryImpl(final Bundle bc, final int l, final String m) {
     this(bc, null, l, m, null);
@@ -105,7 +109,10 @@ public final class LogEntryImpl implements LogEntry {
     this.level = l;
     this.msg = m;
     this.e = e;
-    this.millis = System.currentTimeMillis();
+    this.millis = System.currentTimeMillis(); 
+    this.threadInfo = Thread.currentThread().getName();
+    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+    this.location = stackTrace.length == 0 ? null : stackTrace[0]; 
   }
 
   /**
@@ -116,6 +123,7 @@ public final class LogEntryImpl implements LogEntry {
    *  level    YYYYMMDD HH:MM:ss bid#NR - [Service] - Message (Exception)
    * </pre>
    */
+  @Override
   public String toString() {
 
     final StringBuffer sb = new StringBuffer(100);
@@ -156,27 +164,59 @@ public final class LogEntryImpl implements LogEntry {
     return sb.toString();
   }
 
+  @Override
   public Bundle getBundle() {
     return bundle;
   }
 
+  @Override
   public ServiceReference<?> getServiceReference() {
     return sr;
   }
 
+  @Override
   public int getLevel() {
     return level;
   }
 
+  @Override
   public String getMessage() {
     return msg;
   }
 
+  @Override
   public Throwable getException() {
     return e;
   }
 
+  @Override
   public long getTime() {
     return millis;
   }
+
+  @Override
+  public LogLevel getLogLevel() {
+	  return logLevel;
+  }
+
+  @Override
+  public String getLoggerName() {
+	  return loggerName;
+  }
+
+  @Override
+  public long getSequence() {
+	  return sequence;
+  }
+
+  @Override
+  public String getThreadInfo() {
+	  return threadInfo;
+  }
+
+  @Override
+  public StackTraceElement getLocation() {
+	  return location;
+  }
+
 }
