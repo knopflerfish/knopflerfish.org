@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2000, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ package org.osgi.service.http;
  * to register a servlet or resources into the URI namespace of the Http
  * Service. This exception indicates that the requested alias already is in use.
  * 
- * @author $Id: 6e4d8f6f55c98726c4b955ca2367b9e86fbb6821 $
+ * @author $Id: d44893b09317a18af79f13d73b22c39d4f64549e $
  */
 public class NamespaceException extends Exception {
 	static final long	serialVersionUID	= 7235606031147877747L;
@@ -66,6 +66,7 @@ public class NamespaceException extends Exception {
 	 * @return The cause of this exception or {@code null} if no cause was set.
 	 * @since 1.2
 	 */
+	@Override
 	public Throwable getCause() {
 		return super.getCause();
 	}
@@ -81,6 +82,7 @@ public class NamespaceException extends Exception {
 	 *         been set.
 	 * @since 1.2
 	 */
+	@Override
 	public Throwable initCause(Throwable cause) {
 		return super.initCause(cause);
 	}

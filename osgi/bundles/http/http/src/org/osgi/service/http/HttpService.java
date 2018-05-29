@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2000, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import javax.servlet.ServletException;
  * bundle may later unregister its resources or servlets.
  * 
  * @noimplement
- * @author $Id: c7dcd5824096b8a0d98ffe6a0b7b9de336e864f6 $
+ * @author $Id: 1ea12b9c46a70f544556527d25ecb07d4a38252d $
  * @see HttpContext
  */
 public interface HttpService {
@@ -76,7 +76,7 @@ public interface HttpService {
 	 * @throws java.lang.IllegalArgumentException if any of the arguments are
 	 *         invalid
 	 */
-	public void registerServlet(String alias, Servlet servlet, Dictionary initparams, HttpContext context) throws ServletException, NamespaceException;
+	public void registerServlet(String alias, Servlet servlet, Dictionary<?, ?> initparams, HttpContext context) throws ServletException, NamespaceException;
 
 	/**
 	 * Registers resources into the URI namespace.

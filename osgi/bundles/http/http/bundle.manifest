@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: HTTP-Server
 Bundle-SymbolicName: org.knopflerfish.bundle.http
-Bundle-Version: 5.2.1
+Bundle-Version: 7.0.0
 Bundle-Description: HTTP/HTTPS Server
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
@@ -13,8 +13,7 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/http/http
 Bundle-Activator: org.knopflerfish.bundle.http.Activator
 Bundle-Category: osgi
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
-Import-Package: org.osgi.framework; version="[1.6,2)",
+Import-Package: org.osgi.framework; version="[1.9,2)",
  org.osgi.service.log; version="[1.2,3)",
  org.osgi.service.cm; version="[1.4,2)",
  org.osgi.service.http; version="[1.2.1,1.3)",

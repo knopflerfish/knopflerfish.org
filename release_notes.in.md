@@ -43,7 +43,7 @@ OSGi Compendium Specification
 
 ### Push Stream 7.0.0
 
-* New library bundle providing the org.osgi.util.pushstream package.
+* New library bundle providing the `org.osgi.util.pushstream` package.
 
 ### Log 7.0.0
 
