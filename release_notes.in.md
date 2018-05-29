@@ -50,6 +50,29 @@ OSGi Compendium Specification
 * Updated API classes to match OSGi R7.
 * Added dependency to new Push Stream bundle
 
+### Namespace 7.0.0
+
+* Added osgi.unresolvable Namespace.
+* Updated API classes to match OSGi R7.
+
+### Component Annotations 7.0.0
+
+* Updated API classes to match OSGi R7.
+
+### Event Admin Service 7.0.0
+
+* Added org.osgi.service.event.annotations and org.osgi.service.event.propertytypes packages.
+* Added EVENT_ADMIN_IMPLEMENTATION capability.
+* Updated API classes to match OSGi R7.
+
+### Preferences Service 7.0.0
+
+* Updated API classes to match OSGi R7.
+
+### IO Connector Service 7.0.0
+
+* Updated API classes to match OSGi R7.
+
 Knopflerfish Services
 ----------------------------------------------------------------------
 

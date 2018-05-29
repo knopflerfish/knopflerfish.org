@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import java.util.Dictionary;
  * similar to the properties in the {@code Role} class.
  * 
  * @noimplement
- * @author $Id: 0520ec2dd4d53046fd0ea46ec685ee92a384b63b $
+ * @author $Id: 4a13bb52eee9946d3830d0e24d5ea5dfcfee0e94 $
  */
 public interface User extends Role {
 	/**
@@ -68,7 +68,7 @@ public interface User extends Role {
 	 * @return {@code Dictionary} object containing the credentials of this
 	 *         {@code User} object.
 	 */
-	public Dictionary getCredentials();
+	public Dictionary<String, Object> getCredentials();
 
 	/**
 	 * Checks to see if this {@code User} object has a credential with the

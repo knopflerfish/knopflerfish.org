@@ -11,7 +11,7 @@
   <property name="bundle.build.lib"      value="false"/>
   <property name="bundle.build.doc"      value="true"/>
   <property name="bundle.version.suffix" value=""/>
-  <property name="event.version"         value="4.1.0"/>
+  <property name="event.version"         value="7.0.0"/>
 
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.minimum"/>
