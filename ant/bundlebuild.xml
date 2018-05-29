@@ -468,6 +468,7 @@
              encoding="${javac.encoding}"
              classpathref="bundle.path.Expanded"
              includes="@{includes}"
+             excludes="**/package-info.java"
              >
       </javac>
       <!-- Copy resources from the src-tree to the classes-tree. -->
