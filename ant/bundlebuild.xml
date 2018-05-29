@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   ** Copyright (c) 2003-2016, KNOPFLERFISH project
+   ** Copyright (c) 2003-2018, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -242,7 +242,7 @@
 
   <!-- A comma separated list of packages that does not need to be imported. -->
   <!-- I.e., packages that are made available through the system classloader.-->
-  <property name="bundle.stdimports"   value="java."/>
+  <property name="bundle.stdimports"   value=""/>
 
   <!-- A comma separated list of packages that needs to be imported even -->
   <!-- though that they are not explicitly referenced from inside the -->
@@ -468,7 +468,6 @@
              encoding="${javac.encoding}"
              classpathref="bundle.path.Expanded"
              includes="@{includes}"
-             excludes="**/package-info.java"
              >
       </javac>
       <!-- Copy resources from the src-tree to the classes-tree. -->
