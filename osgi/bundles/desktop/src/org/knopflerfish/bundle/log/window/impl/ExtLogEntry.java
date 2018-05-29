@@ -41,6 +41,7 @@ import java.util.Date;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
+import org.osgi.service.log.LogLevel;
 
 /**
  * LogEntry implementation with an extra ID field.
@@ -83,6 +84,31 @@ public class ExtLogEntry implements LogEntry {
     return entry.getTime();
   }
 
+  @Override
+  public LogLevel getLogLevel() {
+	  return entry.getLogLevel();
+  }
+
+  @Override
+  public String getLoggerName() {
+	  return entry.getLoggerName();
+  }
+
+  @Override
+  public long getSequence() {
+	  return entry.getSequence();
+  }
+
+  @Override
+  public String getThreadInfo() {
+	  return entry.getThreadInfo();
+  }
+
+  @Override
+  public StackTraceElement getLocation() {
+	  return entry.getLocation();
+  }
+
   public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append(getId());
@@ -103,4 +129,5 @@ public class ExtLogEntry implements LogEntry {
 
     return sb.toString();
   }
+
 }
