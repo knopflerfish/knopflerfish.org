@@ -37,6 +37,19 @@ OSGi Compendium Specification
 
 * Updated API classes to match OSGi R7.
 
+### Promise 7.0.0
+
+* Updated API classes to match OSGi R7
+
+### Push Stream 7.0.0
+
+* New library bundle providing the `org.osgi.util.pushstream` package.
+
+### Log 7.0.0
+
+* Updated API classes to match OSGi R7.
+* Added dependency to new Push Stream bundle
+
 Knopflerfish Services
 ----------------------------------------------------------------------
 
@@ -44,7 +57,9 @@ Knopflerfish Services
 
 * The Knopflerfish redistribution of crimson has been removed.
 
+### Desktop 7.0.0
 
+* Updated to match OSGi R7 Log
 
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
@@ -68,7 +83,7 @@ Misc, start scripts, build system etc
 
 ### xargs
 
-* Added bundle Pushstream to default and tests xargs files
+* Added Push Stream bundle to default and tests xargs files
 
 ### Maven snapshot bundles / artifacts
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2018, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,24 +47,22 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.Resource;
-
 import org.osgi.framework.Version;
 
 /**
- * Class that holds the results of the Java package analysis of all
- * classes in a bundle.
+ * Class that holds the results of the Java package analysis of all classes in a
+ * bundle.
  * <p>
- * Class and package names should use either '/' or '.' as separator
- * between package levels during build up phase. When all classes
- * packages have been added, make a call to {@link #toJavaNames()} to
- * convert all class / packages names using the internal Java
- * representation with '/' as separator to their non-internal
- * representation with '.' as separator.
- * Mixing of separator kinds is not supported!
+ * Class and package names should use either '/' or '.' as separator between
+ * package levels during build up phase. When all classes packages have been
+ * added, make a call to {@link #toJavaNames()} to convert all class / packages
+ * names using the internal Java representation with '/' as separator to their
+ * non-internal representation with '.' as separator. Mixing of separator kinds
+ * is not supported!
  * </p>
  * <p>
- * When all classes have been added, before using the package using
- * map a call to {@link #postProcessUsingMap(Set,Set)} should be done.
+ * When all classes have been added, before using the package using map a call
+ * to {@link #postProcessUsingMap(Set,Set)} should be done.
  * </p>
  */
 public class BundlePackagesInfo {
@@ -72,15 +70,15 @@ public class BundlePackagesInfo {
   /**
    * Get package name of class string representation.
    *
-   * @param className A fully qualified class name.
-   * @return The Java package name that the named class belongs
-   *         to. Will return the empty string if the named class does
-   *         not belong to any package.
+   * @param className
+   *          A fully qualified class name.
+   * @return The Java package name that the named class belongs to. Will return
+   *         the empty string if the named class does not belong to any package.
    */
   public static String packageName(final String className) {
     String s = className.trim();
     int ix = s.lastIndexOf('/');
-    if(ix == -1) {
+    if (ix == -1) {
       ix = s.lastIndexOf('.');
     }
     if (ix != -1) {
@@ -91,142 +89,126 @@ public class BundlePackagesInfo {
     return s;
   }
 
-
   // The task using this object to provide logging functionality.
   final Task task;
 
-  public BundlePackagesInfo(final Task task)
-  {
-    this.task   = task;
+  public BundlePackagesInfo(final Task task) {
+    this.task = task;
   }
 
   /**
-   * The set of classes provided by the bundle.
-   * The elements of the set are the fully qualified class name.
+   * The set of classes provided by the bundle. The elements of the set are the
+   * fully qualified class name.
    */
-  private final SortedSet/*<String>*/<String> providedClasses = new TreeSet<String>();
-
+  private final SortedSet/* <String> */<String> providedClasses = new TreeSet<String>();
 
   /**
-   * Adds a named class to the set of classes provided by this
-   * bundle.
+   * Adds a named class to the set of classes provided by this bundle.
    *
-   * This method also adds the package of the class to the set of
-   * provided packages. It also add a reference to the class from its
-   * own package.
+   * This method also adds the package of the class to the set of provided
+   * packages. It also add a reference to the class from its own package.
    *
-   * @param className the name of the class to add.
-   * @return the name of the Java package that the given class belongs
-   * to.
+   * @param className
+   *          the name of the class to add.
+   * @return the name of the Java package that the given class belongs to.
    */
-  public String addProvidedClass(final String className)
-  {
+  public String addProvidedClass(final String className) {
     final String pkgName = packageName(className);
     providedClasses.add(className);
     addProvidedPackage(pkgName);
     addReferencedClass(pkgName, className);
 
-    task.log("Added provided class '" +className +"'.",
-             Project.MSG_DEBUG);
+    task.log("Added provided class '" + className + "'.", Project.MSG_DEBUG);
     return pkgName;
   }
 
   /**
    * Checks if a named class is provided by this bundle.
-   * @param className the name of the class to check for.
-   * @return <code>true</code> if the given class is in the set of
-   *         classes provided by this bundle, <code>false</code>
-   *         otherwise.
+   * 
+   * @param className
+   *          the name of the class to check for.
+   * @return <code>true</code> if the given class is in the set of classes
+   *         provided by this bundle, <code>false</code> otherwise.
    */
-  public boolean providesClass(final String className)
-  {
+  public boolean providesClass(final String className) {
     return providedClasses.contains(className);
   }
-
 
   /**
    * The sub set of the provided classes that implements the interface
    * {@link org.osgi.framework.BundleActivator}.
    */
-  private final SortedSet/*<String>*/<String> activatorClasses = new TreeSet<String>();
+  private final SortedSet/* <String> */<String> activatorClasses = new TreeSet<String>();
 
   /**
-   * Adds a named class to the set of classes that implements the
-   * interface {@link org.osgi.framework.BundleActivator}.
+   * Adds a named class to the set of classes that implements the interface
+   * {@link org.osgi.framework.BundleActivator}.
    *
-   * @param className the name of the activator class to add.
+   * @param className
+   *          the name of the activator class to add.
    */
-  public void addProvidedActivatorClass(final String className)
-  {
+  public void addProvidedActivatorClass(final String className) {
     activatorClasses.add(className);
     providedClasses.add(className);
 
-    task.log("Added provided BundleActivator class '" +className +"'.",
-             Project.MSG_DEBUG);
+    task.log("Added provided BundleActivator class '" + className + "'.", Project.MSG_DEBUG);
   }
 
   /**
-   * Gets the cardinality of the set of provided bundle activator
-   * classes.
+   * Gets the cardinality of the set of provided bundle activator classes.
    *
-   * @return Number of elements in the set of provided bundle
-   *         activator classes.
+   * @return Number of elements in the set of provided bundle activator classes.
    */
-  public int countProvidedActivatorClasses()
-  {
+  public int countProvidedActivatorClasses() {
     return activatorClasses.size();
   }
 
   /**
    * Checks if a named class is in the set of provided activator classes.
-   * @param className the name of the activator class to check for.
-   * @return <code>true</code> if the given class is in the set of
-   *         provided activator classes, <code>false</code> otherwise.
+   * 
+   * @param className
+   *          the name of the activator class to check for.
+   * @return <code>true</code> if the given class is in the set of provided
+   *         activator classes, <code>false</code> otherwise.
    */
-  public boolean providesActivatorClass(final String className)
-  {
+  public boolean providesActivatorClass(final String className) {
     return activatorClasses.contains(className);
   }
 
   /**
-   * Return the set of provided activator classes as string suitable
-   * for use in messages.
+   * Return the set of provided activator classes as string suitable for use in
+   * messages.
+   * 
    * @return The provided set of activator classes as a string.
    */
-  public String providedActivatorClassesAsString()
-  {
+  public String providedActivatorClassesAsString() {
     return activatorClasses.toString();
   }
 
   /**
-   * Get the bundle activator from the set of provided bundle
-   * activator classes.
-   * @return The one and only activator class when the size of the set
-   *         of provided bundle activator classes is <em>one</em>,
-   *         otherwise <code>null</code>.
+   * Get the bundle activator from the set of provided bundle activator classes.
+   * 
+   * @return The one and only activator class when the size of the set of provided
+   *         bundle activator classes is <em>one</em>, otherwise
+   *         <code>null</code>.
    */
-  public String getActivatorClass()
-  {
-    return 1== activatorClasses.size()
-      ? activatorClasses.iterator().next()
-      : (String) null;
+  public String getActivatorClass() {
+    return 1 == activatorClasses.size() ? activatorClasses.iterator().next() : (String) null;
   }
 
+  /**
+   * The set of packages that are provided by the classes in the bundle.
+   */
+  private final SortedSet/* <String> */<String> providedPackages = new TreeSet<String>();
 
   /**
-   * The set of packages that are provided by the classes in the
-   * bundle.
+   * Adds a named package to the set of packages provided by this bundle.
+   * 
+   * @param packageName
+   *          the name of the Java package to add.
    */
-  private final SortedSet/*<String>*/<String> providedPackages = new TreeSet<String>();
-
-  /**
-   * Adds a named package to the set of packages provided by this
-   * bundle.
-   * @param packageName the name of the Java package to add.
-   */
-  public void addProvidedPackage(final String packageName)
-  {
-    if(packageName == null || "".equals(packageName)) {
+  public void addProvidedPackage(final String packageName) {
+    if (packageName == null || "".equals(packageName)) {
       return;
     }
 
@@ -236,13 +218,12 @@ public class BundlePackagesInfo {
   /**
    * Checks if a named Java package is provided by this bundle.
    *
-   * @param packageName the name of the package to check for.
-   * @return <code>true</code> if the given package is in the set of
-   *         packages provided by this bundle, <code>false</code>
-   *         otherwise.
+   * @param packageName
+   *          the name of the package to check for.
+   * @return <code>true</code> if the given package is in the set of packages
+   *         provided by this bundle, <code>false</code> otherwise.
    */
-  public boolean providesPackage(final String packageName)
-  {
+  public boolean providesPackage(final String packageName) {
     return providedPackages.contains(packageName);
   }
 
@@ -253,8 +234,7 @@ public class BundlePackagesInfo {
    *
    * @return A copy of the set of provided Java packages.
    */
-  public SortedSet<String> getProvidedPackages()
-  {
+  public SortedSet<String> getProvidedPackages() {
     final TreeSet<String> res = new TreeSet<String>(providedPackages);
     toJavaNames(res); // Ensure that '.' is used as package separator
     return res;
@@ -266,15 +246,14 @@ public class BundlePackagesInfo {
    *
    * @return OSGi Export-Package header value.
    */
-  public String getProvidedPackagesAsExportPackageValue()
-  {
+  public String getProvidedPackagesAsExportPackageValue() {
     final StringBuffer res = new StringBuffer(255);
 
     for (final Iterator<String> ppIt = providedPackages.iterator(); ppIt.hasNext();) {
       final String pPkg = ppIt.next();
       res.append(pPkg);
       final Version pPkgVersion = getProvidedPackageVersion(pPkg);
-      if (null!=pPkgVersion) {
+      if (null != pPkgVersion) {
         res.append(";version=").append(pPkgVersion);
       }
       if (ppIt.hasNext()) {
@@ -290,70 +269,66 @@ public class BundlePackagesInfo {
    *
    * @return Number of elements in the set of provided packages.
    */
-  public int countProvidedPackages()
-  {
+  public int countProvidedPackages() {
     return providedPackages.size();
   }
 
   /**
-   * Mapping from the package name of a provided package to its
-   * version as given by the packageinfo-file if present.
+   * Mapping from the package name of a provided package to its version as given
+   * by the packageinfo-file if present.
    */
-  private final Map<String,Version> packageToVersion = new HashMap<String, Version>();
+  private final Map<String, Version> packageToVersion = new HashMap<String, Version>();
 
   /**
    * Get the version of a provided package as defined by the
    * <code>packageinfo</code>-file in the package-directory.
    *
-   * @param pkgName The package to get the version of.
+   * @param pkgName
+   *          The package to get the version of.
    *
    * @return The package version or null if not defined.
    */
-  public Version getProvidedPackageVersion(final String pkgName)
-  {
+  public Version getProvidedPackageVersion(final String pkgName) {
     return packageToVersion.get(pkgName);
   }
 
+  /**
+   * Mapping from the package name of a provided package to the absolute path of
+   * the <code>packageinfo</code>-file that was used to determine the package
+   * version.
+   */
+  private final Map<String, String> packageToInfofile = new HashMap<String, String>();
 
   /**
-   * Mapping from the package name of a provided package to the
-   * absolute path of the <code>packageinfo</code>-file that was used
-   * to determine the package version.
-   */
-  private final Map<String,String> packageToInfofile = new HashMap<String, String>();
-
-
-  /**
-   * Get the path of the file that the version of a provided package
-   * was found in.
+   * Get the path of the file that the version of a provided package was found in.
    *
-   * @param pkgName The version-ed package to get the version source of.
+   * @param pkgName
+   *          The version-ed package to get the version source of.
    *
-   * @return The path of the <code>packageinfo</code>-file that the
-   *         version was read from.
+   * @return The path of the <code>packageinfo</code>-file that the version was
+   *         read from.
    */
-  public String getProvidedPackageVersionSource(final String pkgName)
-  {
+  public String getProvidedPackageVersionSource(final String pkgName) {
     return packageToInfofile.get(pkgName);
   }
 
-
   /**
-   * Read the version from a <code>packageinfo</code>-file given a
-   * resource-object.
+   * Read the version from a {@code packageinfo}-file given a resource-object.
    *
-   * @param res Resource encapsulating a <code>packageinfo</code>-file.
+   * @param res
+   *          Resource encapsulating a {@code packageinfo}-file.
    *
-   * @return The version or <code>null</code> if no valid version was
-   *         found.
+   * @return The version or {@code null} if no valid version was found.
    */
-  private Version getVersion(final Resource res)
-  {
+  private Version getVersion(final Resource res) {
     BufferedReader br = null;
+    task.log("Loading package version from '" + res.getName(), Project.MSG_DEBUG);
+
     try {
       br = new BufferedReader(new InputStreamReader(res.getInputStream()));
       String line = br.readLine();
-      while (null!=line) {
+
+      while (null != line) {
         if (line.startsWith("version ")) {
           final Version version = new Version(line.substring(7).trim());
           return version;
@@ -361,76 +336,61 @@ public class BundlePackagesInfo {
         line = br.readLine();
       }
     } catch (final Throwable t) {
-      final String msg = "Failed to get version from '" +res.toString()
-        +"'; " +t.getMessage();
+      final String msg = "Failed to get version from '" + res.toString() + "'; " + t.getMessage();
       throw new BuildException(msg, t);
     }
     return null;
   }
 
-
   /**
-   * Try to assign a version to the Java that the given
-   * <code>packageinfo</code>-file resides in. This code assumes that
-   * the resource has been created in such a way that
-   * <code>res.getName()</code> returns a relative path to the
-   * <code>packageinfo</code>-file that starts in its package
-   * root. I.e., the path is the Java package that the
-   * <code>packageinfo</code>-file provides data for.
+   * Try to assign a version to the Java package given the directory that the
+   * {@code packageinfo}-file resides in. This code assumes that the resource has
+   * been created in such a way that {@code res.getName()} returns a relative path
+   * to the {@code packageinfo}-file that starts in its package root. I.e., the
+   * path is the Java package that the {@code packageinfo}-file provides data for.
    *
-   * @param res Resource encapsulating a <code>packageinfo</code>-file.
-   * @return The package name or <code>null</code> if no valid version was
-   *         found.
+   * @param res
+   *          Resource encapsulating a {@code packageinfo}-file.
+   * @return The package name or {@code null} if no valid version was found.
    */
-  public String setPackageVersion(final Resource res)
-  {
+  public String setPackageVersion(final Resource res) {
     // The relative path to packageinfo-file starting from the root of
     // its classpath. Allways using forward slash as separator char.
     final String pkgInfoPath = res.getName().replace(File.separatorChar, '/');
-    // 12 = "/packageinfo".lenght()
-    final String pkgName = pkgInfoPath.substring(0, pkgInfoPath.length()-12);
-
-    // Currently registered path for version providing packageinfo
-    // file, if any.
+    final String pkgName = pkgInfoPath.substring(0, pkgInfoPath.lastIndexOf('/'));
+    // Currently registered path for version providing packageinfo file, if any.
     final String curPkgInfoPath = packageToInfofile.get(pkgName);
 
-    if (null==curPkgInfoPath || !curPkgInfoPath.equals(pkgInfoPath)) {
+    if (null == curPkgInfoPath || !curPkgInfoPath.equals(pkgInfoPath)) {
       final Version newVersion = getVersion(res);
-      if (null!=newVersion) {
+      if (null != newVersion) {
         final Version curVersion = getProvidedPackageVersion(pkgName);
 
-        if (null==curVersion) {
+        if (null == curVersion) {
           packageToVersion.put(pkgName, newVersion);
           packageToInfofile.put(pkgName, pkgInfoPath);
-          task.log("Package version for '" +pkgName +"' set to "
-                   +newVersion +" based on data from '" +pkgInfoPath +"'.",
-                   Project.MSG_VERBOSE);
+          task.log("Package version for '" + pkgName + "' set to " + newVersion + " based on data from '" + pkgInfoPath
+              + "'.", Project.MSG_VERBOSE);
           return pkgName;
         } else if (!newVersion.equals(curVersion)) {
           // May happen when the classes of a package are in two
           // different directories on the class path.
-          throw new BuildException("Conflicting versions for '"
-                                   +pkgName +"' previous  '"
-                                   +curVersion +"' from '"
-                                   +curPkgInfoPath +"', new '"
-                                   +newVersion +"' in '"
-                                   +pkgInfoPath +"'.");
+          throw new BuildException("Conflicting versions for '" + pkgName + "' previous  '" + curVersion + "' from '"
+              + curPkgInfoPath + "', new '" + newVersion + "' in '" + pkgInfoPath + "'.");
         }
       }
     }
     return null;
   }
 
-
   /**
-   * The set of classes that are referenced from the provided classes.
-   * I.e., classes that are used somehow by the provided classes.
+   * The set of classes that are referenced from the provided classes. I.e.,
+   * classes that are used somehow by the provided classes.
    */
   private final SortedSet<String> referencedClasses = new TreeSet<String>();
 
   /**
-   * The set of Java packages that are referenced from the provided
-   * classes.
+   * The set of Java packages that are referenced from the provided classes.
    */
   private final SortedSet<String> referencedPackages = new TreeSet<String>();
 
@@ -439,93 +399,80 @@ public class BundlePackagesInfo {
    *
    * @return A copy of the set of referenced Java packages.
    */
-  public SortedSet<String> getReferencedClasses()
-  {
+  public SortedSet<String> getReferencedClasses() {
     return new TreeSet<String>(referencedClasses);
   }
 
-
   /**
-   * Get a the set of Java packages that are referenced by this bundle
-   * but not provided by it.
+   * Get a the set of Java packages that are referenced by this bundle but not
+   * provided by it.
    *
    * @return The set of un-provided referenced Java packages.
    */
-  public SortedSet/*<String>*/<String> getUnprovidedReferencedPackages()
-  {
+  public SortedSet/* <String> */<String> getUnprovidedReferencedPackages() {
     final SortedSet<String> res = new TreeSet<String>(referencedPackages);
     res.removeAll(providedPackages);
 
     return res;
   }
 
-
   /**
-   * Get a copy of the set of Java packages that are referenced by
-   * this bundle.
+   * Get a copy of the set of Java packages that are referenced by this bundle.
    *
    * @return The set of referenced Java packages.
    */
-  public SortedSet<String> getReferencedPackages()
-  {
+  public SortedSet<String> getReferencedPackages() {
     return new TreeSet<String>(referencedPackages);
   }
 
+  /**
+   * A mapping from a provided Java package name to the set of Java package names
+   * referenced by the classes in that provided package.
+   */
+  private final Map<String, Set<String>> packageToReferencedPackages = new HashMap<String, Set<String>>();
 
   /**
-   * A mapping from a provided Java package name to the set of Java
-   * package names referenced by the classes in that provided package.
-   */
-  private final Map<String,Set<String>>
-    packageToReferencedPackages = new HashMap<String, Set<String>>();
-
-
-  /**
-   * Add a reference to a named class from some class in the
-   * referencing Java package.
+   * Add a reference to a named class from some class in the referencing Java
+   * package.
    *
-   * If the given referenced class is an inner class, then we also add
-   * a reference for its outer class. This is not really needed for
-   * static inner classes, but there is no way to detect that on this
-   * level.
+   * If the given referenced class is an inner class, then we also add a reference
+   * for its outer class. This is not really needed for static inner classes, but
+   * there is no way to detect that on this level.
    *
-   * @param referencingPackage The Java package of the class having a
-   *                           reference to <tt>className</tt>.
-   * @param referencedClass Fully qualified name of the referenced
-   *                        class.
+   * @param referencingPackage
+   *          The Java package of the class having a reference to
+   *          <tt>className</tt>.
+   * @param referencedClass
+   *          Fully qualified name of the referenced class.
    */
-  public void addReferencedClass(final String referencingPackage,
-                                 final String referencedClass)
-  {
-    if(null==referencedClass || 0==referencedClass.length()) {
+  public void addReferencedClass(final String referencingPackage, final String referencedClass) {
+    if (null == referencedClass || 0 == referencedClass.length()) {
       return;
     }
 
     final String referencedPackage = packageName(referencedClass);
-    if("".equals(referencedPackage)) {
+    if ("".equals(referencedPackage)) {
       // Referenced class is in the default package; skip it.
       return;
     }
 
     referencedClasses.add(referencedClass);
     final int dollarIdx = referencedClass.indexOf('$');
-    if (-1<dollarIdx) {
+    if (-1 < dollarIdx) {
       // This is an inner class add its outer class as well.
       referencedClasses.add(referencedClass.substring(0, dollarIdx));
     }
     referencedPackages.add(referencedPackage);
-    if (null!=referencingPackage && 0<referencingPackage.length()) {
-      SortedSet<String> using = (SortedSet<String>)
-        packageToReferencedPackages.get(referencingPackage);
-      if (null==using) {
+    if (null != referencingPackage && 0 < referencingPackage.length()) {
+      SortedSet<String> using = (SortedSet<String>) packageToReferencedPackages.get(referencingPackage);
+      if (null == using) {
         using = new TreeSet<String>();
         packageToReferencedPackages.put(referencingPackage, using);
       }
       using.add(referencedPackage);
     }
-    task.log("Added reference to class '" +referencedClass
-             +"' from the package '" +referencingPackage +"'.",
-             Project.MSG_DEBUG);
+    task.log("Added reference to class '" + referencedClass + "' from the package '" + referencingPackage + "'.",
+        Project.MSG_DEBUG);
   }
 
   /**
@@ -536,8 +483,8 @@ public class BundlePackagesInfo {
    * <li>Remove all references to "java.*".
    * <li>Remove all packages in the remove from referenced set are removed from
    * all referenced sets.
-   * <li>Retain all packages in the retain in referenced set. I.e., the
-   * referenced sets will only contain packages present in this set.
+   * <li>Retain all packages in the retain in referenced set. I.e., the referenced
+   * sets will only contain packages present in this set.
    * </ol>
    *
    * @param removeFromReferencedSets
@@ -545,10 +492,8 @@ public class BundlePackagesInfo {
    * @param retainInReferencedSets
    *          Packages to retain.
    */
-  public void postProcessUsingMap(Set<String> removeFromReferencedSets,
-                                  Set<String> retainInReferencedSets)
-  {
-    for (final Entry<String,Set<String>> entry : packageToReferencedPackages.entrySet()) {
+  public void postProcessUsingMap(Set<String> removeFromReferencedSets, Set<String> retainInReferencedSets) {
+    for (final Entry<String, Set<String>> entry : packageToReferencedPackages.entrySet()) {
       final Set<String> using = entry.getValue();
       using.remove(entry.getKey());
       using.removeAll(removeFromReferencedSets);
@@ -557,26 +502,21 @@ public class BundlePackagesInfo {
   }
 
   /**
-   * Get a the set of Java packages that are referenced by the
-   * given Java package.
+   * Get a the set of Java packages that are referenced by the given Java package.
    *
-   * @param  packageName The name of the Java package to get
-   *                     referenced Java packages for.
+   * @param packageName
+   *          The name of the Java package to get referenced Java packages for.
    * @return The set of referenced Java packages.
    */
-  public SortedSet<String>
-    getPackagesReferencedFromPackage(final String packageName)
-  {
+  public SortedSet<String> getPackagesReferencedFromPackage(final String packageName) {
     return (SortedSet<String>) packageToReferencedPackages.get(packageName);
   }
 
-
   /**
-   * Replaces all '/' in class and package names with '.' in all the
-   * collections that this class is holding.
+   * Replaces all '/' in class and package names with '.' in all the collections
+   * that this class is holding.
    */
-  public void toJavaNames()
-  {
+  public void toJavaNames() {
     toJavaNames(providedClasses);
     toJavaNames(providedPackages);
     toJavaNames(activatorClasses);
@@ -588,13 +528,13 @@ public class BundlePackagesInfo {
   }
 
   /**
-   * Replaces all '/' in class and package names with '.' in the
-   * elements of the given set.
+   * Replaces all '/' in class and package names with '.' in the elements of the
+   * given set.
    *
-   * @param set the set of names to process.
+   * @param set
+   *          the set of names to process.
    */
-  private void toJavaNames(SortedSet<String> set)
-  {
+  private void toJavaNames(SortedSet<String> set) {
     final TreeSet<String> tmpSet = new TreeSet<String>();
     for (final String item : set) {
       tmpSet.add(item.replace('/', '.'));
@@ -605,15 +545,14 @@ public class BundlePackagesInfo {
   }
 
   /**
-   * Replaces all '/' in class and package names with '.' in the keys of the
-   * given map. If the value is a sorted set of strings call
+   * Replaces all '/' in class and package names with '.' in the keys of the given
+   * map. If the value is a sorted set of strings call
    * {@link #toJavaNames(SortedSet)} on it.
    *
    * @param map
    *          the map of with keys to process.
    */
-  private <V> void toJavaNames(Map<String, V> map)
-  {
+  private <V> void toJavaNames(Map<String, V> map) {
     final HashMap<String, V> tmpMap = new HashMap<String, V>();
 
     for (final Entry<String, V> entry : map.entrySet()) {
@@ -632,65 +571,59 @@ public class BundlePackagesInfo {
   }
 
   @Override
-  public boolean equals(Object other)
-  {
+  public boolean equals(Object other) {
     if (!(other instanceof BundlePackagesInfo)) {
       return false;
     }
     final BundlePackagesInfo otherBpInfo = (BundlePackagesInfo) other;
 
     if (!providedPackages.equals(otherBpInfo.providedPackages)) {
-      System.out.println("Diff for provided packages: mine="
-                         +providedPackages
-                         +", other=" +otherBpInfo.providedPackages);
+      System.out
+          .println("Diff for provided packages: mine=" + providedPackages + ", other=" + otherBpInfo.providedPackages);
       return false;
     }
 
     if (!providedClasses.equals(otherBpInfo.providedClasses)) {
-      System.out.println("Diff for provided classes: mine="
-                         +providedClasses
-                         +", other=" +otherBpInfo.providedClasses);
+      System.out
+          .println("Diff for provided classes: mine=" + providedClasses + ", other=" + otherBpInfo.providedClasses);
       return false;
     }
 
     if (!activatorClasses.equals(otherBpInfo.activatorClasses)) {
-      System.out.println("Diff for activator classes: mine="
-                         +activatorClasses
-                         +", other=" +otherBpInfo.activatorClasses);
+      System.out
+          .println("Diff for activator classes: mine=" + activatorClasses + ", other=" + otherBpInfo.activatorClasses);
       return false;
     }
 
     if (!referencedPackages.equals(otherBpInfo.referencedPackages)) {
-      System.out.println("Diff for referenced packages: mine="
-                         +referencedPackages
-                         +", other=" +otherBpInfo.referencedPackages);
+      System.out.println(
+          "Diff for referenced packages: mine=" + referencedPackages + ", other=" + otherBpInfo.referencedPackages);
       final SortedSet<String> all = new TreeSet<String>(referencedPackages);
       all.addAll(otherBpInfo.referencedPackages);
       final SortedSet<String> tmp = new TreeSet<String>(all);
       tmp.removeAll(referencedPackages);
-      System.out.println(" Other extra referenced packages: " +tmp);
+      System.out.println(" Other extra referenced packages: " + tmp);
 
       tmp.addAll(all);
       tmp.removeAll(otherBpInfo.referencedPackages);
-      System.out.println(" My extra referenced packages: " +tmp);
+      System.out.println(" My extra referenced packages: " + tmp);
 
       return false;
     }
 
     if (!referencedClasses.equals(otherBpInfo.referencedClasses)) {
-      System.out.println("Diff for referenced classes: mine="
-                         +referencedClasses
-                         +", other=" +otherBpInfo.referencedClasses);
+      System.out.println(
+          "Diff for referenced classes: mine=" + referencedClasses + ", other=" + otherBpInfo.referencedClasses);
 
       final SortedSet<String> all = new TreeSet<String>(referencedClasses);
       all.addAll(otherBpInfo.referencedClasses);
       final SortedSet<String> tmp = new TreeSet<String>(all);
       tmp.removeAll(referencedClasses);
-      System.out.println(" Other extra referenced classes: " +tmp);
+      System.out.println(" Other extra referenced classes: " + tmp);
 
       tmp.addAll(all);
       tmp.removeAll(otherBpInfo.referencedClasses);
-      System.out.println(" My extra referenced classes: " +tmp);
+      System.out.println(" My extra referenced classes: " + tmp);
 
       return false;
     }
@@ -698,10 +631,8 @@ public class BundlePackagesInfo {
     return true;
   }
 
-
   @Override
-  public String toString()
-  {
+  public String toString() {
     final StringBuffer res = new StringBuffer(200);
     res.append("BundlePackagesInfo:\n\t");
     res.append("Provided packages: [");
@@ -709,7 +640,7 @@ public class BundlePackagesInfo {
       final String pPkg = ppIt.next();
       res.append(pPkg);
       final Version pPkgVersion = getProvidedPackageVersion(pPkg);
-      if (null!=pPkgVersion) {
+      if (null != pPkgVersion) {
         res.append(";version=").append(pPkgVersion);
       }
       if (ppIt.hasNext()) {
@@ -728,6 +659,5 @@ public class BundlePackagesInfo {
 
     return res.toString();
   }
-
 
 }
