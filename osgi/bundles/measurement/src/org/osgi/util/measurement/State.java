@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ package org.osgi.util.measurement;
  * A {@code State} object is immutable so that it may be easily shared.
  * 
  * @Immutable
- * @author $Id: 415613f3925b2d69f27517c1ef2fc389507b62dc $
+ * @author $Id: e9fcca59ef704cafbc23e1f629713a804db59760 $
  */
 public class State {
 	private final int		value;
@@ -91,8 +91,9 @@ public class State {
 	 * 
 	 * @return a {@code String} object representing this object.
 	 */
+	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(value);
 		if (name != null) {
 			sb.append(" \"");
@@ -107,6 +108,7 @@ public class State {
 	 * 
 	 * @return A hash code value for this object.
 	 */
+	@Override
 	public int hashCode() {
 		int hash = 31 * 17 + value;
 		if (name != null) {
@@ -123,6 +125,7 @@ public class State {
 	 * @return {@code true} if this object is equal to the specified object;
 	 *         {@code false} otherwise.
 	 */
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,9 +45,9 @@ package org.osgi.util.measurement;
  * {@link #compareTo(Object)}.
  * 
  * @Immutable
- * @author $Id: 5d6be0f87b34d62ad5671e13710ef52ea36abf0c $
+ * @author $Id: 4a8cf662973e8b18c30f160b15bac955e53dcdc8 $
  */
-public class Measurement implements Comparable {
+public class Measurement implements Comparable<Object> {
 	private final double		value;
 	private final double		error;
 	private final long			time;
@@ -362,10 +362,11 @@ public class Measurement implements Comparable {
 	 * @return a {@code String} object representing this {@code Measurement}
 	 *         object.
 	 */
+	@Override
 	public String toString() {
 		String result = name;
 		if (result == null) {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			sb.append(value);
 			if (error != 0.0d) {
 				sb.append(" +/- ");
@@ -408,6 +409,7 @@ public class Measurement implements Comparable {
 	 *         {@code Measurement} object is not equal to the {@code Unit}
 	 *         object of this object.
 	 */
+	@Override
 	public int compareTo(Object obj) {
 		if (this == obj) {
 			return 0;
@@ -437,6 +439,7 @@ public class Measurement implements Comparable {
 	 * 
 	 * @return A hash code value for this object.
 	 */
+	@Override
 	public int hashCode() {
 		int h = hashCode;
 		if (h == 0) {
@@ -463,6 +466,7 @@ public class Measurement implements Comparable {
 	 * @return {@code true} if this object is equal to the specified object;
 	 *         {@code false} otherwise.
 	 */
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
