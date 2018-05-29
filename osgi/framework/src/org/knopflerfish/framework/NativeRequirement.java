@@ -282,12 +282,6 @@ class NativeRequirement
     {
       this.files = files;
       matchLang = langs != null;
-      procs = Arrays.stream(procs.toArray(new String [procs.size()]))
-              .map(Alias::unifyProcessor)
-              .collect(Collectors.toList());
-      oses = Arrays.stream(oses.toArray(new String [oses.size()]))
-              .map(Alias::unifyOsName)
-              .collect(Collectors.toList());
       if (vers != null) {
         Version mv = null;
         List<VersionRange> vrs = new ArrayList<VersionRange>(vers.size());
