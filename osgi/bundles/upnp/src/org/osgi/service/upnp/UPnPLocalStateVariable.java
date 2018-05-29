@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2018). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ package org.osgi.service.upnp;
  * 
  * @since 1.1
  * 
- * @author $Id: 351a0315baedfbfacb2f6ba18676df8fcb7ea9c2 $
+ * @author $Id: 25d3d75443acb0004906da4e441ec1c2d1e3ea33 $
  */
 public interface UPnPLocalStateVariable extends UPnPStateVariable {
 	/**
@@ -37,12 +37,11 @@ public interface UPnPLocalStateVariable extends UPnPStateVariable {
 	 * UPnPDevice whenever UPnPStateVariable's value is changed , this method
 	 * must be called.
 	 * 
-	 * @return {@code Object} current value of UPnPStateVariable. if the current
+	 * @return {@code Object} current value of UPnPStateVariable. If the current
 	 *         value is initialized with the default value defined UPnP service
 	 *         description.
-	 * 
-	 * @throws IllegalStateException if the UPnP state variable has been
-	 *         removed.
+	 * @throws IllegalStateException If the UPnP state variable has been
+	 *             removed.
 	 */
 	public Object getCurrentValue();
 }

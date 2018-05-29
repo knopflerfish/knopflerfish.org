@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2014). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ package org.osgi.service.upnp;
  * control point invokes actions to UPnPDevices.
  * 
  * @since 1.1
- * @author $Id: ffd3b84b098101404cbdf9a1ff1f80e5d7fbfe63 $
+ * @author $Id: c37703795c6825bedd6aae81396ed3a2dcf48092 $
  */
 public class UPnPException extends Exception {
 
@@ -107,7 +107,7 @@ public class UPnPException extends Exception {
 	 * 
 	 * @return The UPnPErrorCode defined by a UPnP Forum working committee or
 	 *         specified by a UPnP vendor.
-	 * @deprecated As of version 1.2, replaced by {@link #getUPnPErrorCode()}
+	 * @deprecated As of 1.2. Replaced by {@link #getUPnPErrorCode()}.
 	 */
 	public int getUPnPError_Code() {
 		return getUPnPErrorCode();

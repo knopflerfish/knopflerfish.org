@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Dictionary;
  * Each UPnP service contains zero or more actions. Each action may have zero or
  * more UPnP state variables as arguments.
  * 
- * @author $Id: f1ba100ae6041a6c8020a6d128455cfedc9d42bc $
+ * @author $Id: 1dcd1158702e17d78681997861334b518c8faca9 $
  */
 public interface UPnPAction {
 	/**
@@ -138,5 +138,5 @@ public interface UPnPAction {
 	 * 
 	 * @see UPnPStateVariable
 	 */
-	Dictionary invoke(Dictionary args) throws Exception;
+	Dictionary<String, Object> invoke(Dictionary<String, ?> args) throws Exception;
 }

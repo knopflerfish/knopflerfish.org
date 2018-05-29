@@ -55,7 +55,7 @@ import java.util.Dictionary;
  * events.</li>
  * </ul>
  * 
- * @author $Id: 80582d96d7a175bdc866166b386a38e2a8fe9e64 $
+ * @author $Id: fab5adc95936a5cc99f842954cc98dcf6110ef87 $
  */
 public interface UPnPEventListener {
 	/**
@@ -81,5 +81,5 @@ public interface UPnPEventListener {
 	 * 
 	 * 
 	 */
-	void notifyUPnPEvent(String deviceId, String serviceId, Dictionary events);
+	void notifyUPnPEvent(String deviceId, String serviceId, Dictionary<String, ?> events);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ package org.osgi.service.upnp;
  * types from UPnP data types to Java data types is described with the field
  * definitions.
  * 
- * @author $Id: 1ebafb56d9eead28c2c879c2aa1c77702fec6f1c $
+ * @author $Id: f152422941e09bb92f3eb5e9fe57fc41cbb1d580 $
  */
 public interface UPnPStateVariable {
 	/**
@@ -285,7 +285,7 @@ public interface UPnPStateVariable {
 	 * 
 	 * @return A class object corresponding to the Java type of this argument.
 	 */
-	Class getJavaDataType();
+	Class<?> getJavaDataType();
 
 	/**
 	 * Returns the UPnP type of this state variable. Valid types are defined as

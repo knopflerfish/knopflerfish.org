@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import java.util.Dictionary;
  * If an application wants to query for a set of localized property values, it
  * has to use the method {@code UPnPDevice.getDescriptions(String locale)}.
  * 
- * @author $Id: a09c1c2f31fa7a32578cbd888b1c6981e66b3cba $
+ * @author $Id: fe7d6d7d512f4070e460e7947ea9cad95689e981 $
  */
 public interface UPnPDevice {
 	/*
@@ -287,5 +287,5 @@ public interface UPnPDevice {
 	 *         Strings
 	 * 
 	 */
-	Dictionary getDescriptions(String locale);
+	Dictionary<String, String> getDescriptions(String locale);
 }

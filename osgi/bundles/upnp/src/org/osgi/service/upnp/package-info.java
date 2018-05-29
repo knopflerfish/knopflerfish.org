@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,10 @@
  * <p>
  * {@code  Import-Package: org.osgi.service.upnp; version="[1.2,1.3)"}
  * 
- * @version 1.2
- * @author $Id: 1416516270d94fd2fde369c009fe84229e42d1ea $
+ * @author $Id: 15372d2224eaea66dd1df427508d927052d40710 $
  */
 
+@Version("1.2")
 package org.osgi.service.upnp;
 
+import org.osgi.annotation.versioning.Version;
