@@ -38,7 +38,7 @@ import org.osgi.service.dmt.Uri;
  * format. {@link NotificationService} implementations on other management
  * protocols should map these constructs to the underlying protocol.
  * 
- * @author $Id: 0fe38540d8096d2c0cf4fc5b6da55b133d9cee0f $
+ * @author $Id: 2b73aa3f4b13b747c587366dc2e983c33e2bc611 $
  */
 public class AlertItem {
 
@@ -164,6 +164,7 @@ public class AlertItem {
 	 * 
 	 * @return the string representation of this alert item
 	 */
+	@Override
 	public String toString() {
 		return "AlertItem(" + source + ", " + type + ", " + mark + ", " + data + ")";
 	}

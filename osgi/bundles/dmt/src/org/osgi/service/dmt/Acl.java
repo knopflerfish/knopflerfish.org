@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2017). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package org.osgi.service.dmt;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.Vector;
 
 /**
  * {@code Acl} is an immutable class representing structured access to DMT ACLs.
@@ -36,7 +38,7 @@ import java.util.Vector;
  * &lt;<i>server-identifier</i>&gt; ::= All printable characters except
  * {@code '='}, {@code '&'}, {@code '*'}, {@code '+'} or white-space characters.
  * 
- * @author $Id: a8eef2d9a9105197eb1e5e6f94013d7976a4f929 $
+ * @author $Id: c58d6f55ec211830489505001946db4b73c9bfdd $
  */
 public final class Acl {
 
@@ -91,7 +93,7 @@ public final class Acl {
 	// ----- Private fields -----//
 
 	// the implementation takes advantage of this being a sorted map
-	private final TreeMap			principalPermissions;
+	private final TreeMap<String, Integer>	principalPermissions;
 
 	private final int				globalPermissions;
 
@@ -107,12 +109,12 @@ public final class Acl {
 	 */
 	public Acl(String acl) {
 		if (acl == null || acl.equals("")) { // empty permission set
-			principalPermissions = new TreeMap();
+			principalPermissions = new TreeMap<>();
 			globalPermissions = 0;
 			return;
 		}
 
-		TreeMap tempPrincipalPermissions = new TreeMap();
+		TreeMap<String, Integer> tempPrincipalPermissions = new TreeMap<>();
 		int tempGlobalPermissions = 0;
 
 		String[] aclEntries = split(acl, '&', -1);
@@ -136,9 +138,9 @@ public final class Acl {
 					tempGlobalPermissions |= command;
 				else {
 					checkServerId(serverIds[j], "Invalid ACL string: " + "server ID contains illegal character");
-					Integer n = (Integer) tempPrincipalPermissions.get(serverIds[j]);
+					Integer n = tempPrincipalPermissions.get(serverIds[j]);
 					int oldPermission = (n != null) ? n.intValue() : 0;
-					tempPrincipalPermissions.put(serverIds[j], new Integer(oldPermission | command));
+					tempPrincipalPermissions.put(serverIds[j], Integer.valueOf(oldPermission | command));
 				}
 			}
 		}
@@ -167,7 +169,7 @@ public final class Acl {
 		if (principals.length != permissions.length)
 			throw new IllegalArgumentException("The lengths of the principal and permission arrays are not the same.");
 
-		TreeMap tempPrincipalPermissions = new TreeMap();
+		TreeMap<String, Integer> tempPrincipalPermissions = new TreeMap<>();
 		int tempGlobalPermissions = 0;
 
 		for (int i = 0; i < principals.length; i++) {
@@ -176,7 +178,7 @@ public final class Acl {
 				checkPrincipal(principals[i]);
 			checkPermissions(permissions[i]);
 
-			Integer permInt = new Integer(permissions[i]);
+			Integer permInt = Integer.valueOf(permissions[i]);
 			Object old = tempPrincipalPermissions.put(principals[i], permInt);
 			if (old != null)
 				throw new IllegalArgumentException("Principal '" + principals[i] + "' appears multiple times in the principal array.");
@@ -212,7 +214,8 @@ public final class Acl {
 	private Acl(Acl base, String principal, int permissions) {
 		// make a shallow copy of the permission table, the keys (String) and
 		// values (Integer) are immutable anyway
-		TreeMap tempPrincipalPermissions = (TreeMap) base.principalPermissions.clone();
+		@SuppressWarnings("unchecked")
+		TreeMap<String, Integer> tempPrincipalPermissions = (TreeMap<String, Integer>) base.principalPermissions.clone();
 		int tempGlobalPermissions = base.globalPermissions;
 
 		int deletedGlobalPerm = tempGlobalPermissions & ~permissions;
@@ -243,6 +246,7 @@ public final class Acl {
 	 * @return {@code true} if the parameter represents the same ACL as this
 	 *         instance
 	 */
+	@Override
 	public boolean equals(Object obj) {
 		if (obj == this)
 			return true;
@@ -270,6 +274,7 @@ public final class Acl {
 	 * 
 	 * @return hash code for this ACL
 	 */
+	@Override
 	public int hashCode() {
 		// Using the hash code of the canonical string representation, because
 		// the principalPermissions set is not canonical (see above).
@@ -405,7 +410,7 @@ public final class Acl {
 	 * @return The array of principals having permissions on this node.
 	 */
 	public String[] getPrincipals() {
-		return (String[]) (principalPermissions.keySet().toArray(new String[0]));
+		return principalPermissions.keySet().toArray(new String[0]);
 	}
 
 	/**
@@ -415,6 +420,7 @@ public final class Acl {
 	 * 
 	 * @return The string representation as defined in OMA DM.
 	 */
+	@Override
 	public synchronized String toString() {
 		String acl = null;
 		for (int i = 0; i < PERMISSION_CODES.length; i++)
@@ -432,11 +438,11 @@ public final class Acl {
 			aclEntry = ALL_PRINCIPALS;
 		else {
 			// TreeMap guarantees alphabetical ordering of keys during traversal
-			Iterator i = principalPermissions.entrySet().iterator();
+			Iterator<Entry<String, Integer>> i = principalPermissions.entrySet().iterator();
 			while (i.hasNext()) {
-				Map.Entry entry = (Map.Entry) i.next();
-				if ((command & ((Integer) entry.getValue()).intValue()) > 0)
-					aclEntry = appendEntry(aclEntry, '+', (String) entry.getKey());
+				Map.Entry<String, Integer> entry = i.next();
+				if ((command & entry.getValue().intValue()) > 0)
+					aclEntry = appendEntry(aclEntry, '+', entry.getKey());
 			}
 		}
 
@@ -446,19 +452,19 @@ public final class Acl {
 		return appendEntry(acl, '&', writeCommands(command) + '=' + aclEntry);
 	}
 
-	private static void deleteFromAll(TreeMap principalPermissions, int perm) {
-		Iterator i = principalPermissions.entrySet().iterator();
+	private static void deleteFromAll(TreeMap<String, Integer> principalPermissions, int perm) {
+		Iterator<Entry<String, Integer>> i = principalPermissions.entrySet().iterator();
 		while (i.hasNext()) {
-			Map.Entry entry = (Map.Entry) i.next();
-			setPrincipalPermission(principalPermissions, (String) entry.getKey(), ((Integer) entry.getValue()).intValue() & ~perm);
+			Map.Entry<String, Integer> entry = i.next();
+			setPrincipalPermission(principalPermissions, entry.getKey(), entry.getValue().intValue() & ~perm);
 		}
 	}
 
-	private static void setPrincipalPermission(TreeMap principalPermissions, String principal, int perm) {
+	private static void setPrincipalPermission(TreeMap<String, Integer> principalPermissions, String principal, int perm) {
 		if (perm == 0)
 			principalPermissions.remove(principal);
 		else
-			principalPermissions.put(principal, new Integer(perm));
+			principalPermissions.put(principal, Integer.valueOf(perm));
 	}
 
 	private static String writeCommands(int command) {
@@ -502,11 +508,11 @@ public final class Acl {
 	}
 
 	private static String[] split(String input, char sep, int limit) {
-		Vector v = new Vector();
+		List<String> v = new ArrayList<>();
 		boolean limited = (limit > 0);
 		int applied = 0;
 		int index = 0;
-		StringBuffer part = new StringBuffer();
+		StringBuilder part = new StringBuilder();
 
 		while (index < input.length()) {
 			char ch = input.charAt(index);
@@ -515,7 +521,7 @@ public final class Acl {
 			else {
 				++applied;
 				v.add(part.toString());
-				part = new StringBuffer();
+				part = new StringBuilder();
 			}
 			++index;
 			if (limited && applied == limit - 1)
@@ -531,7 +537,7 @@ public final class Acl {
 		int last = v.size();
 		if (0 == limit) {
 			for (int j = v.size() - 1; j >= 0; --j) {
-				String s = (String) v.elementAt(j);
+				String s = v.get(j);
 				if ("".equals(s))
 					--last;
 				else
@@ -541,7 +547,7 @@ public final class Acl {
 
 		String[] ret = new String[last];
 		for (int i = 0; i < last; ++i)
-			ret[i] = (String) v.elementAt(i);
+			ret[i] = v.get(i);
 
 		return ret;
 	}

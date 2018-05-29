@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2017). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.StringTokenizer;
+
 import org.osgi.service.dmt.Acl;
 import org.osgi.service.dmt.Uri;
 
@@ -57,7 +58,7 @@ import org.osgi.service.dmt.Uri;
  * returned by {@link #getActions()} uses the forms defined by the action
  * constants.
  * 
- * @author $Id: add8bc456d13fd836ff4af4e2dbb49fa3953c81a $
+ * @author $Id: cba01575d5c18e8b462c6b1fb399dba69c5e21bd $
  */
 public class DmtPermission extends Permission {
 	private static final long	serialVersionUID	= -1910969921419407809L;
@@ -173,7 +174,7 @@ public class DmtPermission extends Permission {
 			checkUri(dmtUri);
 
 		// canonicalize URI: remove escapes from non-special characters
-		StringBuffer sb = new StringBuffer(dmtUri);
+		StringBuilder sb = new StringBuilder(dmtUri);
 		int i = 0;
 		while (i < sb.length()) { // length can decrease during the loop!
 			if (sb.charAt(i) == '\\') {
@@ -207,6 +208,7 @@ public class DmtPermission extends Permission {
 	 * @return {@code true} if the parameter represents the same permissions as
 	 *         this instance
 	 */
+	@Override
 	public boolean equals(Object obj) {
 		if (obj == this)
 			return true;
@@ -227,6 +229,7 @@ public class DmtPermission extends Permission {
 	 * 
 	 * @return canonical action list for this permission object
 	 */
+	@Override
 	public String getActions() {
 		return actions;
 	}
@@ -239,8 +242,9 @@ public class DmtPermission extends Permission {
 	 * 
 	 * @return hash code for this permission object
 	 */
+	@Override
 	public int hashCode() {
-		return new Integer(mask).hashCode() ^ new Boolean(prefixPath).hashCode() ^ path.hashCode();
+		return Integer.valueOf(mask).hashCode() ^ Boolean.valueOf(prefixPath).hashCode() ^ path.hashCode();
 	}
 
 	/**
@@ -258,6 +262,7 @@ public class DmtPermission extends Permission {
 	 * @return true if this DmtPermission instance implies the specified
 	 *         permission
 	 */
+	@Override
 	public boolean implies(Permission p) {
 		if (!(p instanceof DmtPermission))
 			return false;
@@ -276,6 +281,7 @@ public class DmtPermission extends Permission {
 	 * 
 	 * @return the new PermissionCollection
 	 */
+	@Override
 	public PermissionCollection newPermissionCollection() {
 		return new DmtPermissionCollection();
 	}
@@ -320,7 +326,7 @@ public class DmtPermission extends Permission {
 
 	// generates the canonical string representation of the action list
 	private static String canonicalActions(int mask) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		addAction(sb, mask, Acl.ADD, ADD);
 		addAction(sb, mask, Acl.DELETE, DELETE);
 		addAction(sb, mask, Acl.EXEC, EXEC);
@@ -331,7 +337,8 @@ public class DmtPermission extends Permission {
 
 	// if 'flag' appears in 'mask', appends the 'action' string to the contents
 	// of 'sb', separated by a comma if needed
-	private static void addAction(StringBuffer sb, int mask, int flag, String action) {
+	private static void addAction(StringBuilder sb, int mask, int flag,
+			String action) {
 		if ((mask & flag) != 0) {
 			if (sb.length() > 0)
 				sb.append(',');
@@ -360,13 +367,13 @@ final class DmtPermissionCollection extends PermissionCollection {
 
 	// OPTIMIZE keep a special flag for permissions of "*" path
 
-	private ArrayList			perms;
+	private ArrayList<Permission>	perms;
 
 	/**
 	 * Create an empty DmtPermissionCollection object.
 	 */
 	public DmtPermissionCollection() {
-		perms = new ArrayList();
+		perms = new ArrayList<>();
 	}
 
 	/**
@@ -378,6 +385,7 @@ final class DmtPermissionCollection extends PermissionCollection {
 	 * @exception SecurityException if this DmtPermissionCollection object has
 	 *            been marked readonly
 	 */
+	@Override
 	public void add(Permission permission) {
 		if (!(permission instanceof DmtPermission))
 			throw new IllegalArgumentException("Cannot add permission, invalid permission type: " + permission);
@@ -397,6 +405,7 @@ final class DmtPermissionCollection extends PermissionCollection {
 	 * @return true if the parameter permission is a proper subset of the
 	 *         permissions in the collection, false otherwise
 	 */
+	@Override
 	public boolean implies(Permission permission) {
 		if (!(permission instanceof DmtPermission))
 			return false;
@@ -407,7 +416,7 @@ final class DmtPermissionCollection extends PermissionCollection {
 		int available = 0;
 		int needed = required;
 
-		Iterator i = perms.iterator();
+		Iterator<Permission> i = perms.iterator();
 		while (i.hasNext()) {
 			DmtPermission p = (DmtPermission) i.next();
 			if (((needed & p.getMask()) != 0) && p.impliesPath(other)) {
@@ -427,7 +436,8 @@ final class DmtPermissionCollection extends PermissionCollection {
 	 * 
 	 * @return an enumeration of all the DmtPermission objects
 	 */
-	public Enumeration elements() {
+	@Override
+	public Enumeration<Permission> elements() {
 		// Convert Iterator into Enumeration
 		return Collections.enumeration(perms);
 	}

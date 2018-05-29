@@ -24,7 +24,7 @@ import java.util.Dictionary;
  * It provides function to get the absolute mounted uri and a shortcut method to
  * post events via the DmtAdmin.
  * 
- * @author $Id: 61dc84e7afbaa405ee43e4de525d2ec87a264b41 $
+ * @author $Id: 9d221734942370006e6ce4dece0b00edc9612b03 $
  * @since 2.0
  */
 public interface MountPoint {
@@ -71,7 +71,7 @@ public interface MountPoint {
 	 *         values
 	 * 
 	 */
-	void postEvent(String topic, String[] relativeURIs, Dictionary properties);
+	void postEvent(String topic, String[] relativeURIs, Dictionary<String, ?> properties);
 
 	/**
 	 * Posts an event via the DmtAdmin about changes in the current plugins
@@ -112,7 +112,7 @@ public interface MountPoint {
 	 * @throws IllegalArgumentException if the topic has not one of the defined
 	 *         values
 	 */
-	void postEvent(String topic, String[] relativeURIs, String[] newRelativeURIs, Dictionary properties);
+	void postEvent(String topic, String[] relativeURIs, String[] newRelativeURIs, Dictionary<String, ?> properties);
 
 	/**
 	 * This object must provide a suitable hash function such that a Mount Point
@@ -122,6 +122,7 @@ public interface MountPoint {
 	 * 
 	 * {@link Object#hashCode()}
 	 */
+	@Override
 	int hashCode();
 
 	/**
@@ -132,6 +133,6 @@ public interface MountPoint {
 	 * 
 	 * {@link Object#equals(Object)}
 	 */
+	@Override
 	boolean equals(Object other);
-
 }

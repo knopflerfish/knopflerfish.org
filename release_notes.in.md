@@ -50,6 +50,10 @@ OSGi Compendium Specification
 * Updated API classes to match OSGi R7.
 * Added dependency to new Push Stream bundle
 
+### DMT 7.0.0
+
+* Updated to match OSGi R7 API minor version 2.0.2
+
 Knopflerfish Services
 ----------------------------------------------------------------------
 

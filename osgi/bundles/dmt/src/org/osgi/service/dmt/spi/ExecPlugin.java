@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.osgi.service.dmt.DmtSession;
  * array or in case of a single value as {@code String} in the
  * {@code execRootURIs} registration parameter.
  * 
- * @author $Id: 959b9f9e10f172edcb159af99344f8a8b391d0c3 $
+ * @author $Id: e457351f598885e0774abeff2331cbda238df609 $
  */
 public interface ExecPlugin {
 	/**
@@ -38,7 +38,7 @@ public interface ExecPlugin {
 	String	MOUNT_POINTS	= "mountPoints";
 
 	/**
-	 * The string to be used as key for the “execRootURIs” property when an
+	 * The string to be used as key for the "execRootURIs" property when an
 	 * ExecPlugin is registered.
 	 * 
 	 * @since 2.0

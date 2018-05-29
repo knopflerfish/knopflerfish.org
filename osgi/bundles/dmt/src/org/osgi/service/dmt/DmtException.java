@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import java.util.Vector;
  * parameters, and the {@code printStackTrace(PrintWriter)} method is extended
  * to print the stack trace of all causing throwables as well.
  * 
- * @author $Id: 34a69b2b65f7e9455c9f98a0e23113c681b00cea $
+ * @author $Id: 771a15819801eae69baa162cda16f17156b179e0 $
  */
 public class DmtException extends Exception {
 	private static final long	serialVersionUID			= -63006267148118655L;
@@ -403,8 +403,11 @@ public class DmtException extends Exception {
 	 *        {@code null} if there are no originating exceptions
 	 * @param fatal whether the exception is fatal
 	 */
-	public DmtException(String uri, int code, String message, Vector causes, boolean fatal) {
-		this(uri, code, message, (causes == null) ? new Throwable[0] : (Throwable[]) causes.toArray(new Throwable[causes.size()]), fatal);
+	public DmtException(String uri, int code, String message, Vector<? extends Throwable> causes, boolean fatal) {
+		this(uri, code, message,
+				(causes == null) ? new Throwable[0]
+						: (Throwable[]) causes.toArray(new Throwable[0]),
+				fatal);
 	}
 
 	private DmtException(String uri, int code, String message, Throwable[] causes, boolean fatal) {
@@ -469,7 +472,7 @@ public class DmtException extends Exception {
 	 * @param fatal whether the exception is fatal
 	 * @see #DmtException(String, int, String, Vector, boolean)
 	 */
-	public DmtException(String[] path, int code, String message, Vector causes, boolean fatal) {
+	public DmtException(String[] path, int code, String message, Vector<? extends Throwable> causes, boolean fatal) {
 		this(pathToUri(path), code, message, causes, fatal);
 	}
 
@@ -508,8 +511,9 @@ public class DmtException extends Exception {
 	 * 
 	 * @return the error message in the format described above
 	 */
+	@Override
 	public String getMessage() {
-		StringBuffer sb = new StringBuffer(getCodeText(code));
+		StringBuilder sb = new StringBuilder(getCodeText(code));
 		if (uri != null)
 			sb.append(": '").append(uri).append('\'');
 		if (message != null)
@@ -527,6 +531,7 @@ public class DmtException extends Exception {
 	 * @return the cause of this exception, or {@code null} if no cause was
 	 *         given
 	 */
+	@Override
 	public Throwable getCause() {
 		return causes.length == 0 ? null : causes[0];
 	}
@@ -538,7 +543,7 @@ public class DmtException extends Exception {
 	 * @return the list of causes of this exception
 	 */
 	public Throwable[] getCauses() {
-		return (Throwable[]) causes.clone();
+		return causes.clone();
 	}
 
 	/**
@@ -558,6 +563,7 @@ public class DmtException extends Exception {
 	 * 
 	 * @param s {@code PrintStream} to use for output
 	 */
+	@Override
 	public void printStackTrace(PrintStream s) {
 		super.printStackTrace(s);
 		for (int i = 0; i < causes.length; i++) {

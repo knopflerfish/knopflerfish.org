@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,10 @@
  * <p>
  * {@code  Import-Package: org.osgi.service.dmt.security; version="[2.0,2.1)"}
  * 
- * @version 2.0
- * @author $Id: fbff69ce8bc6d7f951e3c4d12c9d086df2b7c208 $
+ * @author $Id: 4e472caf276507e78c1a1ee1900a81b7d214df91 $
  */
 
+@Version("2.0")
 package org.osgi.service.dmt.security;
 
+import org.osgi.annotation.versioning.Version;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import org.osgi.service.dmt.DmtSession;
  * characters appear escaped in the segments.
  * <p>
  * 
- * @author $Id: 6facb5e24486f6f17a38d1d5e7a01376aa244b0b $
+ * @author $Id: 7437c7b3cb4ca0980058997785e16483d6b81f20 $
  */
 public interface DataPlugin {
 
@@ -57,7 +57,7 @@ public interface DataPlugin {
 	String	MOUNT_POINTS	= "mountPoints";
 
 	/**
-	 * The string to be used as key for the “dataRootURIs” property when an
+	 * The string to be used as key for the "dataRootURIs" property when an
 	 * DataPlugin is registered.
 	 * 
 	 * @since 2.0
