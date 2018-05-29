@@ -34,12 +34,8 @@
 
 package org.knopflerfish.framework;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
@@ -286,6 +282,12 @@ class NativeRequirement
     {
       this.files = files;
       matchLang = langs != null;
+      procs = Arrays.stream(procs.toArray(new String [procs.size()]))
+              .map(Alias::unifyProcessor)
+              .collect(Collectors.toList());
+      oses = Arrays.stream(oses.toArray(new String [oses.size()]))
+              .map(Alias::unifyOsName)
+              .collect(Collectors.toList());
       if (vers != null) {
         Version mv = null;
         List<VersionRange> vrs = new ArrayList<VersionRange>(vers.size());
