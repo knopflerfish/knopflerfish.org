@@ -1,11 +1,11 @@
-Release Notes Knopflerfish $(VERSION) (OSGi R6)
+Release Notes Knopflerfish $(VERSION) (OSGi R7)
 ======================================================================
 
-Maintenance release of Knopflerfish 6 available from
+Maintenance release of Knopflerfish 7 available from
 $(BASE_URL)/$(VERSION). Released $(RELEASE_DATE).
 
-Knopflerfish 6 is an implementation of the "OSGi Service Platform
-Release 6". It contains all services specified in the "Core
+Knopflerfish 7 is an implementation of the "OSGi Service Platform
+Release 7". It contains all services specified in the "Core
 Specification" and most of the non Enterprise Edition related
 services specified in the "Compendium Specification".
 
@@ -24,6 +24,12 @@ Knopflerfish Framework - OSGi Core Specification
 
 OSGi Compendium Specification
 ----------------------------------------------------------------------
+
+### Metatype Service 1.4
+
+* New version of Metatype service and annotations API, 1.4
+* Bundle metatype bumped to 7.0.0 and requires framework 1.9
+* Bundle metatype_annotations_api bumped to 7.0.0 and requires framework 1.9
 
 
 Knopflerfish Services
