@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2018). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ package org.osgi.service.wireadmin;
  * Consumer and Producer service properties.
  * 
  * @noimplement
- * @author $Id: 6c5f7a39c33377956b8953b44597ac255ddffb75 $
+ * @author $Id: be86390d17513c0a370a0abb6b1bfcb159dfa5f0 $
  */
 public interface WireConstants {
 	/**
@@ -42,7 +42,7 @@ public interface WireConstants {
 	/**
 	 * A service registration property for a Producer service that is composite.
 	 * It contains the names of the composite Consumer services it can
-	 * inter-operate with. Inter-operability exists when any name in this array
+	 * interoperate with. Interoperability exists when any name in this array
 	 * matches any name in the array set by the Consumer service. The type of
 	 * this property must be {@code String[]}.
 	 */
@@ -50,7 +50,7 @@ public interface WireConstants {
 	/**
 	 * A service registration property for a Consumer service that is composite.
 	 * It contains the names of the composite Producer services it can cooperate
-	 * with. Inter-operability exists when any name in this array matches any
+	 * with. Interoperability exists when any name in this array matches any
 	 * name in the array set by the Producer service. The type of this property
 	 * must be {@code String[]}.
 	 */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2017). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ package org.osgi.service.wireadmin;
  * For example:
  * 
  * <pre>
- * Integer mask = new Integer(WIRE_TRACE | WIRE_CONNECTED | WIRE_DISCONNECTED);
+ * Integer mask = Integer.valueOf(WIRE_TRACE | WIRE_CONNECTED | WIRE_DISCONNECTED);
  * Hashtable ht = new Hashtable();
  * ht.put(WIREADMIN_EVENTS, mask);
  * context.registerService(WireAdminListener.class.getName(), this, ht);
@@ -56,7 +56,7 @@ package org.osgi.service.wireadmin;
  * 
  * @see WireAdminEvent
  * 
- * @author $Id: 0a0f329f66848f4808f16b57f855dfb54d2bbb7f $
+ * @author $Id: 73968c8d158a046f9b86f02edeb187ad0435055d $
  */
 public interface WireAdminListener {
 	/**

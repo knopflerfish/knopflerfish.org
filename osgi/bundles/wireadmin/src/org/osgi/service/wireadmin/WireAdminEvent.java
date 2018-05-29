@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2018). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import org.osgi.framework.ServiceReference;
  * 
  * <p>
  * Event type values must be unique and disjoint bit values. Event types must be
- * defined as a bit in a 32 bit integer and can thus be bitwise OR'ed together.
+ * defined as a bit in a 32 bit integer and can thus be bitwise ORed together.
  * <p>
  * Security Considerations. {@code WireAdminEvent} objects contain {@code Wire}
  * objects. Care must be taken in the sharing of {@code Wire} objects with other
@@ -54,13 +54,13 @@ import org.osgi.framework.ServiceReference;
  * 
  * @see WireAdminListener
  * @Immutable
- * @author $Id: 665e72cdd3f4fa7a4c56e01da3e9a1b589025a46 $
+ * @author $Id: 7654b4f8a66d41e05c3aef9cce033f7da45296d0 $
  */
 public class WireAdminEvent {
 	/**
 	 * The WireAdmin service which created this event.
 	 */
-	private final ServiceReference	reference;
+	private final ServiceReference<WireAdmin>	reference;
 	/**
 	 * The {@code Wire} object associated with this event.
 	 */
@@ -205,7 +205,7 @@ public class WireAdminEvent {
 	 * @param exception An exception associated with this event. This may be
 	 *        {@code null} if no exception is associated with this event.
 	 */
-	public WireAdminEvent(ServiceReference reference, int type, Wire wire, Throwable exception) {
+	public WireAdminEvent(ServiceReference<WireAdmin> reference, int type, Wire wire, Throwable exception) {
 		this.reference = reference;
 		this.wire = wire;
 		this.type = type;
@@ -219,7 +219,7 @@ public class WireAdminEvent {
 	 * @return The {@code ServiceReference} object for the Wire Admin service
 	 *         that created this event.
 	 */
-	public ServiceReference getServiceReference() {
+	public ServiceReference<WireAdmin> getServiceReference() {
 		return reference;
 	}
 

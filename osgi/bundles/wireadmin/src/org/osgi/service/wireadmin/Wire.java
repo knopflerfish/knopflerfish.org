@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2002, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import java.util.Dictionary;
  * service and must not be interpreted by the Wire Admin service.
  * 
  * @noimplement
- * @author $Id: de75c27d506f78112bce8a5289137ba5c0874344 $
+ * @author $Id: f1c12931b55b4a0bf61d9a9a49a34553ad9c73c6 $
  */
 public interface Wire {
 	/**
@@ -118,7 +118,7 @@ public interface Wire {
 	 *         {@link WireConstants#WIREADMIN_CONSUMER_FLAVORS} property or the
 	 *         value of the property is not of type {@code Class[]}.
 	 */
-	public Class[] getFlavors();
+	public Class<?>[] getFlavors();
 
 	/**
 	 * Update the value.
@@ -216,7 +216,7 @@ public interface Wire {
 	 * @return The properties for this {@code Wire} object. The returned
 	 *         {@code Dictionary} must be read only.
 	 */
-	public Dictionary getProperties();
+	public Dictionary<String, Object> getProperties();
 
 	/**
 	 * Return the calculated scope of this {@code Wire} object.
