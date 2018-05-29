@@ -7,6 +7,8 @@ Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: testing
-Import-Package: org.osgi.service.component
+Import-Package: org.osgi.service.component,
+ java.io,
+ java.lang
 Service-Component: service.xml
 

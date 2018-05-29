@@ -27,5 +27,9 @@ Import-Package: javax.servlet,
   org.apache.commons.codec.binary,
   org.apache.commons.codec.digest,
   org.apache.commons.codec.language,
-  org.apache.commons.codec.net
+  org.apache.commons.codec.net,
+  java.io,
+  java.lang,
+  java.net,
+  java.util
  

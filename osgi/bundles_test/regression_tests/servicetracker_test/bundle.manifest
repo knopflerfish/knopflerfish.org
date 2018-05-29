@@ -6,4 +6,10 @@ Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: testing
-Import-Package: junit.framework,org.osgi.framework,org.osgi.util.tracker
+Import-Package: junit.framework,org.osgi.framework,
+ org.osgi.util.tracker,
+ java.io,
+ java.lang,
+ java.lang.reflect,
+ java.net,
+ java.util

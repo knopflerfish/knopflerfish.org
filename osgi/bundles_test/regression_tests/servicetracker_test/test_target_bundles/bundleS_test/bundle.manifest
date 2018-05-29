@@ -8,4 +8,9 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.bundleS_test
-Import-Package: org.knopflerfish.service.bundleS_test,org.osgi.framework
+Import-Package: org.knopflerfish.service.bundleS_test,
+ org.osgi.framework,
+ java.io,
+ java.lang,
+ java.security,
+ java.util

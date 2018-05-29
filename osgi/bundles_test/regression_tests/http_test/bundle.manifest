@@ -8,6 +8,13 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.http_test.BundleActivator
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.http_test
-Import-Package: javax.servlet,javax.servlet.http,junit.framework,org.k
- nopflerfish.service.console,org.knopflerfish.service.http_test,org.os
- gi.framework,org.osgi.service.http
+Import-Package: javax.servlet,javax.servlet.http,
+ junit.framework,
+ org.knopflerfish.service.console,
+ org.knopflerfish.service.http_test,
+ org.osgi.framework,
+ org.osgi.service.http,
+ java.io,
+ java.lang,
+ java.net,
+ java.util

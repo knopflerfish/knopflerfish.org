@@ -8,5 +8,9 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.resexp_test.Activator
 Bundle-Category: testing
 Export-Package: org.knopflerfish.bundle.resexp_test
-Import-Package: org.osgi.framework
+Import-Package: org.osgi.framework,
+ java.io,
+ java.lang,
+ java.lang.reflect,
+ java.net
 Bundle-UUID: org.knopflerfish:resexp_test:1.0.0:all

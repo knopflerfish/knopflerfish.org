@@ -9,4 +9,8 @@ Bundle-Activator: org.knopflerfish.bundle.startlevel_test.Activator
 Bundle-Category: testing
 Import-Package: junit.framework,org.osgi.framework,
                 org.osgi.service.packageadmin,
-                org.osgi.service.startlevel
+                org.osgi.service.startlevel,
+                java.io,
+                java.lang,
+                java.net,
+                java.util

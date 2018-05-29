@@ -8,5 +8,6 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.component_test
-Import-Package: org.knopflerfish.service.component_test
+Import-Package: org.knopflerfish.service.component_test,
+ java.lang
 

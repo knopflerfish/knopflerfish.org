@@ -10,6 +10,8 @@ Bundle-Activator: org.knopflerfish.bundle.componentA_test.Activator
 Bundle-Category: testing
 Import-Package: org.osgi.service.component,
  org.osgi.framework,
- org.knopflerfish.service.component_test
+ org.knopflerfish.service.component_test,
+ java.io,
+ java.lang
 Service-Component: service.xml
 

@@ -8,5 +8,7 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundlePT3_test.BundleActivator
 Bundle-Category: testing
-Import-Package: org.knopflerfish.service.bundleA_test;version="(0.5.2,1.0.0)",org.osgi.framework
+Import-Package: org.knopflerfish.service.bundleA_test;version="(0.5.2,1.0.0)",
+ org.osgi.framework,
+ java.lang
 Bundle-UUID: org.knopflerfish:bundlePT3_test:1.0.0:all

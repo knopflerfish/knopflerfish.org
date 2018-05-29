@@ -10,6 +10,10 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleX_test.BundleActivator
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.bundleE_test
-Import-Package: org.knopflerfish.service.bundleE_test,org.osgi.framework
+Import-Package: org.knopflerfish.service.bundleE_test,
+ org.osgi.framework,
+ java.io,
+ java.lang,
+ java.util
 Bundle-UUID: org.knopflerfish:bundleE_test:1.0.0:all
 

@@ -2,4 +2,7 @@ Manifest-Version: 1.0
 Bundle-Version: 1.0.0
 Bundle-Name: fb_I
 Bundle-SymbolicName: test.fb_I
-Import-Package: org.osgi.framework, test_fb.common, test_fapi
+Import-Package: org.osgi.framework,
+ test_fb.common,
+ test_fapi,
+ java.lang

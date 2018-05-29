@@ -7,5 +7,6 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleEnd1_test.Activator
 Bundle-Category: testing
-Import-Package: org.osgi.framework
+Import-Package: org.osgi.framework,
+ java.lang
 

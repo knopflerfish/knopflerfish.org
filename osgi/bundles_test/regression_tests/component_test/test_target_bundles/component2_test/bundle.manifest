@@ -8,5 +8,6 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: testing
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles_test/regression_tests/component_test/test_target_bundles/component2_test
-Import-Package: org.osgi.framework
+Import-Package: org.osgi.framework,
+ java.lang
 Service-Component: OSGI-INF/comps1.xml, OSGI-INF/comps2.xml 

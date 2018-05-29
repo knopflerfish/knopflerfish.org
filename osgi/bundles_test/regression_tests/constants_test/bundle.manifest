@@ -7,4 +7,9 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.constants_test.Activator
 Bundle-Category: testing
-Import-Package: junit.framework,org.osgi.framework
+Import-Package: junit.framework,
+ org.osgi.framework,
+ java.io,
+ java.lang,
+ java.lang.reflect,
+ java.util

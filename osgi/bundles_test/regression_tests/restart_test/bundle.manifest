@@ -7,6 +7,11 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.restart_test.Activator
 Bundle-Category: testing
-Import-Package: junit.framework,org.osgi.framework,org.osgi.service.st
- artlevel
+Import-Package: junit.framework,
+ org.osgi.framework,
+ org.osgi.service.startlevel,
+ java.io,
+ java.lang,
+ java.net,
+ java.util
 Bundle-UUID: org.knopflerfish:restart_test:1.0.0:all

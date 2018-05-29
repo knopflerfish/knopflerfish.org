@@ -9,5 +9,6 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: testing
 Bundle-UUID: org.knopflerfish:bundleCUC_test:2.0.0:all
 Import-Package: org.knopflerfish.service.bundleCUP_test ; version="[2,3)",
-                org.osgi.framework ; version="[1.6,2)"
+                org.osgi.framework ; version="[1.9,2)",
+                java.lang
 Provide-Capability: org.knopflerfish.test.capability; name=CUC2 ; uses:=org.knopflerfish.service.bundleCUP_test

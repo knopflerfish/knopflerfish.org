@@ -8,6 +8,7 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleCU1_test.BundleActivator
 Bundle-Category: testing
 Bundle-UUID: org.knopflerfish:bundleCU1_test:1.0.0:all
-Import-Package: org.osgi.framework
+Import-Package: org.osgi.framework,
+ java.lang
 Require-Capability: org.knopflerfish.test.capability; filter:="(name=CUC2)",
                     org.knopflerfish.test.capability; filter:="(name=CUC1)"

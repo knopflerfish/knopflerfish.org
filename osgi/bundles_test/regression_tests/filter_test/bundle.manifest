@@ -7,5 +7,9 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.filter_test.Activator
 Bundle-Category: testing
-Import-Package: junit.framework,org.osgi.framework
+Import-Package: junit.framework,org.osgi.framework,
+ java.io,
+ java.lang,
+ java.math,
+ java.util
 Bundle-UUID: org.knopflerfish:filter_test:1.0.0:all

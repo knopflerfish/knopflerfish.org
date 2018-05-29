@@ -9,5 +9,8 @@ Bundle-Activator: org.knopflerfish.bundle.preferences_test.Activator
 Bundle-Category: testing
 Import-Package: org.osgi.framework,
  junit.framework,
- org.osgi.service.prefs
+ org.osgi.service.prefs,
+ java.io,
+ java.lang,
+ java.util
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles_test/regression_tests/preferences_test

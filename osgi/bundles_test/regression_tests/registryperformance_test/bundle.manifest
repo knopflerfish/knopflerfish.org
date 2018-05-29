@@ -8,5 +8,9 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.perf.servicereg
-Import-Package: junit.framework,org.knopflerfish.service.perf.servicer
- eg,org.osgi.framework
+Import-Package: junit.framework,
+ org.knopflerfish.service.perf.servicereg,
+ org.osgi.framework,
+ java.io,
+ java.lang,
+ java.util

@@ -8,7 +8,11 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleC_test.BundleActivator
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.bundleC_test
-Import-Package: org.knopflerfish.service.bundleC_test,org.osgi.framework
+Import-Package: org.knopflerfish.service.bundleC_test,
+ org.osgi.framework,
+ java.io,
+ java.lang,
+ java.util
 Bundle-UUID: org.knopflerfish:bundleC_test:1.0.0:all
 
 

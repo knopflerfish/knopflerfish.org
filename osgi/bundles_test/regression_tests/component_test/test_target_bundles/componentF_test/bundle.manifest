@@ -8,5 +8,8 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: testing
 Import-Package: org.osgi.service.component,
- org.knopflerfish.service.component_test
+ org.knopflerfish.service.component_test,
+ java.io,
+ java.lang,
+ java.util
 Service-Component: service.xml

@@ -7,5 +7,7 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.resimp_test.impl.Activator
 Bundle-Category: testing
-Import-Package: org.knopflerfish.bundle.resexp_test,org.osgi.framework
+Import-Package: org.knopflerfish.bundle.resexp_test,
+ org.osgi.framework,
+ java.lang
 Bundle-UUID: org.knopflerfish:resimp_test:1.0.0:all

@@ -11,5 +11,10 @@ Bundle-Category: testing
 Import-Package: junit.framework,
  org.osgi.framework,
  org.osgi.service.event,
- org.knopflerfish.service.log
+ org.knopflerfish.service.log,
+ java.io,
+ java.lang,
+ java.net,
+ java.security,
+ java.util
 

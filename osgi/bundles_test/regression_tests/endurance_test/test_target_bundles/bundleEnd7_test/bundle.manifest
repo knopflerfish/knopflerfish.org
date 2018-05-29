@@ -8,5 +8,8 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleEnd7_test.Activator
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.bundleEnd7_test
-Import-Package: org.knopflerfish.service.bundleEnd7_test,org.osgi.framework
+Import-Package: org.knopflerfish.service.bundleEnd7_test,
+ org.osgi.framework,
+ java.lang,
+ java.util
 

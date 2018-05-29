@@ -2,5 +2,8 @@ Manifest-Version: 1.0
 Bundle-Version: 1.0.0
 Bundle-Name: fb_K
 Bundle-SymbolicName: test.fb_K
-Import-Package: org.osgi.framework, test_fapi ; version="[1,1]", test_japi
+Import-Package: org.osgi.framework,
+ test_fapi ; version="[1,1]",
+ test_japi,
+ java.lang
 Fragment-Host: test.fb_A

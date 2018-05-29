@@ -7,5 +7,6 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.bundleExt2_test
-Import-Package: org.knopflerfish.service.bundleExt2_test
+Import-Package: org.knopflerfish.service.bundleExt2_test,
+ java.lang
 Fragment-Host: system.bundle;extension:=framework
