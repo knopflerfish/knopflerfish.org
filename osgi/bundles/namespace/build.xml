@@ -13,6 +13,14 @@
   <property name = "bundle.build.impl"  value = "false"/>
   <property name = "bundle.build.all"   value = "false"/>
 
+  <property name="bmfa.api-Import-Package"
+            value="org.osgi.resource; version=&quot;[1,2)&quot;,
+		   org.osgi.namespace.contract; version=&quot;[1,1.1)&quot;,
+		   org.osgi.namespace.extender; version=&quot;[1.0.1,1.1)&quot;,
+		   org.osgi.namespace.implementation; version=&quot;[1,1.1)&quot;,
+		   org.osgi.namespace.service; version=&quot;[1,1.1)&quot;,
+		   org.osgi.namespace.unresolvable; version=&quot;[1,1.1)&quot;"/>
+  
   <property name="api.pattern" value="org/osgi/**"/> 
 
   <path id="bundle.compile.path">
