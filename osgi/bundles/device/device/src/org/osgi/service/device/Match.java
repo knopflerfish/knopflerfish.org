@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.osgi.framework.ServiceReference;
  * 
  * @ThreadSafe
  * @noimplement
- * @author $Id: d162518484495fb4ad5c99153b85d274837c69ab $
+ * @author $Id: e1218a1e295466fac3da879fc0dce11caab465ec $
  * @since 1.1
  * @see DriverSelector
  */
@@ -35,7 +35,7 @@ public interface Match {
 	 * 
 	 * @return {@code ServiceReference} object to a Driver service.
 	 */
-	public ServiceReference getDriver();
+	public ServiceReference<?> getDriver();
 
 	/**
 	 * Return the match value of this object.
