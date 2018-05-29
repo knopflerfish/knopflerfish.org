@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: cm
 Bundle-SymbolicName: org.knopflerfish.bundle.cm
-Bundle-Version: 5.1.0
+Bundle-Version: 7.0.0
 Bundle-Category: osgi
 Bundle-Description: Configuration Management Service
 Bundle-Vendor: Knopflerfish
@@ -17,11 +17,6 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/cm/cm/
 Bundle-Icon: icon.png;size=32
 Bundle-Activator: org.knopflerfish.bundle.cm.Activator
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Provide-Capability: osgi.service;
  objectClass:List<String>="org.osgi.service.cm.ConfigurationAdmin"
 api-Provide-Capability: [bundle.emptystring]
-Import-Package: org.osgi.framework; version="[1.7,2)",
- org.osgi.service.cm; version="[1.5,1.6)",
- org.knopflerfish.service.log; version="[1.2,3)",
- org.knopflerfish.shared.cm; version="[1.1,1.2)"
