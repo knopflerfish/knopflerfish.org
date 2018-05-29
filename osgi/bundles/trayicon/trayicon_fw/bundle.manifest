@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: FW-Tray
 Bundle-SymbolicName: org.knopflerfish.bundle.trayicon_fw
-Bundle-Version: 4.0.0
+Bundle-Version: 7.0.0
 Bundle-Category: management
 Bundle-Description: Framework tray icon. Allows basic control of the f
  ramework using the windows system tray.
@@ -14,6 +14,11 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/trayicon/trayicon_fw/
 Bundle-Activator: org.knopflerfish.bundle.trayicons.framework.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.6))"
-Import-Package: org.osgi.framework; version="[1.6,2)",
+Import-Package: org.osgi.framework; version="[1.9,2)",
  org.knopflerfish.service.log; version="[1.2,2)",
- org.osgi.framework.startlevel; version="[1.0,2)"
+ org.osgi.framework.startlevel; version="[1.0,2)",
+ java.awt,
+ java.awt.event,
+ java.lang,
+ java.lang.reflect,
+ java.net

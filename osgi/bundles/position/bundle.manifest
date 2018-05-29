@@ -13,4 +13,5 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/position/
 Bundle-Category: osgi
 Import-Package: org.osgi.util.position; version="[1.0,1.1)",
- org.osgi.util.measurement; version="[1.0,2)"
+ org.osgi.util.measurement; version="[1.0,2)",
+ java.lang

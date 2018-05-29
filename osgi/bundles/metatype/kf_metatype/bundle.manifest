@@ -48,4 +48,9 @@ Import-Package: org.osgi.framework; version="[1.9,2)",
  org.knopflerfish.util,
  org.knopflerfish.util.metatype,
  org.kxml2.io,
- org.xmlpull.v1
+ org.xmlpull.v1,
+ java.io,
+ java.lang,
+ java.lang.reflect,
+ java.net,
+ java.util

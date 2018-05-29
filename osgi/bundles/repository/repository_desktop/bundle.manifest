@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Repository Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.repository_desktop
-Bundle-Version: 1.1.1
+Bundle-Version: 7.0.0
 Bundle-Category: management
 Bundle-Description: Knopflerfish desktop plugin visualizing OSGi Repository contents.
 Bundle-Vendor: Knopflerfish
@@ -22,7 +22,7 @@ Provide-Capability: osgi.service;
    objectClass:List<String>="org.knopflerfish.service.desktop.SwingBundleDisplayer";
    org.knopflerfish.service.desktop.displayer.name=Repository
 Bundle-Activator: org.knopflerfish.bundle.repository_desktop.Activator
-Import-Package: org.osgi.framework; version="[1.7,2)",
+Import-Package: org.osgi.framework; version="[1.9,2)",
  org.osgi.resource;version="[1.0,2)",
  org.osgi.service.repository;version="[1.0,2)",
  org.osgi.util.tracker;version="[1.5,2)",
@@ -30,6 +30,13 @@ Import-Package: org.osgi.framework; version="[1.7,2)",
  org.knopflerfish.service.desktop;version="[2.2,3)",
  org.knopflerfish.service.repositorymanager;version="[1,2)",
  org.knopflerfish.util.framework;version="[1,2)",
+ java.awt,
+ java.awt.event,
+ java.io,
+ java.lang,
+ java.lang.reflect,
+ java.net,
+ java.util,
  javax.swing,
  javax.swing.event,
  javax.swing.table,

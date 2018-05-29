@@ -15,4 +15,10 @@ Bundle-Activator: org.knopflerfish.bundle.device.Activator
 Bundle-Category: osgi
 Import-Package: org.osgi.framework; version="[1.9,2)",
  org.osgi.service.device; version="[1.1,1.2)",
- org.osgi.service.log; version="[1.2,3)"
+ org.osgi.service.log; version="[1.2,3)",
+ org.osgi.annotation.versioning,
+ java.io,
+ java.lang,
+ java.lang.reflect,
+ java.security,
+ java.util

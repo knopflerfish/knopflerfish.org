@@ -1188,8 +1188,7 @@ public class BundleInfoTask extends Task {
    *          The resource to be analyzed.
    */
   protected void analyze(Resource res) throws BuildException {
-    String name = res.getName();
-    System.out.println("res: " + name);
+    final String name = res.getName();
 
     if (name.endsWith("packageinfo")) {
       analyzePackageinfo(res);

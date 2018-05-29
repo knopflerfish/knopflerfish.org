@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Repository-Commands
 Bundle-SymbolicName: org.knopflerfish.bundle.repositorycommands
-Bundle-Version: 1.1.1
+Bundle-Version: 7.0.0
 Bundle-Activator: org.knopflerfish.bundle.repositorycommands.Activator
 Bundle-Description: Repository commands
 Bundle-Vendor: Knopflerfish
@@ -16,12 +16,15 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/repositorycommands/
 Bundle-Category: management
 Bundle-Icon: icon.png;size=32
-Import-Package: org.osgi.framework;version="[1.7,2.0)",
+Import-Package: org.osgi.framework;version="[1.9,2.0)",
  org.osgi.util.tracker;version="[1.5,2.0)",
  org.osgi.service.repository;version="[1.0,2.0)",
  org.osgi.resource;version="[1.0,2.0)",
  org.knopflerfish.service.console;version="[2.0,3.0)",
- org.knopflerfish.service.repositorymanager;version="[1.1,2.0)"
+ org.knopflerfish.service.repositorymanager;version="[1.1,2.0)",
+ java.io,
+ java.lang,
+ java.util
 Provide-Capability: osgi.service;
  objectClass:List<String>="org.knopflerfish.service.console.CommandGroup"
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"

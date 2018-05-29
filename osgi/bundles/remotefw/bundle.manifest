@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: RemoteFW
 Bundle-SymbolicName: org.knopflerfish.bundle.remotefw
-Bundle-Version: 4.0.0
+Bundle-Version: 7.0.0
 Bundle-Category: API
 Bundle-Description: Remote Framework
 Bundle-Vendor: Knopflerfish
@@ -12,4 +12,6 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/remotefw/
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
-api-Import-Package: org.osgi.framework; version="[1.6,2)"
+api-Import-Package: org.osgi.framework; version="[1.9,2)",
+ java.lang,
+ java.util

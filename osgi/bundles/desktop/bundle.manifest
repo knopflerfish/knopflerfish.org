@@ -7,7 +7,7 @@ Bundle-Category: management
 Bundle-Description: Swing framework desktop
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
-Bundle-Copyright: Copyright (c) 2003-2013, KNOPFLERFISH project. All rights reserved.
+Bundle-Copyright: Copyright (c) 2003-2018, KNOPFLERFISH project. All rights reserved.
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  description="BSD 3-clause";
@@ -57,7 +57,7 @@ Provide-Capability: osgi.service;
  osgi.service;
    objectClass:List<String>="org.osgi.service.event.EventHandler"
 Import-Package: org.osgi.dto;version="[1.0,2)",
- org.osgi.framework;version="[1.8,2)",
+ org.osgi.framework;version="[1.9,2)",
  org.osgi.framework.dto;version="[1.0,2)",
  org.osgi.framework.startlevel;version="[1.0,2)",
  org.osgi.framework.wiring;version="[1.0,2)",
@@ -75,6 +75,31 @@ Import-Package: org.osgi.dto;version="[1.0,2)",
  org.knopflerfish.util; version="[1.1,2)",
  org.knopflerfish.util.framework; version="[1.0,2)",
  org.apache.felix.scr;version="[1.6,2)",
+ org.osgi.annotation.bundle,
+ org.osgi.annotation.versioning,
+ org.osgi.service.component.annotations,
+ com.apple.eawt;resolution:=optional,
+ java.awt,
+ java.awt.datatransfer,
+ java.awt.dnd,
+ java.awt.event,
+ java.awt.geom,
+ java.awt.image,
+ java.io,
+ java.lang,
+ java.lang.annotation,
+ java.lang.reflect,
+ java.net,
+ java.security,
+ java.text,
+ java.util,
+ java.util.concurrent,
+ java.util.concurrent.atomic,
+ java.util.jar,
+ java.util.prefs,
+ java.util.regex,
+ java.util.zip,
+ javax.accessibility,
  javax.swing,
  javax.swing.border,
  javax.swing.event,
@@ -85,6 +110,4 @@ Import-Package: org.osgi.dto;version="[1.0,2)",
  javax.swing.table,
  javax.swing.text,
  javax.swing.text.html,
- javax.swing.tree,
- javax.accessibility,
- com.apple.eawt;resolution:=optional
+ javax.swing.tree

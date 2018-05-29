@@ -15,8 +15,12 @@ Bundle-Activator: org.knopflerfish.bundle.prefs.Activator
 Bundle-Category: osgi
 Bundle-Icon: icon.png;size=32
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
-Import-Package: org.osgi.framework; version="[1.6,2)",
+Import-Package: org.osgi.framework; version="[1.9,2)",
  org.osgi.service.prefs; version="[1.1.1,1.2)",
  org.knopflerfish.service.log; version="[1.2,2)",
- org.knopflerfish.util
- 
+ org.knopflerfish.util,
+ org.osgi.annotation.versioning,
+ java.io,
+ java.lang,
+ java.security,
+ java.util
