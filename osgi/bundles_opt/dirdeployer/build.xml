@@ -24,7 +24,8 @@
             value="org/knopflerfish/shared/cm/**"/>
 
   <property name="bmfa.Import-Package"
-            value="org.osgi.framework; version=&quot;[1.6,2)&quot;,
+            value="java.io, java.lang, java.lang.reflect, java.util,
+  	       org.osgi.framework; version=&quot;[1.6,2)&quot;,
 		   org.osgi.framework.startlevel; version=&quot;[1.0,2)&quot;,
 		   org.osgi.framework.wiring; version=&quot;[1.0,2)&quot;,
                    org.knopflerfish.service.log; version=&quot;[1.2,2)&quot;,

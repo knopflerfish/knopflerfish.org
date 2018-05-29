@@ -22,5 +22,12 @@ Bundle-Activator: info.piayda.bundle.comm.linux.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Export-Package: javax.comm;specification-version=2.0,gnu.io;specificat
  ion-version=2.0
-Import-Package: org.osgi.framework,javax.comm;specification-version=2.
- 0,gnu.io;specification-version=2.0
+Import-Package: java.awt,
+                java.awt.event,
+                java.io,
+                java.lang,
+                java.util,
+                java.util.logging,
+                javax.comm;specification-version=2.0,
+                gnu.io;specification-version=2.0,
+                org.osgi.framework

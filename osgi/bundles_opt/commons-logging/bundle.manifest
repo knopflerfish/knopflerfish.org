@@ -19,4 +19,11 @@ Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Export-Package: org.osgi.service.log,
  org.knopflerfish.service.log,
  org.apache.commons.logging; version=1.0.3
-Import-Package: org.osgi.framework
+Import-Package: java.io,
+                java.lang,
+                java.lang.reflect,
+                java.security,
+                java.text,
+                java.util,
+                org.osgi.annotation.versioning,
+                org.osgi.framework
