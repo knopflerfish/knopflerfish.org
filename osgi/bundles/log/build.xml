@@ -21,6 +21,7 @@
 
   <path id="bundle.compile.path">
     <pathelement location="cm_api-N.N.N.jar"/>
+    <pathelement location="pushstream-N.N.N.jar"/>
   </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>

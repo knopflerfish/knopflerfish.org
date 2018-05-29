@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Metatype Annotations
 Bundle-SymbolicName: org.knopflerfish.bundle.metatype_annotations
-Bundle-Version: 1.0.0
+Bundle-Version: 7.0.0
 Bundle-Category: osgi
 Bundle-Description: OSGi specified metatype annotations
 Bundle-Vendor: Knopflerfish
@@ -13,5 +13,4 @@ Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.5))"
-api-Import-Package: org.osgi.service.metatype.annotations;version="[1.3,1.4)"
+api-Import-Package: org.osgi.service.metatype.annotations;version="[1.4,1.5)"

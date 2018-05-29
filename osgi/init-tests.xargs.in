@@ -81,6 +81,7 @@
 -init
 
 -initlevel 1
+-install @pushstream-N.N.N.jar@
 -install @log_all-N.N.N.jar@
 -install @cm_all-N.N.N.jar@
 -install @console_all-N.N.N.jar@

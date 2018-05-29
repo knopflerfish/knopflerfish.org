@@ -37,11 +37,13 @@ package org.knopflerfish.service.log;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.Logger;
 
 /**
  * LogRef is an utility class that simplifies the use of the LogService.
@@ -673,6 +675,31 @@ public class LogRef
                   Throwable exception)
   {
     doLog(message, level, sr, exception);
+  }
+
+  @Override
+  public Logger getLogger(String name) {
+	  return log.getLogger(name);
+  }
+
+  @Override
+  public Logger getLogger(Class<?> clazz) {
+	  return log.getLogger(clazz);
+  }
+
+  @Override
+  public <L extends Logger> L getLogger(String name, Class<L> loggerType) {
+	  return log.getLogger(name, loggerType);
+  }
+
+  @Override
+  public <L extends Logger> L getLogger(Class<?> clazz, Class<L> loggerType) {
+	  return log.getLogger(clazz, loggerType);
+  }
+
+  @Override
+  public <L extends Logger> L getLogger(Bundle bundle, String name, Class<L> loggerType) {
+	  return log.getLogger(bundle, name, loggerType);
   }
 
   /**

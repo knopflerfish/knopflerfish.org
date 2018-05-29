@@ -37,6 +37,7 @@ package org.knopflerfish.bundle.log;
 import org.knopflerfish.service.log.LogService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.Logger;
 
 /**
  * The LogServiceImpl is responsible for creating a LogEntry with the log
@@ -73,6 +74,7 @@ public class LogServiceImpl implements LogService {
    * @param msg
    *          The message of the entry to create.
    */
+  @Override
   public void log(int level, String msg)
   {
     lrsf.log(new LogEntryImpl(bundle, level, msg));
@@ -88,6 +90,7 @@ public class LogServiceImpl implements LogService {
    * @param t
    *          A Throwable that goes with the entry.
    */
+  @Override
   public void log(int level, String msg, Throwable t)
   {
     lrsf.log(new LogEntryImpl(bundle, level, msg, t));
@@ -103,6 +106,7 @@ public class LogServiceImpl implements LogService {
    * @param msg
    *          The message of the entry to create.
    */
+  @Override
   public void log(@SuppressWarnings("rawtypes") ServiceReference sref,
                   int level,
                   String msg)
@@ -122,6 +126,7 @@ public class LogServiceImpl implements LogService {
    * @param t
    *          A Throwable that goes with the entry.
    */
+  @Override
   public void log(@SuppressWarnings("rawtypes") ServiceReference sref,
                   int level,
                   String msg,
@@ -145,9 +150,35 @@ public class LogServiceImpl implements LogService {
    * 
    * @return the lowest severity level that is accepted into the log.
    */
+  @Override
   public int getLogLevel()
   {
     return lrsf.getLogLevel(bundle);
+  }
+
+  @Override
+  public Logger getLogger(String name) {
+	  return null;
+  }
+
+  @Override
+  public Logger getLogger(Class<?> clazz) {
+	  return null;
+  }
+
+  @Override
+  public <L extends Logger> L getLogger(String name, Class<L> loggerType) {
+	  return null;
+  }
+
+  @Override
+  public <L extends Logger> L getLogger(Class<?> clazz, Class<L> loggerType) {
+	  return null;
+  }
+
+  @Override
+  public <L extends Logger> L getLogger(Bundle bundle, String name, Class<L> loggerType) {
+	  return null;
   }
 
 }

@@ -1,11 +1,11 @@
-Release Notes Knopflerfish $(VERSION) (OSGi R6)
+Release Notes Knopflerfish $(VERSION) (OSGi R7)
 ======================================================================
 
-Maintenance release of Knopflerfish 6 available from
+Maintenance release of Knopflerfish 7 available from
 $(BASE_URL)/$(VERSION). Released $(RELEASE_DATE).
 
-Knopflerfish 6 is an implementation of the "OSGi Service Platform
-Release 6". It contains all services specified in the "Core
+Knopflerfish 7 is an implementation of the "OSGi Service Platform
+Release 7". It contains all services specified in the "Core
 Specification" and most of the non Enterprise Edition related
 services specified in the "Compendium Specification".
 
@@ -25,6 +25,30 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
+### KF Metatype 7.0.0
+
+* Updated to match OSGi R7 API minor version 1.4.
+
+### Metatype API 7.0.0
+
+* Updated API classes to match OSGi R7.
+
+### Metatype Annotations API 7.0.0
+
+* Updated API classes to match OSGi R7.
+
+### Promise 7.0.0
+
+* Updated API classes to match OSGi R7
+
+### Push Stream 7.0.0
+
+* New library bundle providing the `org.osgi.util.pushstream` package.
+
+### Log 7.0.0
+
+* Updated API classes to match OSGi R7.
+* Added dependency to new Push Stream bundle
 
 Knopflerfish Services
 ----------------------------------------------------------------------
@@ -33,7 +57,9 @@ Knopflerfish Services
 
 * The Knopflerfish redistribution of crimson has been removed.
 
+### Desktop 7.0.0
 
+* Updated to match OSGi R7 Log
 
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
@@ -54,6 +80,10 @@ Misc, start scripts, build system etc
 ### Knopflerfish installer - jarunpacker
 
 * Updated to support building with JDK9
+
+### xargs
+
+* Added Push Stream bundle to default and tests xargs files
 
 ### Maven snapshot bundles / artifacts
 

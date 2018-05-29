@@ -254,9 +254,6 @@ public class Bundle
   private final Manifest generatedManifest = new Manifest();
 
   private final Set<String> standardPackagePrefixes = new HashSet<String>();
-  {
-    standardPackagePrefixes.add("java.");
-  }
 
   private final BundlePackagesInfo bpInfo = new BundlePackagesInfo(this);
   private final ClassAnalyserASM asmAnalyser = new ClassAnalyserASM(bpInfo,

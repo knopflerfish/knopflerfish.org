@@ -11,9 +11,3 @@ Bundle-Category: testing
 Bundle-Classpath: ., subdir/res1.jar, res2.jar, res1.jar, subdir
 Export-Package: org.knopflerfish.service.framework_test; specification
  -version=1.0.0
-Import-Package: junit.framework,
- org.knopflerfish.service.framework_test,
- org.osgi.framework,
- org.osgi.service.packageadmin,
- org.osgi.service.permissionadmin,
- org.osgi.framework.wiring
