@@ -25,12 +25,17 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
-### Metatype Service 1.4
+### KF Metatype 7.0.0
 
-* New version of Metatype service and annotations API, 1.4
-* Bundle metatype bumped to 7.0.0 and requires framework 1.9
-* Bundle metatype_annotations_api bumped to 7.0.0 and requires framework 1.9
+* Updated to match OSGi R7 API minor version 1.4.
 
+### Metatype API 7.0.0
+
+* Updated API classes to match OSGi R7.
+
+### Metatype Annotations API 7.0.0
+
+* Updated API classes to match OSGi R7.
 
 Knopflerfish Services
 ----------------------------------------------------------------------
