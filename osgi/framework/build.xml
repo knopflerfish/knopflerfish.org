@@ -52,7 +52,6 @@
   <path id="compile.path">
     <pathelement location="${topdir}/framework/resources"/>
     <pathelement location="${osgi.annotation.jar}"/>
-    <pathelement location="libs/asm-6.0.jar"/>
   </path>
 
   <path id="android.system.path">

@@ -8,7 +8,7 @@
 /osgi/bundles/remotefw/doc/client.xargs
 /osgi/bundles/remotefw/doc/server.xargs
 /osgi/bundles_examples/cpa/init.xargs
-/osgi/bundles_opt/classpatcher/resources/asm-3.2.jar
+/osgi/bundles_opt/classpatcher/resources/asm-6.2.jar
 /osgi/bundles_test/regression_tests/component_test/resources/
 /osgi/bundles_test/regression_tests/condpermadmin_test/resources/
 /osgi/bundles_test/regression_tests/endurance_test/resources/
@@ -44,3 +44,4 @@
 /tools/jarunpacker/out/
 *.iml
 .idea
+.DS_Store

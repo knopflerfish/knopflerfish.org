@@ -21,11 +21,11 @@
             value="org/knopflerfish/bundle/**"/>
 
   <path id="bundle.compile.path">
-    <pathelement location="resources/asm-3.2.jar"/>
+    <pathelement location="resources/asm-6.2.jar"/>
   </path>
 
   <target name="bundle.custom.pre">
-    <copy file="${topdir}/framework/libs/asm-3.2.jar"
+    <copy file="${topdir}/resources/asm-6.2.jar"
           todir="${proj.dir}/resources"/>
   </target>
   

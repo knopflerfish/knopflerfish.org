@@ -458,6 +458,12 @@
     <antcall target="distrib_build_bundles_examples"/>
   </target>
 
+  <target name="distrib_resources">
+    <delete dir="${distrib.osgi.dir}/resources"/>
+    <mkdir dir="${distrib.osgi.dir}/resources"/>
+    <copy file="${osgi.dir}/resources/asm*.jar" todir="${distrib.osgi.dir}/resources"/>
+  </target>
+
   <target name="distrib_xargs">
     <mkdir dir="${distrib.osgi.dir}"/>
     <delete dir="${distrib.osgi.dir}" includes="*.xargs"/>
@@ -1008,6 +1014,7 @@
     <antcall target="distrib_clean"/>
     <antcall target="distrib_mkdirs"/>
     <antcall target="distrib_build"/>
+    <antcall target="distrib_resources"/>
     <antcall target="distrib_xargs"/>
     <antcall target="distrib_repoindex"/>
     <antcall target="distrib_javadoc"/>

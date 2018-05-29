@@ -31,7 +31,6 @@
     <delete dir="lib" includes="proguard-*.jar"/>
 
     <delete dir="lib" includes="kf_ant_util_tasks.jar"/>
-    <delete dir="lib" includes="asm-*.jar"/>
     <delete dir="lib" includes="pegdown*.jar"/>
     <delete dir="lib" includes="parboiled*.jar"/>
 
