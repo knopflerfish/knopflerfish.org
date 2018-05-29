@@ -16,43 +16,15 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
-### Framework 8.0.6
+### Framework 9.0
 
-* Fixed issue #40. There is a small risk for a dead lock if you
-  dynamically import a package and at the same time resolve a bundle
-  that access the same package.
+* Updated API classes to match OSGi R7.
 
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
-### KF Metatype 7.0.0
+### CM 7.0.0
 
-* Updated to match OSGi R7 API minor version 1.4.
-
-### Metatype API 7.0.0
-
-* Updated API classes to match OSGi R7.
-
-### Metatype Annotations API 7.0.0
-
-* Updated API classes to match OSGi R7.
-
-### Promise 7.0.0
-
-* Updated API classes to match OSGi R7
-
-### Push Stream 7.0.0
-
-* New library bundle providing the `org.osgi.util.pushstream` package.
-
-### Log 7.0.0
-
-* Updated API classes to match OSGi R7.
-* Added dependency to new Push Stream bundle
-
-### Namespace 7.0.0
-
-* Added osgi.unresolvable Namespace.
 * Updated API classes to match OSGi R7.
 
 ### Component Annotations 7.0.0
@@ -65,13 +37,44 @@ OSGi Compendium Specification
 * Added EVENT_ADMIN_IMPLEMENTATION capability.
 * Updated API classes to match OSGi R7.
 
+### IO Connector Service 7.0.0
+
+* Updated API classes to match OSGi R7.
+
+### KF Metatype 7.0.0
+
+* Updated to match OSGi R7 API minor version 1.4.
+
+### Log 7.0.0
+
+* Updated API classes to match OSGi R7.
+* Added dependency to new Push Stream bundle
+
+### Metatype API 7.0.0
+
+* Updated API classes to match OSGi R7.
+
+### Metatype Annotations API 7.0.0
+
+* Updated API classes to match OSGi R7.
+
+### Namespace 7.0.0
+
+* Added osgi.unresolvable Namespace.
+* Updated API classes to match OSGi R7.
+
 ### Preferences Service 7.0.0
 
 * Updated API classes to match OSGi R7.
 
-### IO Connector Service 7.0.0
+### Promise 7.0.0
 
-* Updated API classes to match OSGi R7.
+* Updated API classes to match OSGi R7
+
+### Push Stream 7.0.0
+
+* New library bundle providing the `org.osgi.util.pushstream` package.
+
 
 Knopflerfish Services
 ----------------------------------------------------------------------

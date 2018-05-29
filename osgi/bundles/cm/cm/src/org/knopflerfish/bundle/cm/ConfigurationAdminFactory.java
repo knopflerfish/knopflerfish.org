@@ -1466,6 +1466,36 @@ class ConfigurationAdminFactory
       return servicePid.hashCode();
     }
 
+	@Override
+	public Dictionary<String, Object> getProcessedProperties(ServiceReference<?> reference) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean updateIfDifferent(Dictionary<String, ?> properties) throws IOException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void addAttributes(ConfigurationAttribute... attrs) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Set<ConfigurationAttribute> getAttributes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void removeAttributes(ConfigurationAttribute... attrs) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
   }
 
   // /////////////////////////////////////////////////////////////////////////
@@ -1659,6 +1689,18 @@ class ConfigurationAdminFactory
       }
       return configurations;
     }
+
+	@Override
+	public Configuration getFactoryConfiguration(String factoryPid, String name, String location) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Configuration getFactoryConfiguration(String factoryPid, String name) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
   }
 
