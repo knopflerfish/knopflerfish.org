@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: pushstream
 Bundle-SymbolicName: org.knopflerfish.bundle.pushstream
-Bundle-Version: 0.1.0
-Bundle-Description: Pushstream API
+Bundle-Version: 7.0.0
+Bundle-Description: Push Stream API
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
