@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.osgi.framework.ServiceReference;
  * service, or if it returns an invalid result, or throws an {@code Exception},
  * the device manager uses the default selection strategy.
  * 
- * @author $Id: 179ecc7fc79d13bbf5d829d64b69baccd58c4b93 $
+ * @author $Id: 41d24b1bc27032fd0fdd7d33e5d05bd41cc60177 $
  * @since 1.1
  * @ThreadSafe
  */
@@ -50,5 +50,5 @@ public interface DriverSelector {
 	 * @return index into the array of {@code Match} objects, or
 	 *         {@code SELECT_NONE} if no Driver service should be attached
 	 */
-	public int select(ServiceReference reference, Match[] matches);
+	public int select(ServiceReference<?> reference, Match[] matches);
 }

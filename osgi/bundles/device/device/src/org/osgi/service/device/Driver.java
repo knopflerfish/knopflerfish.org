@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2000, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.osgi.framework.ServiceReference;
  * method bids the highest for a particular {@code Device} object will be
  * instructed by the device manager to attach to the {@code Device} object.
  * 
- * @author $Id: db46dfadf76ffbc519a691834c80673acc90603f $
+ * @author $Id: d15f3a2641ef31a7a5b7fc6f5506e4fd93220d60 $
  * @see Device
  * @see DriverLocator
  * @ThreadSafe
@@ -71,7 +71,7 @@ public interface Driver {
 	 * @throws java.lang.Exception if this Driver service cannot examine the
 	 *         Device service
 	 */
-	public int match(ServiceReference reference) throws Exception;
+	public int match(ServiceReference<?> reference) throws Exception;
 
 	/**
 	 * Attaches this Driver service to the Device service represented by the
@@ -104,5 +104,5 @@ public interface Driver {
 	 * @throws java.lang.Exception if the driver cannot attach to the given
 	 *         device and does not know of a more suitable driver
 	 */
-	public String attach(ServiceReference reference) throws Exception;
+	public String attach(ServiceReference<?> reference) throws Exception;
 }

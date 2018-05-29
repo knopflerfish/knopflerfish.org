@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2000, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import java.util.Dictionary;
  * providers and encapsulate all provider-specific details related to the
  * location and acquisition of driver bundles.
  * 
- * @author $Id: fdbe1a5d8957dcd47445d1c421e439a8c8dfceec $
+ * @author $Id: 78eb7d03b19183115ecedcbfaad6d0147a19f089 $
  * @see Driver
  * @ThreadSafe
  */
@@ -48,7 +48,7 @@ public interface DriverLocator {
 	 *         {@code null} if this Driver Locator service does not know of any
 	 *         such drivers
 	 */
-	public String[] findDrivers(Dictionary props);
+	public String[] findDrivers(Dictionary<String, ?> props);
 
 	/**
 	 * Get an {@code InputStream} from which the driver bundle providing a
