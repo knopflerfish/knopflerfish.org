@@ -15,4 +15,7 @@ Bundle-Category: osgi
 Bundle-Activator: org.knopflerfish.bundle.threadio.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Import-Package: org.osgi.framework;version="[1.6,2)",
- org.osgi.service.threadio;version="[1.0,2)"
+ org.osgi.service.threadio;version="[1.0,2)",
+ java.io,
+ java.lang,
+ java.util

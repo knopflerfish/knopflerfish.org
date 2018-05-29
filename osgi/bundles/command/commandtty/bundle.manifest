@@ -14,8 +14,11 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
 Bundle-Category: management
 Bundle-Activator: org.knopflerfish.bundle.commandtty.CommandTty
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
-Import-Package: org.osgi.framework; version="[1.6,2)",
+Import-Package: org.osgi.framework; version="[1.9,2)",
  org.osgi.service.cm; version="[1.4,2)",
  org.osgi.service.log; version="[1.3,2)",
  org.osgi.util.tracker; version="[1.5,2)",
  org.osgi.service.command; version="[1.0,2)",
+ java.io,
+ java.lang,
+ java.util

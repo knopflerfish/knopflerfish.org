@@ -14,5 +14,9 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
 Bundle-Activator: org.knopflerfish.bundle.connectors.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Import-Package: javax.microedition.io,
- org.osgi.framework; version="[1.6,2)",
- org.osgi.service.io; version="[1.0,2)"
+ org.osgi.framework; version="[1.9,2)",
+ org.osgi.service.io; version="[1.0,2)",
+ java.io,
+ java.lang,
+ java.net,
+ java.util

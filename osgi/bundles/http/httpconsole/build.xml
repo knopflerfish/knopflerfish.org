@@ -36,10 +36,15 @@
   <property name="bmfa.Import-Package"
             value="org.osgi.framework; version=&quot;[1.6,2)&quot;,
                    org.knopflerfish.service.log; version=&quot;[1.2,2)&quot;,
-  	               org.knopflerfish.util; version=&quot;[1.1,2)&quot;,
+	           org.knopflerfish.util; version=&quot;[1.1,2)&quot;,
                    org.osgi.service.http; version=&quot;[1.1,2)&quot;,
                    javax.servlet; version=&quot;[2.5,3)&quot;,
-                   javax.servlet.http; version=&quot;[2.5,3)&quot;"/>
+                   javax.servlet.http; version=&quot;[2.5,3)&quot;,
+                   java.io,
+                   java.lang,
+                   java.net,
+                   java.util,
+                   java.util.zip"/>
 
   <path id="bundle.compile.path">
    <pathelement location="jsdk_api-N.N.N.jar"/> 

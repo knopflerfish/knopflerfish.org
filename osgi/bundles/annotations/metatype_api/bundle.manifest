@@ -13,4 +13,8 @@ Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
-api-Import-Package: org.osgi.service.metatype.annotations;version="[1.4,1.5)"
+api-Import-Package: org.osgi.service.metatype.annotations;version="[1.4,1.5)",
+                    java.lang,
+                    java.lang.annotation,
+                    org.osgi.annotation.bundle,
+                    org.osgi.annotation.versioning

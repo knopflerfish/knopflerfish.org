@@ -22,5 +22,14 @@ Import-Package: org.osgi.framework; version="[1.9,2)",
  javax.servlet.http; version="[2.5,2.6)",
  javax.net.ssl; resolution:=optional,
  org.knopflerfish.service.console;resolution:=optional,
- org.knopflerfish.service.log; version="[1.2,3)"
+ org.knopflerfish.service.log; version="[1.2,3)",
+ java.io,
+ java.lang,
+ java.lang.reflect,
+ java.net,
+ java.security,
+ java.text,
+ java.util,
+ java.util.zip,
+ org.osgi.annotation.versioning
 

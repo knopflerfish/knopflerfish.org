@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: sslj2sp
 Bundle-SymbolicName: org.knopflerfish.bundle.sslj2sp
-Bundle-Version: 4.0.0
+Bundle-Version: 7.0.0
 Bundle-Category: service
 Bundle-Description: SSL Provider using the Java 2 security architecture.
 Bundle-Vendor: Knopflerfish/Oscar
@@ -13,7 +13,12 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/sslj2sp/
 Bundle-Activator: org.knopflerfish.bundle.ssl.j2sp.Activator
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.4))"
-Import-Package: org.osgi.framework; version="[1.6,2)",
+Import-Package: org.osgi.framework; version="[1.9,2)",
  org.osgi.service.log; version="[1.3,2)",
  org.osgi.service.cm; version="[1.4,2)",
- javax.net.ssl
+ javax.net.ssl,
+ java.io,
+ java.lang,
+ java.security,
+ java.text,
+ java.util
