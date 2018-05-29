@@ -257,15 +257,15 @@ public class SystemBundle extends BundleImpl implements Framework {
           }
           if (timeout > 0) {
             timeout = timeout - (Util.timeMillis() - st);
-            if (timeout <= 0) {
-              break;
+              if (timeout <= 0) {
+                break;
+              }
             }
           }
-        }
-        if (stopEvent == null) {
-          return new FrameworkEvent(FrameworkEvent.WAIT_TIMEDOUT, this, null);
-        }
-      } else if (stopEvent == null) {
+          if (stopEvent == null) {
+            return new FrameworkEvent(FrameworkEvent.WAIT_TIMEDOUT, this, null);
+          }
+        } else if (stopEvent == null) {
         // Return this if stop or update have not been called and framework is
         // stopped.
         stopEvent = new FrameworkEvent(FrameworkEvent.STOPPED, this, null);
@@ -594,6 +594,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         }
         addSysPackagesFromResource(sp, "exports", null);
       }
+      fwCtx.props.props.put(Constants.FRAMEWORK_SYSTEMPACKAGES, sp.toString());
     }
     final String extraPkgs = fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
     if (extraPkgs.length() > 0) {
@@ -642,6 +643,8 @@ public class SystemBundle extends BundleImpl implements Framework {
       for (final BundleGeneration bg : fwCtx.bundles.getFragmentBundles(current())) {
         if (bg.isBootClassPathExtension() && bg.bundle.extensionNeedsRestart()) {
           bootClassPathHasChanged = true;
+
+
           break;
         }
       }
