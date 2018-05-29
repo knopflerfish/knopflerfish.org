@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Namespace
 Bundle-SymbolicName: org.knopflerfish.bundle.namespace
-Bundle-Version: 1.0.0
+Bundle-Version: 7.0.0
 Bundle-Description: OSGi Namespace
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi

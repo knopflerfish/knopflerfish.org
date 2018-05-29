@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2015). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ import java.util.Dictionary;
  * that properties for other {@code Role} objects are.
  * 
  * @noimplement
- * @author $Id: c366d5a634158a41a940edb0229ee95d4148ddac $
+ * @author $Id: aff70c8ad3ed0c7e9fbda93e90214512d401bb79 $
  */
 public interface Role {
 	/**
@@ -113,5 +113,5 @@ public interface Role {
 	 * @return {@code Dictionary} containing the properties of this {@code Role}
 	 *         object.
 	 */
-	public Dictionary getProperties();
+	public Dictionary<String, Object> getProperties();
 }

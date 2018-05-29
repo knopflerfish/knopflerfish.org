@@ -99,7 +99,6 @@
            includeantruntime = "false"
            includejavaruntime = "false"
            includes          = "${androidSrcs}"
-           excludes          = "**"
            source            = "1.6"
            target            = "1.6"
            classpathref      = "compile.path"
@@ -392,7 +391,7 @@
   <target name="genexports" depends="bundle_tasks">
     <delete file="resources/exports"/>
     <bundleinfo  exports  = "fw.export-package"
-                 addPackageinfoPackages = "true" >
+                 addPackageinfoPackages = "true">
      <exports dir="src" includes="org/osgi/**"/>
     </bundleinfo>
     <echo message="${fw.export-package}" file="resources/exports"/>

@@ -208,7 +208,8 @@ public class BundleClassPath {
       debug.println(this + "getNativeLibrary: lib=" + libName);
     }
     if (nativeLibs != null) {
-      String [] keys = new String [] { System.mapLibraryName(libName), libName };
+      // TODO perhaps we should restrict .jnilib to MacOS?
+      String [] keys = new String [] { System.mapLibraryName(libName), libName, "lib" + libName + ".jnilib" };
       FileArchive fa = null;
       String key = null;
       for (String k : keys) {
