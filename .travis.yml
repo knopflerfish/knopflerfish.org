@@ -13,7 +13,7 @@ jdk:
 env:
   matrix:
   - DEPLOY=true  VER_SUF=      EXTRA=
-  - DEPLOY=false VER_SUF=_dex  EXTRA=-DANDROID_HOME=$ANDROID_HOME
+#  - DEPLOY=false VER_SUF=_dex  EXTRA=-DANDROID_HOME=$ANDROID_HOME
 before_install:
 - wget https://archive.apache.org/dist/ant/binaries/apache-ant-1.9.8-bin.tar.gz
 - tar xzf apache-ant-1.9.8-bin.tar.gz
