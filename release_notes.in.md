@@ -66,6 +66,10 @@ Misc, start scripts, build system etc
 
 * Updated to support building with JDK9
 
+### xargs
+
+* Added bundle Pushstream to default and tests xargs files
+
 ### Maven snapshot bundles / artifacts
 
 * In a Knopflerfish snapshot release the release specific maven2 repo
