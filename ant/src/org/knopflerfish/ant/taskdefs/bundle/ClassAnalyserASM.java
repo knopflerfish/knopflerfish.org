@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2018, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,10 @@ import org.apache.tools.ant.Task;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.TypePath;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Opcodes;
@@ -79,7 +81,7 @@ public class ClassAnalyserASM
   public ClassAnalyserASM(final BundlePackagesInfo bpInfo,
                           final Task task)
   {
-    super(Opcodes.ASM4);
+    super(Opcodes.ASM6);
     this.cv = this;
     this.bpInfo = bpInfo;
     this.task   = task;
@@ -205,8 +207,9 @@ public class ClassAnalyserASM
    * @return a visitor to visit the annotation values, or <tt>null</tt> if
    *         this visitor is not interested in visiting this annotation.
    */
-  public AnnotationVisitor visitAnnotation(String desc, boolean visible)
+  public AnnotationVisitor visitAnnotation(String descriptor, boolean visible)
   {
+    addReferencedType(Type.getType(descriptor));
     return null;
   }
 
@@ -319,6 +322,18 @@ public class ClassAnalyserASM
     return new MethodAnalyserASM(this, name);
   }
 
+
+  
+  @Override
+  public ModuleVisitor visitModule(String name, int access, String version) {
+    return null;
+  }
+
+  @Override
+  public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+    addReferencedType(Type.getType(descriptor));
+    return null;
+  }
 
   /*
    * Visits the end of the class. This method, which is the last one to be

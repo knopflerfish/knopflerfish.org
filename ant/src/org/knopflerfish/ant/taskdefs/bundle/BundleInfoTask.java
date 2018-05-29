@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.function.Predicate;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -564,6 +565,7 @@ public class BundleInfoTask extends Task {
 
     Arrays.stream(packageList.split(","))//
         .map(String::trim)//
+        .filter(((Predicate<String>) String::isEmpty).negate())//
         .forEach(stdImports::add);
 
     log("StdImports: " + stdImports, Project.MSG_DEBUG);
