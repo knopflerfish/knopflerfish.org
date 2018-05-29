@@ -19,7 +19,9 @@
 		   org.osgi.namespace.extender; version=&quot;[1.0.1,1.1)&quot;,
 		   org.osgi.namespace.implementation; version=&quot;[1,1.1)&quot;,
 		   org.osgi.namespace.service; version=&quot;[1,1.1)&quot;,
-		   org.osgi.namespace.unresolvable; version=&quot;[1,1.1)&quot;"/>
+		   org.osgi.namespace.unresolvable; version=&quot;[1,1.1)&quot;,
+		   org.osgi.annotation.versioning; version=&quot;[1.1,1.2)&quot;,
+		   java.lang"/>
   
   <property name="api.pattern" value="org/osgi/**"/> 
 
