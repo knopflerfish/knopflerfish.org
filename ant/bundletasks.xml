@@ -181,28 +181,13 @@
     </taskdef>
   </target>
 
-  <property name="pegdown.version"	value="1.6.0"/>
-  <property name="pegdown.jar"		value="pegdown-${pegdown.version}.jar" />
-  <property name="pegdown.url"		value="http://repo1.maven.org/maven2/org/pegdown/pegdown/${pegdown.version}/${pegdown.jar}" />
+  <property name="flexmark.version"	value="0.32.24"/>
+  <property name="flexmark.jar"		value="flexmark-all-${flexmark.version}-lib.jar" />
+  <property name="flexmark.url"		value="Http://repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-all/${flexmark.version}/${flexmark.jar}" />
 
-  <property name="parboiled-core.version"	value="1.1.7"/>
-  <property name="parboiled-core.jar"		value="parboiled-core-${parboiled-core.version}.jar" />
-  <property name="parboiled-core.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-core/${parboiled-core.version}/${parboiled-core.jar}" />
-  <property name="parboiled-java.version"	value="1.1.7"/>
-  <property name="parboiled-java.jar"		value="parboiled-java-${parboiled-java.version}.jar" />
-  <property name="parboiled-java.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-java/${parboiled-java.version}/${parboiled-java.jar}" />
-
-  <target name="install_pegdown">
-    <get src="${pegdown.url}"
-	 dest="${ant.lib}/${pegdown.jar}"
-	 verbose="true"
-	 skipexisting="true" />
-    <get src="${parboiled-core.url}"
-	 dest="${ant.lib}/${parboiled-core.jar}"
-	 verbose="true"
-	 skipexisting="true" />
-    <get src="${parboiled-java.url}"
-	 dest="${ant.lib}/${parboiled-java.jar}"
+  <target name="install_flexmark">
+    <get src="${flexmark.url}"
+	 dest="${ant.lib}/${flexmark.jar}"
 	 verbose="true"
 	 skipexisting="true" />
   </target>
@@ -223,9 +208,7 @@
   <path id="util_tasks.path">
     <pathelement location="${antclasses}"/>
     <path refid="asm.path"/>
-    <pathelement location="${ant.lib}/pegdown-1.6.0.jar"/>
-    <pathelement location="${ant.lib}/parboiled-core-1.1.7.jar"/>
-    <pathelement location="${ant.lib}/parboiled-java-1.1.7.jar"/>
+    <pathelement location="${ant.lib}/${flexmark.jar}"/>
   </path>
 
   <target name="chkBundleTaskSrc">
@@ -256,7 +239,7 @@
   </target>
 
   <target name="build_util_tasks"
-	  depends="install_pegdown">
+	  depends="install_flexmark">
     <mkdir dir="${antclasses}"/>
     <javac destdir="${antclasses}"
            classpathref="util_tasks.path"
@@ -337,9 +320,7 @@
     <taskdef resource="org/knopflerfish/ant/taskdefs/util/antlib.xml">
       <classpath>
         <pathelement location="${kf_ant_util_tasks.jar}"/>
-	<pathelement location="${ant.lib}/pegdown-1.6.0.jar"/>
-	<pathelement location="${ant.lib}/parboiled-core-1.1.7.jar"/>
-	<pathelement location="${ant.lib}/parboiled-java-1.1.7.jar"/>
+	<pathelement location="${ant.lib}/${flexmark.jar}"/>
         <path refid="asm.path"/>
       </classpath>
     </taskdef>

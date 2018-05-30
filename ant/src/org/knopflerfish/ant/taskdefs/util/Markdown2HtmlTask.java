@@ -3,12 +3,18 @@ package org.knopflerfish.ant.taskdefs.util;
 import java.io.File;
 import java.io.IOException;
 
-import org.pegdown.PegDownProcessor;
-import org.pegdown.ToHtmlSerializer;
-import org.pegdown.LinkRenderer;
-import org.pegdown.VerbatimSerializer;
-import org.pegdown.ast.*;
-import org.pegdown.plugins.ToHtmlSerializerPlugin;
+import com.vladsch.flexmark.ast.Node;
+import com.vladsch.flexmark.ast.ListItem;
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.html.CustomNodeRenderer;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.html.HtmlWriter;
+import com.vladsch.flexmark.html.renderer.NodeRendererContext;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.options.MutableDataSet;
+
+import java.util.Arrays;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -18,6 +24,7 @@ import org.knopflerfish.ant.taskdefs.bundle.FileUtil;
 
 import java.util.List;
 import java.util.Map;
+
 
 public class Markdown2HtmlTask
   extends Task
@@ -54,12 +61,20 @@ public class Markdown2HtmlTask
 
     try {
       String src = FileUtil.loadFile(from.getPath());
+      MutableDataSet options = new MutableDataSet();
 
-      PegDownProcessor pegDown = new PegDownProcessor();
-      RootNode rootNode = pegDown.parseMarkdown(src.toCharArray());
-      ToHtmlSerializer htmlSerializer = new MyToHtmlSerializer(new LinkRenderer()); 
-      String html = htmlSerializer.toHtml(rootNode);
-      // String out = pegDown.markdownToHtml(src);
+      // uncomment to set optional extensions
+      //options.set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create(), StrikethroughExtension.create()));
+
+      // uncomment to convert soft-breaks to hard breaks
+      //options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
+
+      Parser parser = Parser.builder(options).build();
+      HtmlRenderer renderer = HtmlRenderer.builder(options).build();
+
+      // You can re-use parser and renderer instances
+      Node document = parser.parse(src);
+      String html = renderer.render(document);
       FileUtil.writeStringToFile(to, html);
     }
     catch (final IOException e) {
@@ -68,6 +83,8 @@ public class Markdown2HtmlTask
   }
 }	
 
+
+/*
 class MyToHtmlSerializer extends ToHtmlSerializer {
 
   public MyToHtmlSerializer(LinkRenderer linkRenderer) {
@@ -143,3 +160,4 @@ class MyToHtmlSerializer extends ToHtmlSerializer {
     printer.print('<').print('/').print(tag).print('>');
   }
 }
+*/
