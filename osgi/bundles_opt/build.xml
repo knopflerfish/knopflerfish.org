@@ -12,7 +12,6 @@
     <ant target="${the.target}" dir="jini"/>
     <ant target="${the.target}" dir="dirdeployer"/>
     <ant target="${the.target}" dir="desktop_displayers"/>
-    <ant target="${the.target}" dir="classpatcher"/>
     <ant target="${the.target}" dir="httpclient_connector"/>
   </target>
 
