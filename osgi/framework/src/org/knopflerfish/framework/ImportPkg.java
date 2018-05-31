@@ -51,6 +51,7 @@ import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 
 import org.knopflerfish.framework.Util.HeaderEntry;
+import org.knopflerfish.framework.Util.PackageName;
 
 /**
  * Data structure for import package definitions.
@@ -108,6 +109,9 @@ class ImportPkg
   ImportPkg(final String name, final HeaderEntry he, final BundlePackages b,
             boolean dynamic)
   {
+    if (PackageName.check(name) == PackageName.INVALID) {
+      throw new IllegalArgumentException("Import package name is invalid: " + name);
+    }
     this.bpkgs = b;
     this.name = name;
     final Map<String, String> dirs = he.getDirectives();

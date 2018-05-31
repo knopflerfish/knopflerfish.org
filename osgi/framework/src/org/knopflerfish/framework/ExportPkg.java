@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knopflerfish.framework.Util.HeaderEntry;
+import org.knopflerfish.framework.Util.PackageName;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
@@ -80,6 +81,9 @@ class ExportPkg
    */
   ExportPkg(final String name, final HeaderEntry he, final BundlePackages b)
   {
+    if (PackageName.check(name) == PackageName.INVALID) {
+      throw new IllegalArgumentException("Export package name is invalid: " + name);
+    }
     this.bpkgs = b;
     this.name = name;
     if (name.startsWith("java.") && b.bg.bundle.id != 0) {

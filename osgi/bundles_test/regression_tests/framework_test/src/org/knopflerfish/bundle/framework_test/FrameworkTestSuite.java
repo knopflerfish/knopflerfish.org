@@ -2880,14 +2880,14 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       Bundle buR1 = null;
       try {
         try {
-          buR = Util.installBundle(bc, "bundleR_test-1.0.0.jar");
+          buR = Util.installBundle(bc, "bundleR_test-1.1.0.jar");
         } catch (BundleException e) {
           out.println("Failed install R: " + e.getNestedException() + ", in FRAME160A");
           pass = false;
         }
 
         try {
-          buR1 = Util.installBundle(bc, "bundleR1_test-1.0.0.jar");
+          buR1 = Util.installBundle(bc, "bundleR1_test-1.1.0.jar");
         } catch (BundleException e) {
           pass = false;
           fail("Failed install R1: " + e.getNestedException() + ", in FRAME160A:FAIL");

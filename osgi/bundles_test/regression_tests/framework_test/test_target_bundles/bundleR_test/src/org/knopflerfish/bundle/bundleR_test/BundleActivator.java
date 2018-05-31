@@ -71,7 +71,7 @@ public class BundleActivator implements org.osgi.framework.BundleActivator {
       throw new Exception("Got url to non-existent file " + u);
     }
     // Try an imported file
-    u = bc.getBundle().getResource("/org/knopflerfish/bundle/bundleR1_test/public/info");
+    u = bc.getBundle().getResource("/org/knopflerfish/bundle/bundleR1_test/publik/info");
     if (u != null) {
       InputStream i = u.openStream();
       char c = (char)i.read();
@@ -83,7 +83,7 @@ public class BundleActivator implements org.osgi.framework.BundleActivator {
       throw new Exception("Did not find " + u);
     }
     // Try a private file from imported bundle
-    u = bc.getBundle().getResource("/org/knopflerfish/bundle/bundleR1_test/private/info");
+    u = bc.getBundle().getResource("/org/knopflerfish/bundle/bundleR1_test/privat/info");
     if (u != null) {
       throw new Exception("Got url to private file " + u);
     }
@@ -93,3 +93,10 @@ public class BundleActivator implements org.osgi.framework.BundleActivator {
   }
 
 }
+
+
+
+
+
+
+

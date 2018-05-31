@@ -8,6 +8,6 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleD1_test.BundleActivator
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.bundleD1_test
-Import-Package: 
+Import-Package: --ILLEGAL--
 Bundle-UUID: org.knopflerfish:bundleD1_test:1.0.0:all
 

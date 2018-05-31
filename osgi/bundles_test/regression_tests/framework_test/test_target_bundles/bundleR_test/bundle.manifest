@@ -1,6 +1,6 @@
 Bundle-Name: bundleR_test
 Bundle-SymbolicName: bundleR_test
-Bundle-Version: 1.0.0
+Bundle-Version: 1.1.0
 Bundle-Description: Test bundle for framework, bundleR_test
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
@@ -8,8 +8,8 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleR_test.BundleActivator
 Bundle-Category: testing
 Import-Package: org.osgi.framework,
- org.knopflerfish.bundle.bundleR1_test.public,
+ org.knopflerfish.bundle.bundleR1_test.publik,
  java.io,
  java.lang,
  java.net
-Bundle-UUID: org.knopflerfish:bundleR_test:1.0.0:all
+Bundle-UUID: org.knopflerfish:bundleR_test:1.1.0:all
