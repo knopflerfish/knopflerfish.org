@@ -2,19 +2,28 @@ package org.knopflerfish.ant.taskdefs.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
+import com.vladsch.flexmark.Extension;
+import com.vladsch.flexmark.ast.BulletList;
+import com.vladsch.flexmark.ast.BulletListItem;
 import com.vladsch.flexmark.ast.Node;
-import com.vladsch.flexmark.ast.ListItem;
-import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
-import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.ast.Heading;
 import com.vladsch.flexmark.html.CustomNodeRenderer;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.html.HtmlWriter;
+import com.vladsch.flexmark.html.renderer.NodeRenderer;
 import com.vladsch.flexmark.html.renderer.NodeRendererContext;
+import com.vladsch.flexmark.html.renderer.NodeRendererFactory;
+import com.vladsch.flexmark.html.renderer.NodeRenderingHandler;
 import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.options.DataHolder;
+import com.vladsch.flexmark.util.options.MutableDataHolder;
 import com.vladsch.flexmark.util.options.MutableDataSet;
-
-import java.util.Arrays;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -22,8 +31,95 @@ import org.apache.tools.ant.Task;
 
 import org.knopflerfish.ant.taskdefs.bundle.FileUtil;
 
-import java.util.List;
-import java.util.Map;
+
+class RunChildren implements Runnable {
+
+  private Node node;
+  private NodeRendererContext context;
+
+  public RunChildren(Node node, NodeRendererContext ctx) {
+    this.node = node;
+    this.context = ctx;
+  }
+
+  @Override
+  public void run() {
+    context.renderChildren(node);
+  }
+}
+
+
+class KfReleaseNotesRenderer implements NodeRenderer {
+
+  public KfReleaseNotesRenderer(DataHolder options) {
+  }
+
+  @Override
+  public Set<NodeRenderingHandler<?>> getNodeRenderingHandlers() {
+    return new HashSet<NodeRenderingHandler<? extends Node>>(Arrays.asList(
+      new NodeRenderingHandler<Heading>(Heading.class, new CustomNodeRenderer<Heading>() {
+          @Override
+          public void render(final Heading node, final NodeRendererContext context, final HtmlWriter html) {
+            if (node.getLevel() == 3) {
+              html.attr("class", "note_name").withAttr().tagLine("div", new RunChildren(node, context));
+            } else {
+              html.srcPos(node.getText()).attr("class", "release_notes").withAttr().tagLine("h" + node.getLevel(), new RunChildren(node, context));
+            }
+          }
+        }),
+      new NodeRenderingHandler<BulletList>(BulletList.class, new CustomNodeRenderer<BulletList>() {
+          @Override
+          public void render(final BulletList node, final NodeRendererContext context, final HtmlWriter html) {
+            if (node.getParent() instanceof BulletListItem) {
+              html.withAttr().tagIndent("ul", new RunChildren(node, context));
+            } else {
+              html.raw("");
+              context.renderChildren(node);
+            }
+          }
+        }),
+      new NodeRenderingHandler<BulletListItem>(BulletListItem.class, new CustomNodeRenderer<BulletListItem>() {
+          @Override
+          public void render(final BulletListItem node, final NodeRendererContext context, final HtmlWriter html) {
+            if (node.getParent().getParent() instanceof BulletListItem) {
+              html.withAttr().tagIndent("li", new RunChildren(node, context));
+            } else {
+              html.attr("class", "note_item").withAttr().tagIndent("div", new RunChildren(node, context));
+            }
+          }
+        })
+      ));
+  }
+
+  public static class Factory implements NodeRendererFactory {
+    @Override
+    public NodeRenderer create(final DataHolder options) {
+      return new KfReleaseNotesRenderer(options);
+    }
+  }
+}
+
+
+class KfReleaseNotesExtension implements HtmlRenderer.HtmlRendererExtension {
+
+  private KfReleaseNotesExtension() {
+  }
+
+  public static Extension create() {
+    return new KfReleaseNotesExtension();
+  }
+
+  @Override
+  public void rendererOptions(final MutableDataHolder options) {
+  }
+
+  @Override
+  public void extend(HtmlRenderer.Builder rendererBuilder, String rendererType) {
+    if (rendererType.equals("HTML")) {
+      rendererBuilder.nodeRendererFactory(new KfReleaseNotesRenderer.Factory());
+    }
+  }
+}
 
 
 public class Markdown2HtmlTask
@@ -63,16 +159,10 @@ public class Markdown2HtmlTask
       String src = FileUtil.loadFile(from.getPath());
       MutableDataSet options = new MutableDataSet();
 
-      // uncomment to set optional extensions
-      //options.set(Parser.EXTENSIONS, Arrays.asList(TablesExtension.create(), StrikethroughExtension.create()));
-
-      // uncomment to convert soft-breaks to hard breaks
-      //options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
-
+      options.set(Parser.EXTENSIONS, Arrays.asList(KfReleaseNotesExtension.create()));
       Parser parser = Parser.builder(options).build();
       HtmlRenderer renderer = HtmlRenderer.builder(options).build();
 
-      // You can re-use parser and renderer instances
       Node document = parser.parse(src);
       String html = renderer.render(document);
       FileUtil.writeStringToFile(to, html);
@@ -82,82 +172,3 @@ public class Markdown2HtmlTask
     }
   }
 }	
-
-
-/*
-class MyToHtmlSerializer extends ToHtmlSerializer {
-
-  public MyToHtmlSerializer(LinkRenderer linkRenderer) {
-    super(linkRenderer);
-  }
-
-  public MyToHtmlSerializer(LinkRenderer linkRenderer, List<ToHtmlSerializerPlugin> plugins) {
-    super(linkRenderer, plugins);
-  }
-
-  public MyToHtmlSerializer(LinkRenderer linkRenderer, Map<String, VerbatimSerializer> verbatimSerializers) {
-    super(linkRenderer, verbatimSerializers);
-  }
-
-  public MyToHtmlSerializer(LinkRenderer linkRenderer, Map<String, VerbatimSerializer> verbatimSerializers, List<ToHtmlSerializerPlugin> plugins) {
-    super(linkRenderer, verbatimSerializers, plugins);
-  }
-
-
-  public void visit(HeaderNode node) {
-    if (node.getLevel() == 3) {
-      printBreakBeforeTag(node, "div", "class=\"note_name\"");
-    }
-    else {
-      printBreakBeforeTag(node, "h" + node.getLevel() , "class=\"release_notes\"");
-    }
-  }
-
-  public void visit(ListItemNode node) {
-    if (node instanceof TaskListNode) {
-      super.visit(node);
-    }
-    else {
-      printConditionallyIndentedTag(node, "div", "class=\"note_item\"");
-    }
-  }
-
-  public void visit(BulletListNode node) {
-    visitChildren(node);
-    // printIndentedTag(node, "ul");
-  }
-
-  void printConditionallyIndentedTag(SuperNode node, String tag, String attributes) {
-    if (node.getChildren().size() > 1) {
-      printer.println().print('<').print(tag).print(' ').print(attributes).print('>').indent(+2);
-      visitChildren(node);
-      printer.indent(-2).println().print('<').print('/').print(tag).print('>');
-    } else {
-      boolean startWasNewLine = printer.endsWithNewLine();
-
-      printer.println().print('<').print(tag).print(' ').print(attributes).print('>');
-      visitChildren(node);
-      printer.print('<').print('/').print(tag).print('>').printchkln(startWasNewLine);
-    }
-  }
-
-  void printBreakBeforeTag(SuperNode node, String tag, String attributes) {
-    boolean startWasNewLine = printer.endsWithNewLine();
-    printer.println();
-    printTag(node, tag, attributes);
-    if (startWasNewLine) printer.println();
-  }  
-
-  void printTag(TextNode node, String tag, String attributes) {
-    printer.print('<').print(tag).print(' ').print(attributes).print('>');
-    printer.printEncoded(node.getText());
-    printer.print('<').print('/').print(tag).print('>');
-  }
-
-  void printTag(SuperNode node, String tag, String attributes) {
-    printer.print('<').print(tag).print(' ').print(attributes).print('>');
-    visitChildren(node);
-    printer.print('<').print('/').print(tag).print('>');
-  }
-}
-*/

@@ -100,8 +100,8 @@ Misc, start scripts, build system etc
   remarks / limitations:
     - Compact version of framework is not built since the proguard compactor
       does not support Java 9
-      - Updated asm to version 6.0. Older versions does not support Java 9.
-      - Crimson does not support Java 9 and has been removed.
+    - Updated asm to version 6.0. Older versions does not support Java 9.
+    - Crimson does not support Java 9 and has been removed.
   
 ### asm 6.0
 
