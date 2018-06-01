@@ -103,9 +103,9 @@ Misc, start scripts, build system etc
     - Updated asm to version 6.0. Older versions does not support Java 9.
     - Crimson does not support Java 9 and has been removed.
   
-### asm 6.0
+### asm 6.2
 
-* asm has been updated to version 6.0, with support for Java 9
+* asm has been updated to version 6.2, with support for Java 9
 
 ### Knopflerfish installer - jarunpacker
 
