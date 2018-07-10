@@ -242,7 +242,7 @@
 
   <!-- A comma separated list of packages that does not need to be imported. -->
   <!-- I.e., packages that are made available through the system classloader.-->
-  <property name="bundle.stdimports"   value="java."/>
+  <property name="bundle.stdimports"   value="java., org.osgi.annotation.versioning"/>
 
   <!-- A comma separated list of packages that needs to be imported even -->
   <!-- though that they are not explicitly referenced from inside the -->
