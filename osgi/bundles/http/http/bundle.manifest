@@ -30,6 +30,5 @@ Import-Package: org.osgi.framework; version="[1.9,2)",
  java.security,
  java.text,
  java.util,
- java.util.zip,
- org.osgi.annotation.versioning
+ java.util.zip
 

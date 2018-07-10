@@ -22,4 +22,3 @@ api-Import-Package: org.osgi.util.promise;version="[1.0,2)",
  java.io,
  java.lang,
  java.util,
- org.osgi.annotation.versioning

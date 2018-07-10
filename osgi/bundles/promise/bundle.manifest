@@ -11,4 +11,4 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-Category: osgi
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
-Import-Package: org.osgi.util.promise; version="[1.1,1.2)",java.lang, java.lang.reflect, java.util, java.util.concurrent, java.util.concurrent.atomic, org.osgi.annotation.versioning
+Import-Package: org.osgi.util.promise; version="[1.1,1.2)",java.lang, java.lang.reflect, java.util, java.util.concurrent, java.util.concurrent.atomic

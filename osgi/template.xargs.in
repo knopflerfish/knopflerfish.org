@@ -19,6 +19,8 @@
 
 ## Basic KF bundles
 -initlevel 1
+-install @namespace_api-N.N.N.jar@
+-install @promise-N.N.N.jar@
 -install @pushstream-N.N.N.jar@
 -install @log_all-N.N.N.jar@
 -install @cm_all-N.N.N.jar@

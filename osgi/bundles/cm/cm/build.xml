@@ -33,10 +33,11 @@
                    java.lang.reflect,
                    java.security,
                    java.util,
-                   java.lang.annotation,
+                   java.lang.annotation"/>
+<!--
                    org.osgi.annotation.bundle,
                    org.osgi.annotation.versioning; version=&quot;[1.1,1.2)&quot;"/>
-  
+-->  
   
   <path id="bundle.compile.path">
     <pathelement location="log_api-N.N.N.jar"/>

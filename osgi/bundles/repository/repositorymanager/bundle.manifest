@@ -27,8 +27,7 @@ Import-Package: org.osgi.framework;version="[1.9,2.0)",
  java.lang.reflect,
  java.util,
  java.util.concurrent,
- java.util.concurrent.atomic,
- org.osgi.annotation.versioning
+ java.util.concurrent.atomic
 Provide-Capability: osgi.service;
  objectClass:List<String>="org.knopflerfish.service.repositorymanager.RepositoryManager"
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"

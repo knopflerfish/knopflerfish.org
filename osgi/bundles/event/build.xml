@@ -51,10 +51,7 @@
                    java.lang,
                    java.lang.annotation,
                    java.security,
-                   java.util,
-                   org.osgi.annotation.bundle,
-                   org.osgi.annotation.versioning,
-                   org.osgi.service.component.annotations"/>
+                   java.util"/>
   <property name="bmfa.Import-Package"
             value="org.osgi.framework; version=&quot;[1.6,2)&quot;,
                    org.knopflerfish.service.log; version=&quot;[1.2,2)&quot;,
@@ -66,10 +63,7 @@
                    java.lang.annotation,
                    java.lang.reflect,
                    java.security,
-                   java.util,
-                   org.osgi.annotation.bundle,
-                   org.osgi.annotation.versioning,
-                   org.osgi.service.component.annotations"/>
+                   java.util"/>
 
   <target name="bundle.custom.pre">
 
