@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.function.Predicate;
+//import java.util.function.Predicate;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
