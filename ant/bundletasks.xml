@@ -77,6 +77,10 @@
   <property name="org.osgi.impl.bundle.repoindex.ant.download.url"
             value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.ant/" />
 
+  <target name="setup">
+    <mkdir dir="${ant.lib}" />
+  </target>
+
   <target name="install_repoindex">
     <get src="${org.osgi.impl.bundle.repoindex.cli.download.url}/${org.osgi.impl.bundle.repoindex.cli.jar}"
          dest="${ant.lib}/${org.osgi.impl.bundle.repoindex.cli.jar}"
@@ -225,6 +229,7 @@
 	 skipexisting="true" />
 
   </target>
+
   <target name="install_asm">
     <get src="${asm.url}"
 	 dest="${asm.jar.location}"
@@ -281,7 +286,7 @@
   </target>
 
   <target name="build_util_tasks"
-	  depends="install_pegdown">
+	  depends="setup, install_pegdown">
     <mkdir dir="${antclasses}"/>
     <javac destdir="${antclasses}"
            classpathref="util_tasks.path"
@@ -311,7 +316,7 @@
   </target>
 
   <target name="build_bundle_tasks"
-          depends="install_asm,chkBundleTaskSrc,chkBundleTasksBuild"
+          depends="setup,install_asm,chkBundleTaskSrc,chkBundleTasksBuild"
           unless="bundleTasksBuild.notRequired">
     <mkdir dir="${antclasses}"/>
     <javac destdir="${antclasses}"
