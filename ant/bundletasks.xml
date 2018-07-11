@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   ** Copyright (c) 2003-2015, KNOPFLERFISH project
+   ** Copyright (c) 2003-2018, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -44,13 +44,17 @@
 
 
   <!-- ASM bytecode manipulation and analysis framework -->
-  <property name="asm.version.framework"	value="6.0"/>
-  <property name="asm.jar.framework"
-	    location="${osgi.dir}/framework/libs/asm-${asm.version.framework}.jar"/>
-  <path id="asm.path">
-    <pathelement location="${osgi.dir}/framework/libs/asm-${asm.version.framework}.jar"/>
+
+  <!-- ASM 4 is used by the bundle_util tasks -->
+  <!-- pegdown depends on this ASM version -->
+  <property name="asm-all.version"	value="4.0"/>
+  <property name="asm-all.jar"		value="asm-all-${asm-all.version}.jar"/>
+  <property name="asm-all.jar.location"	location="${ant.lib}/${asm-all.jar}" />
+  <path id="asm-all.path">
+    <pathelement location="${ant.lib}/${asm-all.jar}" />
   </path>
   
+  <!-- ASM 6 is used by the bundle_build tasks -->
   <property name="asm.version"		value="6.2"/>
   <property name="asm.jar"		value="asm-${asm.version}.jar" />
   <property name="asm.jar.location"	location="${ant.lib}/${asm.jar}" />
@@ -200,6 +204,7 @@
   <property name="parboiled-java.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-java/${parboiled-java.version}/${parboiled-java.jar}" />
 
   <property name="asm.url"		value="http://central.maven.org/maven2/org/ow2/asm/asm/${asm.version}/${asm.jar}" />
+  <property name="asm-all.url"		value="http://central.maven.org/maven2/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" />
 
   <target name="install_pegdown">
     <get src="${pegdown.url}"
@@ -214,8 +219,15 @@
 	 dest="${ant.lib}/${parboiled-java.jar}"
 	 verbose="true"
 	 skipexisting="true" />
+    <get src="${asm-all.url}"
+	 dest="${asm-all.jar.location}"
+	 verbose="true"
+	 skipexisting="true" />
+
+  </target>
+  <target name="install_asm">
     <get src="${asm.url}"
-	 dest="${ant.lib}/${asm.jar}"
+	 dest="${asm.jar.location}"
 	 verbose="true"
 	 skipexisting="true" />
   </target>
@@ -235,7 +247,6 @@
 
   <path id="util_tasks.path">
     <pathelement location="${antclasses}"/>
-    <path refid="asm.path"/>
     <pathelement location="${ant.lib}/pegdown-1.6.0.jar"/>
     <pathelement location="${ant.lib}/parboiled-core-1.1.7.jar"/>
     <pathelement location="${ant.lib}/parboiled-java-1.1.7.jar"/>
@@ -300,7 +311,7 @@
   </target>
 
   <target name="build_bundle_tasks"
-          depends="chkBundleTaskSrc,chkBundleTasksBuild"
+          depends="install_asm,chkBundleTaskSrc,chkBundleTasksBuild"
           unless="bundleTasksBuild.notRequired">
     <mkdir dir="${antclasses}"/>
     <javac destdir="${antclasses}"
@@ -354,7 +365,7 @@
 	<pathelement location="${ant.lib}/pegdown-1.6.0.jar"/>
 	<pathelement location="${ant.lib}/parboiled-core-1.1.7.jar"/>
 	<pathelement location="${ant.lib}/parboiled-java-1.1.7.jar"/>
-        <path refid="asm.path"/>
+        <path refid="asm-all.path"/>
       </classpath>
     </taskdef>
   </target>
