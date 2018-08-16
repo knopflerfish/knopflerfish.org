@@ -92,6 +92,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new Test11());
     addTest(new Test12());
     addTest(new Test13());
+    addTest(new Test14());
   }
 
   public void bump(int count) {
@@ -1895,6 +1896,44 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       }
     }
   }
+
+  private class Test14 extends FWTestCase  {
+
+
+    public void runTest() {
+      Bundle c1 = null;
+      try {
+        c1 = Util.installBundle(bc, "componentFilter_test-1.0.0.jar");
+        c1.start();
+
+        Thread.sleep(SLEEP_TIME);
+
+        ServiceReference<?>[] ref = bc.getServiceReferences("org.knopflerfish.service.componentFilter_test.GeneralComponent", null);
+        assertNotNull("Should get serviceRef GeneralComponent", ref);
+
+        assertEquals("Expecting two GeneralComponent services", 2, ref.length);
+
+        try {
+          Thread.sleep(SLEEP_TIME * 3);
+        } catch (Exception e) {}
+        
+
+      } catch (Exception e ) {
+        fail("Got exception: Test1: " + e);
+      } finally {
+        if (c1 != null) {
+          try {
+            c1.uninstall();
+          } catch (Exception be) {
+            be.printStackTrace();
+            fail("Test14: got uninstall exception " + be);
+          }
+        }
+      }
+    }
+  }
+  
+
 
   public void deleteConfig(ConfigurationAdmin ca, String location) throws IOException, InvalidSyntaxException {
     Configuration [] cs = ca.listConfigurations("(" + ConfigurationAdmin.SERVICE_BUNDLELOCATION + "=" + location + ")");
