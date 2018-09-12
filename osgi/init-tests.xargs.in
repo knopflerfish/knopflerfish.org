@@ -119,6 +119,7 @@ $(DO_CPA_TEST)-istart @condpermadmin_test-N.N.N.jar@
 # packages required by component_test
 -start  @log_all-N.N.N.jar@
 -start  @cm_all-N.N.N.jar@
+-install @promise-N.N.N.jar@
 -istart @component_all-N.N.N.jar@
 -istart @component_test-N.N.N.jar@
 
