@@ -160,7 +160,7 @@ class Reference implements org.apache.felix.scr.Reference
     } else {
       target = targetFilter;
     }
-    return target != null ? targetFilter.toString() : null;
+    return target != null ? target.toString() : null;
   }
 
 
