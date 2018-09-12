@@ -16,11 +16,17 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
+### Framework 8.0.7
+
+* Fixed issue #44. Avoid NoSuchElementException in bundle classloader
+  when doing getResource.
+
 ### Framework 8.0.6
 
 * Fixed issue #40. There is a small risk for a dead lock if you
   dynamically import a package and at the same time resolve a bundle
   that access the same package.
+
 
 OSGi Compendium Specification
 ----------------------------------------------------------------------
