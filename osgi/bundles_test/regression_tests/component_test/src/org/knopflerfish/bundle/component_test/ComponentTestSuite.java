@@ -55,11 +55,14 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.dto.BundleDTO;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
+import org.osgi.service.component.runtime.ServiceComponentRuntime;
+import org.osgi.service.component.runtime.dto.ComponentDescriptionDTO;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
@@ -227,6 +230,13 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
         c1.start();
 
+        Thread.sleep(SLEEP_TIME);
+        sr = bc.getServiceReference(ServiceComponentRuntime.class.getName());
+        ServiceComponentRuntime scr = (ServiceComponentRuntime)bc.getService(sr);
+        ComponentDescriptionDTO cdd = new ComponentDescriptionDTO();
+        cdd.name = "componentD.test";
+        cdd.bundle = c1.adapt(BundleDTO.class);
+        scr.enableComponent(cdd);
         Thread.sleep(SLEEP_TIME);
 
         assertNull("Should be null (1)", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA"));
@@ -942,7 +952,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         x = (org.knopflerfish.service.componentX_test.ComponentX)bc.getService(ref);
         assertNotNull("Should get service X", x);
 
-        assertEquals("new X should not have been bind(Y) bumped", 0, x.getBindStatus().intValue());
+        assertEquals("X should have been unbind(Y) bumped", 101, x.getBindStatus().intValue());
 
       } catch (Exception e) {
         e.printStackTrace();
@@ -1897,30 +1907,43 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     }
   }
 
-  private class Test14 extends FWTestCase  {
+  private class Test14 extends FWTestCase implements LogListener {
+
+    private boolean gotCircularError;
+
+    public void logged(LogEntry le) {
+      if (le.getLevel() == LogService.LOG_ERROR &&
+          le.getMessage().indexOf("circular") >= 0) {
+        gotCircularError = true;
+      }
+    }
 
 
     public void runTest() {
       Bundle c1 = null;
+      ServiceReference<?> sr = null;
+      LogReaderService lrs = null;
+
       try {
+        gotCircularError = false;
+        sr = bc.getServiceReference(LogReaderService.class.getName());
+        lrs = (LogReaderService)bc.getService(sr);
+        lrs.addLogListener(this);
+
         c1 = Util.installBundle(bc, "componentFilter_test-1.0.0.jar");
         c1.start();
 
         Thread.sleep(SLEEP_TIME);
 
         ServiceReference<?>[] ref = bc.getServiceReferences("org.knopflerfish.service.componentFilter_test.GeneralComponent", null);
-        assertNotNull("Should get serviceRef GeneralComponent", ref);
-
-        assertEquals("Expecting two GeneralComponent services", 2, ref.length);
-
-        try {
-          Thread.sleep(SLEEP_TIME * 3);
-        } catch (Exception e) {}
-        
-
+        assertNull("Shouldn't get serviceRef GeneralComponent", ref);
+        assertFalse("Shouldn't get circular message", gotCircularError);
       } catch (Exception e ) {
         fail("Got exception: Test1: " + e);
       } finally {
+        if (lrs != null) {
+          lrs.removeLogListener(this);
+        }
         if (c1 != null) {
           try {
             c1.uninstall();

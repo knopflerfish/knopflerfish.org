@@ -27,6 +27,7 @@
     <pathelement location="component_api-N.N.N.jar"/>
     <pathelement location="log_api-N.N.N.jar"/>
     <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="promise-N.N.N.jar"/>
     <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
     <pathelement location="${resources.dir}/component-api_test-1.0.0.jar"/>
     <pathelement location="${resources.dir}/componentX_test-1.0.0.jar"/>
