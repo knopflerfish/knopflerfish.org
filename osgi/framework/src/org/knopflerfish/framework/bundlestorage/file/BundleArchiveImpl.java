@@ -50,12 +50,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
 
-import org.knopflerfish.framework.BundleArchive;
-import org.knopflerfish.framework.BundleGeneration;
-import org.knopflerfish.framework.BundleResourceStream;
-import org.knopflerfish.framework.FileArchive;
-import org.knopflerfish.framework.FileTree;
-import org.knopflerfish.framework.HeaderDictionary;
+import org.knopflerfish.framework.*;
 import org.knopflerfish.framework.bundlestorage.Util;
 
 /**
@@ -122,7 +117,7 @@ public class BundleArchiveImpl implements BundleArchive
   {
     URL source = null;
     try {
-      source = new URL(bundleLocation);
+      source = ReferenceURLStreamHandler.createURL(bundleLocation);
     } catch (final Exception e) {
     }
     bundleDir = dir;
@@ -200,7 +195,7 @@ public class BundleArchiveImpl implements BundleArchive
 
     final boolean bReference = (is == null);
     if(bReference) {
-      source = new URL(location);
+      source = ReferenceURLStreamHandler.createURL(location);
     }
     archive = storage.createArchive(this, bundleDir, rev);
     archive.downloadArchive(is, source);

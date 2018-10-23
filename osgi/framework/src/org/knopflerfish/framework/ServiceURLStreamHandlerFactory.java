@@ -93,7 +93,7 @@ public class ServiceURLStreamHandlerFactory
     }
     // Add framework protocols
     setURLStreamHandler(FWResourceURLStreamHandler.PROTOCOL, new FWResourceURLStreamHandler());
-    setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL, new ReferenceURLStreamHandler());
+    setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL, ReferenceURLStreamHandler.INSTANCE);
     bundleHandler = new BundleURLStreamHandler();
     setURLStreamHandler(BundleURLStreamHandler.PROTOCOL, bundleHandler);
   }

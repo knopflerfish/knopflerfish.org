@@ -285,7 +285,7 @@ public class Main
     for (int i=0; i<ja.length; i++) {
       final String u = ja[i].trim();
       try {
-        res.add(new URL(u));
+        res.add(ReferenceURLStreamHandler.createURL(u));
         println("jar base[" + i + "]=" + u, 3);
       } catch (final MalformedURLException ignored) {
         System.err.println("Skip illegal jar base: " + u);

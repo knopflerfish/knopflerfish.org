@@ -40,7 +40,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -130,7 +129,7 @@ public class Bundles {
       if (in == null) {
         // Do it the manual way to have a chance to
         // set request properties
-        final URL url  = new URL(location);
+        final URL url = ReferenceURLStreamHandler.createURL(location);
         final URLConnection conn = url.openConnection();
 
         // Support for http proxy authentication
@@ -190,7 +189,7 @@ public class Bundles {
   }
 
 
-  /**
+    /**
    * Remove bundle registration.
    *
    * @param location The location to be removed
