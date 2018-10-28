@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2018, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,14 +96,14 @@ public class ReferenceURLStreamHandler extends URLStreamHandler {
     return s.substring(PROTOCOL.length() + 1);
   }
 
-    public static URL createURL(String location) throws MalformedURLException {
-        URL url;
-        if(location.startsWith(ReferenceURLStreamHandler.PROTOCOL + ':')){
-            url  = new URL(null, location, INSTANCE);
-        }
-        else
-            url  = new URL(location);
-        return url;
+  public static URL createURL(String location) throws MalformedURLException {
+    URL url;
+    if(location.startsWith(ReferenceURLStreamHandler.PROTOCOL + ':')){
+      url  = new URL(null, location, INSTANCE);
+    } else {
+      url  = new URL(location);
     }
+    return url;
+  }
 
 }
