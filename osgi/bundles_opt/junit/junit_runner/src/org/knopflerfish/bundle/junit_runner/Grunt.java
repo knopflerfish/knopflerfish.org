@@ -56,7 +56,8 @@ class Grunt  implements TestListener {
   
   final BundleContext bc;
 
-  final HashMap<String,ServiceReference<junit.framework.TestSuite>> allDefaultTests = new HashMap<>();
+  final HashMap<String,ServiceReference<junit.framework.TestSuite>> allDefaultTests =  
+      new HashMap<String, ServiceReference<junit.framework.TestSuite>>();
   
   public Grunt(BundleContext bc) {
     this.bc = bc;
