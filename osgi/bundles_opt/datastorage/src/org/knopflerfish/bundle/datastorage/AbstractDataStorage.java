@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008,2018 KNOPFLERFISH project
+ * Copyright (c) 2018, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,52 +32,60 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.service.junit;
+package org.knopflerfish.bundle.datastorage;
 
-import java.io.PrintWriter;
-import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.lang.reflect.Type;
+import java.util.Collection;
 
-import junit.framework.TestResult;
-import junit.framework.TestSuite;
+import org.knopflerfish.service.datastorage.DataStorageNode;
+// import org.knopflerfish.service.datastorage.JsonNode;
+import org.knopflerfish.service.datastorage.JsonGenericStorageNode;
+import org.knopflerfish.service.datastorage.JsonStorageNode;
 
-public interface JUnitService {
-
+/**
+ * Abstraction interface for actual storage of datastorage data
+ *
+ * <p>
+ * All paths are absolute
+ * </p>
+ */
+public interface AbstractDataStorage  {
   /**
-   * Run a specified test and dump the result as XML to the specified writer.
-   *
-   * @param out         writer to which XML formatted results should be
-   *                    written.
-   * @param suite       The test suite to run
-   * @throws IOException if result cannot be written to the writer
+   * @returns <tt>true</tt> if the preferences tree that the storage
+   * object represents have been removed.
    */
-  public void runTest(PrintWriter out,
-                      TestSuite suite) throws IOException;
-
-  /**
-   * Run a specified test and dump the result as XML to the specified writer.
-   *
-   * @param out         writer to which XML formatted results should be
-   *                    written.
-   * @param suite       The test suite to run
-   * @throws IOException if result cannot be written to the writer
-   */
-  public TestResult runTestSuite(PrintWriter out,
-                                 TestSuite suite) throws IOException;
+  boolean     isStale();
   
   /**
-   * Get a specified test (which is registered in the Framework).
-   *
-   * <p>
-   * All test are wrapped into TestSuites, even if they are registered as
-   * plain Tests.
-   * </p>
-   *
-   * @param id     service.pid which Test (or TestSuite) is registered as
-   * @param subid  optional subtest name of TestSuites.
-   *               Can be <tt>null</tt>
+   * Get list of childrens to a given path.
    */
-  public TestSuite getTestSuite(String id,
-                                String subid);
+  Collection<String>    getChildrenNames(final String path);
+  
+  Collection<String>    getChildrenPathNames(final String path);
+  
+  Collection<DataStorageNode> getChildren(final String path);
+  
 
+  void        removeNode(final String path);
+
+  <T> JsonStorageNode<T> getNode(final String path, final Class<T> classOfNode, boolean create);
+  
+  <T> JsonGenericStorageNode<T> getNode(final String path, Type t, boolean create);
+  
+  DataStorageNode getNode(final String path);
+  
+  boolean     nodeExists(final String path);
+  
+  void        clear(final String path);
+  
+//  void put(final String path, final String value);
+//  
+//  String get(final String path);
+  
+  Writer getWriter(final String path);
+  
+  Reader getReader(final String path);
 
 }

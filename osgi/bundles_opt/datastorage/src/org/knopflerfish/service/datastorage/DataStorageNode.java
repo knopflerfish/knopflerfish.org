@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008,2018 KNOPFLERFISH project
+ * Copyright (c) 2018, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,52 +32,63 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.service.junit;
+package org.knopflerfish.service.datastorage;
 
-import java.io.PrintWriter;
-import java.io.IOException;
+import java.util.Collection;
 
-import junit.framework.TestResult;
-import junit.framework.TestSuite;
-
-public interface JUnitService {
-
-  /**
-   * Run a specified test and dump the result as XML to the specified writer.
-   *
-   * @param out         writer to which XML formatted results should be
-   *                    written.
-   * @param suite       The test suite to run
-   * @throws IOException if result cannot be written to the writer
-   */
-  public void runTest(PrintWriter out,
-                      TestSuite suite) throws IOException;
-
-  /**
-   * Run a specified test and dump the result as XML to the specified writer.
-   *
-   * @param out         writer to which XML formatted results should be
-   *                    written.
-   * @param suite       The test suite to run
-   * @throws IOException if result cannot be written to the writer
-   */
-  public TestResult runTestSuite(PrintWriter out,
-                                 TestSuite suite) throws IOException;
+/**
+ * Base class for datastorages
+ * @author Makewave AB
+ *
+ */
+public interface DataStorageNode {
   
   /**
-   * Get a specified test (which is registered in the Framework).
-   *
-   * <p>
-   * All test are wrapped into TestSuites, even if they are registered as
-   * plain Tests.
-   * </p>
-   *
-   * @param id     service.pid which Test (or TestSuite) is registered as
-   * @param subid  optional subtest name of TestSuites.
-   *               Can be <tt>null</tt>
+   * Returns the name of the node
+   * @return the name
    */
-  public TestSuite getTestSuite(String id,
-                                String subid);
-
-
+  public String getName();
+  
+  /**
+   * Returns the absolute path to this node.
+   * 
+   * @return the absolute path
+   */
+  public String getAbsolutePath();
+  
+  /**
+   * Returns the parent node. For the root node null is returned
+   * 
+   * @return the parent node.
+   * 
+   */
+  public DataStorageNode getParent();
+  
+  /**
+   * Returns the children to the node
+   * @return a collection of children.
+   */
+  public Collection<DataStorageNode> children();
+  
+  /**
+   * Returns the names of the children
+   * @return a collection of child node names
+   */
+  public Collection<String> childNames();
+  
+  /**
+   * Return the node type
+   * @return the node type
+   */
+  public DataStorageNodeType getType();
+  
+  /**
+   * Enumeration indicating the type of the node
+   *
+   */
+  public enum DataStorageNodeType {
+    JSON,
+    JSON_GENERIC
+  }
+    
 }

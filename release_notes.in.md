@@ -39,7 +39,21 @@ Knopflerfish Services
 
 * The Knopflerfish redistribution of crimson has been removed.
 
+### Datastorage 0.1.0
 
+* A basic datastorage service. New service
+
+### gson-2.7.0
+
+* The standard gson bundle. User by the datastorage bundle for storing
+  json data.
+
+### junit_runner 4.2.0
+
+* The generated test index is styled as Knopflerfish distribution
+  html pages.
+* Test index show the different test runs to make it more clear which
+  tests are executed when. 
 
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
@@ -66,6 +80,13 @@ Misc, start scripts, build system etc
 * In a Knopflerfish snapshot release the release specific maven2 repo
   will be a snapshot repository, i.e. include snapshot versions of
   all bundles only.
+
+### bundles_ext and jars_ext
+
+* New bundle directory where 3rd party bundles are included in a KF
+  distribution as-is, i.e. no recompilation. Such bundle jars are
+  placed in osgi/jars_ext. The gosg.jars property has been updated to
+  also search this directory.
 
 ### Documentation
 

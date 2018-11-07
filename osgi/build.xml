@@ -8,7 +8,7 @@
   <property name="osgi.dir"        location="."/>
   <property name="ant.dir"         location="${topdir}/../ant"/>
   <property name="jars.dir"        location="jars"/>
-  <property name="gosg.jars"       value="file:jars/"/>
+  <property name="gosg.jars"       value="file:jars/;file:jars_ext/"/>
 
   <property name="repository.current.release"
       value="http://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
@@ -36,7 +36,7 @@
   <property name="test.dir"
             location="${osgi.dir}/bundles_test/regression_tests"/>
   <property name="test_jars"      value="$$$${user.dir}/test_jars"/>
-  <property name="test.gosg.jars" value="file:jars/;file:test_jars/"/>
+  <property name="test.gosg.jars" value="file:jars/;file:jars_ext/;file:test_jars/"/>
 
 
   <import file="${ant.dir}/android.xml"/>
@@ -191,7 +191,7 @@
            outDir="${root.out.dir}/xargs"/>
   </target>
 
-  <target name="test_xargs" depends="check_openssl">
+  <target name="test_xargs" depends="bundle_tasks, check_openssl">
     <xargs template="init-tests.xargs.in"
            xargs="${xargs.out.dir}/init-tests.xargs"
            baseDir="${xargs.base.dir}"
@@ -414,6 +414,8 @@
      <arg value="-xargs"/>
      <arg value="${run.test.xargs}"/>
      <arg value="-Forg.knopflerfish.prefs.dir=${junit.out.dir}/prefs"/>
+     <arg value="-Forg.knopflerfish.junit_runner.name=${run.test.name}" />
+     <arg value="-Forg.knopflerfish.junit_runner.description=${run.test.description}" />
    </java>
  </target>
  <target name="run-test-secure" if="run.test.secure">
@@ -430,6 +432,8 @@
      <arg value="-xargs"/>
      <arg value="${run.test.xargs}"/>
      <arg value="-Forg.knopflerfish.prefs.dir=${junit.out.dir}/prefs"/>
+     <arg value="-Forg.knopflerfish.junit_runner.name=${run.test.name}" />
+     <arg value="-Forg.knopflerfish.junit_runner.description=${run.test.description}" />
    </java>
  </target>
 
@@ -448,12 +452,13 @@
      <arg value="-Forg.knopflerfish.junit_runner.tests=${org.knopflerfish.junit_runner.tests}"/>
    </java>
  </target>
-
  <target name="run-kf-tests-bare-main">
    <antcall target="run-test">
      <param name="run.test.msg"    value="Running the main test suite..."/>
      <param name="run.test.append" value="false"/>
      <param name="run.test.xargs"  value="init-tests.xargs"/>
+     <param name="run.test.name"   value="main-tests" />
+     <param name="run.test.description"   value="Knopflerfish Main Test Suite" />
    </antcall>
  </target>
 
@@ -462,11 +467,15 @@
      <param name="run.test.msg"    value="Running the restart test suite, part 1..."/>
      <param name="run.test.append" value="true"/>
      <param name="run.test.xargs"  value="test-restart1.xargs"/>
+     <param name="run.test.name"   value="restart_tests_1" />
+     <param name="run.test.description"   value="Knopflerfish Restart Test Suite #1" />
    </antcall>
    <antcall target="run-test">
      <param name="run.test.msg"    value="Running the restart test suite, part 2..."/>
      <param name="run.test.append" value="true"/>
      <param name="run.test.xargs"  value="test-restart2.xargs"/>
+     <param name="run.test.name"   value="restart_tests_2" />
+     <param name="run.test.description"   value="Knopflerfish Restart Test Suite #2" />
    </antcall>
  </target>
 
