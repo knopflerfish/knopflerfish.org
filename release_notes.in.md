@@ -53,7 +53,7 @@ Knopflerfish Services
 * The generated test index is styled as Knopflerfish distribution
   html pages.
 * Test index show the different test runs to make it more clear which
-  tests are exectuted when. 
+  tests are executed when. 
 
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
