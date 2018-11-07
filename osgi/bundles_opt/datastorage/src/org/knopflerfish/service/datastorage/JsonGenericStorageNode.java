@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008,2018 KNOPFLERFISH project
+ * Copyright (c) 2018, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,52 +32,29 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.service.junit;
+package org.knopflerfish.service.datastorage;
 
-import java.io.PrintWriter;
-import java.io.IOException;
+import java.lang.reflect.Type;
 
-import junit.framework.TestResult;
-import junit.framework.TestSuite;
+/**
+ * @author Makewave AB
+ *
+ * @param <T>
+ */
+public interface JsonGenericStorageNode<T> extends DataStorageNode {
 
-public interface JUnitService {
-
-  /**
-   * Run a specified test and dump the result as XML to the specified writer.
-   *
-   * @param out         writer to which XML formatted results should be
-   *                    written.
-   * @param suite       The test suite to run
-   * @throws IOException if result cannot be written to the writer
-   */
-  public void runTest(PrintWriter out,
-                      TestSuite suite) throws IOException;
-
-  /**
-   * Run a specified test and dump the result as XML to the specified writer.
-   *
-   * @param out         writer to which XML formatted results should be
-   *                    written.
-   * @param suite       The test suite to run
-   * @throws IOException if result cannot be written to the writer
-   */
-  public TestResult runTestSuite(PrintWriter out,
-                                 TestSuite suite) throws IOException;
+  Type getGenericType();
   
   /**
-   * Get a specified test (which is registered in the Framework).
-   *
-   * <p>
-   * All test are wrapped into TestSuites, even if they are registered as
-   * plain Tests.
-   * </p>
-   *
-   * @param id     service.pid which Test (or TestSuite) is registered as
-   * @param subid  optional subtest name of TestSuites.
-   *               Can be <tt>null</tt>
+   * Stores a generic object in this node.
+   * @param o the object to store
    */
-  public TestSuite getTestSuite(String id,
-                                String subid);
-
-
+  public void put(Object o);
+ 
+  /**
+   * Returns the object stored in this node
+   * @return The stored object.
+   */
+  public T get();
+  
 }

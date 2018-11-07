@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   ** Copyright (c) 2018, KNOPFLERFISH project
+   ** All rights reserved.
+   **
+   ** Redistribution and use in source and binary forms, with or without
+   ** modification, are permitted provided that the following conditions
+   ** are met:
+   **
+   ** - Redistributions of source code must retain the above copyright notice,
+   **   this list of conditions and the following disclaimer.
+   **
+   ** - Redistributions in binary form must reproduce the above copyright
+   **   notice, this list of conditions and the following disclaimer in
+   **   the documentation and/or other materials provided with the
+   **   distribution.
+   **
+   ** - Neither the name of the KNOPFLERFISH project nor the names of its
+   **   contributors may be used to endorse or promote products derived
+   **   from this software without specific prior written permission.
+   **
+   ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   ** FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   ** COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+   ** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   ** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   ** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   ** HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   ** STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   ** OF THE POSSIBILITY OF SUCH DAMAGE.
+   -->
+
+<project name="extbundles" basedir=".">
+
+  <dirname  property="ant.dir"   file="${ant.file.extbundles}"/>
+  <property name="osgi.dir"      location="${ant.dir}/../osgi"/>
+  <property name="proj.dir"      location="."/>
+  <property name="topdir"        location="${osgi.dir}"/>
+  <property name="extsrc.dir"	 location="${proj.dir}/extsrc" />
+
+  <!-- The root of the default bundle repository. -->
+  <property name="osgi.jars.ext.dir" location="${osgi.dir}/jars_ext"/>
+
+  <!-- The following MUST be set in the local build.xml file -->
+  <property name="base_uri" value=""/>
+  <property name="artifact.name" value=""/>
+  <property name="artifact.version" value=""/>
+
+  <property name="artifact.jar" value="${artifact.name}-${artifact.version}.jar"/>
+  <property name="artifact.src" value="${artifact.name}-${artifact.version}-sources.jar"/>
+
+  <property name="bundle.jar"  location="${osgi.jars.ext.dir}/${artifact.name}/${artifact.jar}" />
+  <property name="source.jar"  location="${osgi.jars.ext.dir}/${artifact.name}/${artifact.src}" />
+  
+  <target name="all"
+	  depends="install_jar, install_src"/>
+  
+  <!-- dest="${osgi.jars.ext.dir}/${artifact.name}" -->
+  <target name="install_jar" description="Get a jar file from a maven repo">
+    <mkdir dir="${osgi.jars.ext.dir}/${artifact.name}"/>
+    <get src="${base_uri}/${artifact.name}/${artifact.version}/${artifact.jar}"
+	 dest="${bundle.jar}"
+         verbose="false"
+         skipexisting="true"/>
+  </target>
+
+  <target name="install_src" description="Get a jar source file from a maven repo">
+    <mkdir dir="${extsrc.dir}"/>
+    <get src="${base_uri}/${artifact.name}/${artifact.version}/${artifact.src}"
+         dest="${extsrc.dir}/"
+         verbose="false"
+         skipexisting="true"/>
+  </target>
+
+  <target name="clean">
+    <delete file="${bundle.jar}" />
+    <delete dir="${extsrc.dir}" />
+  </target>
+
+</project>

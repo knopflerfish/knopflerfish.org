@@ -54,7 +54,7 @@
 -Forg.knopflerfish.startlevel.use=true
 
 # Log service properties
--Forg.knopflerfish.log.out=false
+-Forg.knopflerfish.log.out=true
 -Forg.knopflerfish.log.level=info
 -Forg.knopflerfish.log.grabio=true
 -Forg.knopflerfish.log.file=true
@@ -91,11 +91,13 @@
 -install @jsdk_api-N.N.N.jar@
 -istart  @junit_all-N.N.N.jar@
 -istart  @kxml-N.N.N.jar@
+-istart  @gson-N.N.N.jar@
 
 -initlevel 4
 -install @http_all-N.N.N.jar@
 -install @io_all-N.N.N.jar@
 -install @prefs_all-N.N.N.jar@
+-install @datastorage_all-N.N.N.jar@
 
 # Needed by http_servlet_test
 -install @commons-logging_all-N.N.N.jar@
@@ -114,6 +116,7 @@
 -istart @io_test-N.N.N.jar@
 -istart @preferences_test-N.N.N.jar@
 -istart @startlevel_test-N.N.N.jar@
+-istart @datastorage_test-N.N.N.jar@
 $(DO_CPA_TEST)-istart @condpermadmin_test-N.N.N.jar@
 
 # packages required by component_test
@@ -126,6 +129,7 @@ $(DO_CPA_TEST)-istart @condpermadmin_test-N.N.N.jar@
 -start  @event_all-N.N.N.jar@
 -start  @io_all-N.N.N.jar@
 -start  @prefs_all-N.N.N.jar@
+-start  @datastorage_all-N.N.N.jar@
 
 -launch
 

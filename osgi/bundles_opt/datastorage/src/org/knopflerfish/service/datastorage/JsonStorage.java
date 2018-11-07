@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008,2018 KNOPFLERFISH project
+ * Copyright (c) 2018, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,52 +32,41 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.service.junit;
+/**
+ * Datastorage service for storing json objects. 
+ *
+ */
 
-import java.io.PrintWriter;
-import java.io.IOException;
+package org.knopflerfish.service.datastorage;
 
-import junit.framework.TestResult;
-import junit.framework.TestSuite;
+import java.lang.reflect.Type;
 
-public interface JUnitService {
-
-  /**
-   * Run a specified test and dump the result as XML to the specified writer.
-   *
-   * @param out         writer to which XML formatted results should be
-   *                    written.
-   * @param suite       The test suite to run
-   * @throws IOException if result cannot be written to the writer
-   */
-  public void runTest(PrintWriter out,
-                      TestSuite suite) throws IOException;
-
-  /**
-   * Run a specified test and dump the result as XML to the specified writer.
-   *
-   * @param out         writer to which XML formatted results should be
-   *                    written.
-   * @param suite       The test suite to run
-   * @throws IOException if result cannot be written to the writer
-   */
-  public TestResult runTestSuite(PrintWriter out,
-                                 TestSuite suite) throws IOException;
+/**
+ * Storage for json objects. 
+ * @author Makewave AB
+ *
+ */
+public interface JsonStorage extends DataStorage {
+  
   
   /**
-   * Get a specified test (which is registered in the Framework).
-   *
-   * <p>
-   * All test are wrapped into TestSuites, even if they are registered as
-   * plain Tests.
-   * </p>
-   *
-   * @param id     service.pid which Test (or TestSuite) is registered as
-   * @param subid  optional subtest name of TestSuites.
-   *               Can be <tt>null</tt>
+   * Returns a JsonStorageNode. If it does not exist a new node is created.
+   * It is not suitable to use this method of class is of a generic type. In that case 
+   * use the {@link #getNode(String, Type)} instead.
+   * @param pathName Path to the node
+   * @param classOfT class of T
+   * @return
    */
-  public TestSuite getTestSuite(String id,
-                                String subid);
-
-
+  public <T> JsonStorageNode<T> getNode(String pathName, Class<T> classOfT);
+  
+  
+  /**
+   * Returns a JsonStorageNode. If it does not exist a new node is created. 
+   * This method should be used for generic objects. For non-generic objects
+   *  {@link #getNode(String, Class)} may be used instead.
+   * @param pathName path to node
+   * @param typeOfT The type of the node
+   * @return
+   */
+  public <T> JsonGenericStorageNode<T> getNode(String pathName, Type typeOfT);
 }

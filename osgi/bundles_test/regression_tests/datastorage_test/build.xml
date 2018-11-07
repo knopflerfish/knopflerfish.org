@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<project name="datastorage_test" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.datastorage_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"   value=""/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"
+            value="org/knopflerfish/service/**"/>
+
+  <path id="bundle.compile.path">
+    <pathelement location="datastorage_api-N.N.N.jar"/>
+    <pathelement location="gson-N.N.N.jar"/>
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+  </path>
+
+  <property name="bmfa.Bundle-Name"           value="datastorage_test"/>
+  <property name="bmfa.Bundle-Description"    value="Test bundle for OSGi Datastorage Service"/>
+  <property name="bmfa.Bundle-Category"       value="testing"/>
+  <property name="bmfa.Bundle-Version"	      value="1.0.0" />
+  <property name="bmfa.Bundle-APIVendor"      value="OSGi"/>
+  <property name="bmfa.Bundle-Vendor"         value="Knopflerfish/Makewave AB"/>
+  <property name="bmfa.Bundle-GitURL"
+	    value="https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles_test/regression_tests/datastorage_test" />
+  
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>
