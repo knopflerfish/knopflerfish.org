@@ -16,6 +16,11 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
+### Framework 8.0.8
+
+* Fixed issue #47. reference:file: bundles can not be loaded if
+  org.knopflerfish.osgi.registerserviceurlhandler=false
+
 ### Framework 8.0.7
 
 * Fixed issue #44. Avoid NoSuchElementException in bundle classloader
