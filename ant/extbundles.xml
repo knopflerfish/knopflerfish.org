@@ -42,7 +42,7 @@
   <property name="extsrc.dir"	 location="${proj.dir}/extsrc" />
 
   <!-- The root of the default bundle repository. -->
-  <property name="osgi.jars.ext.dir" location="${osgi.dir}/jars_ext"/>
+  <property name="jars.ext.dir" location="${osgi.dir}/jars_ext"/>
 
   <!-- The following MUST be set in the local build.xml file -->
   <property name="base_uri" value=""/>
@@ -52,15 +52,15 @@
   <property name="artifact.jar" value="${artifact.name}-${artifact.version}.jar"/>
   <property name="artifact.src" value="${artifact.name}-${artifact.version}-sources.jar"/>
 
-  <property name="bundle.jar"  location="${osgi.jars.ext.dir}/${artifact.name}/${artifact.jar}" />
-  <property name="source.jar"  location="${osgi.jars.ext.dir}/${artifact.name}/${artifact.src}" />
+  <property name="bundle.jar"  location="${jars.ext.dir}/${artifact.name}/${artifact.jar}" />
+  <property name="source.jar"  location="${jars.ext.dir}/${artifact.name}/${artifact.src}" />
   
   <target name="all"
 	  depends="install_jar, install_src"/>
   
-  <!-- dest="${osgi.jars.ext.dir}/${artifact.name}" -->
+  <!-- dest="${jars.ext.dir}/${artifact.name}" -->
   <target name="install_jar" description="Get a jar file from a maven repo">
-    <mkdir dir="${osgi.jars.ext.dir}/${artifact.name}"/>
+    <mkdir dir="${jars.ext.dir}/${artifact.name}"/>
     <get src="${base_uri}/${artifact.name}/${artifact.version}/${artifact.jar}"
 	 dest="${bundle.jar}"
          verbose="false"

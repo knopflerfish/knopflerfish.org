@@ -486,6 +486,7 @@
   <delete file="framework.jar"/>
   <delete dir="${root.out.dir}"/>
   <delete dir="jars"/>
+  <delete dir="jars_ext"/>
   <delete dir="dex_jars"/>
   <delete dir="test_jars"/>
   <delete dir="${ant.dir}/classes"/>
