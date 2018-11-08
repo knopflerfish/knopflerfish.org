@@ -162,7 +162,7 @@ public class DatastorageTestSuite
       assertEquals(testDTO.value, t2.value);
       
       // Test for children and removing them
-      HashMap<String, String> expectedChildren = new HashMap<>();
+      HashMap<String, String> expectedChildren = new HashMap<String,String>();
       expectedChildren.put("fish", "fish");
       expectedChildren.put("knopfler", "knopfler");
       testChildren(jn1, expectedChildren);
