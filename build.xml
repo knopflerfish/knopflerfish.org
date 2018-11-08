@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-    ** Copyright (c) 2004-2017, KNOPFLERFISH project
+    ** Copyright (c) 2004-2018, KNOPFLERFISH project
     ** All rights reserved.
     **
     ** Redistribution and use in source and binary forms, with or without
@@ -326,11 +326,32 @@
 	  message="${version}" />
   </target>
 
+  <loadresource property="version.java.major">
+    <propertyresource name="java.version" />
+    <filterchain>
+      <tokenfilter>
+	<replaceregex pattern="(^[0-9]+)(.*)"
+		      flags="gs"
+		      replace="\1"/>
+      </tokenfilter>
+    </filterchain>
+  </loadresource>
+
+  <!-- Consider using <javaversion> instead. Will require ant >= 1.9.10 -->
   <condition property="build-compact">
-    <not>
-      <equals arg1="9" arg2="${ant.java.version}" />
-    </not>
+    <and>
+      <not>
+	<equals arg1="9" arg2="${version.java.major}" />
+      </not>
+      <not>
+	<equals arg1="10" arg2="${version.java.major}" />
+      </not>
+      <not>
+	<equals arg1="11" arg2="${version.java.major}" />
+      </not>
+    </and>
   </condition>
+
 
   <target name="distrib_build_framework">
     <mkdir dir="${distrib.osgi.dir}"/>
@@ -1124,11 +1145,15 @@
     <echo message="git.pristine          : ${git.pristine}" />
     <echo message="distrib.sdk.name      : ${distrib.sdk.name}" />
     <echo message="--------------------" />
+    <echo message="java.version          : ${java.version}" />  
+    <echo message="java.home             : ${java.home}" />  
     <echo message="ant.version           : ${ant.version}" />  
     <echo message="ant.java.version      : ${ant.java.version}" />
     <echo message="os.name               : ${os.name}" />
     <echo message="os.arch               : ${os.arch}" />
     <echo message="os.version            : ${os.version}" />
+    <echo message="--------------------" />
+    <echo message="version.java.major    : ${version.java.major}" />  
   
   </target>
   

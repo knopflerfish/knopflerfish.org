@@ -59,6 +59,7 @@
     <property name="generate.javadoc.data" value="true"/>
 
     <ant dir="framework" target="all"/>
+    <ant dir="bundles_ext"      target="all"/>
     <ant dir="bundles"          target="all"/>
     <ant dir="bundles_opt"      target="all"/>
     <ant dir="bundles_examples" target="all"/>
