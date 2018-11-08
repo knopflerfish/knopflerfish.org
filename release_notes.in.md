@@ -63,22 +63,26 @@ Knopflerfish Services
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
 
-### Build with Java 9 / JDK9
+### Build with Java 11 / JDK11
 
-* Updated the build system to support building with JDK9 with the following
+* Updated the build system to support building with JDK11 with the following
   remarks / limitations:
     - Compact version of framework is not built since the proguard compactor
-      does not support Java 9
-      - Updated asm to version 6.0. Older versions does not support Java 9.
-      - Crimson does not support Java 9 and has been removed.
+      does not support Java > 8
+      - Updated asm to version 7.0. Older versions does not support
+        Java 10 or 11
+      - Crimson does not support Java 8 and beyond and has been
+        removed.
+* Building with JDK9 and JDK10 should work, but is not supported since
+  they are  both declared as no longer supported. 
   
-### asm 6.0
+### asm 7.0
 
-* asm has been updated to version 6.0, with support for Java 9
+* asm has been updated to version 7.0, with support for Java 11
 
 ### Knopflerfish installer - jarunpacker
 
-* Updated to support building with JDK9
+* Updated to support building with > JDK8
 
 ### Maven snapshot bundles / artifacts
 
