@@ -1,4 +1,4 @@
-Knopflerfish 
+ Knopflerfish 7 kf_r7 branch
 ======================================================================
 
 Knopflerfish is a leading universal open source OSGi Service
@@ -9,19 +9,28 @@ includes various optional services such as OSGi wrappers for popular
 3rd party libraries, knopflerfish specific bundles / services, and
 utilities and development tools.
 
-Knopflerfish is designed to be compliant with the OSGi Release 6
+Knopflerfish is designed to be compliant with the OSGi Release 7
 specifications. 
 
 The Knopflerfish website has the full documentation and Knopflerfish
 OSGi Service Platform SDK's available for download.
 http://www.knopflerfish.org
 
+Development branch of KF7 - What's new?
+------------------------------
+This is the development branch of the next major release of Knopflerfish.
+The Knopflerfish 7 will be designed to be compliant with OSGi Release 7.
+
+In the Knopflerfish release 7 there are several major changes. Please see the
+[KF7 Design Notes document](DESIGN_NOTES_OSGi-R7.md) for more info.
+
+
 Building Knopflerfish OSGi
 ------------------------------
 
 ###  Prerequisites
-- JDK 6 or later, available from Open JDK, Oracle or elsewhere.
-- Ant 1.9.1 or later, available from ant.apache.org.
+- JDK 8 or later, available from Open JDK, Oracle or elsewhere.
+- Ant 1.9.3 or later, available from ant.apache.org.
 - openssl, to create and manipulate certificates when using
   security and the Conditional Permission Admin (CPA) service. Test
   suites for CPA can not be built and executed without openssl.
@@ -31,9 +40,9 @@ Building Knopflerfish OSGi
 
 ### Java compatibility
 
-Knopflerfish, release 6, is designed to run on Java 1.6 and upwards.
+Knopflerfish, release 7, is designed to run on Java 1.8 and upwards.
 
-The Knopflerfish 6 SDK releases are always compiled with JDK6.
+The Knopflerfish 8 SDK releases are always compiled with JDK8.
 
 The Knopflerfish SDK can however be rebuilt for another JDK versions
 if preferred.
@@ -99,6 +108,9 @@ Insert the following in the .bnd file of your project.
 ```
 and replace the location with a file URL pointing to your local
 Knopflerfish repository.
+
+** Please note that there will not be any on-line OSGi repository available for KF7 until the first beta release **
+
 
 Working with maven
 ----------------------------------------
