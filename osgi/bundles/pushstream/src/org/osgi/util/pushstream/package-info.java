@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2015, 2018). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -30,10 +30,10 @@
  * <p>
  * {@code Import-Package: org.osgi.util.pushstream; version="[1.0,1.1)"}
  * 
- * @author $Id: 6a28fa0b5c2036486a22a7ca1254729d7848ca43 $
+ * @author $Id: 754f37c8def23844db873246bb953861f5fe8e53 $
  */
 
-@Version("1.0")
+@Version("1.0.1")
 package org.osgi.util.pushstream;
 
 import org.osgi.annotation.versioning.Version;

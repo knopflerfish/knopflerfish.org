@@ -24,6 +24,8 @@
     <pathelement location="cm_api-N.N.N.jar"/>
     <pathelement location="kxml-N.N.N.jar"/>
     <pathelement location="promise-N.N.N.jar"/>
+    <pathelement location="promise-N.N.N.jar"/>
+    <pathelement location="component_annotations_api-7.0.0.jar"/>
   </path>
  
   <import file="${topdir}/../ant/bundlebuild.xml"/>

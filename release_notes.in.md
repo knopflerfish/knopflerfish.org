@@ -23,6 +23,10 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
+### Converter 7.0.0
+
+* Added converter utility services. New in R7
+
 ### CM 7.0.0
 
 * Updated API classes to match OSGi R7.
@@ -35,6 +39,7 @@ OSGi Compendium Specification
 
 * Added org.osgi.service.event.annotations and org.osgi.service.event.propertytypes packages.
 * Added EVENT_ADMIN_IMPLEMENTATION capability.
+* Added osgi.service capability
 * Updated API classes to match OSGi R7.
 
 ### IO Connector Service 7.0.0

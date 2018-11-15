@@ -1,0 +1,3 @@
+Provide-Capability: osgi.implementation;osgi.implementation="osgi.event";uses:="org.osgi.service.event";version:Version="1.4",
+ osgi.service;objectClass:List<String>="org.osgi.service.event.EventAdmin";uses:="org.osgi.service.event"
+ 
