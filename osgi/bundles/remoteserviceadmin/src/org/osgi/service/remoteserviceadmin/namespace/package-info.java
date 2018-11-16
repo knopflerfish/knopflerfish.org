@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2014). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2014, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
  * the types in this package just contain constants for capability and 
  * requirement namespaces specified by the OSGi Alliance.
  * 
- * @version 1.0
- * @author $Id: 5318b11c8b12656e33f6dc42b410c8d7cce69b3b $
+ * @author $Id: f6c1e76b6ad4d1b3f0af1ebd2589e24e18cae6e0 $
  */
 
 @Version("1.0.0")

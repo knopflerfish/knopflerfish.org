@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2013, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2013, 2017). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Map;
+
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
@@ -68,7 +68,7 @@ public class DevicePermission extends BasicPermission {
 	/**
 	 * Device properties are initialized on the first request.
 	 */
-	private transient Dictionary	deviceProperties;
+	private transient Dictionary<String, Object>	deviceProperties;
 
 	/**
 	 * Creates a new {@code DevicePermission} with the given filter and actions.
@@ -128,6 +128,7 @@ public class DevicePermission extends BasicPermission {
 	 * @return {@code true} if two permissions are equal, {@code false}
 	 *         otherwise.
 	 */
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;
@@ -146,6 +147,7 @@ public class DevicePermission extends BasicPermission {
 	 * 
 	 * @return Hash code value for this object.
 	 */
+	@Override
 	public int hashCode() {
 		return 31 * 17 + getName().hashCode() +
 				((null != this.device) ? Boolean.TRUE.hashCode() : Boolean.FALSE.hashCode());
@@ -156,6 +158,7 @@ public class DevicePermission extends BasicPermission {
 	 * 
 	 * @return The canonical string representation of the actions.
 	 */
+	@Override
 	public String getActions() {
 		return REMOVE;
 	}
@@ -178,6 +181,7 @@ public class DevicePermission extends BasicPermission {
 	 * @throws IllegalArgumentException If the specified permission is not
 	 *         constructed by {@link #DevicePermission(Device, String)}.
 	 */
+	@Override
 	public boolean implies(Permission p) {
 		if (!(p instanceof DevicePermission)) {
 			return false;
@@ -198,6 +202,7 @@ public class DevicePermission extends BasicPermission {
 	 * 
 	 * @return A new {@code PermissionCollection} instance.
 	 */
+	@Override
 	public PermissionCollection newPermissionCollection() {
 		return new DevicePermissionCollection();
 	}
@@ -206,16 +211,18 @@ public class DevicePermission extends BasicPermission {
 	 * Called when the permission state is saved to a stream. Permissions with
 	 * device instance cannot be serialized.
 	 */
-	private void writeObject(java.io.ObjectOutputStream s) throws NotSerializableException {
+	private synchronized void writeObject(java.io.ObjectOutputStream s) throws IOException {
 		if (null != this.device) {
 			throw new NotSerializableException("Device permission with a device instance cannot be serialized.");
 		}
+		s.defaultWriteObject();
 	}
 
 	/**
 	 * Called to restore the permission state from the stream.
 	 */
-	private void readObject(java.io.ObjectInputStream s) {
+	private synchronized void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
+		s.defaultReadObject();
 		this.filter = parseFilter(getName());
 	}
 
@@ -223,14 +230,14 @@ public class DevicePermission extends BasicPermission {
 		if (null == this.filter) {
 			return true; // it's "*"
 		}
-		Dictionary devicePropertiesLocal = dp.getDeviceProperties();
+		Dictionary<String, Object> devicePropertiesLocal = dp.getDeviceProperties();
 		if (null == devicePropertiesLocal) {
 			return false;
 		}
 		return this.filter.matchCase(devicePropertiesLocal);
 	}
 
-	private Dictionary getDeviceProperties() {
+	private Dictionary<String, Object> getDeviceProperties() {
 		if (null != this.deviceProperties) {
 			return this.deviceProperties;
 		}
@@ -238,7 +245,7 @@ public class DevicePermission extends BasicPermission {
 			return null;
 		}
 		String[] devicePropKeys = this.device.getServicePropertyKeys();
-		Dictionary devicePropertiesLocal = new Hashtable(devicePropKeys.length, 1F);
+		Dictionary<String, Object> devicePropertiesLocal = new Hashtable<>(devicePropKeys.length, 1F);
 		for (int i = 0; i < devicePropKeys.length; i++) {
 			Object currentDevicePropValue = this.device.getServiceProperty(devicePropKeys[i]);
 			if (null != currentDevicePropValue) {
@@ -299,7 +306,7 @@ final class DevicePermissionCollection extends PermissionCollection {
 	/**
 	 * The permission name is used as a key, the permission is used as a value.
 	 */
-	private transient Map		/* String, DevicePermission */permissions;
+	private transient HashMap<String, DevicePermission>	permissions;
 
 	/**
 	 * {@code true} means that "*" has been added to the collection.
@@ -310,7 +317,7 @@ final class DevicePermissionCollection extends PermissionCollection {
 	 * Creates an empty device permission collection.
 	 */
 	public DevicePermissionCollection() {
-		this.permissions = new HashMap();
+		this.permissions = new HashMap<>();
 	}
 
 	/**
@@ -324,6 +331,7 @@ final class DevicePermissionCollection extends PermissionCollection {
 	 * @throws SecurityException If this {@code DevicePermissionCollection}
 	 *         object has been marked read-only.
 	 */
+	@Override
 	public void add(Permission permission) {
 		if (!(permission instanceof DevicePermission)) {
 			throw new IllegalArgumentException("Device permission is expected: " + permission);
@@ -354,6 +362,7 @@ final class DevicePermissionCollection extends PermissionCollection {
 	 *         {@code DevicePermission} in this collection, {@code false}
 	 *         otherwise.
 	 */
+	@Override
 	public boolean implies(Permission permission) {
 		if (!(permission instanceof DevicePermission)) {
 			return false;
@@ -363,15 +372,15 @@ final class DevicePermissionCollection extends PermissionCollection {
 			return false; // the requested must have device instance
 
 		}
-		final Collection perms;
+		final Collection<DevicePermission> perms;
 		synchronized (this) {
 			if (this.implyAll) {
 				return true;
 			}
 			perms = this.permissions.values();
 		}
-		for (Iterator permsIter = perms.iterator(); permsIter.hasNext();/* empty */) {
-			final DevicePermission currentDevicePerm = (DevicePermission) permsIter.next();
+		for (Iterator<DevicePermission> permsIter = perms.iterator(); permsIter.hasNext();/* empty */) {
+			final DevicePermission currentDevicePerm = permsIter.next();
 			if (currentDevicePerm.implyDevicePermission(requested)) {
 				return true;
 			}
@@ -385,9 +394,10 @@ final class DevicePermissionCollection extends PermissionCollection {
 	 * 
 	 * @return Enumeration of all {@code DevicePermission} objects.
 	 */
-	public synchronized Enumeration elements() {
+	@Override
+	public synchronized Enumeration<Permission> elements() {
 		return Collections.enumeration(
-				new ArrayList(this.permissions.values()));
+				new ArrayList<Permission>(this.permissions.values()));
 	}
 
 	private static final ObjectStreamField[]	serialPersistentFields	= {
@@ -401,9 +411,11 @@ final class DevicePermissionCollection extends PermissionCollection {
 		out.writeFields();
 	}
 
-	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+	private synchronized void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
 		ObjectInputStream.GetField gfields = in.readFields();
-		this.permissions = (HashMap) gfields.get("permissions", null);
+		@SuppressWarnings("unchecked")
+		HashMap<String, DevicePermission> p = (HashMap<String, DevicePermission>) gfields.get("permissions", null);
+		this.permissions = p;
 		this.implyAll = gfields.get("implyAll", false);
 	}
 }

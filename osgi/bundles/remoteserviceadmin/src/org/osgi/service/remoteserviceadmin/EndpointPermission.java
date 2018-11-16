@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2000, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.osgi.service.remoteserviceadmin;
 
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.*;
+
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
@@ -34,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
@@ -54,7 +56,7 @@ import org.osgi.framework.InvalidSyntaxException;
  * {@code EndpointPermission} to read the specific service.
  * 
  * @ThreadSafe
- * @author $Id: bce27511ebaee16bccf0e7dbb5a12986958e9e88 $
+ * @author $Id: e29108d20ff9d3af08a168b5f39c54704505415d $
  */
 
 public final class EndpointPermission extends Permission {
@@ -179,7 +181,7 @@ public final class EndpointPermission extends Permission {
 		if (endpoint == null) {
 			throw new IllegalArgumentException("invalid endpoint: null");
 		}
-		StringBuffer sb = new StringBuffer("(" + ENDPOINT_ID + "=");
+		StringBuilder sb = new StringBuilder("(" + ENDPOINT_ID + "=");
 		sb.append(endpoint.getId());
 		sb.append(")");
 		return sb.toString();
@@ -381,7 +383,7 @@ public final class EndpointPermission extends Permission {
 	public String getActions() {
 		String result = actions;
 		if (result == null) {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			boolean comma = false;
 
 			int mask = action_mask;

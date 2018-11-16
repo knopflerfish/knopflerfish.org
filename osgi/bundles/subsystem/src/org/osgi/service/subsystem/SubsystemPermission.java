@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2000, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2017). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
@@ -49,7 +50,7 @@ import org.osgi.framework.InvalidSyntaxException;
  *           Subsystem.stop
  * lifecycle Subsystem.install
  *           Subsystem.uninstall
- * metadata  Subsystem.getHeaders
+ * metadata  Subsystem.getSubsystemHeaders
  *           Subsystem.getLocation
  * </pre>
  * 
@@ -64,7 +65,7 @@ import org.osgi.framework.InvalidSyntaxException;
  * Filter attribute names are processed in a case sensitive manner.
  * 
  * @ThreadSafe
- * @author $Id: 29c3097457160250e064b8c44696dbe86240c0ca $
+ * @author $Id: e1ff35052edf27553633a2b35ea94cbbf06f459e $
  */
 
 public final class SubsystemPermission extends BasicPermission {
@@ -182,7 +183,7 @@ public final class SubsystemPermission extends BasicPermission {
 		if (subsystem == null) {
 			throw new IllegalArgumentException("subsystem must not be null");
 		}
-		StringBuffer sb = new StringBuffer("(id=");
+		StringBuilder sb = new StringBuilder("(id=");
 		sb.append(subsystem.getSubsystemId());
 		sb.append(")");
 		return sb.toString();
@@ -373,6 +374,7 @@ public final class SubsystemPermission extends BasicPermission {
 	 * @return {@code true} if the specified permission is implied by this
 	 *         object; {@code false} otherwise.
 	 */
+	@Override
 	public boolean implies(Permission p) {
 		if (!(p instanceof SubsystemPermission)) {
 			return false;
@@ -442,10 +444,11 @@ public final class SubsystemPermission extends BasicPermission {
 	 * @return Canonical string representation of the
 	 *         {@code SubsystemPermission} actions.
 	 */
+	@Override
 	public String getActions() {
 		String result = actions;
 		if (result == null) {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 
 			int mask = action_mask;
 
@@ -485,6 +488,7 @@ public final class SubsystemPermission extends BasicPermission {
 	 * 
 	 * @return A new {@code PermissionCollection} object.
 	 */
+	@Override
 	public PermissionCollection newPermissionCollection() {
 		return new SubsystemPermissionCollection();
 	}
@@ -496,6 +500,7 @@ public final class SubsystemPermission extends BasicPermission {
 	 * @return {@code true} if {@code obj} is equivalent to this
 	 *         {@code SubsystemPermission}; {@code false} otherwise.
 	 */
+	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) {
 			return true;
@@ -516,6 +521,7 @@ public final class SubsystemPermission extends BasicPermission {
 	 * 
 	 * @return Hash code value for this object.
 	 */
+	@Override
 	public int hashCode() {
 		int h = 31 * 17 + getName().hashCode();
 		h = 31 * h + getActions().hashCode();
@@ -579,9 +585,10 @@ public final class SubsystemPermission extends BasicPermission {
 		recurse.set(subsystem);
 		try {
 			final Map<String, Object> map = new HashMap<String, Object>(4);
-			AccessController.doPrivileged(new PrivilegedAction<Object>() {
-				public Object run() {
-					map.put("id", new Long(subsystem.getSubsystemId()));
+			AccessController.doPrivileged(new PrivilegedAction<Void>() {
+				@Override
+				public Void run() {
+					map.put("id", Long.valueOf(subsystem.getSubsystemId()));
 					map.put("location", subsystem.getLocation());
 					map.put("name", subsystem.getSymbolicName());
 					return null;
@@ -632,6 +639,7 @@ final class SubsystemPermissionCollection extends PermissionCollection {
 	 * @throws SecurityException If this {@code SubsystemPermissionCollection}
 	 *         object has been marked read-only.
 	 */
+	@Override
 	public void add(Permission permission) {
 		if (!(permission instanceof SubsystemPermission)) {
 			throw new IllegalArgumentException("invalid permission: " + permission);
@@ -675,6 +683,7 @@ final class SubsystemPermissionCollection extends PermissionCollection {
 	 *         {@code SubsystemPermission} in this collection, {@code false}
 	 *         otherwise.
 	 */
+	@Override
 	public boolean implies(Permission permission) {
 		if (!(permission instanceof SubsystemPermission)) {
 			return false;
@@ -718,6 +727,7 @@ final class SubsystemPermissionCollection extends PermissionCollection {
 	 * 
 	 * @return Enumeration of all {@code SubsystemPermission} objects.
 	 */
+	@Override
 	public synchronized Enumeration<Permission> elements() {
 		List<Permission> all = new ArrayList<Permission>(permissions.values());
 		return Collections.enumeration(all);
@@ -735,6 +745,7 @@ final class SubsystemPermissionCollection extends PermissionCollection {
 
 	private synchronized void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
 		ObjectInputStream.GetField gfields = in.readFields();
+		@SuppressWarnings("unchecked")
 		HashMap<String, SubsystemPermission> p = (HashMap<String, SubsystemPermission>) gfields.get("permissions", null);
 		permissions = p;
 		all_allowed = gfields.get("all_allowed", false);

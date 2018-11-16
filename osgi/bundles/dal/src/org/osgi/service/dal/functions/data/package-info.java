@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,10 @@
  * <p>
  * {@code  Import-Package: org.osgi.service.dal.functions.data; version="[1.0,1.1)"}
  * 
- * @version 1.0
- * @author $Id: 0808f98c17bb1966a459cecb384ed857a28ceab9 $
+ * @author $Id: 4543be3ca5136d4280cb1fcc215040d6c880ebc8 $
  */
 
+@Version("1.0")
 package org.osgi.service.dal.functions.data;
 
+import org.osgi.annotation.versioning.Version;

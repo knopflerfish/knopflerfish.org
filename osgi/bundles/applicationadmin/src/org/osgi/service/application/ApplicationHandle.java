@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2017). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
+
 import org.osgi.framework.Constants;
 
 /**
@@ -29,7 +30,7 @@ import org.osgi.framework.Constants;
  * lifecycle state of the represented application instance. It defines constants
  * for the lifecycle states.
  * 
- * @author $Id: 4a9c1d6258e03ce4eb1a26748bccf83661ad8244 $
+ * @author $Id: 18dc483a492dca5c28af6137ce93606c32d0ab7b $
  */
 public abstract class ApplicationHandle {
 	/*
@@ -283,7 +284,8 @@ public abstract class ApplicationHandle {
 		Delegate() throws Exception {
 			target = AccessController.doPrivileged(new PrivilegedExceptionAction() {
 				public Object run() throws Exception {
-					return implementation.newInstance();
+							return implementation.getConstructor()
+									.newInstance();
 				}
 			});
 		}

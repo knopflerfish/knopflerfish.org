@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2016). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,10 @@
  * <p>
  * {@code  Import-Package: org.osgi.service.monitor; version="[1.0,1.1)"}
  * 
- * @version 1.0
- * @author $Id: 00ac93094426894d19115143ef7ec59ef37d5f28 $
+ * @author $Id: d3b4df5b6bc8e4c4be7be87e59b505b71d969cad $
  */
 
+@Version("1.0")
 package org.osgi.service.monitor;
 
+import org.osgi.annotation.versioning.Version;

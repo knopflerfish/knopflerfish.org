@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: monitor
 Bundle-SymbolicName: org.knopflerfish.bundle.monitor
-Bundle-Version: 4.0.0
+Bundle-Version: 7.0.0
 Bundle-Category: osgi
 Bundle-Description: Monitor Admin API
 Bundle-Vendor: Knopflerfish

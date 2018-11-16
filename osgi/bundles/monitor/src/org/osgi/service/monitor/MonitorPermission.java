@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2017). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import java.util.StringTokenizer;
  * commands are allowed on the designated target(s) by the owner of the
  * permission.
  * 
- * @author $Id: 2899bf825eb4b7708601d99fb39019087deddefb $
+ * @author $Id: cfbf538000cbfce6ae189d47325f3a4c6fff4f92 $
  */
 public class MonitorPermission extends Permission {
 
@@ -241,8 +241,9 @@ public class MonitorPermission extends Permission {
 	 * 
 	 * @return the hash of the object
 	 */
+	@Override
 	public int hashCode() {
-		return new Integer(mask).hashCode() ^ new Integer(minJobInterval).hashCode() ^ monId.hashCode() ^ new Boolean(prefixMonId).hashCode() ^ varId.hashCode() ^ new Boolean(prefixVarId).hashCode();
+		return Integer.valueOf(mask).hashCode() ^ Integer.valueOf(minJobInterval).hashCode() ^ monId.hashCode() ^ Boolean.valueOf(prefixMonId).hashCode() ^ varId.hashCode() ^ Boolean.valueOf(prefixVarId).hashCode();
 	}
 
 	/**
@@ -253,6 +254,7 @@ public class MonitorPermission extends Permission {
 	 * @param o the object being compared for equality with this object
 	 * @return {@code true} if the two permissions are equal
 	 */
+	@Override
 	public boolean equals(Object o) {
 		if (!(o instanceof MonitorPermission))
 			return false;
@@ -270,8 +272,9 @@ public class MonitorPermission extends Permission {
 	 * 
 	 * @return the allowed actions separated by commas, cannot be {@code null}
 	 */
+	@Override
 	public String getActions() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 
 		appendAction(sb, READ_FLAG, READ);
 		appendAction(sb, RESET_FLAG, RESET);
@@ -282,7 +285,7 @@ public class MonitorPermission extends Permission {
 		return sb.toString();
 	}
 
-	private void appendAction(StringBuffer sb, int flag, String actionName) {
+	private void appendAction(StringBuilder sb, int flag, String actionName) {
 		if ((mask & flag) != 0) {
 			if (sb.length() != 0)
 				sb.append(',');
@@ -313,6 +316,7 @@ public class MonitorPermission extends Permission {
 	 * @return {@code true} if the given permission is implied by this
 	 *         permission
 	 */
+	@Override
 	public boolean implies(Permission p) {
 		if (!(p instanceof MonitorPermission))
 			return false;

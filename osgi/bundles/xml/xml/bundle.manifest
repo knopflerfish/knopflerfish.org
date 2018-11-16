@@ -17,6 +17,7 @@ Import-Package: org.osgi.framework; version="[1.9,2)",
  javax.xml.parsers,
  java.io,
  java.lang,
+ java.lang.reflect,
  java.net,
  java.util
 

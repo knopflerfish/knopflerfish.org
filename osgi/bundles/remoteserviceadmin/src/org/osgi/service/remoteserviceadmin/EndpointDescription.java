@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2016). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.osgi.service.remoteserviceadmin;
 
 import static org.osgi.service.remoteserviceadmin.RemoteConstants.*;
+
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
@@ -56,7 +58,7 @@ import org.osgi.framework.Version;
  * provider. Qualified intents appear fully expanded on this property.
  * 
  * @Immutable
- * @author $Id: a5371a48ad089d08cafc0792f93b8dfe8be33e43 $
+ * @author $Id: 34932dadb785ee510602bfda73f8226a6ea25b08 $
  */
 
 public class EndpointDescription {
@@ -165,6 +167,7 @@ public class EndpointDescription {
 			String uuid = null;
 			try {
 				uuid = AccessController.doPrivileged(new PrivilegedAction<String>() {
+					@Override
 					public String run() {
 						return reference.getBundle().getBundleContext().getProperty("org.osgi.framework.uuid");
 					}
@@ -577,7 +580,7 @@ public class EndpointDescription {
 	 */
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append('{');
 		Iterator<Map.Entry<String, Object>> iter = properties.entrySet().iterator();
 		boolean comma = false;
@@ -605,12 +608,12 @@ public class EndpointDescription {
 	}
 
 	/**
-	 * Append the specified Object array to the specified StringBuffer.
+	 * Append the specified Object array to the specified StringBuilder.
 	 * 
-	 * @param sb Receiving StringBuffer.
-	 * @param value Object array to append to the specified StringBuffer.
+	 * @param sb Receiving StringBuilder.
+	 * @param value Object array to append to the specified StringBuilder.
 	 */
-	private static void append(StringBuffer sb, Object[] value) {
+	private static void append(StringBuilder sb, Object[] value) {
 		sb.append('[');
 		boolean comma = false;
 		final int length = value.length;

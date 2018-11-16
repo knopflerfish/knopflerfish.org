@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2015). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2017). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 import java.util.Map;
+
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 
@@ -30,7 +31,7 @@ import org.osgi.framework.InvalidSyntaxException;
  * information about it. The application descriptor can be used for instance
  * creation.
  * 
- * @author $Id: 39d1c46cc361e49b0cddddbc3b5f9be6bf84ca43 $
+ * @author $Id: c99444d1d99f237f8fcc4778d747ef2ed55e131b $
  */
 
 public abstract class ApplicationDescriptor {
@@ -222,7 +223,7 @@ public abstract class ApplicationDescriptor {
 		 * replace the container's lock with the application model's lock,
 		 * that's the correct
 		 */
-		props.put(APPLICATION_LOCKED, new Boolean(isLocked));
+		props.put(APPLICATION_LOCKED, Boolean.valueOf(isLocked));
 		return props;
 	}
 
@@ -551,7 +552,8 @@ public abstract class ApplicationDescriptor {
 		Delegate() throws Exception {
 			target = AccessController.doPrivileged(new PrivilegedExceptionAction() {
 				public Object run() throws Exception {
-					return implementation.newInstance();
+							return implementation.getConstructor()
+									.newInstance();
 				}
 			});
 		}
@@ -623,7 +625,7 @@ public abstract class ApplicationDescriptor {
 		ScheduledApplication schedule(String scheduleId, Map args, String topic, String filter, boolean recurs) throws InvalidSyntaxException, ApplicationException {
 			try {
 				try {
-					return (ScheduledApplication) schedule.invoke(target, new Object[] {scheduleId, args, topic, filter, new Boolean(recurs)});
+					return (ScheduledApplication) schedule.invoke(target, new Object[] {scheduleId, args, topic, filter, Boolean.valueOf(recurs)});
 				} catch (InvocationTargetException e) {
 					throw e.getTargetException();
 				}

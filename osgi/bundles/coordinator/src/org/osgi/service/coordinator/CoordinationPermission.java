@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2017). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
@@ -47,7 +48,7 @@ import org.osgi.framework.InvalidSyntaxException;
  * {@code participate} and {@code admin}.
  * 
  * @ThreadSafe
- * @author $Id: 7892b43ca8617d1a0437fc5efe9c6f083ee6bf89 $
+ * @author $Id: d21b6c292e00bd857d1577dbf7ef38177d14422a $
  */
 public final class CoordinationPermission extends BasicPermission {
 
@@ -395,7 +396,7 @@ public final class CoordinationPermission extends BasicPermission {
 	public String getActions() {
 		String result = actions;
 		if (result == null) {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			boolean comma = false;
 
 			int mask = action_mask;
@@ -518,8 +519,9 @@ public final class CoordinationPermission extends BasicPermission {
 		map.put("coordination.name", getName());
 		if (bundle != null) {
 			AccessController.doPrivileged(new PrivilegedAction<Void>() {
+				@Override
 				public Void run() {
-					map.put("id", new Long(bundle.getBundleId()));
+					map.put("id", Long.valueOf(bundle.getBundleId()));
 					map.put("location", bundle.getLocation());
 					String name = bundle.getSymbolicName();
 					if (name != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2015). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.osgi.framework.ServiceReference;
  * @see org.osgi.framework.ServiceEvent
  * @see ApplicationServiceListener
  * 
- * @author $Id: feb6a13123707549d3efdb5f06ba69ee82368cb9 $
+ * @author $Id: 12deb9591065e87b87978084f573db1d4011124a $
  */
 public class ApplicationServiceEvent extends ServiceEvent {
 
@@ -53,7 +53,7 @@ public class ApplicationServiceEvent extends ServiceEvent {
 	 *        {@link org.osgi.framework.ServiceEvent}
 	 * @param reference A {@code ServiceReference} object to the service that
 	 *        had a lifecycle change. This reference will be used as the
-	 *        {@code source} in the {@link java.util.EventObject} baseclass,
+	 *        {@code source} in the {@link java.util.EventObject} base class,
 	 *        therefore, it must not be null.
 	 * @param serviceObject The service object bound to this application
 	 *        instance. It can be {@code null} if this application is not bound

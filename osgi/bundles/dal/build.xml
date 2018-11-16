@@ -20,12 +20,6 @@
     <pathelement location="${topdir}/jars/device/device_api-N.N.N.jar"/> 
   </path>
   
-  
-  <property name="bmfa.api-Import-Package"
-            value="org.osgi.framework; version=&quot;[1.6,2)&quot;,
-		   org.osgi.service.event; version=&quot;[1.3,2)&quot;"/>
-
-	    
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

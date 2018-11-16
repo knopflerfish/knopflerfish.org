@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2012, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2012, 2014). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
 import org.osgi.framework.namespace.IdentityNamespace;
@@ -157,9 +158,9 @@ import org.osgi.resource.Resource;
  * </ul>
  * 
  * @ThreadSafe
- * @noimplement
- * @author $Id: 98c29e1bfd80828ab025a1aa0530019184185242 $
+ * @author $Id: da3cdfb53ed089e0dbb0f971bc7404262d30ac76 $
  */
+@ProviderType
 public interface Subsystem {
 	/**
 	 * An enumeration of the possible states of a subsystem.
@@ -202,9 +203,8 @@ public interface Subsystem {
 		/**
 		 * The subsystem is in the process of resolving.
 		 * <p>
-		 * A subsystem is in the {@code RESOLVING} state when the
-		 * {@link Subsystem#start() start} method is active, and attempts are
-		 * being made to resolve its content resources. If the resolve method
+		 * A subsystem is in the {@code RESOLVING} state when attempts are being
+		 * made to resolve its content resources. If the resolve process
 		 * completes without exception, then the subsystem has successfully
 		 * resolved and must move to the {@link #RESOLVED} state. Otherwise, the
 		 * subsystem has failed to resolve and must move to the INSTALLED state.
@@ -373,6 +373,28 @@ public interface Subsystem {
 	 *         {@link State#UNINSTALLED UNINSTALLED}.
 	 */
 	public Collection<Resource> getConstituents();
+
+	/**
+	 * Returns the headers for this subsystem's deployment manifest.
+	 * <p>
+	 * Each key in the map is a header name and the value of the key is the
+	 * corresponding header value. Because header names are case-insensitive,
+	 * the methods of the map must treat the keys in a case-insensitive manner.
+	 * If the header name is not found, {@code null} is returned. Both original
+	 * and derived headers will be included in the map.
+	 * <p>
+	 * This method must continue to return the headers while this subsystem is
+	 * in the {@link State#INSTALL_FAILED INSTALL_FAILED} or
+	 * {@link State#UNINSTALLED UNINSTALLED} states.
+	 * 
+	 * @return The headers for this subsystem's deployment manifest. The
+	 *         returned map is unmodifiable.
+	 * @throws SecurityException If the caller does not have the appropriate
+	 *         {@link SubsystemPermission}[this,METADATA], and the runtime
+	 *         supports permissions.
+	 * @since 1.1
+	 */
+	public Map<String, String> getDeploymentHeaders();
 
 	/**
 	 * Returns the current state of this subsystem.
@@ -584,6 +606,39 @@ public interface Subsystem {
 	 *         the runtime supports permissions.
 	 */
 	public Subsystem install(String location, InputStream content);
+
+	/**
+	 * Installs a subsystem from the specified content according to the
+	 * specified deployment manifest.
+	 * <p>
+	 * This method installs a subsystem using the provided deployment manifest
+	 * instead of the one in the archive, if any, or a computed one. If the
+	 * deployment manifest is {@code null}, the behavior is exactly the same as
+	 * in the {@link #install(String, InputStream)} method. Implementations must
+	 * support deployment manifest input streams in the format described by
+	 * section 134.2 of the Subsystem Service Specification. If the deployment
+	 * manifest does not conform to the subsystem manifest (see 134.15.2), the
+	 * installation fails.
+	 * 
+	 * @param location The location identifier of the subsystem to be installed.
+	 * @param content The input stream from which this subsystem will be read or
+	 *        {@code null} to indicate the input stream must be created from the
+	 *        specified location identifier. The input stream will always be
+	 *        closed when this method completes, even if an exception is thrown.
+	 * @param deploymentManifest The deployment manifest to use in lieu of the
+	 *        one in the archive, if any, or a computed one.
+	 * @return The installed subsystem.
+	 * @throws IllegalStateException If this subsystem's state is in
+	 *         {@link State#INSTALLING INSTALLING}, {@link State#INSTALL_FAILED
+	 *         INSTALL_FAILED}, {@link State#UNINSTALLING UNINSTALLING},
+	 *         {@link State#UNINSTALLED UNINSTALLED}.
+	 * @throws SubsystemException If the installation failed.
+	 * @throws SecurityException If the caller does not have the appropriate
+	 *         {@link SubsystemPermission}[installed subsystem,LIFECYCLE], and
+	 *         the runtime supports permissions.
+	 * @since 1.1
+	 */
+	public Subsystem install(String location, InputStream content, InputStream deploymentManifest);
 
 	/**
 	 * Starts this subsystem.

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: dal
 Bundle-SymbolicName: org.knopflerfish.bundle.dal
-Bundle-Version: 0.9.0
+Bundle-Version: 7.0.0
 Bundle-Category: osgi
 Bundle-Description: Device Abstration Layer
 Bundle-Vendor: Knopflerfish
@@ -10,6 +10,12 @@ Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
-Bundle-SubversionURL: Https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles/foreignapplication/
+Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles/dal/
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+Import-Package: java.lang,
+ java.lang.reflect,
+ java.io,
+ javax.xml.parsers,
+ java.io,
+ java.math,
+ java.util

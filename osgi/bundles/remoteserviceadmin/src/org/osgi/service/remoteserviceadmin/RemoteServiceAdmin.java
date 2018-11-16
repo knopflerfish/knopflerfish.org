@@ -31,7 +31,7 @@ import org.osgi.framework.ServiceReference;
  * and find out about the current imports and exports.
  * 
  * @ThreadSafe
- * @author $Id: 49d931591212a8f81060c6721589fd058374f11e $
+ * @author $Id: 90e8f210f1fc23ffab4adc6221204b97b1345b26 $
  */
 @ProviderType
 public interface RemoteServiceAdmin {
@@ -74,7 +74,7 @@ public interface RemoteServiceAdmin {
 	 *         configuration type properties and the intents that they support.
 	 *         The result is never {@code null} but may be empty if this Remove
 	 *         Service Admin does not recognize any of the configuration types,
-	 *         or if they Remote Service Admin cannot support the relevant
+	 *         or if the Remote Service Admin cannot support the relevant
 	 *         intents.
 	 * @throws IllegalArgumentException If any of the properties for this
 	 *         configuration type has a value that is not syntactically correct,

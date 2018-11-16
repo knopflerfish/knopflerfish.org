@@ -23,6 +23,10 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
+### Application Admin 7.0.0
+
+* Updated API classes to match OSGi R7.
+
 ### Converter 7.0.0
 
 * Added converter utility services. New in R7
@@ -35,11 +39,23 @@ OSGi Compendium Specification
 
 * Updated API classes to match OSGi R7.
 
+### Coordinator 7.0.0
+
+* Updated API classes to match OSGi R7.
+
+### Deployment Admin 7.0.0
+
+* Updated API classes to match OSGi R7.
+
 ### Event Admin Service 7.0.0
 
 * Added org.osgi.service.event.annotations and org.osgi.service.event.propertytypes packages.
 * Added EVENT_ADMIN_IMPLEMENTATION capability.
 * Added osgi.service capability
+* Updated API classes to match OSGi R7.
+
+### Foreign Applications 7.0.0
+
 * Updated API classes to match OSGi R7.
 
 ### IO Connector Service 7.0.0
@@ -63,6 +79,10 @@ OSGi Compendium Specification
 
 * Updated API classes to match OSGi R7.
 
+### Monitor 7.0.0
+
+* Updated API classes to match OSGi R7.
+
 ### Namespace 7.0.0
 
 * Added osgi.unresolvable Namespace.
@@ -76,11 +96,27 @@ OSGi Compendium Specification
 
 * Updated API classes to match OSGi R7
 
+### Provisioning 7.0.0
+
+* Updated API classes to match OSGi R7
+
 ### Push Stream 7.0.0
 
 * New library bundle providing the `org.osgi.util.pushstream` package.
 
+### Remote Service Admin 7.0.0
+
+* Updated API classes to match OSGi R7
+
+### Repository 7.0.0
+
+* Updated API classes to match OSGi R7
+
 ### Wire Admin Service 7.0.0
+
+* Updated API classes to match OSGi R7
+
+### XML 7.0.0
 
 * Updated API classes to match OSGi R7
 

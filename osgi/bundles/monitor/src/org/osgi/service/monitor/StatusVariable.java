@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2017). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.Date;
  * core specification. This means that only the characters [-_.a-zA-Z0-9] may be
  * used. The length of the ID must not exceed 32 bytes when UTF-8 encoded.
  * 
- * @author $Id: b25ccdfcf41ac2b6d5f8cec13c8d0d21f170fed4 $
+ * @author $Id: 3f55d0903de46cb23932250bba2e781f4db38b21 $
  */
 public final class StatusVariable {
 	// ----- Public constants -----//
@@ -282,6 +282,7 @@ public final class StatusVariable {
 	 * @return {@code true} if the argument represents the same
 	 *         {@code StatusVariable} as this object
 	 */
+	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof StatusVariable))
 			return false;
@@ -312,6 +313,7 @@ public final class StatusVariable {
 	 * 
 	 * @return the hash code of this object
 	 */
+	@Override
 	public int hashCode() {
 		int hash = hashCode(id) ^ cm;
 
@@ -319,9 +321,9 @@ public final class StatusVariable {
 			case TYPE_INTEGER :
 				return hash ^ intData;
 			case TYPE_FLOAT :
-				return hash ^ hashCode(new Float(floatData));
+				return hash ^ hashCode(Float.valueOf(floatData));
 			case TYPE_BOOLEAN :
-				return hash ^ hashCode(new Boolean(booleanData));
+				return hash ^ hashCode(Boolean.valueOf(booleanData));
 			case TYPE_STRING :
 				return hash ^ hashCode(stringData);
 		}
@@ -349,6 +351,7 @@ public final class StatusVariable {
 	 * 
 	 * @return the {@code String} representation of this {@code StatusVariable}
 	 */
+	@Override
 	public String toString() {
 		String cmName = null;
 		switch (cm) {
