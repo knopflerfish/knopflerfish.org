@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2016, KNOPFLERFISH project
+ * Copyright (c) 2009-2018, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -400,6 +400,11 @@ public class FWProps {
         for (int i = maxMinor; i > 1; i--) {
           ee.append((i > 5) ? ",JavaSE-1." : ",J2SE-1.");
           ee.append(i);
+        }
+        if (javaVersionMajor == 1 && javaVersionMinor == 8) {
+          ee.append(",JavaSE/compact1-1.8");
+          ee.append(",JavaSE/compact2-1.8");
+          ee.append("JavaSE/compact3-1.8");
         }
       } else if (androidApiLevel > 0) {
         // We haven't tried below 12
