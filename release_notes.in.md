@@ -16,6 +16,10 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
+### Framework 8.0.9
+
+* Fixed issue #51. Fixed dead-lock in weaving hooks handling.
+
 ### Framework 8.0.8
 
 * Fixed issue #47. reference:file: bundles can not be loaded if

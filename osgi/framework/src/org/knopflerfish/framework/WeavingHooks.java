@@ -111,24 +111,28 @@ class WeavingHooks {
     listenerTracker = null;
   }
 
-  synchronized public boolean isOpen() {
-    return weavingHookTracker != null;
-  }
-
-  synchronized void callHooks(WovenClassImpl wc) throws Exception {
+  /**
+   * Call hooks
+   * Called by from a syncronized BundleClassLoader
+   *
+   * @param wc
+   */
+  void callHooks(WovenClassImpl wc) throws Exception {
     boolean ok = false;
-    if (!isOpen()) {
-      return;
-    }
+    final SortedMap<ServiceReference<WeavingHook>, TrackedWeavingHook> hooks;
 
     if (wc.isWeavingComplete()) {
       throw new RuntimeException("ERROR!!");
     }
 
-    try {
-      final SortedMap<ServiceReference<WeavingHook>, TrackedWeavingHook> hooks = weavingHookTracker
-          .getTracked();
+    synchronized(this) {
+      if (weavingHookTracker == null) {
+        return;
+      }
+      hooks = weavingHookTracker.getTracked();
+    }
 
+    try {
       for (final TrackedWeavingHook twh : hooks.values()) {
         if (twh.isBlackListed())
           continue;
@@ -156,15 +160,24 @@ class WeavingHooks {
     }
   }
 
-  synchronized void callListeners(WovenClassImpl wc) {
+  /**
+   * Call listeners
+   * Called indirectly from a syncronized BundleClassLoader
+   *
+   * @param wc
+   */
+  void callListeners(WovenClassImpl wc) {
     WovenClassListener wcl = fwCtx.perm.getWovenClassListener();
+    ServiceReference<WovenClassListener> [] srs;
     if (wcl != null) {
       wcl.modified(wc);
     }
-    if (listenerTracker == null) {
-      return;
+    synchronized (this) {
+      if (listenerTracker == null) {
+        return;
+      }
+      srs = listenerTracker.getServiceReferences();
     }
-    ServiceReference<WovenClassListener> [] srs = listenerTracker.getServiceReferences();
     if (srs != null) {
       for (ServiceReference<WovenClassListener> wlsr : srs) {
         try {
