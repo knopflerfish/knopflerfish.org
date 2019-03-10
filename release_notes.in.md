@@ -40,6 +40,11 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
+### Component (SCR) 6.0.4
+
+* Fixed issue #43, Removed faulty circular component errors when
+  using target filters.
+
 
 Knopflerfish Services
 ----------------------------------------------------------------------
