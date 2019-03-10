@@ -81,7 +81,7 @@ public class ClassAnalyserASM
   public ClassAnalyserASM(final BundlePackagesInfo bpInfo,
                           final Task task)
   {
-    super(Opcodes.ASM6);
+    super(Opcodes.ASM7);
     this.cv = this;
     this.bpInfo = bpInfo;
     this.task   = task;
@@ -343,5 +343,9 @@ public class ClassAnalyserASM
   public void visitEnd()
   {
   }
+
+  public void visitNestHost(String nestHost) {}
+
+  public void visitNestMember(String nestHost) {}
 
 }

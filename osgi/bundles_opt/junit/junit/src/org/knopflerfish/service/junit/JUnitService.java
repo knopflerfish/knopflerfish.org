@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2008,2018 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ package org.knopflerfish.service.junit;
 
 import java.io.PrintWriter;
 import java.io.IOException;
+
+import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
 public interface JUnitService {
@@ -51,6 +53,17 @@ public interface JUnitService {
   public void runTest(PrintWriter out,
                       TestSuite suite) throws IOException;
 
+  /**
+   * Run a specified test and dump the result as XML to the specified writer.
+   *
+   * @param out         writer to which XML formatted results should be
+   *                    written.
+   * @param suite       The test suite to run
+   * @throws IOException if result cannot be written to the writer
+   */
+  public TestResult runTestSuite(PrintWriter out,
+                                 TestSuite suite) throws IOException;
+  
   /**
    * Get a specified test (which is registered in the Framework).
    *

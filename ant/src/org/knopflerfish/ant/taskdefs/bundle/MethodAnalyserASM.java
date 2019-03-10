@@ -55,7 +55,7 @@ public class MethodAnalyserASM extends MethodVisitor {
   private final String methodName;
 
   public MethodAnalyserASM(final ClassAnalyserASM ca, final String name) {
-    super(Opcodes.ASM6);
+    super(Opcodes.ASM7);
     this.ca = ca;
     this.methodName = name;
   }

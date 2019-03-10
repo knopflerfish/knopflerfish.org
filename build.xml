@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-    ** Copyright (c) 2004-2017, KNOPFLERFISH project
+    ** Copyright (c) 2004-2018, KNOPFLERFISH project
     ** All rights reserved.
     **
     ** Redistribution and use in source and binary forms, with or without
@@ -326,11 +326,32 @@
 	  message="${version}" />
   </target>
 
+  <loadresource property="version.java.major">
+    <propertyresource name="java.version" />
+    <filterchain>
+      <tokenfilter>
+	<replaceregex pattern="(^[0-9]+)(.*)"
+		      flags="gs"
+		      replace="\1"/>
+      </tokenfilter>
+    </filterchain>
+  </loadresource>
+
+  <!-- Consider using <javaversion> instead. Will require ant >= 1.9.10 -->
   <condition property="build-compact">
-    <not>
-      <equals arg1="9" arg2="${ant.java.version}" />
-    </not>
+    <and>
+      <not>
+	<equals arg1="9" arg2="${version.java.major}" />
+      </not>
+      <not>
+	<equals arg1="10" arg2="${version.java.major}" />
+      </not>
+      <not>
+	<equals arg1="11" arg2="${version.java.major}" />
+      </not>
+    </and>
   </condition>
+
 
   <target name="distrib_build_framework">
     <mkdir dir="${distrib.osgi.dir}"/>
@@ -393,6 +414,25 @@
     </ant>
   </target>
 
+  <target name="distrib_build_bundles_ext">
+    <mkdir dir="${distrib.osgi.dir}/jars_ext"/>
+
+    <ant dir="${osgi.dir}/bundles_ext"
+         target="all"
+         inheritall="false">
+      <property name="bmfa.Knopflerfish-Version" value="${version}"/>
+      <!--<property name="osgi.jars.ext.dir" location="${distrib.osgi.dir}/jars_ext"/> -->
+      <property name="jars.ext.dir" location="${distrib.osgi.dir}/jars_ext"/> 
+      <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
+      <property name="generate.javadoc.data" value="true"/>
+      <property name="exported.file" location="${distrib.exported.file}"/>
+      <property name="sources.file"  location="${distrib.sources.file}"/>
+      <property name="bundle.build.source.jar"   value="true"/>
+      <property name="bundle.build.javadoc.jar"  value="true"/>
+      <property name="bundle.version.suffix"  value="${bundle.version.suffix}"/>
+    </ant>
+  </target>
+
   <target name="distrib_build_bundles_opt">
     <mkdir dir="${distrib.osgi.dir}/jars"/>
 
@@ -401,6 +441,7 @@
          inheritall="false">
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
       <property name="jars.dir" location="${distrib.osgi.dir}/jars"/>
+      <property name="jars.ext.dir" location="${distrib.osgi.dir}/jars_ext"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
       <property name="generate.javadoc.data" value="true"/>
       <property name="exported.file" location="${distrib.exported.file}"/>
@@ -439,6 +480,7 @@
       <property name="ant.dir"       location="${ant.dir}"/>
       <property name="osgi.jars.dir" location="${distrib.osgi.dir}/jars"/>
       <property name="jars.dir"      location="${distrib.osgi.dir}/test_jars"/>
+      <property name="jars.ext.dir"  location="${distrib.osgi.dir}/jars_ext"/> 
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
     </ant>
   </target>
@@ -452,6 +494,7 @@
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
     </ant>
     <antcall target="distrib_build_framework"/>
+    <antcall target="distrib_build_bundles_ext"/>
     <antcall target="distrib_build_bundles"/>
     <antcall target="distrib_build_bundles_opt"/>
     <antcall target="distrib_build_bundles_test"/>
@@ -900,12 +943,15 @@
         <include name="osgi/bundles_opt/classpatcher/**"/>
         <include name="osgi/bundles_opt/commons-logging/**"/>
         <include name="osgi/bundles_opt/desktop_awt/**"/>
+        <include name="osgi/bundles_opt/datastorage/**"/>
         <include name="osgi/bundles_opt/desktop_displayers/**"/>
         <include name="osgi/bundles_opt/dirdeployer/**"/>
         <include name="osgi/bundles_opt/jini/**"/>
         <include name="osgi/bundles_opt/junit/**"/>
         <include name="osgi/bundles_opt/serial/**"/>
         <include name="osgi/bundles_opt/soap/**"/>
+
+        <include name="osgi/bundles_ext/json/gson/**"/>
 
         <include name="osgi/bundles_test/**"/>
         <exclude name="osgi/bundles_test/regression_tests/*/resources/*_test*.jar"/>
@@ -1099,11 +1145,15 @@
     <echo message="git.pristine          : ${git.pristine}" />
     <echo message="distrib.sdk.name      : ${distrib.sdk.name}" />
     <echo message="--------------------" />
+    <echo message="java.version          : ${java.version}" />  
+    <echo message="java.home             : ${java.home}" />  
     <echo message="ant.version           : ${ant.version}" />  
     <echo message="ant.java.version      : ${ant.java.version}" />
     <echo message="os.name               : ${os.name}" />
     <echo message="os.arch               : ${os.arch}" />
     <echo message="os.version            : ${os.version}" />
+    <echo message="--------------------" />
+    <echo message="version.java.major    : ${version.java.major}" />  
   
   </target>
   

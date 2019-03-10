@@ -33,6 +33,7 @@ $(AWT)-istart @trayicon_fw-N.N.N.jar@
 #-install @crimson-N.N.N.jar@
 -install @jsdk_api-N.N.N.jar@
 -install @kxml-N.N.N.jar@
+-install @gson-N.N.N.jar@
 
 # The Bundle repo commands and desktop plugin
 -install @repository_xml_all-N.N.N.jar@
@@ -46,6 +47,7 @@ $(AWT)-install @repository_desktop_all-N.N.N.jar@
 
 -initlevel 4
 -install @http_all-N.N.N.jar@
+-install @datastorage_all-N.N.N.jar@
 
 ## console command bundles
 -initlevel 5
@@ -79,6 +81,7 @@ $(OS_ARGS)
 -start @component_all-N.N.N.jar@
 -start @event_all-N.N.N.jar@
 -start @prefs_all-N.N.N.jar@
+-start @datastorage_all-N.N.N.jar@
 -start @device_all-N.N.N.jar@
 -start @useradmin_all-N.N.N.jar@
 -start @repository_xml_all-N.N.N.jar@
@@ -94,6 +97,7 @@ $(AWT)-start @repository_desktop_all-N.N.N.jar@
 $(AWT)-start @desktop_all-N.N.N.jar@
 -start @http_all-N.N.N.jar@
 -start @httproot-N.N.N.jar@
+-start @gson-N.N.N.jar@
 
 # Uncomment the following line to add Resolver support
 # -istart http://repo2.maven.org/maven2/org/apache/felix/org.apache.felix.resolver/1.0.0/org.apache.felix.resolver-1.0.0.jar

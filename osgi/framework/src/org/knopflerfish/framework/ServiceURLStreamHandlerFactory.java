@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2016, KNOPFLERFISH project
+ * Copyright (c) 2003-2018, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,7 +93,7 @@ public class ServiceURLStreamHandlerFactory
     }
     // Add framework protocols
     setURLStreamHandler(FWResourceURLStreamHandler.PROTOCOL, new FWResourceURLStreamHandler());
-    setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL, new ReferenceURLStreamHandler());
+    setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL, ReferenceURLStreamHandler.INSTANCE);
     bundleHandler = new BundleURLStreamHandler();
     setURLStreamHandler(BundleURLStreamHandler.PROTOCOL, bundleHandler);
   }
