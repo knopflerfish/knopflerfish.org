@@ -16,26 +16,6 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
-### Framework 8.0.9
-
-* Fixed issue #51. Fixed dead-lock in weaving hooks handling.
-
-### Framework 8.0.8
-
-* Fixed issue #47. reference:file: bundles can not be loaded if
-  org.knopflerfish.osgi.registerserviceurlhandler=false
-
-### Framework 8.0.7
-
-* Fixed issue #44. Avoid NoSuchElementException in bundle classloader
-  when doing getResource.
-
-### Framework 8.0.6
-
-* Fixed issue #40. There is a small risk for a dead lock if you
-  dynamically import a package and at the same time resolve a bundle
-  that access the same package.
-
 
 OSGi Compendium Specification
 ----------------------------------------------------------------------
@@ -109,3 +89,4 @@ Misc, start scripts, build system etc
 ### Documentation
 
 * Corrected broken links, causing 404 Not Found error
+
