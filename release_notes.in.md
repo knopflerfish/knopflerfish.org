@@ -16,6 +16,11 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
+### Framework 8.0.10
+
+* Fixed issue #49. Use systemUrlStreamHandlerFactory if it was
+  already initialized from Main.
+
 
 OSGi Compendium Specification
 ----------------------------------------------------------------------
