@@ -16,19 +16,10 @@ $(VERSION_PREV)
 Knopflerfish Framework - OSGi Core Specification
 ----------------------------------------------------------------------
 
-### Framework 8.0.9
+### Framework 8.0.10
 
-* Fixed issue #51. Fixed dead-lock in weaving hooks handling.
-
-### Framework 8.0.8
-
-* Fixed issue #47. reference:file: bundles can not be loaded if
-  org.knopflerfish.osgi.registerserviceurlhandler=false
-
-### Framework 8.0.7
-
-* Fixed issue #44. Avoid NoSuchElementException in bundle classloader
-  when doing getResource.
+* Fixed issue #49. Use systemUrlStreamHandlerFactory if it was
+  already initialized from Main.
 
 
 OSGi Compendium Specification

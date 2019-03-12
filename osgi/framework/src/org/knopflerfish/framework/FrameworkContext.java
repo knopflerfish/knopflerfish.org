@@ -349,8 +349,12 @@ public class FrameworkContext  {
           }
         }
       } else {
-        urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory();
-        contentHandlerFactory   = new ServiceContentHandlerFactory(this);
+          if (systemUrlStreamHandlerFactory != null) {
+            urlStreamHandlerFactory = systemUrlStreamHandlerFactory;
+          } else {
+              urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory();
+          }
+          contentHandlerFactory   = new ServiceContentHandlerFactory(this);
       }
     }
 
