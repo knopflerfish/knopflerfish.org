@@ -274,7 +274,11 @@ class WeavingHooks {
     }
   
     public BundleWiring getBundleWiring() {
-      return bundle.current().bundleRevision.getWiring();
+      BundleRevisionImpl br = bundle.current().bundleRevision;
+      if (br != null) {
+        return br.getWiring();
+      }
+      return null;
     }
 
     public int getState() {

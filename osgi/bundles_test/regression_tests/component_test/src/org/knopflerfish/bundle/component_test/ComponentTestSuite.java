@@ -816,7 +816,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         Thread.sleep(SLEEP_TIME);
         assertNull("Should not get B", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
         assertNull("Should not get C", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
-        assertEquals("Should have been deactivate/unbind C bumped", 3322, counter);
+        assertEquals("Should have been deactivate/unbind C bumped", 2222, counter);
 
         counter = 0;
       } catch (Exception e) {
@@ -1211,6 +1211,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertNotNull("Should get serviceRef Z", zref);
         org.knopflerfish.service.componentF_test.ComponentZ z =
             (org.knopflerfish.service.componentF_test.ComponentZ)bc.getService(zref);
+        assertNotNull("Should get service Z", z);
 
         assertEquals("No test calls", 0, z.getXStatus());
 

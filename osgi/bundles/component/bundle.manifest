@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: SCR
 Bundle-SymbolicName: org.knopflerfish.bundle.component
-Bundle-Version: 6.0.4
+Bundle-Version: 6.0.5
 Bundle-Category: osgi
 Bundle-Description: Declarative Services SCR
 Bundle-Vendor: Knopflerfish
