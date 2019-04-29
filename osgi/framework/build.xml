@@ -66,6 +66,26 @@
             value="org/knopflerfish/framework/bundlestorage/dex/*.java"/>
   <property name="android.class.path.name" value="android.system.path"/>
 
+  <!-- Fix for JDK 12 which require at least 1.7 for source and target
+       Keeping 1.6 as the default for all other versions for now
+       this handling can and should be improved -->
+  <loadresource property="version.java.major">
+    <propertyresource name="java.version" />
+    <filterchain>
+      <tokenfilter>
+	<replaceregex pattern="(^[0-9]+)(.*)"
+		      flags="gs"
+		      replace="\1"/>
+      </tokenfilter>
+    </filterchain>
+  </loadresource>
+
+  <condition property = "android_srcs_java_version"
+	     value="1.7"
+	     else="1.6">
+    <equals arg1="12" arg2="${version.java.major}" />
+  </condition>
+
   <!-- targets -->
   <target name="all"
           depends="jar, source.jar, save_javadoc_data, javadoc.jar">
@@ -75,6 +95,8 @@
     <antcall target="compile_full"/>
     <antcall target="compile_compact"/>
   </target>
+
+  
 
   <target name        = "compile_full"
           unless      = "compact"
@@ -100,8 +122,8 @@
            includejavaruntime = "false"
            includes          = "${androidSrcs}"
            excludes          = "**/package-info.java"
-           source            = "1.6"
-           target            = "1.6"
+           source            = "${android_srcs_java_version}"
+           target            = "${android_srcs_java_version}"
            classpathref      = "compile.path"
            >
       <compilerarg value="-Xlint:-options"/>

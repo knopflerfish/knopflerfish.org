@@ -349,6 +349,9 @@
       <not>
 	<equals arg1="11" arg2="${version.java.major}" />
       </not>
+      <not>
+	<equals arg1="12" arg2="${version.java.major}" />
+      </not>
     </and>
   </condition>
 
