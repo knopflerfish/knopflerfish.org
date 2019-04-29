@@ -31,8 +31,6 @@
 
     <javac destdir="${classout}" 
            srcdir="${src.dir}" 
-           target="1.7"
-           source="1.7"
            debug="on"
            includeAntRuntime="false"
            includes="**/*.java">
