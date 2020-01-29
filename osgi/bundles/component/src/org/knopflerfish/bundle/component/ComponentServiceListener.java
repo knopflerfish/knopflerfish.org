@@ -50,7 +50,7 @@ class ComponentServiceListener
   implements ServiceListener
 {
   private final BundleContext bc;
-  private final Hashtable<String, Set<ReferenceListener>> serviceListeners = new Hashtable<String, Set<ReferenceListener>>();
+  private final Hashtable<String, HashSet<ReferenceListener>> serviceListeners = new Hashtable<String, HashSet<ReferenceListener>>();
   private final Hashtable<ServiceEvent, List<Runnable>> afterServiceEvent = new Hashtable<ServiceEvent, List<Runnable>>();
 
 
@@ -80,8 +80,8 @@ class ComponentServiceListener
     }
   }
 
-  void addServiceListener(ReferenceListener rl) {
-    Set<ReferenceListener> rls = serviceListeners.get(rl.getInterface());
+  synchronized void addServiceListener(ReferenceListener rl) {
+    HashSet<ReferenceListener> rls = serviceListeners.get(rl.getInterface());
     if (rls == null) {
       rls = new HashSet<ReferenceListener>();
       rls.add(rl);
@@ -92,12 +92,14 @@ class ComponentServiceListener
         Activator.logError("Internal", ise);
       }
     } else {
-      rls.add(rl);      
+      rls = (HashSet<ReferenceListener>)rls.clone();
+      rls.add(rl);
+      serviceListeners.put(rl.getInterface(), rls);
     }
   }
 
 
-  void removeServiceListener(ReferenceListener rl)
+  synchronized void removeServiceListener(ReferenceListener rl)
   {
     String sn = rl.getInterface();
     Set<ReferenceListener> rls = serviceListeners.get(sn);
