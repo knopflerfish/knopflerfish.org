@@ -163,7 +163,7 @@
             value="proguard-anttask-${proguard.version}.jar"/>
   <property name="proguard-base.jar"
             value="proguard-base-${proguard.version}.jar"/>
-  <property name="maven.url" value="http://repo1.maven.org/maven2"/>
+  <property name="maven.url" value="https://repo1.maven.org/maven2"/>
   <property name="proguard.url" value="${maven.url}/net/sf/proguard"/>
   <property name="proguard-anttask.url"
             value="${proguard.url}/proguard-anttask/${proguard.version}/${proguard-anttask.jar}"/>
