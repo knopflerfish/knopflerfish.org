@@ -54,8 +54,8 @@
     <pathelement location="${ant.lib}/${asm-all.jar}" />
   </path>
   
-  <!-- ASM 6 is used by the bundle_build tasks -->
-  <property name="asm.version"		value="7.0"/>
+  <!-- ASM 7 is used by the bundle_build tasks -->
+  <property name="asm.version"		value="7.3.1"/>
   <property name="asm.jar"		value="asm-${asm.version}.jar" />
   <property name="asm.jar.location"	location="${ant.lib}/${asm.jar}" />
   <path id="asm.path">
@@ -198,18 +198,17 @@
 
   <property name="pegdown.version"	value="1.6.0"/>
   <property name="pegdown.jar"		value="pegdown-${pegdown.version}.jar" />
-  <property name="pegdown.url"		value="https://repo1.maven.org/maven2/org/pegdown/pegdown/${pegdown.version}/${pegdown.jar}" />
+  <property name="pegdown.url"		value="${maven.url}/org/pegdown/pegdown/${pegdown.version}/${pegdown.jar}" />
 
   <property name="parboiled-core.version"	value="1.1.7"/>
   <property name="parboiled-core.jar"		value="parboiled-core-${parboiled-core.version}.jar" />
-  <property name="parboiled-core.url"		value="https://repo1.maven.org/maven2/org/parboiled/parboiled-core/${parboiled-core.version}/${parboiled-core.jar}" />
+  <property name="parboiled-core.url"		value="${maven.url}/org/parboiled/parboiled-core/${parboiled-core.version}/${parboiled-core.jar}" />
   <property name="parboiled-java.version"	value="1.1.7"/>
   <property name="parboiled-java.jar"		value="parboiled-java-${parboiled-java.version}.jar" />
-  <property name="parboiled-java.url"		value="https://repo1.maven.org/maven2/org/parboiled/parboiled-java/${parboiled-java.version}/${parboiled-java.jar}" />
+  <property name="parboiled-java.url"		value="${maven.url}/org/parboiled/parboiled-java/${parboiled-java.version}/${parboiled-java.jar}" />
 
-  <property name="asm.url"		value="https://repo1.maven.org/maven2/org/ow2/asm/asm/${asm.version}/${asm.jar}" />
-  <property name="asm-all.url"		value="https://repo1.maven.org/maven2/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" />
-
+  <property name="asm.url"		value="${maven.url}/org/ow2/asm/asm/${asm.version}/${asm.jar}" />
+  <property name="asm-all.url"		value="${maven.url}/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" />
 
   <target name="install_pegdown">
     <get src="${pegdown.url}"
