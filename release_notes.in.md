@@ -29,6 +29,15 @@ Knopflerfish Framework - OSGi Core Specification
 OSGi Compendium Specification
 ----------------------------------------------------------------------
 
+### Component (SCR) 6.0.7
+
+* Fixed issue #53, Fix ConcurrentModificationException in SCR service
+  listener.
+
+### Component (SCR) 6.0.6
+
+* Fixed issue #46, Handle updated service ranking on active services.
+
 ### Component (SCR) 6.0.5
 
 * Fixed issue #46, Handle updated service ranking on active services.

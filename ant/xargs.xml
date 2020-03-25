@@ -19,7 +19,7 @@
 	       default="file:jars/;file:test_jars/"/>
     <attribute name="repositoryXmlUrls"
 	       description="Comma separated list of OSGi Repository xml urls to replace $(REPOSITORY_XML_URLS) with."
-	       default="file:jars/index.xml,http://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
+	       default="file:jars/index.xml,https://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
     <attribute name="baseDir"
 	       description="Base directory for relative file URLs in the gosgJars path."
 	       default=""/>

@@ -102,9 +102,9 @@
   <property name="bmfa.Bundle-Classpath"       value="."/>
   <property name="bmfa.Bundle-Vendor"          value="Knopflerfish"/>
   <property name="bmfa.Bundle-ContactAddress"
-            value="http://www.knopflerfish.org"/>
+            value="https://www.knopflerfish.org"/>
   <property name="bmfa.Bundle-DocURL"
-            value="http://www.knopflerfish.org"/>
+            value="https://www.knopflerfish.org"/>
 
   <!-- Define all other known bundle mainfest attribute properties with -->
   <!-- the special empty value so that we do not end up with headers    -->
