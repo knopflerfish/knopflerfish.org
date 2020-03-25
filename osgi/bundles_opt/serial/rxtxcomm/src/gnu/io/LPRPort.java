@@ -370,7 +370,7 @@ class MonitorThread extends Thread
 		public void run()
 		{
 			eventLoop();
-			yield();
+			Thread.yield();
 		}
 	}
 }
