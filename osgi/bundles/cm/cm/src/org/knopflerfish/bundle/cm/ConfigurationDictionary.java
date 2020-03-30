@@ -215,13 +215,13 @@ final class ConfigurationDictionary
   @Override
   public String toString()
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     sb.append("ConfigurationDictionary{");
     for (final Enumeration<String> e = keys(); e.hasMoreElements();) {
       final String key = e.nextElement();
       final Object val = get(key);
 
-      sb.append(key + "=" + val);
+      sb.append(key).append("=").append(val);
       if (e.hasMoreElements()) {
         sb.append(", ");
       }

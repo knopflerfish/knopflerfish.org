@@ -321,7 +321,7 @@ public class Util {
 
   public static byte[] loadFormData(HttpServletRequest request,
                                     String target,
-                                    StringBuffer fileName)
+                                    StringBuilder fileName)
     throws ServletException,IOException
   {
     String      contentType = request.getHeader("content-type");

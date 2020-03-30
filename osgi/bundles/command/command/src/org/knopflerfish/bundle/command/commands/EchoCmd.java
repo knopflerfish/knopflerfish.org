@@ -75,11 +75,11 @@ public class EchoCmd {
 
   public String echo(String a, Object[] args) {
     System.out.println("echo 1 + var\na=" + a);
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("echo1+var(");
     for(int i = 0; i < args.length; i++) {
       String s = "#" + i + "=" + args[i].toString();
-      sb.append(" " + s);
+      sb.append(" ").append(s);
       System.out.println(s);
     }
     sb.append(")");

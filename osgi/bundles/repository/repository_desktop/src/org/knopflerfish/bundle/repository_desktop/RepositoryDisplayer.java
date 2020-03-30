@@ -403,7 +403,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
       @Override
       public String toHTML()
       {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
 
         if (repositoryAdmin.repositoryErr != null
             && repositoryAdmin.repositoryErr.length() > 0) {
@@ -430,8 +430,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
             sb.append("</ul>");
 
             sb.append("<p>");
-            sb.append("Total number of bundles: "
-                + JRepositoryAdmin.this.locationMap.size());
+            sb.append("Total number of bundles: ").append(JRepositoryAdmin.this.locationMap.size());
             sb.append("</p>");
 
             appendHelp(sb);
@@ -446,7 +445,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
         return sb.toString();
       }
 
-      private void toHTML(final StringBuffer sb,
+      private void toHTML(final StringBuilder sb,
           final ServiceReference<Repository> sr,
           final String key,
           final String label)
@@ -498,12 +497,12 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
       @Override
       public String toHTML()
       {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
 
         Util.startFont(sb);
 
         sb.append("<p>");
-        sb.append("Bundles in this category: " + getChildCount());
+        sb.append("Bundles in this category: ").append(getChildCount());
         sb.append("</p>");
 
         appendHelp(sb);
@@ -649,7 +648,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
       @Override
       public String toHTML()
       {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
 
         sb.append("<table border='0' width='100%'>\n");
 
@@ -1464,7 +1463,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
         throw new RuntimeException("No URLs set");
       }
 
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       int nConnectionErrs = 0;
 
       // for each of the strings, try to create an URL and
@@ -1590,7 +1589,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
       installButton.setEnabled(selectedRepositoryNode != null && !bBusy);
       startButton.setEnabled(selectedRepositoryNode != null && !bBusy);
 
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
 
       sb.append("<html>\n");
 
@@ -1695,7 +1694,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
     return false;
   }
 
-  void appendHelp(StringBuffer sb)
+  void appendHelp(StringBuilder sb)
   {
     // final String urlPrefix = "bundle://" + bc.getBundle().getBundleId();
 

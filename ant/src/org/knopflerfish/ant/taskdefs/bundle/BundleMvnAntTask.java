@@ -364,7 +364,7 @@ public class BundleMvnAntTask extends Task {
     final String prefix1 = "  ";
     final String prefix2 = prefix1 + "  ";
     
-    final StringBuffer targetNames = new StringBuffer(2048);
+    final StringBuilder targetNames = new StringBuilder(2048);
 
     for (final Entry<String,SortedSet<BundleArchive>> entry : bas.bsnToBundleArchives.entrySet()) {
       final SortedSet<BundleArchive> bsnSet = entry.getValue();
@@ -485,7 +485,7 @@ public class BundleMvnAntTask extends Task {
                         depMgmtRepoFile.getAbsolutePath());
 
 
-    final StringBuffer targetNames = new StringBuffer(2048);
+    final StringBuilder targetNames = new StringBuilder(2048);
 
     for (final Entry<String,SortedSet<BundleArchive>> entry : bas.bsnToBundleArchives.entrySet()) {
       final SortedSet<BundleArchive> bsnSet = entry.getValue();

@@ -66,7 +66,7 @@ public class FrameworkTrayIcon
 
   public FrameworkTrayIcon() throws UnsupportedOperationException
   {
-    final StringBuffer toolTipText = new StringBuffer("Knopflerfish OSGi");
+    final StringBuilder toolTipText = new StringBuilder("Knopflerfish OSGi");
     final String servicePlatformId =
       Activator.bc.getProperty("org.osgi.provisioning.spid");
     if (null != servicePlatformId && 0 < servicePlatformId.length()) {

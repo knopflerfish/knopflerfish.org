@@ -34,17 +34,14 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 
 import org.osgi.framework.*;
 
 public class StatusCommand implements Command {
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
-   
-    return sb;
+  public StringBuilder run(HttpServletRequest request) {
+    return new StringBuilder();
   }
 
   public int getDisplayFlags() {
@@ -67,7 +64,7 @@ public class StatusCommand implements Command {
     for(int i = 0; i < bl.length; i++) {
       Bundle b = bl[i];
       if(b.getState() == Bundle.ACTIVE) {
-	nActive++;
+        nActive++;
       }
     }
     
@@ -82,11 +79,11 @@ public class StatusCommand implements Command {
     out.print("</nobr>");
   }
   
-  public String       getId() {
+  public String getId() {
     return "cmd_status";
   }
 
-  public String       getName() {
+  public String getName() {
     return "Status";
   }
 

@@ -124,7 +124,7 @@ public class BundleRequirementImpl
     this.gen = gen;
     namespace = ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE;
 
-    final StringBuffer filterStrB = new StringBuffer();
+    final StringBuilder filterStrB = new StringBuilder();
     final String[] l = Util.splitwords(ee, ",");
     if (l.length > 1) {
       filterStrB.append("(|");
@@ -146,7 +146,7 @@ public class BundleRequirementImpl
           filterStrB.append(")(version=").append(es[1]).append("))");
           continue;
         } else if (es.length > 2) {
-          final StringBuffer esStrB = new StringBuffer(es[0]);
+          final StringBuilder esStrB = new StringBuilder(es[0]);
           Version v = null;
           for (int i = 1; i < es.length; i++) {
             if (Character.isDigit(es[i].charAt(0))) {
@@ -229,7 +229,7 @@ public class BundleRequirementImpl
 
   @Override
   public String toString() {
-    final StringBuffer sb = new StringBuffer(40);
+    final StringBuilder sb = new StringBuilder(40);
 
     sb.append("[")
     .append(BundleRequirement.class.getName())

@@ -34,11 +34,8 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-
-import org.osgi.framework.*;
 
 public class LogoutCommand extends IconCommand {
   ConsoleServlet console;
@@ -51,8 +48,8 @@ public class LogoutCommand extends IconCommand {
     this.console = console;
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    return new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    return new StringBuilder();
     // noop
   }
   

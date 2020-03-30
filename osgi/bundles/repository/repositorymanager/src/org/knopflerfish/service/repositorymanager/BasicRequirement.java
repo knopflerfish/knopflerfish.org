@@ -138,7 +138,7 @@ public class BasicRequirement implements Requirement {
     if (args.length == 1) {
       return args[0];
     } else if (args.length > 1) {
-      StringBuffer f = new StringBuffer("(");
+      StringBuilder f = new StringBuilder("(");
       f.append(op);
       for (String a : args) {
         f.append(a);

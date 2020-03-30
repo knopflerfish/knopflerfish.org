@@ -90,7 +90,7 @@ public class PackageNode
           String sId = pkg.getName() +";" + pkg.getVersion();
 
           if(bl == null || bl.length == 0) {
-            StringBuffer lId = new StringBuffer();
+            StringBuilder lId = new StringBuilder();
             lId.append(getId());
             lId.append("/");
             lId.append("out.");
@@ -98,7 +98,7 @@ public class PackageNode
             lId.append(".");
             lId.append(Long.toString(b.getBundleId()));
 
-            StringBuffer nId = new StringBuffer();
+            StringBuilder nId = new StringBuilder();
             nId.append(getId());
             nId.append("/");
             nId.append(lId.toString());
@@ -112,7 +112,7 @@ public class PackageNode
             outLinks.add(link);
           } else {
             for(int j = 0; j < bl.length; j++) {
-              StringBuffer lId = new StringBuffer();
+              StringBuilder lId = new StringBuilder();
               lId.append(getId());
               lId.append("/");
               lId.append("out.");
@@ -122,7 +122,7 @@ public class PackageNode
               lId.append(".");
               lId.append(Long.toString(bl[j].getBundleId()));
 
-              StringBuffer nId = new StringBuffer();
+              StringBuilder nId = new StringBuilder();
               nId.append(getId());
               nId.append("/");
               nId.append(lId.toString());
@@ -210,7 +210,7 @@ public class PackageNode
           Bundle fromB = pkg.getExportingBundle();
           String sId = pkg.getName() +";" + pkg.getVersion();
 
-          StringBuffer lId = new StringBuffer();
+          StringBuilder lId = new StringBuilder();
           lId.append(getId());
           lId.append("/");
           lId.append("in.");
@@ -220,7 +220,7 @@ public class PackageNode
           lId.append(".");
           lId.append(Long.toString(b.getBundleId()));
 
-          StringBuffer nId = new StringBuffer();
+          StringBuilder nId = new StringBuilder();
           nId.append(getId());
           nId.append("/");
           nId.append(lId.toString());
@@ -250,7 +250,7 @@ public class PackageNode
             // if(host != null && host.equals(symName))
             {
               String sId = "fragment:" + bl[i].getBundleId() + ":" + host;
-              StringBuffer lId = new StringBuffer();
+              StringBuilder lId = new StringBuilder();
               lId.append(getId());
               lId.append("/");
               lId.append("fragin.");
@@ -260,7 +260,7 @@ public class PackageNode
               lId.append(".");
               lId.append(Long.toString(b.getBundleId()));
 
-              StringBuffer nId = new StringBuffer();
+              StringBuilder nId = new StringBuilder();
               nId.append(getId());
               nId.append("/");
               nId.append(lId.toString());
@@ -291,7 +291,7 @@ public class PackageNode
             Color col = colA;
             String sId = pkgName;
 
-            StringBuffer lId = new StringBuffer();
+            StringBuilder lId = new StringBuilder();
             lId.append(getId());
             lId.append("/");
             lId.append("in.");
@@ -301,7 +301,7 @@ public class PackageNode
             lId.append(".");
             lId.append(Long.toString(b.getBundleId()));
 
-            StringBuffer nId = new StringBuffer();
+            StringBuilder nId = new StringBuilder();
             nId.append(getId());
             nId.append("/");
             nId.append(lId.toString());

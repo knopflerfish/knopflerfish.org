@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 
@@ -50,20 +49,19 @@ public class InstallURLCommand extends IconCommand {
     displayFlags = DISPLAY_COMPACTLIST;
   }
   
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
    
     String url = request.getParameter(getId() + "_url");
 
-    sb.append("<div class=\"shadow\">" + getName() + "</div>");
+    sb.append("<div class=\"shadow\">").append(getName()).append("</div>");
     
     if(!(url == null || "".equals(url))) {
       try {
-	Bundle b = Activator.bc.installBundle(url);
-	sb.append("installed " + url + "<br/>");
-	
+        Bundle b = Activator.bc.installBundle(url);
+        sb.append("installed ").append(url).append("<br/>");
       } catch (Exception e) {
-	sb.append(Util.toHTML(e));
+        sb.append(Util.toHTML(e));
       }
     } else {
       sb.append("No URL entered");

@@ -240,7 +240,7 @@ class DatagramImpl implements Datagram {
   }
     
   public String readLine() throws IOException {
-    StringBuffer bf = new StringBuffer();
+    StringBuilder bf = new StringBuilder();
     char c;
                 
     while (true) {

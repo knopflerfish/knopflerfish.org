@@ -564,7 +564,7 @@ public class AD
       return "Max # of items are " + maxItems + ", found " + items.length;
     }
 
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (final String item : items) {
       final String s = validateSingle(item, type);
       if (s != null && !"".equals(s)) {
@@ -896,19 +896,19 @@ public class AD
   @Override
   public String toString()
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     sb.append("AD[");
 
-    sb.append("id=" + id);
-    sb.append(", type=" + type);
-    sb.append(", name=" + name);
-    sb.append(", desc=" + desc);
-    sb.append(", cardinality=" + card);
+    sb.append("id=").append(id);
+    sb.append(", type=").append(type);
+    sb.append(", name=").append(name);
+    sb.append(", desc=").append(desc);
+    sb.append(", cardinality=").append(card);
 
-    sb.append(", defValue=" + toString(defValue));
-    sb.append(", optLabels=" + toString(optLabels));
-    sb.append(", optValues=" + toString(optValues));
+    sb.append(", defValue=").append(toString(defValue));
+    sb.append(", optLabels=").append(toString(optLabels));
+    sb.append(", optValues=").append(toString(optValues));
 
     sb.append("]");
 
@@ -923,7 +923,7 @@ public class AD
     if (obj.getClass().isArray()) {
       return toStringFromArray(obj);
     } else if (obj instanceof Vector) {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       final Vector<?> v = (Vector<?>) obj;
       for (int i = 0; i < v.size(); i++) {
         final String s = (String) v.elementAt(i);
@@ -959,7 +959,7 @@ public class AD
 
   public static String toStringFromArray(Object array)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     if (array == null) {
       sb.append("null");
@@ -979,7 +979,7 @@ public class AD
 
   public static String toString(Object[] values)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     if (values == null) {
       sb.append("null");
@@ -999,7 +999,7 @@ public class AD
 
   public static String toString(Vector<?> values)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     if (values == null) {
       sb.append("null");

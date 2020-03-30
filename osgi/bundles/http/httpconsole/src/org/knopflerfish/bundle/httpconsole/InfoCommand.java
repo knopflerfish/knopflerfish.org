@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.httpconsole;
 
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;
@@ -51,12 +50,11 @@ public class InfoCommand extends IconCommand {
     displayFlags = DISPLAY_COMPACTLIST;
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
 
     long[] bids = Util.getBundleIds(request);
 
-    //    sb.append("<div class=\"shadow\">Info</div>");
     if(bids.length == 0) {
       sb.append("<div class=\"shadow\">Framework properties</div>");
       Hashtable props = new Hashtable();
@@ -84,14 +82,12 @@ public class InfoCommand extends IconCommand {
       for(int i = 0; i < bids.length; i++) {
         Bundle b = Activator.bc.getBundle(bids[i]);
         sb.append("<div class=\"shadow\">");
-        sb.append("#" + bids[i] +
-                  " " + Util.getName(b) +
-                  ", " + Util.getStateString(b.getState()));
+        sb.append("#").append(bids[i]).append(" ").append(Util.getName(b)).append(", ").append(Util.getStateString(b.getState()));
         sb.append("</div>");
 
         Dictionary headers = b.getHeaders();
 
-        sb.append("Location: " + b.getLocation());
+        sb.append("Location: ").append(b.getLocation());
 
         sb.append("<div class=\"shadow\">Manifest</div>");
         printDictionary(headers, sb);
@@ -110,14 +106,14 @@ public class InfoCommand extends IconCommand {
     return sb;
   }
 
-  void printServices(StringBuffer sb,
+  void printServices(StringBuilder sb,
                      String header,
                      ServiceReference[] srl) {
 
     if(srl == null || srl.length == 0) {
       return;
     }
-    sb.append("<div class=\"shadow\">" + header + "</div>");
+    sb.append("<div class=\"shadow\">").append(header).append("</div>");
 
     sb.append("<table>\n");
     sb.append(" <tr>\n");
@@ -125,7 +121,7 @@ public class InfoCommand extends IconCommand {
     sb.append("  <th>Used by</th>");
     sb.append(" </tr>\n");
 
-    for(int i = 0; srl != null && i < srl.length; i++) {
+    for(int i = 0; i < srl.length; i++) {
       sb.append(" <tr>\n");
 
       sb.append("  <td style=\"background: #efefef;\">");
@@ -133,9 +129,7 @@ public class InfoCommand extends IconCommand {
         StringWriter sw = new StringWriter();
         Util.printObject(new PrintWriter(sw), srl[i].getProperty("objectclass"));
 
-        sb.append("<a href=\"" + Activator.SERVLET_ALIAS +
-                  "?service.id=" + srl[i].getProperty("service.id") +
-                  "\">");
+        sb.append("<a href=\"").append(Activator.SERVLET_ALIAS).append("?service.id=").append(srl[i].getProperty("service.id")).append("\">");
         sb.append(sw.toString());
         sb.append("</a>");
       } catch (Exception e) {
@@ -183,7 +177,7 @@ public class InfoCommand extends IconCommand {
     props.put(key, Activator.bc.getProperty(key));
   }
 
-  void printDictionary(Dictionary dict, StringBuffer sb) {
+  void printDictionary(Dictionary dict, StringBuilder sb) {
     Vector keys = new Vector();
     for(Enumeration e = dict.keys(); e.hasMoreElements(); ) {
       keys.addElement(e.nextElement());
@@ -200,8 +194,8 @@ public class InfoCommand extends IconCommand {
       val = Util.replace(val, "\\", "\\ ");
 
       sb.append("<tr>");
-      sb.append("<td>" + key + "</td>");
-      sb.append("<td>" + val + "</td>");
+      sb.append("<td>").append(key).append("</td>");
+      sb.append("<td>").append(val).append("</td>");
       sb.append("</tr>");
     }
     sb.append("</table>");

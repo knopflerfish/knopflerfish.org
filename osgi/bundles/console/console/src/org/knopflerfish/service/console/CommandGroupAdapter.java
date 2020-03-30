@@ -191,8 +191,8 @@ public abstract class CommandGroupAdapter implements CommandGroup {
      * @return long command group help.
      */
     public String getLongHelp() {
-        final StringBuffer res = new StringBuffer();
-        res.append("Available " + groupName + " commands:\n");
+        final StringBuilder res = new StringBuilder();
+        res.append("Available ").append(groupName).append(" commands:\n");
 
         final TreeSet<String> helpLines = new TreeSet<String>();
         Field[] f = getClass().getFields();
@@ -303,7 +303,7 @@ public abstract class CommandGroupAdapter implements CommandGroup {
         try {
           name = name.substring(5).toLowerCase();
           DynamicCmd cmd = new DynamicCmd(this, name);
-          StringBuffer help = new StringBuffer();
+          StringBuilder help = new StringBuilder();
           help.append(cmd.usage);
           if(cmd.help != null) {
             for(int j = 0; j < cmd.help.length; j++) {

@@ -165,17 +165,17 @@ class Pkg {
 
 
   public String toString(int level) {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     sb.append("Pkg[");
 
     if(level > 0) {
-      sb.append("pkg=" + pkg);
+      sb.append("pkg=").append(pkg);
     }
     if(level > 1) {
-      sb.append(", providers=" + providers);
+      sb.append(", providers=").append(providers);
     }
     if(level > 2) {
-      sb.append(", exporters=" + exporters);
+      sb.append(", exporters=").append(exporters);
     }
     sb.append("]");
 

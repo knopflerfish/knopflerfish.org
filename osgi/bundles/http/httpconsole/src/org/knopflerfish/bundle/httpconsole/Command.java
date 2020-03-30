@@ -67,7 +67,7 @@ public interface Command extends HTMLable {
    * Typically, this happens when <tt>isTrigger</tt> has returned
    * true.
    */
-  public StringBuffer run(HttpServletRequest request);
+  public StringBuilder run(HttpServletRequest request);
 
   /**
    * Id of the command. Typically used to identify a submit button.

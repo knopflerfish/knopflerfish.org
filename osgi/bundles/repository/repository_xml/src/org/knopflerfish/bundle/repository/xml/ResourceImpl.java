@@ -104,7 +104,7 @@ public class ResourceImpl implements Resource, RepositoryContent {
   }
 
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("Resource[\n");
     for (Capability c : cs) {
       sb.append(c.toString());

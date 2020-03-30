@@ -136,7 +136,7 @@ public class BundleCapabilityImpl extends DTOId implements BundleCapability {
       }
       a = gen.archive.getAttribute("Bundle-License");
       if (a != null) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         try {
           List<HeaderEntry> lic = Util.parseManifestHeader("Bundle-License", a, true, true, false);
           for (HeaderEntry he : lic) {

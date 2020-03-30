@@ -751,7 +751,7 @@ class DesktopPanel extends Panel implements BundleListener {
       int nTotal    = bundles.size();
       int nSelected = 0;
 
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
         Bundle b = (Bundle)e.nextElement();
         BundleC bc = (BundleC)bundles.get(b);
@@ -760,7 +760,7 @@ class DesktopPanel extends Panel implements BundleListener {
           if(sb.length() > 0) {
             sb.append(", ");
           }
-          sb.append("#" + b.getBundleId() + "/" + Util.getBundleName(b));
+          sb.append("#").append(b.getBundleId()).append("/").append(Util.getBundleName(b));
         }
       }
       if(sb.length() > 20) {

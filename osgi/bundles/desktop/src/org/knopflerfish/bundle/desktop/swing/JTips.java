@@ -92,18 +92,18 @@ public class JTips extends JPanel {
       URL url = getClass().getResource(tipFile);
       if(url != null) {
         in = new BufferedReader(new InputStreamReader(url.openStream()));
-        String       line = null;
-        StringBuffer sb   = new StringBuffer();
+        String line;
+        StringBuilder sb = new StringBuilder();
         while(null != (line = in.readLine())) {
           if(sep.equals(line)) {
             addTip(sb.toString());
-            sb = new StringBuffer();
+            sb = new StringBuilder();
           } else {
             sb.append(line);
             sb.append("\n");
           }
         }
-        if(sb != null && sb.length() > 1) {
+        if(sb.length() > 1) {
           addTip(sb.toString());
         }
       } else {
@@ -112,7 +112,11 @@ public class JTips extends JPanel {
     } catch (Exception e) {
       Activator.log.error("Failed to load tips from " + tipFile, e);
     } finally {
-      try { in.close(); } catch (Exception ignored) { }
+      try {
+        if (in != null) {
+          in.close();
+        }
+      } catch (Exception ignored) { }
     }
 
     if(tips.size() == 0) {

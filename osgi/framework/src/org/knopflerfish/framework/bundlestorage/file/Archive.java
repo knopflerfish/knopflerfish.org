@@ -1024,7 +1024,7 @@ public class Archive implements FileArchive {
         nativeLibs.put(key, val);
       }
     }
-    final StringBuffer rename = new StringBuffer(val);
+    final StringBuilder rename = new StringBuilder(val);
     final int index0 = val.lastIndexOf(File.separatorChar) + 1;
     final int index1 = val.indexOf("_", index0);
     if ((index1 > index0) && (index1 == val.length() - key.length() - 1)) {
@@ -1125,7 +1125,7 @@ public class Archive implements FileArchive {
         String line = br.readLine();
         while (null != line) {
           if (null != cmd) {
-            final StringBuffer sb = new StringBuffer();
+            final StringBuilder sb = new StringBuilder();
             for (final String element : cmd) {
               if (sb.length() > 0)
                 sb.append(" ");

@@ -270,7 +270,7 @@ public abstract class JHTMLBundle extends JPanel
       for (final Iterator<JHTMLBundleLinkHandler> it = linkHandlers.iterator(); it.hasNext() && !handled;) {
         final JHTMLBundleLinkHandler handler = it.next();
         if (handler.canRenderUrl(url)) {
-          final StringBuffer sb = new StringBuffer(600);
+          final StringBuilder sb = new StringBuilder(600);
           addToHistory = handler.renderUrl(url, sb);
           setHTML(sb.toString());
           handled = true;
@@ -297,8 +297,9 @@ public abstract class JHTMLBundle extends JPanel
 
   /**
    * Override this to provide bundle info in HTML format.
+   * @return
    */
-  public abstract StringBuffer  bundleInfo(Bundle b);
+  public abstract StringBuilder bundleInfo(Bundle b);
 
   /**
    * Get header text for no selected bundle page.
@@ -398,7 +399,7 @@ public abstract class JHTMLBundle extends JPanel
       return;
     }
 
-    final StringBuffer sb = new StringBuffer(400);
+    final StringBuilder sb = new StringBuilder(400);
     sb.append("<html>\n");
 
     if(bl == null || bl.length == 0) {
@@ -495,7 +496,7 @@ public abstract class JHTMLBundle extends JPanel
   }
 
 
-  static void appendRow(StringBuffer sb, String c1, String c2) {
+  static void appendRow(StringBuilder sb, String c1, String c2) {
     appendRow(sb, null, null, null, c1, c2);
   }
 
@@ -509,7 +510,7 @@ public abstract class JHTMLBundle extends JPanel
    * @param label Text in the first column.
    * @param value Text in the second column.
    */
-  static void appendRow(final StringBuffer sb,
+  static void appendRow(final StringBuilder sb,
                         String bgColor,
                         final String size,
                         final String align,
@@ -547,17 +548,17 @@ public abstract class JHTMLBundle extends JPanel
     sb.append("</td></tr>\n");
   }
 
-  static void startFont(final StringBuffer sb) {
+  static void startFont(final StringBuilder sb) {
     startFont(sb, "-2");
   }
 
-  static void startFont(final StringBuffer sb, final String size) {
+  static void startFont(final StringBuilder sb, final String size) {
     sb.append("<font size=\"");
     sb.append(size==null ? "-2" : size);
     sb.append("\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 
-  static void stopFont(final StringBuffer sb) {
+  static void stopFont(final StringBuilder sb) {
     sb.append("</font>");
   }
 

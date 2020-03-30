@@ -63,7 +63,7 @@ public class NsToHtmlHost
     final Map<String, Object> attrs =
       new HashMap<String, Object>(capability.getAttributes());
 
-    final StringBuffer sb = new StringBuffer(50);
+    final StringBuilder sb = new StringBuilder(50);
     sb.append(attrs.remove(BundleRevision.HOST_NAMESPACE));
 
     final Version version =
@@ -84,7 +84,7 @@ public class NsToHtmlHost
   @Override
   public String toHTML(Requirement requirement)
   {
-    final StringBuffer sb = new StringBuffer(50);
+    final StringBuilder sb = new StringBuilder(50);
     final String filter = requirement.getDirectives().get("filter");
     final String hostName =
       Util.getFilterValue(filter, BundleRevision.HOST_NAMESPACE);

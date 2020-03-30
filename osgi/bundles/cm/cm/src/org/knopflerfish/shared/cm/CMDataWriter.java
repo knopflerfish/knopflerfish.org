@@ -179,7 +179,7 @@ public class CMDataWriter
   static private String escapeIfNeccesary(String s)
   {
     if (needsEscaping(s)) {
-      final StringBuffer escaped = new StringBuffer();
+      final StringBuilder escaped = new StringBuilder();
       for (int i = 0; i < s.length(); ++i) {
         final char c = s.charAt(i);
         if (c == '&') {

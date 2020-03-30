@@ -396,9 +396,9 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
   }
 
   void copyToClipBoard() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
-    for(Event entry : model.getEntries()) {
+    for (Event entry : model.getEntries()) {
       sb.append(entry.toString());
       sb.append("\n");
     }

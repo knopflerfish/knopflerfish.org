@@ -183,7 +183,7 @@ public final class LogReaderServiceFactory
 
   // Stop or start file log
   private synchronized void resetFile(Boolean newValue, Boolean oldValue) {
-    if (newValue.booleanValue() && fileLog == null) {
+    if (newValue && fileLog == null) {
       fileLog = new FileLog(bc, configuration);
       if (oldValue == null) {
         synchronized (history) {
@@ -191,7 +191,7 @@ public final class LogReaderServiceFactory
                                                       historyInsertionPoint));
         }
       }
-    } else if (!(newValue.booleanValue()) && fileLog != null) {
+    } else if (!newValue && fileLog != null) {
       fileLog.stop();
       fileLog = null;
     }
@@ -201,20 +201,19 @@ public final class LogReaderServiceFactory
   void configChange(final String propName,
                     final Object oldValue,
                     final Object newValue) {
-    final String name = propName;
-    if (name.equals(LogConfigImpl.MEM)) {
-      resetMemorySize(((Integer) newValue).intValue(),
-                      ((Integer) oldValue).intValue());
-    } else if (name.equals(LogConfigImpl.DIR)) {
+    if (propName.equals(LogConfigImpl.MEM)) {
+      resetMemorySize((Integer) newValue,
+              (Integer) oldValue);
+    } else if (propName.equals(LogConfigImpl.DIR)) {
       resetFile();
-    } else if (name.equals(LogConfigImpl.FILE)) {
+    } else if (propName.equals(LogConfigImpl.FILE)) {
       resetFile((Boolean) newValue, (Boolean) oldValue);
-    } else if (name.equals(LogConfigImpl.GEN) && fileLog != null) {
+    } else if (propName.equals(LogConfigImpl.GEN) && fileLog != null) {
       synchronized (fileLog) {
-        fileLog.resetGenerations(((Integer) newValue).intValue(),
-                                 ((Integer) oldValue).intValue());
+        fileLog.resetGenerations((Integer) newValue,
+                (Integer) oldValue);
       }
-    } else if (name.equals(LogConfigImpl.TIMESTAMP_PATTERN)) {
+    } else if (propName.equals(LogConfigImpl.TIMESTAMP_PATTERN)) {
       LogEntryImpl.setTimestampPattern((String) newValue);
     }
   }
@@ -273,10 +272,10 @@ public final class LogReaderServiceFactory
       Integer res = AccessController
         .doPrivileged(new PrivilegedAction<Integer>() {
             public Integer run() {
-              return new Integer(getFilterLevel(bundle));
+              return getFilterLevel(bundle);
             }
           });
-      return res.intValue();
+      return res;
     }
   }
 

@@ -143,7 +143,7 @@ public class Util {
     public static String[] splitwords(String s, String whiteSpace, char citChar) {
         boolean bCit = false; // true when inside citation chars.
         Vector v = new Vector(); // (String) individual words after splitting
-        StringBuffer buf = null;
+        StringBuilder buf = null;
         int i = 0;
 
         while (i < s.length()) {
@@ -155,7 +155,7 @@ public class Util {
                     bCit = !bCit;
                 } else {
                     if (buf == null) {
-                        buf = new StringBuffer();
+                        buf = new StringBuilder();
                     }
 
                     buf.append(c);

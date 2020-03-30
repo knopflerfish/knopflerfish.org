@@ -25,10 +25,10 @@ public class Program {
       CommandProviders cp = new CommandProvidersTest();
       Program p = new Program(null, cp);
       
-      StringBuffer sb = 
+      StringBuilder sb =
         (argv[0].endsWith(".tsl")) 
         ? Util.load(new URL(argv[0]))
-        : new StringBuffer(argv[0]);
+        : new StringBuilder(argv[0]);
       Object r = p.exec(sb);
       System.out.println(sb + "\n--\n" + r);
     } catch (Exception e) {
@@ -118,7 +118,7 @@ public class Program {
       // if so, resolve them as programs after grabbing
       // the ${....} part
       Tokenizer tz = new Tokenizer(key.substring(ix+2));
-      StringBuffer sb2 = new StringBuffer("${");
+      StringBuilder sb2 = new StringBuilder("${");
       tz.matchRecursive(sb2, '{', '}');
       Object k2  = execAsChild(sb2);
       String k2s = k2 != null ? k2.toString() : "";

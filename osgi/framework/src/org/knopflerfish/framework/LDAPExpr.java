@@ -448,7 +448,7 @@ public class LDAPExpr {
 
 
   private static String fixupString(String s) {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     final int len = s.length();
     for (int i = 0; i < len; i++) {
       char c = s.charAt(i);
@@ -552,7 +552,7 @@ public class LDAPExpr {
 
   @Override
   public String toString() {
-    final StringBuffer res = new StringBuffer();
+    final StringBuilder res = new StringBuilder();
     res.append("(");
     if ((operator & SIMPLE) != 0) {
       res.append(attrName);
@@ -664,7 +664,7 @@ public class LDAPExpr {
 
 
     public String getAttributeValue() {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       label: for (;; pos++) {
         final char c = str.charAt(pos);
         switch (c) {

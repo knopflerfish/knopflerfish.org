@@ -460,7 +460,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     }
 
     void printArray(String caption, Object a) throws IOException {
-      StringBuffer sb = new StringBuffer(80);
+      StringBuilder sb = new StringBuilder(80);
 
       sb.append(caption);
       sb.append(" [");
@@ -1319,7 +1319,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentZ");
         assertNull("Should not get serviceRef Z", ref);
 
-        StringBuffer targetedPid = new StringBuffer("componentC_test.factory");
+        StringBuilder targetedPid = new StringBuilder("componentC_test.factory");
         ConfigurationAdmin ca = cmt.getService();
         Configuration c = ca.getConfiguration(targetedPid.toString(), b1loc);
         Dictionary<String, Object> props = new Hashtable<String, Object>();

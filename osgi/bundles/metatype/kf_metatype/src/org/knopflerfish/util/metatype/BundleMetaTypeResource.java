@@ -177,7 +177,7 @@ public class BundleMetaTypeResource
   @Override
   public String toString()
   {
-    final StringBuffer sb = new StringBuffer(200);
+    final StringBuilder sb = new StringBuilder(200);
     sb.append("Bundle: #");
     sb.append(bundle.getBundleId());
     sb.append('\n');

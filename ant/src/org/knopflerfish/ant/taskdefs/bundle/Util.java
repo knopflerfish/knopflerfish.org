@@ -361,7 +361,7 @@ public class Util {
                                      char citChar) {
     boolean bCit = false; // true when inside citation chars.
     final Vector<String> v = new Vector<String>(); // (String) individual words after splitting
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     int i = 0;
 
     while (i < s.length()) {
@@ -373,7 +373,7 @@ public class Util {
           bCit = !bCit;
         } else {
           if (buf == null) {
-            buf = new StringBuffer();
+            buf = new StringBuilder();
           }
           buf.append(c);
         }
@@ -422,7 +422,7 @@ public class Util {
                                         boolean trim)
   {
     final List<String> res = new ArrayList<String>();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     int pos = 0;
     final int length = s.length();
 
@@ -573,7 +573,7 @@ public class Util {
       skipWhite();
       boolean backslash = false;
       boolean quote = false;
-      final StringBuffer val = new StringBuffer();
+      final StringBuilder val = new StringBuilder();
       int end = 0;
       loop: for (; pos < length; pos++) {
         if (backslash) {
@@ -807,7 +807,7 @@ public class Util {
    */
   public static String toString(List<HeaderEntry> hes)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (final HeaderEntry he : hes) {
       if (sb.length() > 0) {
         sb.append(", ");
@@ -844,7 +844,7 @@ public class Util {
    * @param parameters
    *          The map with parameters to process.
    */
-  private static void parametersToString(final StringBuffer sb,
+  private static void parametersToString(final StringBuilder sb,
                                          final String sep,
                                          final Map<String, ?> parameters)
   {

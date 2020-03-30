@@ -189,7 +189,7 @@ public class JCMInfo
    */
   private JHTML renderBundleWithoutMetaTypeInformation(Bundle bundle)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     sb.append("<html>\n");
     sb.append("<body>\n");
     sb.append("<table border=0 width=\"100%\">\n");
@@ -225,7 +225,7 @@ public class JCMInfo
     return new JHTML(sb.toString());
   }
 
-  private void renderSystemMTP(final StringBuffer sb)
+  private void renderSystemMTP(final StringBuilder sb)
   {
     final Bundle systemBundle = Activator.bc.getBundle(0);
     if (Activator.getMTP(systemBundle) != null) {
@@ -238,7 +238,7 @@ public class JCMInfo
     }
   }
 
-  private void renderCmMTP(final StringBuffer sb)
+  private void renderCmMTP(final StringBuilder sb)
   {
     final Bundle cmBundle =
       CMDisplayer.cmTracker.getServiceReference().getBundle();
@@ -252,7 +252,7 @@ public class JCMInfo
     }
   }
 
-  private void renderMetaTypeBundles(StringBuffer sb)
+  private void renderMetaTypeBundles(StringBuilder sb)
   {
     final Set<Bundle> bundles = DefaultSwingBundleDisplayer.getAllBundlesSortedByName();
     sb.append("<p>");
@@ -278,7 +278,7 @@ public class JCMInfo
    * @param sb
    *          buffer to append the HTML to.
    */
-  private void renderImportConfigruations(final StringBuffer sb)
+  private void renderImportConfigruations(final StringBuilder sb)
   {
     // Must place the form contents in a table to get the input-button
     // vertically centered!
@@ -342,7 +342,7 @@ public class JCMInfo
             final Hashtable<String, Object>[] configs =
               cmDataReader.readCMDatas(reader);
 
-            final StringBuffer sb = new StringBuffer(100*configs.length);
+            final StringBuilder sb = new StringBuilder(100*configs.length);
             sb.append("<html>Imported configurations with PIDs:<ul>");
             for (final Hashtable<String, Object> props : configs) {
               final String pid = (String) props.get(CMDataReader.SERVICE_PID);

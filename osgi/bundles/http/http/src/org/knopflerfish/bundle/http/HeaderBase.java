@@ -300,7 +300,7 @@ public class HeaderBase
   {
     contentType = getHeader(CONTENT_TYPE_HEADER_KEY);
     if (null != contentType) {
-      final StringBuffer sb = new StringBuffer(contentType.length());
+      final StringBuilder sb = new StringBuilder(contentType.length());
       characterEncoding = HttpUtil.parseContentType(contentType, sb);
     }
   }
@@ -382,7 +382,7 @@ public class HeaderBase
 
   private void parseLocales()
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (final Enumeration<?> e = getHeaders(LANGUAGE_HEADER_KEY); e.hasMoreElements();) {
       if (sb.length()>0) {
         sb.append(',');

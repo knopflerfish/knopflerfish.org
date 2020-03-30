@@ -34,11 +34,8 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-
-import org.osgi.framework.*;
 
 public class IconDialogCommand extends IconCommand {
 
@@ -56,18 +53,18 @@ public class IconDialogCommand extends IconCommand {
     return cmd.getDisplayFlags();
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
 
     if(cmd.isTrigger(request)) {
       return cmd.run(request);
     } else {
       StringWriter sw = new StringWriter();
       try {
-	cmd.toHTML(request, new PrintWriter(sw));
-	sb.append(sw.toString());
+        cmd.toHTML(request, new PrintWriter(sw));
+        sb.append(sw.toString());
       } catch (Exception e) {
-	sb.append(Util.toHTML(e));
+        sb.append(Util.toHTML(e));
       }
     }
 

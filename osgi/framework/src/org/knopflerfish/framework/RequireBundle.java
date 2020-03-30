@@ -191,7 +191,7 @@ class RequireBundle
 
   private Filter toFilter()
   {
-    final StringBuffer sb = new StringBuffer(80);
+    final StringBuilder sb = new StringBuilder(80);
     boolean multipleConditions = false;
 
     sb.append('(');

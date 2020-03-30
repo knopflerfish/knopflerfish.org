@@ -258,7 +258,7 @@ public class BundleClasspathTask extends Task {
         fileSet = new ZipFileSet();
         ((ZipFileSet) fileSet).setSrc(src);
       } else {
-        final StringBuffer msg = new StringBuffer();
+        final StringBuilder msg = new StringBuilder();
         msg.append("The following entry in the Bundle-ClassPath")
           .append(" header doesn't exist in the bundle: ")
           .append(entry)
@@ -306,7 +306,7 @@ public class BundleClasspathTask extends Task {
       bundleClasspath = ".";
     }
 
-    final StringBuffer sb = new StringBuffer(100);
+    final StringBuilder sb = new StringBuilder(100);
 
     // Convert path entries to patterns.
     final StringTokenizer st = new StringTokenizer(bundleClasspath, ",");

@@ -363,7 +363,7 @@ class ComponentMethod
         Activator.logError(comp.bc, msg, e);
         return new ComponentException(msg, e);
       } catch (IllegalArgumentException e) {
-        StringBuffer msg = new StringBuffer();
+        StringBuilder msg = new StringBuilder();
         msg.append("Wrong arguments to \"");
         msg.append(method);
         msg.append("\" in: ");

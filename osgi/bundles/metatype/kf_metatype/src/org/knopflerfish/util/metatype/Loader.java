@@ -1803,13 +1803,13 @@ class CMConfig
   @Override
   public String toString()
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     sb.append("CMConfig[");
-    sb.append("pid=" + pid);
-    sb.append(", desc=" + desc);
-    sb.append(", iconURL=" + iconURL);
-    sb.append(", maxInstances=" + maxInstances);
+    sb.append("pid=").append(pid);
+    sb.append(", desc=").append(desc);
+    sb.append(", iconURL=").append(iconURL);
+    sb.append(", maxInstances=").append(maxInstances);
     sb.append(", attribs=");
     for (int i = 0; i < ads.length; i++) {
       sb.append(ads[i]);

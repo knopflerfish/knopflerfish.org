@@ -294,7 +294,7 @@ public class SimpleLog implements Log {
      */
     protected void log(int type, Object message, Throwable t) {
         // use a string buffer for better performance
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         // append date-time if so configured
         if(showDateTime) {

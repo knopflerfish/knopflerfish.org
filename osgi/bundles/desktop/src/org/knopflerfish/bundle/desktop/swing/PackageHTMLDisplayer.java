@@ -81,8 +81,8 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     @Override
-    public StringBuffer  bundleInfo(Bundle b) {
-      final StringBuffer sb = new StringBuffer();
+    public StringBuilder bundleInfo(Bundle b) {
+      final StringBuilder sb = new StringBuilder();
 
 
       startFont(sb);
@@ -175,7 +175,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       return sb;
     }
 
-    void appendExportedPackages(StringBuffer sb, Bundle b,
+    void appendExportedPackages(StringBuilder sb, Bundle b,
                                 boolean useParagraph) {
       final PackageManager pm = Activator.desktop.getPackageManager();
       final Collection<ExportedPackage> pkgs = pm.getExportedPackages(b);
@@ -186,7 +186,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
         sb.append("<b>Exported packages</b>");
         final List<String> exportDescr  = new ArrayList<String>();
         for (final ExportedPackage pkg : pkgs) {
-          final StringBuffer   sb1  = new StringBuffer();
+          final StringBuilder sb1 = new StringBuilder();
 
           sb1.append(formatPackage(pkg, false));
 
@@ -225,7 +225,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
     }
 
-    void appendImportedPackages(StringBuffer sb, Bundle b,
+    void appendImportedPackages(StringBuilder sb, Bundle b,
                                 boolean useParagraph) {
       final PackageManager pm = Activator.desktop.getPackageManager();
       final Collection<ExportedPackage> importedPkgs = pm.getImportedPackages(b);
@@ -254,7 +254,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
     }
 
-    void appendMissingImports(StringBuffer sb, Bundle b) {
+    void appendMissingImports(StringBuilder sb, Bundle b) {
       final PackageManager pm = Activator.desktop.getPackageManager();
       final Collection<String> missingImports = pm.getMissingImports(b);
       if(missingImports.size() > 0) {
@@ -268,7 +268,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
     }
 
-    void appendRequiredPackages(StringBuffer sb, Bundle b,
+    void appendRequiredPackages(StringBuilder sb, Bundle b,
                                 boolean useParagraph) {
       final PackageManager pm = Activator.desktop.getPackageManager();
       final Collection<ExportedPackage> requiredPkgs = pm.getRequiredPackages(b);
@@ -305,16 +305,12 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     private String formatPackage(String name) {
-      final StringBuffer sb = new StringBuffer();
-      sb.append("<font color=\"#444444\">");
-      sb.append(name);
-      sb.append("</font>");
-      return sb.toString();
+      return "<font color=\"#444444\">" + name + "</font>";
     }
 
     private String formatPackage(ExportedPackage epkg, boolean isShadowed)
     {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
 
       sb.append("<br>");
 

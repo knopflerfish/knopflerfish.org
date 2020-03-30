@@ -34,9 +34,7 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
-import java.io.*;
 
 import org.osgi.framework.*;
 
@@ -48,13 +46,13 @@ public class UpdateCommand extends IconCommand {
 	  Activator.RES_ALIAS + "/view-refresh.png");
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
     
 
     long[] bids = Util.getBundleIds(request);
 
-    sb.append("<div class=\"shadow\">" + getName() + "</div>");
+    sb.append("<div class=\"shadow\">").append(getName()).append("</div>");
 
     if(bids.length == 0) {
       sb.append("No bundles selected");
@@ -62,11 +60,11 @@ public class UpdateCommand extends IconCommand {
 
     for(int i = 0; i < bids.length; i++) {
       try {
-	Bundle b = Activator.bc.getBundle(bids[i]);
-	b.update();
-	sb.append("Updated " + Util.getName(b) + "<br/>");
-      } catch (Exception e) {
-	sb.append(Util.toHTML(e));
+        Bundle b = Activator.bc.getBundle(bids[i]);
+        b.update();
+        sb.append("Updated ").append(Util.getName(b)).append("<br/>");
+            } catch (Exception e) {
+        sb.append(Util.toHTML(e));
       }
     }
 

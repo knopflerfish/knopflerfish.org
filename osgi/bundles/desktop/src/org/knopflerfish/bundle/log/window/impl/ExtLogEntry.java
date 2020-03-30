@@ -84,15 +84,15 @@ public class ExtLogEntry implements LogEntry {
   }
 
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append(getId());
-    sb.append(": " + new Date(getTime()));
-    sb.append("  " + Util.levelString(getLevel()));
+    sb.append(": ").append(new Date(getTime()));
+    sb.append("  ").append(Util.levelString(getLevel()));
 
-    sb.append(" #" + getBundle().getBundleId());
-    sb.append(" " + Util.getBundleName(getBundle()));
+    sb.append(" #").append(getBundle().getBundleId());
+    sb.append(" ").append(Util.getBundleName(getBundle()));
 
-    sb.append(" -  " + getMessage());
+    sb.append(" -  ").append(getMessage());
     if(getException() != null) {
       StringWriter w = new StringWriter();
       getException().printStackTrace(new PrintWriter(w));

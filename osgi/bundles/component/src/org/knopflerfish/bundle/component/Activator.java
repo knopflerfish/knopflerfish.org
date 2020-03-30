@@ -159,7 +159,7 @@ public class Activator implements BundleActivator
    * Return info about ServiceReference
    */
   public static String srInfo(ServiceReference<?> sr) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("ServiceReference(id=");
     sb.append(sr.getProperty(Constants.SERVICE_ID));
     sb.append(", [");

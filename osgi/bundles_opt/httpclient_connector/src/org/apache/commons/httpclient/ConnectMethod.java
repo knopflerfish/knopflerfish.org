@@ -101,7 +101,7 @@ public class ConnectMethod extends HttpMethodBase {
     
     public String getPath() {
         if (this.targethost != null) {
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             buffer.append(this.targethost.getHost()); 
             int port = this.targethost.getPort();
             if (port == -1) {
@@ -199,7 +199,7 @@ public class ConnectMethod extends HttpMethodBase {
      */
     protected void writeRequestLine(HttpState state, HttpConnection conn)
     throws IOException, HttpException {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append(getName()); 
         buffer.append(' '); 
         if (this.targethost != null) {

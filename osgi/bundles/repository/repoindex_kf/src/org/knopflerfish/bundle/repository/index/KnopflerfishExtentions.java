@@ -76,7 +76,7 @@ public class KnopflerfishExtentions implements ResourceAnalyzer {
 		if (a == null) {
 			return null;
 		} else {
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 			try {
 				List<HeaderEntry> lic = Util.parseManifestHeader(
 						"Bundle-License", a, true, true, false);

@@ -825,7 +825,7 @@ public class Activator
 
   private String showDevice(ServiceReference<?> sr)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     Object o =
       sr.getProperty(org.osgi.service.device.Constants.DEVICE_CATEGORY);
     if (o instanceof String) {
@@ -854,7 +854,7 @@ public class Activator
 
   private String showDriver(ServiceReference<?> sr)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     final String s =
       (String) sr.getProperty(org.osgi.service.device.Constants.DRIVER_ID);
     sb.append(s != null ? s : "driver");

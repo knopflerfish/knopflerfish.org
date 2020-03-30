@@ -337,7 +337,7 @@ class PermissionInfoStorage {
       // Read permissions
       int c = in.read();
       while (c != -1) {
-        final StringBuffer pe = new StringBuffer();
+        final StringBuilder pe = new StringBuilder();
         while (c != -1 && c != '\n') {
           pe.append((char) c);
           c = in.read();
@@ -389,7 +389,7 @@ class PermissionInfoStorage {
    * Parse location data.
    */
   private String parseLocation(Reader in) throws IOException {
-    final StringBuffer loc = new StringBuffer();
+    final StringBuilder loc = new StringBuilder();
     int c;
     // Read location
     while ((c = in.read()) != -1) {

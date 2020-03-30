@@ -175,7 +175,7 @@ class Fragment
   boolean isTarget(BundleGeneration bg)
   {
     return (hostName.equals(bg.symbolicName) 
-            || extension != null && BundleGeneration.KNOPFLERFISH_SYMBOLICNAME == bg.symbolicName)
+            || extension != null && BundleGeneration.KNOPFLERFISH_SYMBOLICNAME.equals(bg.symbolicName))
            && (versionRange == null || versionRange.includes(bg.version))
            && bg.bsnAttrMatch(attributes);
   }
@@ -208,7 +208,7 @@ class Fragment
 
   private Filter toFilter()
   {
-    final StringBuffer sb = new StringBuffer(80);
+    final StringBuilder sb = new StringBuilder(80);
     boolean multipleConditions = false;
 
     sb.append('(');
@@ -232,7 +232,7 @@ class Fragment
       sb.append('=');
       sb.append(entry.getValue().toString());
       sb.append(')');
-      multipleConditions |= true;
+      multipleConditions = true;
     }
 
     if (multipleConditions) {

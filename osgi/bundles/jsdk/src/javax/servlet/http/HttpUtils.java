@@ -96,7 +96,7 @@ public class HttpUtils {
       throw new IllegalArgumentException();
     }
     Hashtable ht = new Hashtable();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     StringTokenizer st = new StringTokenizer(s, "&");
     while (st.hasMoreTokens()) {
       String pair = (String)st.nextToken();
@@ -224,7 +224,7 @@ public class HttpUtils {
      * Parse a name in the query string.
      */
 
-    static private String parseName(String s, StringBuffer sb) {
+    static private String parseName(String s, StringBuilder sb) {
 	sb.setLength(0);
 	for (int i = 0; i < s.length(); i++) {
 	    char c = s.charAt(i);
@@ -269,7 +269,7 @@ public class HttpUtils {
      * number, and server path, but it does not include query
      * string parameters.
      *
-     * <p>Because this method returns a <code>StringBuffer</code>,
+     * <p>Because this method returns a <code>StringBuilder</code>,
      * not a string, you can modify the URL easily, for example,
      * to append query parameters.
      *
@@ -279,13 +279,13 @@ public class HttpUtils {
      * @param req	a <code>HttpServletRequest</code> object
      *			containing the client's request
      *
-     * @return		a <code>StringBuffer</code> object containing
+     * @return		a <code>StringBuilder</code> object containing
      *			the reconstructed URL
      *
      */
 
-    public static StringBuffer getRequestURL (HttpServletRequest req) {
-	StringBuffer url = new StringBuffer ();
+    public static StringBuilder getRequestURL (HttpServletRequest req) {
+	StringBuilder url = new StringBuilder();
 	String scheme = req.getScheme ();
 	int port = req.getServerPort ();
 	String urlPath = req.getRequestURI();

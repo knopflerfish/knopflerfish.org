@@ -305,7 +305,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
    */
   @Override
   protected String toExternalForm(URL url) {
-    final StringBuffer res = new StringBuffer(url.getProtocol());
+    final StringBuilder res = new StringBuilder(url.getProtocol());
     res.append("://");
     res.append(url.getHost());
     final int port = url.getPort();

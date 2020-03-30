@@ -131,14 +131,14 @@ public class MTP
 
   public String toString(boolean bFull)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     sb.append("MTP[\n");
     for (final Iterator<String> it = ocdMap.keySet().iterator(); it.hasNext();) {
       final String pid = it.next();
       final ObjectClassDefinition ocd = ocdMap.get(pid);
       if (bFull) {
-        sb.append(pid + "=");
+        sb.append(pid).append("=");
         sb.append(ocd);
       } else {
         sb.append(pid);

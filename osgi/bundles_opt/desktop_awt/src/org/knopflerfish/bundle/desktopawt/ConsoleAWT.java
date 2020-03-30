@@ -48,16 +48,9 @@ public class ConsoleAWT extends Panel {
   TextArea  text;
   TextField tfCmd;
 
-  int p0 = -1;
-  int p1 = 0;
-
-  String last = "";
-
   InputStream origIn;
   PrintStream origOut;
   PrintStream origErr;
-
-  PipedOutputStream textSource;
 
   TextReader       in;
   PrintStream      out;
@@ -68,8 +61,6 @@ public class ConsoleAWT extends Panel {
 
   Vector history    = new Vector();
   int    historyPos = 0;
-
-  StringBuffer lineBuff = new StringBuffer();
 
   boolean bGrabbed = false;
 

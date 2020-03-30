@@ -373,7 +373,7 @@ public class Util
    */
   public static String showServiceClasses(ServiceReference<?> sr)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     final String[] c = (String[]) sr.getProperty("objectClass");
     if (c.length >= 2) {
       sb.append("[");
@@ -406,31 +406,31 @@ public class Util
       return "null";
     }
     if (o.getClass().isArray()) {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       final int len = Array.getLength(o);
       sb.append("[");
       if (len > 0) {
         sb.append(showObject(Array.get(o, 0)));
       }
       for (int i = 1; i < len; i++) {
-        sb.append(", " + showObject(Array.get(o, i)));
+        sb.append(", ").append(showObject(Array.get(o, i)));
       }
       sb.append("]");
       o = sb;
     } else if (o instanceof Enumeration) {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       final Enumeration<?> e = (Enumeration<?>) o;
       sb.append("[");
       if (e.hasMoreElements()) {
         sb.append(showObject(e.nextElement()));
       }
       while (e.hasMoreElements()) {
-        sb.append(", " + showObject(e.nextElement()));
+        sb.append(", ").append(showObject(e.nextElement()));
       }
       sb.append("]");
       o = sb;
     } else if (o instanceof Collection<?>) {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       final Iterator<?> it = ((Collection<?>) o).iterator();
       sb.append("[");
       if (it.hasNext()) {

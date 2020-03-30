@@ -444,7 +444,7 @@ public class AutoManifest extends Manifest {
    * The package set is created by addFileName() calls
    */
   String getExports() {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (final String pkg : packages) {
       if(sb.length() > 0) {
         sb.append(",");

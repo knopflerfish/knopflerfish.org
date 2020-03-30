@@ -64,7 +64,7 @@ public class NsToHtmlContent
     final Map<String, Object> attrs =
       new HashMap<String, Object>(capability.getAttributes());
 
-    final StringBuffer sb = new StringBuffer(50);
+    final StringBuilder sb = new StringBuilder(50);
 
     Object val;
 
@@ -99,7 +99,7 @@ public class NsToHtmlContent
   @Override
   public String toHTML(Requirement requirement)
   {
-    final StringBuffer sb = new StringBuffer(100);
+    final StringBuilder sb = new StringBuilder(100);
     sb.append("<table border='0'>\n");
     for (final Entry<String, String> dir : requirement.getDirectives()
         .entrySet()) {

@@ -917,7 +917,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    */
   URL getURL(int subId, String path) {
     try {
-      final StringBuffer u = new StringBuffer(BundleURLStreamHandler.PROTOCOL);
+      final StringBuilder u = new StringBuilder(BundleURLStreamHandler.PROTOCOL);
       u.append("://");
       u.append(bundle.id);
       if (generation > 0) {

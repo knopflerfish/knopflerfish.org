@@ -193,13 +193,13 @@ public class Text {
      * @return String with expanded tabs.
      */
     public static String untabify(String s, int tabSize) {
-        StringBuffer sb = new StringBuffer(s);
+        StringBuilder sb = new StringBuilder(s);
         for (int i = 0; i < sb.length(); i++) {
             if (sb.charAt(i) == '\t') {
                 String toinsert = "        ".substring(0, tabSize
                         - (i % tabSize));
                 if (toinsert.length() == 0) {
-                    sb = new StringBuffer(sb.toString().substring(0, i)
+                    sb = new StringBuilder(sb.toString().substring(0, i)
                             + sb.toString().substring(i + 1));
                 } else {
                     sb.setCharAt(i, ' ');
@@ -302,7 +302,7 @@ public class Text {
     public static String[] splitwords(String s, String whiteSpace, char citChar) {
         boolean bCit = false; // true when inside citation chars.
         Vector<String> v = new Vector<String>(); //individual words after splitting
-        StringBuffer buf = null;
+        StringBuilder buf = null;
         int i = 0;
 
         while (i < s.length()) {
@@ -315,7 +315,7 @@ public class Text {
                     bCit = !bCit;
                 } else {
                     if (buf == null) {
-                        buf = new StringBuffer();
+                        buf = new StringBuilder();
                     }
                     buf.append(c);
                 }
@@ -367,7 +367,7 @@ public class Text {
      * Join an array into a single string with a given separator.
      */
     public static String join(Object[] s, String sep) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         int l = s.length;
         if (l > 0) {
             buf.append(s[0].toString());
@@ -410,8 +410,8 @@ public class Text {
       /**
        * String compare
        *
-       * @param oa Object to compare.
-       * @param ob Object to compare.
+       * @param a Object to compare.
+       * @param b Object to compare.
        * @return Return 0 if equals, negative if first object is less than second
        *         object and positive if first object is larger then second object.
        * @exception ClassCastException if objects are not a String objects.
@@ -615,7 +615,7 @@ public class Text {
       skipWhite();
       boolean backslash = false;
       boolean quote = false;
-      StringBuffer val = new StringBuffer();
+      StringBuilder val = new StringBuilder();
       int end = 0;
       loop:
       for (; pos < length; pos++) {

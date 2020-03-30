@@ -258,7 +258,7 @@ public class KfApk {
       final InputStream is = am.open(PROP_FILE);
       in = new BufferedReader(new InputStreamReader(is));
 
-      StringBuffer contLine = new StringBuffer();
+      StringBuilder contLine = new StringBuilder();
       String line = null;
       String tmpline  = null;
       for(tmpline = in.readLine(); tmpline != null; tmpline = in.readLine()) {
@@ -271,7 +271,7 @@ public class KfApk {
           // buffered continuation line
           tmpline = tmpline.substring(0, tmpline.length() - 1);
           if(contLine == null) {
-            contLine = new StringBuffer(tmpline);
+            contLine = new StringBuilder(tmpline);
           } else {
             contLine.append(tmpline);
           }

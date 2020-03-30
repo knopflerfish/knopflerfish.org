@@ -268,7 +268,7 @@ public class BundlePackagesInfo {
    */
   public String getProvidedPackagesAsExportPackageValue()
   {
-    final StringBuffer res = new StringBuffer(255);
+    final StringBuilder res = new StringBuilder(255);
 
     for (final Iterator<String> ppIt = providedPackages.iterator(); ppIt.hasNext();) {
       final String pPkg = ppIt.next();
@@ -702,7 +702,7 @@ public class BundlePackagesInfo {
   @Override
   public String toString()
   {
-    final StringBuffer res = new StringBuffer(200);
+    final StringBuilder res = new StringBuilder(200);
     res.append("BundlePackagesInfo:\n\t");
     res.append("Provided packages: [");
     for (final Iterator<String> ppIt = providedPackages.iterator(); ppIt.hasNext();) {

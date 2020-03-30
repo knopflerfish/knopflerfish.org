@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.httpconsole;
 
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 
@@ -48,13 +47,13 @@ public class InstallFileCommand2 implements Command {
     return DISPLAY_COMPACTLIST;
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
 
-    sb.append("<div class=\"shadow\">" + getName() + "</div>");
+    sb.append("<div class=\"shadow\">").append(getName()).append("</div>");
 
     try {
-      StringBuffer filename = new StringBuffer();
+      StringBuilder filename = new StringBuilder();
       byte[] bytes = Util.loadFormData(request, getId(), filename);
       if(bytes == null || bytes.length == 0) {
         sb.append("No file, or empty files selected");
@@ -63,10 +62,9 @@ public class InstallFileCommand2 implements Command {
         String loc = in.toString() + "." + filename;
         Bundle b = Activator.bc.installBundle(loc, in);
         if(b != null) {
-          sb.append("Installed bundle of size " +
-                    bytes.length + " bytes<br/>");
+          sb.append("Installed bundle of size ").append(bytes.length).append(" bytes<br/>");
         } else {
-          sb.append("Failed to install bundle of size " + bytes.length + " bytes<br/>");
+          sb.append("Failed to install bundle of size ").append(bytes.length).append(" bytes<br/>");
         }
       }
     } catch (BundleException be){
@@ -118,14 +116,7 @@ public class InstallFileCommand2 implements Command {
 
 
   public boolean isTrigger(HttpServletRequest request) {
-
     String s = request.getHeader("content-type");
-    if(s == null) { s = ""; }
-
-
-    boolean b =
-      s.startsWith("multipart/form-data");
-
-    return b;
+    return s != null && s.startsWith("multipart/form-data");
   }
 }

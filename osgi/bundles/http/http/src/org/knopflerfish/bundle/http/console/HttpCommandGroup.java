@@ -157,7 +157,7 @@ public class HttpCommandGroup
 
   private static void printDictionary(PrintWriter out, Dictionary<?, ?> d, int level)
   {
-    final StringBuffer blanklead = new StringBuffer();
+    final StringBuilder blanklead = new StringBuilder();
     for (int i = 0; i < level; i++) {
       blanklead.append("  ");
     }
@@ -177,7 +177,7 @@ public class HttpCommandGroup
 
   private static void printVectorArray(PrintWriter out, Vector<?> v, int level)
   {
-    final StringBuffer blanklead = new StringBuffer();
+    final StringBuilder blanklead = new StringBuilder();
     for (int i = 0; i < level; i++) {
       blanklead.append("  ");
     }

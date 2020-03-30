@@ -116,7 +116,7 @@ public class ServiceHTMLDisplayer
       return sid;
     }
 
-    private void appendBaseURL(final StringBuffer sb)
+    private void appendBaseURL(final StringBuilder sb)
     {
       sb.append("http://");
       sb.append(URL_SERVICE_HOST);
@@ -130,7 +130,7 @@ public class ServiceHTMLDisplayer
       return params;
     }
 
-    public void serviceLink(final StringBuffer sb, final String text)
+    public void serviceLink(final StringBuilder sb, final String text)
     {
       sb.append("<a href=\"");
       appendBaseURL(sb);
@@ -160,7 +160,7 @@ public class ServiceHTMLDisplayer
     }
   }
 
-  public boolean renderUrl(final URL url, final StringBuffer sb)
+  public boolean renderUrl(final URL url, final StringBuilder sb)
   {
     final ServiceUrl serviceUrl = new ServiceUrl(url);
 
@@ -169,7 +169,7 @@ public class ServiceHTMLDisplayer
     return true;
   }
 
-  void appendServiceHTML(final StringBuffer sb, final long sid)
+  void appendServiceHTML(final StringBuilder sb, final long sid)
   {
     try {
       final String filter = "(" + Constants.SERVICE_ID + "=" + sid + ")";
@@ -181,7 +181,7 @@ public class ServiceHTMLDisplayer
 
         sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
         JHTMLBundle.startFont(sb, "-1");
-        sb.append("Service #" + sid);
+        sb.append("Service #").append(sid);
         sb.append(", ");
         Util.bundleLink(sb, srl[0].getBundle());
         JHTMLBundle.stopFont(sb);
@@ -219,7 +219,7 @@ public class ServiceHTMLDisplayer
         try {
           formatServiceObject(sb, srl[0]);
         } catch (final Exception e) {
-          sb.append("Failed to format service object: " + e);
+          sb.append("Failed to format service object: ").append(e);
           Activator.log
               .warn("Failed to format service object: " + e, srl[0], e);
         }
@@ -227,14 +227,14 @@ public class ServiceHTMLDisplayer
         sb.append("</html>");
 
       } else {
-        sb.append("No service with sid=" + sid);
+        sb.append("No service with sid=").append(sid);
       }
     } catch (final Exception e2) {
       e2.printStackTrace();
     }
   }
 
-  void formatServiceObject(final StringBuffer sb, final ServiceReference<?> sr)
+  void formatServiceObject(final StringBuilder sb, final ServiceReference<?> sr)
   {
     final String[] names = (String[]) sr.getProperty(Constants.OBJECTCLASS);
 
@@ -277,7 +277,7 @@ public class ServiceHTMLDisplayer
     sb.append("</table>");
   }
 
-  void formatClass(final StringBuffer sb, final Class<?> clazz)
+  void formatClass(final StringBuilder sb, final Class<?> clazz)
   {
     final Method[] methods = clazz.getDeclaredMethods();
 
@@ -341,9 +341,9 @@ public class ServiceHTMLDisplayer
     }
 
     @Override
-    public StringBuffer bundleInfo(Bundle b)
+    public StringBuilder bundleInfo(Bundle b)
     {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
 
       try {
         final ServiceReference<?>[] srl =

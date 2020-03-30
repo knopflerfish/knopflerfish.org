@@ -290,7 +290,7 @@ public class JUnitServlet extends HttpServlet {
   }
   
   static String indent(int n) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     while(n --> 0) {
       sb.append(" ");
     }

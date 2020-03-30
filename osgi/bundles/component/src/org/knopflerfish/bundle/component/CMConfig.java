@@ -398,7 +398,7 @@ class CMConfig
 
 
     String[] getTargetedPIDs() {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       String [] cs = new String [] { pid,
                                      bundle.getSymbolicName(),
                                      bundle.getVersion().toString(),

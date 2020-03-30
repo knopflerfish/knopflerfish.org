@@ -88,7 +88,7 @@ public class Colors extends HashMap<String,Color> {
    * Get color name if it exists in COLORS map, otherwise #RRGGBB
    */
   public static String toString(Color c) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     for(Iterator<String> it = COLORS.keySet().iterator(); it.hasNext();) {
       String name = it.next();
@@ -114,7 +114,7 @@ public class Colors extends HashMap<String,Color> {
    * Convert an integer to a (zero-padded) hex string.
    */
   public static String toHex(int n, int len) {
-    StringBuffer s = new StringBuffer(Integer.toHexString(n));
+    StringBuilder s = new StringBuilder(Integer.toHexString(n));
     while(s.length() < len) {
       s.insert(0, "0");
     }

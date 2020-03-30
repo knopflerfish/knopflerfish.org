@@ -60,7 +60,7 @@ public class TelnetCommandEcho extends TelnetCommand {
 
     public String execute(int action, int optionCode, byte[] parameters) {
         // printCommand(action, optionCode, parameters);
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         switch (action) {
         case TCC.DO:

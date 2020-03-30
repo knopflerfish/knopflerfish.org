@@ -112,13 +112,13 @@ public class NativeCodeTestSuite extends TestSuite {
       String language  = (String) opts.get("language");
 
       // at present only the processor and osname are used
-      StringBuffer b1 = new StringBuffer(test_url_base+"bundleN-"+ processor + "-" + osname);
+      StringBuilder b1 = new StringBuilder(test_url_base+"bundleN-"+ processor + "-" + osname);
       //
       if (osversion != null) {
-        b1.append("-"+osversion);
+        b1.append("-").append(osversion);
       }
       if (language != null) {
-        b1.append("-"+language);
+        b1.append("-").append(language);
       }
       b1.append("_test_all-1.0.0.jar");
       String jarName = b1.toString();

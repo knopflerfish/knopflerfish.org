@@ -34,9 +34,7 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
-import java.io.*;
 
 import org.osgi.framework.*;
 
@@ -48,13 +46,13 @@ public class StopCommand extends IconCommand {
 	  Activator.RES_ALIAS + "/player_stop.png");
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
     
 
     long[] bids = Util.getBundleIds(request);
 
-    sb.append("<div class=\"shadow\">" + getName() + "</div>");
+    sb.append("<div class=\"shadow\">").append(getName()).append("</div>");
     
     if(bids.length == 0) {
       sb.append("No bundles selected");
@@ -62,13 +60,13 @@ public class StopCommand extends IconCommand {
 
     for(int i = 0; i < bids.length; i++) {
       try {
-	Bundle b = Activator.bc.getBundle(bids[i]);
-	if(b.getState() == Bundle.ACTIVE) {
-	  b.stop();
-	  sb.append("Stopped " + Util.getName(b) + "<br/>");
-	}
+        Bundle b = Activator.bc.getBundle(bids[i]);
+        if(b.getState() == Bundle.ACTIVE) {
+          b.stop();
+          sb.append("Stopped ").append(Util.getName(b)).append("<br/>");
+        }
       } catch (Exception e) {
-	sb.append(Util.toHTML(e));
+        sb.append(Util.toHTML(e));
       }
     }
 

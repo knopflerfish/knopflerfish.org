@@ -4970,7 +4970,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // General status check functions
   // prevent control characters to be printed
   private String xlateData(byte [] b1) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < b1.length ; i++) {
       if (-128 <= b1[i] && b1[i] < 0) {
         sb.append(new String(b1, i, 1));

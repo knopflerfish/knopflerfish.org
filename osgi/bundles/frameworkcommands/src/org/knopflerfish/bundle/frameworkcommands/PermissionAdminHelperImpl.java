@@ -329,7 +329,7 @@ public class PermissionAdminHelperImpl
     String name = (String) opts.get("-name");
     String [] cpis = (String []) opts.get("conditional_permission_info");
     String endChar = null;
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     for (int i = 0; i < cpis.length; ) {
       String cpi = cpis[i];
       if (endChar != null) {

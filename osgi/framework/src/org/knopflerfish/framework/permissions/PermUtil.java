@@ -41,10 +41,7 @@ class PermUtil {
 
   /**
    */
-  public static StringBuffer quote(String str, StringBuffer out) {
-    if (out == null) {
-      out = new StringBuffer();
-    }
+  public static void quote(String str, StringBuilder out) {
     out.append('"');
     int len = str.length();
     for (int i = 0; i < len; i++) {
@@ -66,7 +63,6 @@ class PermUtil {
       }
     }
     out.append('"');
-    return out;
   }
 
 
@@ -93,7 +89,7 @@ class PermUtil {
   /**
    *
    */
-  public static int unquote(char [] ca, int pos, StringBuffer out) {
+  public static int unquote(char [] ca, int pos, StringBuilder out) {
     if (ca[pos++] != '"') {
       throw new IllegalArgumentException("Input not a quoted string");
     }

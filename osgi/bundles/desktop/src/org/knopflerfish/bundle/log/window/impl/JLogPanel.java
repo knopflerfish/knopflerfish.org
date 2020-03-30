@@ -109,7 +109,7 @@ public class JLogPanel extends JPanel implements ClipboardOwner {
   }
 
   void copyToClipBoard() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     for(ExtLogEntry entry : model.getEntries()) {
       sb.append(entry.toString());

@@ -86,8 +86,6 @@ public class SwingIO extends JPanel {
   Vector<String> history    = new Vector<String>();
   int    historyPos = 0;
 
-  StringBuffer lineBuff = new StringBuffer();
-
   boolean bGrabbed = false;
 
   int maxLines

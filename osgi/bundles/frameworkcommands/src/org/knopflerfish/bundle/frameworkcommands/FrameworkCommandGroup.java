@@ -371,7 +371,7 @@ public class FrameworkCommandGroup
 
   private String getBundleSpeciality(Bundle bundle)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     final BundleWiring bw = bundle.adapt(BundleWiring.class);
 
     if (bw != null) {
@@ -1828,7 +1828,7 @@ public class FrameworkCommandGroup
     out.println("Name");
     for (int i = 0; i < count; i++) {
       try {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         if (threadNames != null) {
           boolean match = false;
           for (final String threadName : threadNames) {
@@ -2142,10 +2142,10 @@ public class FrameworkCommandGroup
   }
 
   public String showState(Bundle bundle) {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     try {
-      final StringBuffer s = new StringBuffer
+      final StringBuilder s = new StringBuilder
         (String.valueOf(bundle.adapt(BundleStartLevel.class).getStartLevel()));
       while (s.length() < 2) {
         s.insert(0, " ");

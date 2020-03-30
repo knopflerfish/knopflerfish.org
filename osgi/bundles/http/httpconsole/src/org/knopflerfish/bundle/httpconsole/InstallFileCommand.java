@@ -34,11 +34,8 @@
 
 package org.knopflerfish.bundle.httpconsole;
 
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-
-import org.osgi.framework.*;
 
 public class InstallFileCommand extends IconCommand {
 
@@ -55,8 +52,8 @@ public class InstallFileCommand extends IconCommand {
     return installFile2.getDisplayFlags();
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
 
     if(installFile2.isTrigger(request)) {
       return installFile2.run(request);

@@ -46,7 +46,7 @@ public class NsToHtmlPackage
   implements NsToHtml
 {
 
-  private void appendVersionAndResolutionDirective(final StringBuffer sb,
+  private void appendVersionAndResolutionDirective(final StringBuilder sb,
                                                    final Requirement requirement)
   {
     final String filter =
@@ -69,7 +69,7 @@ public class NsToHtmlPackage
   @Override
   public String toHTML(Capability capability)
   {
-    final StringBuffer sb = new StringBuffer(50);
+    final StringBuilder sb = new StringBuilder(50);
 
     // Make a modifiable clone of the capability attributes.
     final Map<String, Object> attrs
@@ -97,7 +97,7 @@ public class NsToHtmlPackage
   @Override
   public String toHTML(Requirement requirement)
   {
-    final StringBuffer sb = new StringBuffer(50);
+    final StringBuilder sb = new StringBuilder(50);
     final String filter = requirement.getDirectives().get("filter");
     final String pkgName =
       Util.getFilterValue(filter, BundleRevision.PACKAGE_NAMESPACE);

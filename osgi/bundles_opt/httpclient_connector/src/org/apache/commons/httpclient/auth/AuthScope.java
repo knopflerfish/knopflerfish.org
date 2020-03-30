@@ -292,7 +292,7 @@ public class AuthScope {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         if (this.scheme != null) {
             buffer.append(this.scheme.toUpperCase());
             buffer.append(' ');

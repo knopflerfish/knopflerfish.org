@@ -66,7 +66,7 @@ public abstract class IconCommand implements Command {
     return displayFlags;
   }
 
-  public abstract StringBuffer run(HttpServletRequest request);
+  public abstract StringBuilder run(HttpServletRequest request);
 
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
     out.print(" <input " +

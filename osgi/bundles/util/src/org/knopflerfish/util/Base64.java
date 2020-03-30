@@ -41,15 +41,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class Base64 {
-    /*
-     * private static final char encodeTable[] = {
-     * 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P',
-     * 'Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f',
-     * 'g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v',
-     * 'w','x','y','z','0','1','2','3','4','5','6','7','8','9','+','/' };
-     */
 
-    private static final byte encTab[] = { 0x41, 0x42, 0x43, 0x44, 0x45, 0x46,
+    private static final byte[] encTab = { 0x41, 0x42, 0x43, 0x44, 0x45, 0x46,
             0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f, 0x50, 0x51,
             0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x61, 0x62,
             0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d,
@@ -57,7 +50,7 @@ public class Base64 {
             0x79, 0x7a, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
             0x39, 0x2b, 0x2f };
 
-    private static final byte decTab[] = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    private static final byte[] decTab = { -1, -1, -1, -1, -1, -1, -1, -1, -1,
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
             62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1,
@@ -65,55 +58,6 @@ public class Base64 {
             14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
             -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
             42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1 };
-
-    /*
-     * private static final byte decodeTable[]={ -1, -1, -1, -1, -1, -1, -1, -1,
-     * -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-     * -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62,
-     * -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1,
-     * -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-     * 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29,
-     * 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
-     * 48, 49, 50, 51, -1, -1, -1, -1, -1 };
-     */
-
-    /**
-     * Encode a string of binary data using Base64.
-     */
-    /*
-     * public static String encode(String in) { return encode(in.getBytes()); }
-     * 
-     * public static String encode(byte[] in) { StringBuffer sb= new
-     * StringBuffer(); int ilen=in.length; int bits=0; int nbits=0;
-     * 
-     * for(int i=0;i<ilen;i++) { int c=(int)in[i] & 0xff; if(c>=256) throw new
-     * IllegalArgumentException("Illegal character: " + in[i]); bits=(bits<<8)|c;
-     * nbits+=8; while(nbits>=6) { nbits-=6;
-     * sb.append(encodeTable[0x3f&(bits>>nbits)]); } }
-     * 
-     * switch(nbits) { case 2: sb.append(encodeTable[0x3f&(bits<<4)]);
-     * sb.append('='); sb.append('='); break; case 4:
-     * sb.append(encodeTable[0x3f&(bits<<2)]); sb.append('='); break; }
-     * 
-     * return sb.toString(); }
-     */
-
-    /**
-     * Decode a string of Base64 data.
-     */
-    /*
-     * public static String decode(String in) { StringBuffer sb= new
-     * StringBuffer(); int ilen=in.length(); int i=0; int bits=0; int nbits=0; //
-     * Check for complete groups and proper termination if(ilen%4!=0) throw new
-     * IllegalArgumentException("Not a multiple of 4 characters"); for(;ilen>0 &&
-     * in.charAt(ilen-1)=='=';ilen--); if(in.length()-ilen>2) throw new
-     * IllegalArgumentException("Too many trailing ="); // Decode for(;i<ilen;i++) {
-     * char c=in.charAt(i); byte b=c<128 ? decodeTable[c] : -1; if(b<0) throw
-     * new IllegalArgumentException("Illegal character"); bits=(bits<<6)|b;
-     * nbits+=6; if(nbits>=8) { nbits-=8; sb.append((char)(0xff&(bits>>nbits))); } }
-     * 
-     * return sb.toString(); }
-     */
 
     /**
      * Decode a string of Base64 data.

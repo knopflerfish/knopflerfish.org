@@ -51,10 +51,9 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import java.lang.reflect.Array;
 
-
 public class Util {
 
- public static String shortLocation(String s) {
+  public static String shortLocation(String s) {
     int ix = s.lastIndexOf("/");
 
     // handle eclipse extended location directory syntax
@@ -102,11 +101,9 @@ public class Util {
   }
 
   public static String getHeader(Bundle b, String name, String def) {
-    String s = b != null
-      ? (String)b.getHeaders().get(name)
+    return b != null
+      ? b.getHeaders().get(name)
       : def;
-
-    return s;
   }
 
   public static int getId(Event e) {
@@ -114,8 +111,7 @@ public class Util {
   }
 
   public static Bundle getBundle(Event e) {
-    Bundle b = (Bundle)e.getProperty("bundle");
-    return b;
+    return (Bundle) e.getProperty("bundle");
   }
 
   public static Throwable getException(Event e) {
@@ -127,15 +123,15 @@ public class Util {
   }
 
   public static long getTime(Event e) {
-    return getNumber(e, "timestamp", new Long(0)).longValue();
+    return getNumber(e, "timestamp", 0L).longValue();
   }
 
   public static long getBundleId(Event e) {
-    return getNumber(e, "bundle.id", new Long(-1)).longValue();
+    return getNumber(e, "bundle.id", -1L).longValue();
   }
   
   public static int getLevel(Event e) {
-    return getNumber(e, "log.level", new Integer(0)).intValue();
+    return getNumber(e, "log.level", 0).intValue();
   }
 
   public static String getMessage(Event e) {
@@ -186,7 +182,7 @@ public class Util {
     if(obj == null) {
       return "null";
     }
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     Map<?,?> map = (Map<?,?>)obj;
     sb.append("<table>");
     for(Iterator<?> it = map.keySet().iterator(); it.hasNext(); ) {
@@ -209,7 +205,7 @@ public class Util {
     if(obj == null) {
       return "null";
     }
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append("[");
     for(int i = 0; i < Array.getLength(obj); i++) {
       if(i > 0) {
@@ -223,7 +219,7 @@ public class Util {
   }
 
   public static String toHTML(Event e) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     String[] names = e.getPropertyNames();
 
@@ -240,15 +236,18 @@ public class Util {
     sb.append("<table border=0 width=\"100%\">\n");
 
     sb.append("<tr bgcolor=\"#eeeeee\">");
-    sb.append("<td  valign=top  align=left bgcolor=\"#eeeeee\">" + 
-	      fontify(tf.format(new Date(getTime(e)))) + "</td>");
-    sb.append("<td  valign=top  align=right bgcolor=\"#eeeeee\">" + 
-	      fontify(e.getTopic()) + "</td>");    
+    sb.append("<td  valign=top  align=left bgcolor=\"#eeeeee\">")
+        .append(fontify(tf.format(new Date(getTime(e)))))
+        .append("</td>");
+    sb.append("<td  valign=top  align=right bgcolor=\"#eeeeee\">")
+        .append(fontify(e.getTopic()))
+        .append("</td>");
     sb.append("</tr>");
 
     sb.append("<tr bgcolor=\"#eeeeee\">");
-        sb.append("<td  valign=top  colspan=2 align=left bgcolor=\"#eeeeee\">" + 
-	      fontify(getMessage(e)) + "</td>");
+    sb.append("<td  valign=top  colspan=2 align=left bgcolor=\"#eeeeee\">")
+        .append(fontify(getMessage(e)))
+        .append("</td>");
     sb.append("</tr>");
     
     Throwable t = getException(e);
@@ -295,18 +294,20 @@ public class Util {
     
   public static String toHTMLLogEntry(Event e) {
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     sb.append("<html>");
 
     sb.append("<table border=0 width=\"100%\">");
     sb.append("<tr bgcolor=\"#eeeeee\">");
 
-    sb.append("<td  valign=top  align=left bgcolor=\"#eeeeee\">" + 
-	      fontify(tf.format(new Date(getTime(e)))) + "</td>");
+    sb.append("<td  valign=top  align=left bgcolor=\"#eeeeee\">")
+        .append(fontify(tf.format(new Date(getTime(e)))))
+        .append("</td>");
 
-    sb.append("<td colspan=2 valign=top align=right bgcolor=\"#eeeeee\">" + 
-	      fontify(levelString(getLevel(e))) + "</td>");
+    sb.append("<td colspan=2 valign=top align=right bgcolor=\"#eeeeee\">")
+        .append(fontify(levelString(getLevel(e))))
+        .append("</td>");
 
 
     sb.append("</tr>");
@@ -321,8 +322,8 @@ public class Util {
     if(t != null) {
       sb.append("<tr bgcolor=\"#eeeeee\">");
       
-      sb.append("<td colspan=3 align=left bgcolor=\"#eeeeee\">" + 
-		fontify("Exception"));
+      sb.append("<td colspan=3 align=left bgcolor=\"#eeeeee\">")
+          .append(fontify("Exception"));
       sb.append("</td>");
       sb.append("</tr>");
 
@@ -397,8 +398,10 @@ public class Util {
     }
   }
 
-  public static StringBuffer pad(StringBuffer sb, int n) {
-    while(sb.length() < n) sb.append(" ");
+  public static StringBuilder pad(StringBuilder sb, int n) {
+    while (sb.length() < n) {
+      sb.append(" ");
+    }
     return sb;
   }
 

@@ -833,14 +833,17 @@ public class ComponentDescription {
   private static void invalidValue(XmlPullParser p,
                                    String[] expected, int attr)
     throws IllegalXMLException {
-    StringBuffer buf = new StringBuffer();
-    buf.append("Attribute " + p.getAttributeName(attr) +
-               " of \"" + p.getName() + "\"-tag has invalid value, expected one of ");
+    StringBuilder buf = new StringBuilder();
+    buf.append("Attribute ")
+        .append(p.getAttributeName(attr))
+        .append(" of \"")
+        .append(p.getName())
+        .append("\"-tag has invalid value, expected one of ");
 
     for (int i = 0; i < expected.length - 1; i++) {
-      buf.append("\"" + expected[i] + "\", /");
+      buf.append("\"").append(expected[i]).append("\", /");
     }
-    buf.append("but got \"" + p.getAttributeValue(attr) + "\".");
+    buf.append("but got \"").append(p.getAttributeValue(attr)).append("\".");
     throw new IllegalXMLException(buf.toString(), p);
   }
 

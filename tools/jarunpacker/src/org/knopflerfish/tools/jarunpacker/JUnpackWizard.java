@@ -138,7 +138,7 @@ public class JUnpackWizard extends JWizard {
 
     addPage(new JWizardPage("license") {
         {
-          StringBuffer lic = new StringBuffer();
+          StringBuilder lic = new StringBuilder();
 
           BufferedReader in = null;
           String licName = Main.theMain.licenseResName;

@@ -354,7 +354,7 @@ public class Strings {
   {
     boolean bCit = false; // true when inside citation chars.
     boolean bSep = false; // true when inside separator chars.
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     int i = 0;
 
     while (i < s.length()) {
@@ -407,7 +407,7 @@ public class Strings {
                                           final char citChar)
   {
     final ArrayList<String> res = new ArrayList<String>();
-    final StringBuffer buf = new StringBuffer(s.length());
+    final StringBuilder buf = new StringBuilder(s.length());
     boolean bCit = false; // true when inside citation chars.
     boolean bSep = false; // true when inside separator chars.
     int i = 0;

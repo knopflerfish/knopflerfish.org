@@ -683,19 +683,8 @@ public class LogRef
    */
   private String getBundleName()
   {
-    StringBuffer bundleName = new StringBuffer(24);
     // We can't get bundle-name since it requires AdminPermission.
-    // bundleName.append((String)bc.getBundle().getHeaders().get("Bundle-Name"));
-    // If name was not found use the Bid as name.
-    if (bundleName.length() <= 0) {
-      bundleName.append("bid#");
-      bundleName.append(String.valueOf(bundleId));
-    }
-    if (bundleName.length() < 12) {
-      bundleName.append("            ");
-      bundleName.setLength(12);
-    }
-    return bundleName.toString();
+    return String.format("bid#%1$-8s", bundleId);
   }
 
 }

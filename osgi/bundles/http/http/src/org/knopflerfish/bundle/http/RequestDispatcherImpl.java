@@ -349,7 +349,7 @@ public class RequestDispatcherImpl
 
     byte c;
     boolean tagBegin = false;
-    final StringBuffer buf = new StringBuffer(20);
+    final StringBuilder buf = new StringBuilder(20);
     while ((c = (byte) is.read()) != -1) {
       if (c == '<') {
         buf.setLength(0);

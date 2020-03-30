@@ -1828,7 +1828,7 @@ class ConfigurationAdminFactory
       final String bsn = bundle.getSymbolicName();
       // A bundle symbolic name is required for this feature!
       if (bsn != null) {
-        final StringBuffer suffix = new StringBuffer("|").append(bsn);
+        final StringBuilder suffix = new StringBuilder("|").append(bsn);
         targetPIDsuffixes.add(suffix.toString());
         suffix.append('|').append(bundle.getVersion().toString());
         targetPIDsuffixes.add(suffix.toString());

@@ -325,10 +325,7 @@ public class PermissionsWrapper extends PermissionCollection {
       pc.add(new FilePermission((new File(dataRoot, "-")).getPath(),
                                 "read,write,delete"));
     }
-    final StringBuffer sb = new StringBuffer("(id=");
-    sb.append(b.getBundleId());
-    sb.append(")");
-    pc.add(new AdminPermission(sb.toString(),
+    pc.add(new AdminPermission("(id=" + b.getBundleId() + ")",
                                AdminPermission.RESOURCE + "," +
                                AdminPermission.METADATA + "," +
                                AdminPermission.CLASS));

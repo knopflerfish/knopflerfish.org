@@ -1103,7 +1103,7 @@ public class Desktop
     levelItems = new String[levelMax - levelMin + 1];
 
     final Bundle[] bundles = Activator.getTargetBC().getBundles();
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (final Bundle bundle : bundles) {
       final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
       if (bsl != null) {
@@ -2274,7 +2274,7 @@ public class Desktop
 
     final Bundle[] targets = getSelectedBundles();
 
-    final StringBuffer title = new StringBuffer();
+    final StringBuilder title = new StringBuilder();
     title.append("Save deploy archive of: ");
 
     for (int i = 0; i < targets.length; i++) {
@@ -2375,13 +2375,13 @@ public class Desktop
 
         if (jarunpacker_in != null) {
           // Construct a string version of a manifest
-          final StringBuffer sb = new StringBuffer();
+          final StringBuilder sb = new StringBuilder();
           sb.append("Manifest-Version: 1.0\n");
           sb.append("Main-class: org.knopflerfish.tools.jarunpacker.Main\n");
           sb.append("jarunpacker-optbutton: base\n");
           sb.append("jarunpacker-destdir: .\n");
-          sb.append("knopflerfish-version: " + base + "\n");
-          sb.append("jarunpacker-opendir: " + base + "\n");
+          sb.append("knopflerfish-version: ").append(base).append("\n");
+          sb.append("jarunpacker-opendir: ").append(base).append("\n");
 
           // Convert the string to a input stream
           final InputStream is =
@@ -2396,7 +2396,7 @@ public class Desktop
         out = new ZipOutputStream(new FileOutputStream(file));
       }
 
-      final StringBuffer xargs = new StringBuffer();
+      final StringBuilder xargs = new StringBuilder();
       xargs.append("-Forg.osgi.provisioning.spid=");
       xargs.append(base);
       xargs.append("\n");
@@ -2839,7 +2839,7 @@ public class Desktop
     if (fw != null) {
       final ArrayList<Bundle> bundles = new ArrayList<Bundle>();
       final boolean refreshAll = b == null || 0 == b.length;
-      final StringBuffer sb = new StringBuffer("Desktop-RefreshPackages ");
+      final StringBuilder sb = new StringBuilder("Desktop-RefreshPackages ");
       if (refreshAll) {
         sb.append("all packages pending removal");
       } else {
@@ -2898,7 +2898,7 @@ public class Desktop
       // Must not call resolve() from the EDT, since that will block
       // the EDT.
 
-      final StringBuffer sb = new StringBuffer("Desktop-ResolveBundles: ");
+      final StringBuilder sb = new StringBuilder("Desktop-ResolveBundles: ");
       if (resolveAll) {
         sb.append("all bundles needing to be resolved ");
       } else {
@@ -3294,7 +3294,7 @@ public class Desktop
                        + "padding: 5px 10px 0px 0px;}");
 
     // Extract the contents of the body element for this presentation
-    final StringBuffer sb = new StringBuffer(notes.length());
+    final StringBuilder sb = new StringBuilder(notes.length());
     int ix = notes.indexOf("<body");
     if (ix > -1) {
       ix = notes.indexOf('>', ix + 5);

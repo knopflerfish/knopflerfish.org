@@ -63,7 +63,7 @@ public class TelnetCommandStatus extends TelnetCommand {
 
     public String execute(int action, int optionCode, byte[] parameters) {
         // printCommand(action, optionCode, parameters);
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         switch (action) {
         case TCC.DO:
@@ -128,11 +128,10 @@ public class TelnetCommandStatus extends TelnetCommand {
     public String doCommand(int action, int optionCode, byte[] parameters) {
         // printCommand( action, optionCode, parameters);
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if (parameters != null && (parameters[0] == (byte) TCC.SEND)) {
             // assume SEND
-            sb.append(TCC.IAC_string + TCC.SB_string
-                    + String.valueOf((char) optionCode) + TCC.IS_string);
+            sb.append(TCC.IAC_string).append(TCC.SB_string).append((char) optionCode).append(TCC.IS_string);
 
             TelnetCommand[] tcs = getCommands();
             for (int i = 0; i < tcs.length; i++) {
@@ -141,7 +140,7 @@ public class TelnetCommandStatus extends TelnetCommand {
                     sb.append(TCC.WILL_string);
                     sb.append(String.valueOf((char) i));
 
-                    if (tc.getDoStatus() == true) {
+                    if (tc.getDoStatus()) {
                         sb.append(TCC.DO_string);
                         sb.append(String.valueOf((char) i));
                     } else {
@@ -150,7 +149,7 @@ public class TelnetCommandStatus extends TelnetCommand {
                     }
                 }
             }
-            sb.append(TCC.IAC_string + TCC.SE_string);
+            sb.append(TCC.IAC_string).append(TCC.SE_string);
         } else if (parameters != null && (parameters[0] == (byte) TCC.IS)) {
 
         }

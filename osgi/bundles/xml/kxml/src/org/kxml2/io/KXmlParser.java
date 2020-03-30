@@ -1160,8 +1160,7 @@ public class KXmlParser implements XmlPullParser {
 
     public String getPositionDescription() {
 
-        StringBuffer buf =
-            new StringBuffer(type < TYPES.length ? TYPES[type] : "unknown");
+        StringBuilder buf = new StringBuilder(type < TYPES.length ? TYPES[type] : "unknown");
         buf.append(' ');
 
         if (type == START_TAG || type == END_TAG) {
@@ -1172,16 +1171,15 @@ public class KXmlParser implements XmlPullParser {
                 buf.append('/');
 
             if (prefix != null)
-                buf.append("{" + namespace + "}" + prefix + ":");
+                buf.append("{").append(namespace).append("}").append(prefix).append(":");
             buf.append(name);
 
             int cnt = attributeCount << 2;
             for (int i = 0; i < cnt; i += 4) {
                 buf.append(' ');
                 if (attributes[i + 1] != null)
-                    buf.append(
-                        "{" + attributes[i] + "}" + attributes[i + 1] + ":");
-                buf.append(attributes[i + 2] + "='" + attributes[i + 3] + "'");
+                    buf.append("{").append(attributes[i]).append("}").append(attributes[i + 1]).append(":");
+                buf.append(attributes[i + 2]).append("='").append(attributes[i + 3]).append("'");
             }
 
             buf.append('>');
@@ -1198,7 +1196,7 @@ public class KXmlParser implements XmlPullParser {
             buf.append(text);
         }
 
-		buf.append("@"+line + ":" + column);
+		buf.append("@").append(line).append(":").append(column);
 		if(location != null){
 			buf.append(" in ");
 			buf.append(location);

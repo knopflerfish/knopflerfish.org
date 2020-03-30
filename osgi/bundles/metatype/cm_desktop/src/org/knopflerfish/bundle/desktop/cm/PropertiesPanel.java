@@ -126,7 +126,7 @@ public class PropertiesPanel
           className = className + "[]";
         }
 
-        final StringBuffer toolTip = new StringBuffer(200);
+        final StringBuilder toolTip = new StringBuilder(200);
         toolTip.append("<table width=\"400px\">");
         toolTip.append("<tr><th align=\"left\">");
         toolTip.append(ad.getName());

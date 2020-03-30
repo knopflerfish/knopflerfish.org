@@ -156,7 +156,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       }
       pos = PermUtil.endOfString(eca, pos, eca.length);
       if (pos != -1) {
-        final StringBuffer buf = new StringBuffer();
+        final StringBuilder buf = new StringBuilder();
         pos = PermUtil.unquote(eca, pos, buf);
         name = buf.toString();
         if ((pos = PermUtil.endOfString(eca, pos, eca.length)) != -1) {
@@ -230,7 +230,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 
 
   public String getEncoded() {
-    final StringBuffer res = new StringBuffer(access);
+    final StringBuilder res = new StringBuilder(access);
     res.append(" { ");
     if (conditionInfos != null) {
       for (final ConditionInfo conditionInfo : conditionInfos) {

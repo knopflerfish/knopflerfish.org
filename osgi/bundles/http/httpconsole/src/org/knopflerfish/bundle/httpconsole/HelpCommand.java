@@ -34,11 +34,8 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-
-import org.osgi.framework.*;
 
 public class HelpCommand extends IconCommand {
   ConsoleServlet console;
@@ -53,8 +50,8 @@ public class HelpCommand extends IconCommand {
     displayFlags = DISPLAY_COMPACTLIST;
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
 
     sb.append("<div class=\"shadow\">Console help</div>\n");
 
@@ -65,21 +62,21 @@ public class HelpCommand extends IconCommand {
 
     for(int i = 0; i < console.commands.length; i++) {
       if(console.commands[i] instanceof IconCommand) {
-	sb.append(" <div>\n");
-	StringWriter sw  = new StringWriter();
-	
-	sb.append(" <span>\n");
-	try {
-	  console.commands[i].toHTML(request, new PrintWriter(sw));
-	  sb.append(sw.toString());
-	} catch (Exception e) {
-	  sb.append(e.toString());
-	}
-	sb.append(" </span>\n");
-	sb.append(" <span style=\"vertical-align:top;\">\n");
-	sb.append(console.commands[i].getDescription());
-	sb.append(" </span>\n");
-	sb.append("</div>\n");
+        sb.append(" <div>\n");
+        StringWriter sw  = new StringWriter();
+
+        sb.append(" <span>\n");
+        try {
+          console.commands[i].toHTML(request, new PrintWriter(sw));
+          sb.append(sw.toString());
+        } catch (Exception e) {
+          sb.append(e.toString());
+        }
+        sb.append(" </span>\n");
+        sb.append(" <span style=\"vertical-align:top;\">\n");
+        sb.append(console.commands[i].getDescription());
+        sb.append(" </span>\n");
+        sb.append("</div>\n");
       }
     }
 
@@ -90,24 +87,24 @@ public class HelpCommand extends IconCommand {
     sb.append("<table>");
 
     sb.append("<tr>");
-    sb.append("<td><img src=\"" + Util.BUNDLE_IMAGE + "\">");
+    sb.append("<td><img src=\"").append(Util.BUNDLE_IMAGE).append("\">");
     sb.append("</td>");
     sb.append("<td>Bundle with activator</td>");
     sb.append("</tr>");
 
     sb.append("<tr>");
-    sb.append("<td><img src=\"" + Util.BUNDLE_ACTIVE_IMAGE + "\">");
+    sb.append("<td><img src=\"").append(Util.BUNDLE_ACTIVE_IMAGE).append("\">");
     sb.append("</td>");
     sb.append("<td>Started bundle with activator</td>");
     sb.append("</tr>");
 
     sb.append("<tr>");
-    sb.append("<td><img src=\"" + Util.LIB_IMAGE + "\">");
+    sb.append("<td><img src=\"").append(Util.LIB_IMAGE).append("\">");
     sb.append("</td>");
     sb.append("<td>Bundle without activator</td>");
     sb.append("</tr>");
     sb.append("<tr>");
-    sb.append("<td><img src=\"" + Util.LIB_ACTIVE_IMAGE + "\">");
+    sb.append("<td><img src=\"").append(Util.LIB_ACTIVE_IMAGE).append("\">");
     sb.append("</td>");
     sb.append("<td>Started bundle without activator</td>");
     sb.append("</tr>");

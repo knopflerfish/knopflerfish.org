@@ -15,7 +15,7 @@ public class Tokenizer {
     Tokenizer tz = new Tokenizer();
 
     try {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       {
         byte[] buf = new byte[1024];
         int n;
@@ -46,7 +46,7 @@ public class Tokenizer {
   }
 
   public Tokenizer(String s) {
-    init(new StringBuffer(s), 0);
+    init(new StringBuilder(s), 0);
   }
 
   public void addWhiteToken(String s) {
@@ -114,14 +114,14 @@ public class Tokenizer {
   
   public String getToken() {
     char c = peek();
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     if(isWS(c)) {      
       get();
       return "";
     } else if(isCIT(c)) {
       get();
       // sb.append(c);
-      getuntil(sb, c);
+      getUntil(sb, c);
       // sb.append(c);
       return sb.toString();
     } else {
@@ -187,7 +187,7 @@ public class Tokenizer {
     }
   }
 
-  void getuntil(StringBuffer sb, char c1) {
+  void getUntil(StringBuilder sb, char c1) {
     while(hasMore()) {
       char c = get();
       if(c == c1) {
@@ -201,7 +201,7 @@ public class Tokenizer {
 
   protected static final char NO_CHAR = '\0';
   
-  void matchRecursive(StringBuffer sb, char c1, char c2) {
+  void matchRecursive(StringBuilder sb, char c1, char c2) {
     // d("mR");
     char citC = NO_CHAR;
     while(hasMore()) {
@@ -279,7 +279,7 @@ public class Tokenizer {
   }
 
   public static CharSequence trimBlock(String arg) {
-    StringBuffer sb = new StringBuffer(arg.trim());
+    StringBuilder sb = new StringBuilder(arg.trim());
     sb.deleteCharAt(0);
     sb.deleteCharAt(sb.length()-1);
     return sb;

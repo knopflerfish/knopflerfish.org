@@ -57,7 +57,7 @@ class Alias extends Hashtable<String,String[]> {
     public String getString(String key) {
         String[] a = (String[]) get(key);
         if (a != null) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append(a[0]);
             for (int i = 1; i < a.length; i++) {
                 sb.append(" ");
@@ -75,7 +75,7 @@ class Alias extends Hashtable<String,String[]> {
                 String k = e.nextElement();
                 String[] a = (String[]) get(k);
 
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
 
                 for (int i = 0; i < a.length; i++) {
                     sb.append(a[i].trim());

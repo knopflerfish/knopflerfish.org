@@ -107,10 +107,12 @@ public class RequestImpl implements Request
   @Override
   public StringBuffer getRequestURL()
   {
-    final StringBuffer sb =
-        new StringBuffer((httpConfig.isSecure() ? "https" : "http") + "://"
-            + getLocalName() + ":" + getLocalPort() + base.getURI());
-    return sb;
+    return new StringBuffer(httpConfig.isSecure() ? "https" : "http")
+        .append("://")
+        .append(getLocalName())
+        .append(":")
+        .append(getLocalPort())
+        .append(base.getURI());
   }
 
   @Override

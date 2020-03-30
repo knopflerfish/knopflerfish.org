@@ -34,10 +34,8 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -47,12 +45,6 @@ public class IconView implements BundleView {
 
   public IconView(ConsoleServlet console) {
     this.console = console;
-  }
-
-  public StringBuffer run(HttpServletRequest  request) {
-    StringBuffer sb = new StringBuffer();
-
-    return sb;
   }
 
   public String       getId() {

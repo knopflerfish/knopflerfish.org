@@ -39,10 +39,7 @@ import java.awt.Color;
 
 public class Util {
 
-
-
-
-// StringBuffer (red.green.blue) -> Color
+  // Integer (red.green.blue) -> Color
   static Hashtable colors = new Hashtable();
   
   static int maxK = 256;
