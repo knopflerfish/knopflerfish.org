@@ -42,6 +42,8 @@
   <property name="osgi.dir"      location="${ant.dir}/../osgi"/>
   <property name="framework.dir" location="${osgi.dir}/framework"/>
 
+  <property name="kf6.1-libs.baseurl"
+	    value="http://resources.knopflerfish.org/repo/kf6.1-libs" />
 
   <!-- ASM bytecode manipulation and analysis framework -->
   <property name="asm.version" value="3.2"/>
@@ -57,6 +59,7 @@
     <pathelement location="${ant.lib}/${asm-all.jar}" />
   </path>
 
+  
   <!-- Download and install repoindex -->
 
   <property name="bndtools.download.url"
@@ -64,13 +67,17 @@
   
   <property name="org.osgi.impl.bundle.repoindex.cli.jar"
             value="org.osgi.impl.bundle.repoindex.cli-0.0.4.jar"/>
+  <!--property name="org.osgi.impl.bundle.repoindex.cli.download.url"
+            value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.cli/"/-->
   <property name="org.osgi.impl.bundle.repoindex.cli.download.url"
-            value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.cli/"/>
+            value="${kf6.1-libs.baseurl}"/>
 
   <property name="org.osgi.impl.bundle.repoindex.ant.jar"
             value="org.osgi.impl.bundle.repoindex.ant-0.0.1.jar"/>
+  <!--property name="org.osgi.impl.bundle.repoindex.ant.download.url"
+            value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.ant/" /-->
   <property name="org.osgi.impl.bundle.repoindex.ant.download.url"
-            value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.ant/" />
+            value="${kf6.1-libs.baseurl}"/>
 
   <target name="install_repoindex">
     <get src="${org.osgi.impl.bundle.repoindex.cli.download.url}/${org.osgi.impl.bundle.repoindex.cli.jar}"
@@ -165,10 +172,14 @@
             value="proguard-base-${proguard.version}.jar"/>
   <property name="maven.url" value="http://repo1.maven.org/maven2"/>
   <property name="proguard.url" value="${maven.url}/net/sf/proguard"/>
+  <!--property name="proguard-anttask.url"
+            value="${proguard.url}/proguard-anttask/${proguard.version}/${proguard-anttask.jar}"/-->
+  <!--property name="proguard-base.url"
+            value="${proguard.url}/proguard-base/${proguard.version}/${proguard-base.jar}"/-->
   <property name="proguard-anttask.url"
-            value="${proguard.url}/proguard-anttask/${proguard.version}/${proguard-anttask.jar}"/>
+            value="${kf6.1-libs.baseurl}/${proguard-anttask.jar}"/>
   <property name="proguard-base.url"
-            value="${proguard.url}/proguard-base/${proguard.version}/${proguard-base.jar}"/>
+            value="${kf6.1-libs.baseurl}/${proguard-base.jar}"/>
 
   <target name="install_proguard">
     <get src="${proguard-base.url}"
@@ -189,16 +200,20 @@
 
   <property name="pegdown.version"	value="1.6.0"/>
   <property name="pegdown.jar"		value="pegdown-${pegdown.version}.jar" />
-  <property name="pegdown.url"		value="http://repo1.maven.org/maven2/org/pegdown/pegdown/${pegdown.version}/${pegdown.jar}" />
+  <!-- property name="pegdown.url"		value="http://repo1.maven.org/maven2/org/pegdown/pegdown/${pegdown.version}/${pegdown.jar}" /-->
+  <property name="pegdown.url"		value="${kf6.1-libs.baseurl}/${pegdown.jar}" />
 
   <property name="parboiled-core.version"	value="1.1.7"/>
   <property name="parboiled-core.jar"		value="parboiled-core-${parboiled-core.version}.jar" />
-  <property name="parboiled-core.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-core/${parboiled-core.version}/${parboiled-core.jar}" />
+  <!-- property name="parboiled-core.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-core/${parboiled-core.version}/${parboiled-core.jar}" /-->
+  <property name="parboiled-core.url"		value="${kf6.1-libs.baseurl}/${parboiled-core.jar}" />
+
   <property name="parboiled-java.version"	value="1.1.7"/>
   <property name="parboiled-java.jar"		value="parboiled-java-${parboiled-java.version}.jar" />
-  <property name="parboiled-java.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-java/${parboiled-java.version}/${parboiled-java.jar}" />
+  <property name="parboiled-java.url"		value="${kf6.1-libs.baseurl}/${parboiled-java.jar}" />
 
-  <property name="asm-all.url"		value="http://central.maven.org/maven2/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" />
+  <!-- property name="asm-all.url"		value="http://central.maven.org/maven2/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" /-->
+  <property name="asm-all.url"		value="${kf6.1-libs.baseurl}/${asm-all.jar}" />
 
   <target name="install_pegdown">
     <get src="${pegdown.url}"
