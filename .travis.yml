@@ -18,7 +18,7 @@ env:
 before_install:
 - wget https://archive.apache.org/dist/ant/binaries/apache-ant-1.9.8-bin.tar.gz
 - tar xzf apache-ant-1.9.8-bin.tar.gz
-- wget http://services.gradle.org/distributions/gradle-2.10-bin.zip
+- wget https://services.gradle.org/distributions/gradle-2.10-bin.zip
 - unzip gradle-2.10-bin.zip
 - export GRADLE_HOME=$PWD/gradle-2.10
 notifications:
