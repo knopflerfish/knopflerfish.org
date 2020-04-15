@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ public class TextAreaOutputStream
 
     if (b == '\r') {
       // Ignore; swing components does not use \r
-    } else if(b == '\n') {
+    } else if (b == '\n') {
       final String line = new String(buffer, 0, pointer);
       text.append(line +"\n");
       pointer = 0;

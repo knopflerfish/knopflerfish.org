@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,14 +65,10 @@ import org.knopflerfish.bundle.desktop.event.JEventEntryDetail;
 import org.knopflerfish.bundle.desktop.event.JEventPanel;
 
 public class EventDisplayer extends DefaultSwingBundleDisplayer {
-
-
-  DefaultListModel          allTopics = new DefaultListModel();
-  DefaultListModel          allKeys   = new DefaultListModel();
-
-  Set<String> selectedKeys = new LinkedHashSet<String>();
-
-  Set<JEvent> views = new HashSet<JEvent>();
+  private DefaultListModel<String> allTopics = new DefaultListModel<>();
+  private DefaultListModel<String> allKeys   = new DefaultListModel<>();
+  private Set<String> selectedKeys = new LinkedHashSet<>();
+  private Set<JEvent> views = new HashSet<>();
 
   public EventDisplayer(BundleContext bc) {
     super(bc, "Events", "Show events", true);
@@ -113,7 +109,7 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
     super.open();
 
     if(reg == null) {
-      Dictionary<String, String[]> props = new Hashtable<String, String[]>();
+      Dictionary<String, String[]> props = new Hashtable<>();
       props.put(EventConstants.EVENT_TOPIC,  new String[] { "*" });
       reg = bc.registerService(EventHandler.class,
                                eventHandler, props);
@@ -122,16 +118,10 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
 
 
-  EventHandler eventHandler = new EventHandler() {
-      public void handleEvent(final Event ev) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-              addTopic(ev.getTopic());
-              addKeyNames(ev.getPropertyNames());
-            }
-          });
-      }
-    };
+  EventHandler eventHandler = ev -> SwingUtilities.invokeLater(() -> {
+    addTopic(ev.getTopic());
+    addKeyNames(ev.getPropertyNames());
+  });
 
   void addTopic(String topic) {
     if(!allTopics.contains(topic)) {
@@ -140,9 +130,9 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   void addKeyNames(String[] keys) {
-    for(int i = 0; i < keys.length; i++) {
-      if(!allKeys.contains(keys[i])) {
-        allKeys.addElement(keys[i]);
+    for (String key : keys) {
+      if (!allKeys.contains(key)) {
+        allKeys.addElement(key);
       }
     }
   }
@@ -157,8 +147,7 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
       reg = null;
     }
 
-   for(Iterator<JEvent> it = views.iterator(); it.hasNext(); ) {
-      JEvent je = it.next();
+    for (JEvent je : views) {
       je.close();
     }
     views.clear();
@@ -194,13 +183,11 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
   public void valueChanged(long  bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
-      JEvent comp = (JEvent) it.next();
+    for (JComponent component : components) {
+      JEvent comp = (JEvent) component;
       comp.valueChanged(bl);
     }
   }
-
-
 
   class JEvent extends JPanel {
     private static final long serialVersionUID = 1L;

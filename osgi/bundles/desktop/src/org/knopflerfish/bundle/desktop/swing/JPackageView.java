@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, KNOPFLERFISH project
+ * Copyright (c) 2012-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ public class JPackageView extends JSoftGraphBundle {
                       BundleSelectionModel bundleSelModel) {
     super(jmb, bc, b, bundleSelModel);
 
-    pkgTracker = new ServiceTracker<PackageAdmin, PackageAdmin>(bc, PackageAdmin.class, null);
+    pkgTracker = new ServiceTracker<>(bc, PackageAdmin.class, null);
     pkgTracker.open();
 
     setMaxDepth(8);
@@ -65,9 +65,7 @@ public class JPackageView extends JSoftGraphBundle {
   @Override
   public Node makeRootNode() {
     if(Activator.desktop != null && Activator.desktop.alive) {
-      final Node node = new PackageNode(Activator.desktop.getPackageManager(), b, 0,
-                                  "#" + b.getBundleId());
-      return node;
+      return new PackageNode(Activator.desktop.getPackageManager(), b, 0, "#" + b.getBundleId());
     } else {
       return new EmptyNode("", 0, "");
     }

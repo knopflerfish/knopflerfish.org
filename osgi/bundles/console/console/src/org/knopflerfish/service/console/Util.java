@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,8 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
@@ -52,8 +52,7 @@ import org.osgi.framework.ServiceReference;
  * @author Gatespace AB
  */
 
-public class Util
-{
+public class Util {
 
   /**
    * Select bundles from an array of Bundle objects. All the bundles in the
@@ -109,9 +108,9 @@ public class Util
     if (selection != null) {
       for (int i = 0; i < bundles.length; i++) {
         int j = 0;
-        final String bn = shortName(bundles[i]);
-        final String sn = symbolicName(bundles[i]); // May be null!
-        final String l = bundles[i].getLocation();
+        final String bundleName = shortName(bundles[i]);
+        final String symbolicName = symbolicName(bundles[i]); // May be null!
+        final String location = bundles[i].getLocation();
         for (; j < selection.length; j++) {
           try {
             final long id = Long.parseLong(selection[j]);
@@ -121,10 +120,10 @@ public class Util
               }
               break;
             }
-          } catch (final NumberFormatException e) {
+          } catch (final NumberFormatException ignored) {
           }
-          if (bn.equals(selection[j]) || l.equals(selection[j])
-              || (null != sn && sn.equals(selection[j]))) {
+          if (bundleName.equals(selection[j]) || location.equals(selection[j])
+              || (null != symbolicName && symbolicName.equals(selection[j]))) {
             if (null != selectionMatches) {
               selectionMatches.add(selection[j]);
             }
@@ -132,8 +131,8 @@ public class Util
           }
           if (selection[j].startsWith("*")) {
             final String s = selection[j].substring(1);
-            if (bn.endsWith(s) || l.endsWith(s)
-                || (null != sn && sn.endsWith(s))) {
+            if (bundleName.endsWith(s) || location.endsWith(s)
+                || (null != symbolicName && symbolicName.endsWith(s))) {
               if (null != selectionMatches) {
                 selectionMatches.add(selection[j]);
               }
@@ -142,21 +141,21 @@ public class Util
           } else if (selection[j].endsWith("*")) {
             final String s =
               selection[j].substring(0, selection[j].length() - 1);
-            if (bn.startsWith(s) || (null != sn && sn.startsWith(s))) {
+            if (bundleName.startsWith(s) || (null != symbolicName && symbolicName.startsWith(s))) {
               if (null != selectionMatches) {
                 selectionMatches.add(selection[j]);
               }
               break;
             }
-            if (s.indexOf(':') != -1 && l.startsWith(s)) {
+            if (s.indexOf(':') != -1 && location.startsWith(s)) {
               if (null != selectionMatches) {
                 selectionMatches.add(selection[j]);
               }
               break;
             }
           } else {
-            if (l.endsWith("/" + selection[j] + ".jar")
-                || l.endsWith("\\" + selection[j] + ".jar")) {
+            if (location.endsWith("/" + selection[j] + ".jar")
+                || location.endsWith("\\" + selection[j] + ".jar")) {
               if (null != selectionMatches) {
                 selectionMatches.add(selection[j]);
               }
@@ -175,36 +174,37 @@ public class Util
    * Sort an array of bundle objects based on their location or shortname. All
    * entries containing NULL is placed at the end of the array.
    *
-   * @param b
+   * @param bundles
    *          array of bundles to be sorted, modified with result
    * @param longName
    *          if true sort on location otherwise on shortname
    */
-  public static void sortBundles(Bundle[] b, boolean longName)
+  public static void sortBundles(Bundle[] bundles, boolean longName)
   {
-    int x = b.length;
-
-    for (final int l = x; x > 0;) {
+    final int length = bundles.length;
+    int x;
+    do {
       x = 0;
-      String p = null;
-      if (b[0] != null) {
-        p = longName ? b[0].getLocation() : shortName(b[0]);
-      }
-      for (int i = 1; i < l; i++) {
-        String n = null;
-        if (b[i] != null) {
-          n = longName ? b[i].getLocation() : shortName(b[i]);
-        }
+      String p = getBundleName(bundles[0], longName);
+      for (int i = 1; i < length; i++) {
+        String n = getBundleName(bundles[i], longName);
         if (n != null && (p == null || p.compareTo(n) > 0)) {
           x = i - 1;
-          final Bundle t = b[x];
-          b[x] = b[i];
-          b[i] = t;
+          final Bundle t = bundles[x];
+          bundles[x] = bundles[i];
+          bundles[i] = t;
         } else {
           p = n;
         }
       }
+    } while (x > 0);
+  }
+
+  private static String getBundleName(Bundle bundle, boolean longName) {
+    if (bundle != null) {
+      return longName ? bundle.getLocation() : shortName(bundle);
     }
+    return null;
   }
 
   /**
@@ -279,22 +279,23 @@ public class Util
     if (bundle == null) {
       return null;
     }
-    String n = bundle.getHeaders().get("Bundle-Name");
-    if (n == null) {
-      n = bundle.getLocation();
-      int x = n.lastIndexOf('/');
-      final int y = n.lastIndexOf('\\');
-      if (y > x) {
-        x = y;
-      }
-      if (x != -1) {
-        n = n.substring(x + 1);
-      }
-      if (n.endsWith(".jar")) {
-        n = n.substring(0, n.length() - 4);
-      }
+    String name = bundle.getHeaders().get("Bundle-Name");
+    if (name == null) {
+      name = nameFromLocation(bundle);
     }
-    return n;
+    return name;
+  }
+
+  private static String nameFromLocation(Bundle bundle) {
+    String name = bundle.getLocation();
+    int x = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
+    if (x != -1) {
+      name = name.substring(x + 1);
+    }
+    if (name.endsWith(".jar")) {
+      name = name.substring(0, name.length() - 4);
+    }
+    return name;
   }
 
   /**
@@ -367,25 +368,25 @@ public class Util
   /**
    * Get Service class list as a string.
    *
-   * @param sr
+   * @param serviceReference
    *          The service
    * @return The bundles identifier
    */
-  public static String showServiceClasses(ServiceReference<?> sr)
+  public static String showServiceClasses(ServiceReference<?> serviceReference)
   {
     final StringBuilder sb = new StringBuilder();
-    final String[] c = (String[]) sr.getProperty("objectClass");
-    if (c.length >= 2) {
+    final String[] classes = (String[]) serviceReference.getProperty("objectClass");
+    if (classes.length >= 2) {
       sb.append("[");
     }
-    for (int i = 0; i < c.length; i++) {
+    for (int i = 0; i < classes.length; i++) {
       if (i > 0) {
         sb.append(",");
       }
-      final int x = c[i].lastIndexOf('.');
-      sb.append(x != -1 ? c[i].substring(x + 1) : c[i]);
+      final int x = classes[i].lastIndexOf('.');
+      sb.append(x != -1 ? classes[i].substring(x + 1) : classes[i]);
     }
-    if (c.length >= 2) {
+    if (classes.length >= 2) {
       sb.append("]");
     }
     return sb.toString();
@@ -404,46 +405,47 @@ public class Util
   {
     if (o == null) {
       return "null";
-    }
-    if (o.getClass().isArray()) {
-      final StringBuilder sb = new StringBuilder();
-      final int len = Array.getLength(o);
-      sb.append("[");
-      if (len > 0) {
-        sb.append(showObject(Array.get(o, 0)));
-      }
-      for (int i = 1; i < len; i++) {
-        sb.append(", ").append(showObject(Array.get(o, i)));
-      }
-      sb.append("]");
-      o = sb;
+    } else if (o.getClass().isArray()) {
+      return showArray(o);
     } else if (o instanceof Enumeration) {
-      final StringBuilder sb = new StringBuilder();
-      final Enumeration<?> e = (Enumeration<?>) o;
-      sb.append("[");
-      if (e.hasMoreElements()) {
-        sb.append(showObject(e.nextElement()));
-      }
-      while (e.hasMoreElements()) {
-        sb.append(", ").append(showObject(e.nextElement()));
-      }
-      sb.append("]");
-      o = sb;
+      return showEnumeration((Enumeration<?>) o);
     } else if (o instanceof Collection<?>) {
-      final StringBuilder sb = new StringBuilder();
-      final Iterator<?> it = ((Collection<?>) o).iterator();
-      sb.append("[");
-      if (it.hasNext()) {
-        sb.append(showObject(it.next()));
-      }
-      while (it.hasNext()) {
-        sb.append(", ");
-        sb.append(showObject(it.next()));
-      }
-      sb.append("]");
-      o = sb;
+      return showCollection((Collection<?>) o);
     }
     return o.toString();
+  }
+
+  private static String showCollection(Collection<?> collection) {
+    return collection.stream()
+        .map(Util::showObject)
+        .collect(Collectors.joining(", ", "[", "]"));
+  }
+
+  private static String showEnumeration(Enumeration<?> enumeration) {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("[");
+    if (enumeration.hasMoreElements()) {
+      sb.append(showObject(enumeration.nextElement()));
+    }
+    while (enumeration.hasMoreElements()) {
+      sb.append(", ").append(showObject(enumeration.nextElement()));
+    }
+    sb.append("]");
+    return sb.toString();
+  }
+
+  private static String showArray(Object o) {
+    final StringBuilder sb = new StringBuilder();
+    final int len = Array.getLength(o);
+    sb.append("[");
+    if (len > 0) {
+      sb.append(showObject(Array.get(o, 0)));
+    }
+    for (int i = 1; i < len; i++) {
+      sb.append(", ").append(showObject(Array.get(o, i)));
+    }
+    sb.append("]");
+    return sb.toString();
   }
 
   private final static String BLANKS =

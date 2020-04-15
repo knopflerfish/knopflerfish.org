@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@
 package org.knopflerfish.bundle.console;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.knopflerfish.service.console.ConsoleService;
 import org.osgi.framework.BundleActivator;
@@ -59,7 +58,7 @@ public class Activator
 
     // The set of active sessions that must be closed when this
     // bundle is stopped.
-    static final ArrayList<SessionImpl> sessions = new ArrayList<SessionImpl>();
+    static final ArrayList<SessionImpl> sessions = new ArrayList<>();
 
     /**
      * Called by the framework when this bundle is started.
@@ -84,10 +83,9 @@ public class Activator
      */
     public void stop(BundleContext bc) {
         log(LogService.LOG_INFO, "Stopping");
-        ArrayList<SessionImpl> currentSessions = new ArrayList<SessionImpl>(sessions);
-        for (Iterator<SessionImpl> it = currentSessions.iterator(); it.hasNext();) {
-          SessionImpl s = (SessionImpl) it.next();
-          s.bundleStopped();
+        ArrayList<SessionImpl> currentSessions = new ArrayList<>(sessions);
+        for (SessionImpl s : currentSessions) {
+            s.bundleStopped();
         }
     }
 

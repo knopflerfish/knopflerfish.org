@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -142,9 +143,8 @@ public abstract class CommandGroupAdapter implements CommandGroup {
     public final static String COMMAND_GROUP = org.knopflerfish.service.console.CommandGroup.class
             .getName();
 
-    String groupName;
-
-    String shortHelp;
+    private String groupName;
+    private String shortHelp;
 
     /**
      * Constructs a command group. This should be called via super() if you
@@ -194,25 +194,29 @@ public abstract class CommandGroupAdapter implements CommandGroup {
         final StringBuilder res = new StringBuilder();
         res.append("Available ").append(groupName).append(" commands:\n");
 
-        final TreeSet<String> helpLines = new TreeSet<String>();
-        Field[] f = getClass().getFields();
-        for (int i = 0; i < f.length; i++) {
-            String name = f[i].getName();
+        for (String line : getHelpLines()) {
+          res.append(line);
+        }
+
+        return res.toString();
+    }
+
+    private Set<String> getHelpLines() {
+        final Set<String> helpLines = new TreeSet<>();
+        for (Field field : getClass().getFields()) {
+            String name = field.getName();
             if (name.startsWith("HELP_")) {
                 try {
                     name = name.substring(5).toLowerCase();
                     final DynamicCmd cmd = new DynamicCmd(this, name);
-                    final String hl = "  " + name + " [-help] " + cmd.usage + " - "
+                    final String helpLine = "  " + name + " [-help] " + cmd.usage + " - "
                         + cmd.help[0] + "\n";
-                    helpLines.add(hl);
+                    helpLines.add(helpLine);
                 } catch (Exception ignore) {
                 }
             }
         }
-        for (String line : helpLines) {
-          res.append(line);
-        }
-        return res.toString();
+        return helpLines;
     }
 
     /**
@@ -236,26 +240,25 @@ public abstract class CommandGroupAdapter implements CommandGroup {
         if (args.length == 0 || args[0] == null || args[0].length() == 0) {
             return -1;
         }
-        DynamicCmd cmd;
+        DynamicCmd command;
         try {
-            cmd = new DynamicCmd(this, args[0]);
+            command = new DynamicCmd(this, args[0]);
         } catch (Exception e) {
             out.println(e.getMessage());
             return -2;
         }
-        for (int i = 0; i < args.length; i++) {
-            if ("-help".equals(args[i])) {
-                out.println("Usage: " + args[0] + " [-help] " + cmd.usage);
-                for (int j = 0; j < cmd.help.length; j++) {
-                    out.println("  " + cmd.help[j]);
+        for (String arg : args) {
+            if ("-help".equals(arg)) {
+                out.println("Usage: " + args[0] + " [-help] " + command.usage);
+                for (String helpLine : command.help) {
+                    out.println("  " + helpLine);
                 }
                 return 0;
             }
         }
         try {
-            Integer res = (Integer) cmd.cmd.invoke(this, new Object[] {
-                    getOpt(args, cmd.usage), in, out, session });
-            return res.intValue();
+            return (Integer) command.cmd.invoke(this,
+                new Object[] { getOpt(args, command.usage), in, out, session });
         } catch (IllegalAccessException e) {
             out.println("Command failed: " + e.getMessage());
             return -1;
@@ -282,42 +285,41 @@ public abstract class CommandGroupAdapter implements CommandGroup {
      *                Thrown if it fails to parse args or usage
      */
     public Dictionary<String,Object> getOpt(String[] args, String usage) throws Exception {
-        Hashtable<String,Object> res = new Hashtable<String,Object>();
+        Hashtable<String, Object> res = new Hashtable<>();
         res.put("command", args[0]);
         args[0] = null;
         parseUsage(usage.trim(), 0, args, res, 0);
-        for (int i = 0; i < args.length; i++) {
-            if (args[i] != null) {
-                throw new Exception("Unknown argument: " + args[i]);
+        for (String arg : args) {
+            if (arg != null) {
+                throw new Exception("Unknown argument: " + arg);
             }
         }
         return res;
     }
 
-  public Map<String, String> getCommandNames() {
-    Map<String, String> map = new LinkedHashMap<String, String>();
-    Field[] f = getClass().getFields();
-    for (int i = 0; i < f.length; i++) {
-      String name = f[i].getName();
-      if (name.startsWith("HELP_")) {
-        try {
-          name = name.substring(5).toLowerCase();
-          DynamicCmd cmd = new DynamicCmd(this, name);
-          StringBuilder help = new StringBuilder();
-          help.append(cmd.usage);
-          if(cmd.help != null) {
-            for(int j = 0; j < cmd.help.length; j++) {
-              help.append("\n");
-              help.append(cmd.help[j]);              
+    public Map<String, String> getCommandNames() {
+        Map<String, String> map = new LinkedHashMap<>();
+        for (Field field : getClass().getFields()) {
+            String name = field.getName();
+            if (name.startsWith("HELP_")) {
+                try {
+                    name = name.substring(5).toLowerCase();
+                    DynamicCmd command = new DynamicCmd(this, name);
+                    StringBuilder help = new StringBuilder();
+                    help.append(command.usage);
+                    if (command.help != null) {
+                        for (String helpLine : command.help) {
+                            help.append("\n");
+                            help.append(helpLine);
+                        }
+                    }
+                    map.put(name, help.toString());
+                } catch (Exception ignore) {
+                }
             }
-          }
-          map.put(name, help.toString());
-        } catch (Exception ignore) {
         }
-      }
+        return map;
     }
-    return map;
-  }
 
     //
     // Internal methods
@@ -327,120 +329,16 @@ public abstract class CommandGroupAdapter implements CommandGroup {
 
     private final static String LAST = "_L_";
 
-    private int parseUsage(String usage, int pos, String[] args, Hashtable<String,Object> res,
+    private int parseUsage(final String usage, int pos, String[] args, Hashtable<String, Object> res,
             int level) throws Exception {
-        int ulen = usage.length();
+        final int ulen = usage.length();
         while (pos < ulen) {
             switch (usage.charAt(pos)) {
             case '-':
-                if (res.containsKey(DOING_ARGS)) {
-                    throw new Exception("Can not mix flags and args: "
-                            + usage.substring(pos));
-                }
-                boolean found = false;
-                String flag = "";
-                boolean alt;
-                do {
-                    alt = false;
-                    int start = pos++;
-                    while (pos < ulen && usage.charAt(pos) != ' '
-                            && usage.charAt(pos) != ']')
-                        pos++;
-                    flag = usage.substring(start, pos);
-                    Object val = new Integer(1);
-                    int fpos = -1;
-                    for (int i = 0; i < args.length; i++) {
-                        if (flag.equals(args[i])) {
-                            fpos = i;
-                            break;
-                        }
-                    }
-                    while (pos < ulen && usage.charAt(pos) == ' ')
-                        pos++;
-                    if (pos < ulen) {
-                        if (usage.charAt(pos) == '#') {
-                            while (pos < ulen && usage.charAt(pos) != ' '
-                                    && usage.charAt(pos) != ']')
-                                pos++;
-                            if (fpos >= 0) {
-                                if (fpos + 1 < args.length) {
-                                    val = args[fpos + 1];
-                                    args[fpos + 1] = null;
-                                } else {
-                                    throw new Exception("No value for: " + flag);
-                                }
-                            }
-                            while (pos < ulen && usage.charAt(pos) == ' ')
-                                pos++;
-                        }
-                        if (pos < ulen) {
-                            if (usage.charAt(pos) == '|') {
-                                pos++;
-                                while (pos < ulen && usage.charAt(pos) == ' ')
-                                    pos++;
-                                if (usage.charAt(pos) == '-') {
-                                    alt = true;
-                                } else {
-                                    throw new Exception(
-                                            "Missing flag in OR-expression: "
-                                                    + usage.substring(pos));
-                                }
-                            }
-                        }
-                    }
-                    if (fpos >= 0) {
-                        Object old = res.put(args[fpos], val);
-                        if (old != null) {
-                            if (old instanceof Integer) {
-                                res.put(args[fpos], new Integer(((Integer) old)
-                                        .intValue() + 1));
-                            } else {
-                                throw new Exception(
-                                        "Duplicate flagname with value in usage: "
-                                                + args[fpos]);
-                            }
-                        }
-                        args[fpos] = null;
-                        found = true;
-                    }
-                } while (alt);
-                if (!found && level == 0) {
-                    throw new Exception("Mandatory flag not set, flags: "
-                            + usage);
-                }
+                pos = parseFlag(usage, pos, args, res, level);
                 break;
             case '<':
-                res.put(DOING_ARGS, "");
-                int wstart = ++pos;
-                pos = usage.indexOf('>', ++pos);
-                if (pos == -1) {
-                    throw new Exception("Unmatched: "
-                            + usage.substring(wstart - 1));
-                }
-                String key = usage.substring(wstart, pos++);
-                int i;
-                for (i = 0; i < args.length; i++) {
-                    if (args[i] != null) {
-                        if (args[i].startsWith("-")) {
-                            // '--' means '-' at beginning of args
-                            if (args[i].startsWith("--")) {
-                                args[i] = args[i].substring(1);
-                            } else {
-                                throw new Exception("Unknown flag: " + args[i]);
-                            }
-                        }
-                        if (res.put(key, args[i]) != null) {
-                            throw new Exception("Duplicate argname in usage: "
-                                    + key);
-                        }
-                        args[i] = null;
-                        break;
-                    }
-                }
-                if (i == args.length && level == 0) {
-                    throw new Exception("Mandatory argument not set: " + key);
-                }
-                res.put(LAST, key);
+                pos = parseArgument(usage, pos, args, res, level);
                 break;
             case '[':
                 pos = parseUsage(usage, pos + 1, args, res, level + 1);
@@ -452,16 +350,7 @@ public abstract class CommandGroupAdapter implements CommandGroup {
                 return pos + 1;
             case '.':
                 if (usage.substring(pos).equals("...")) {
-                    String repeat = (String) res.get(LAST);
-                    if (repeat != null && res.containsKey(repeat)) {
-                        ArrayList<Object> v = new ArrayList<Object>();
-                        do {
-                            v.add(res.remove(repeat));
-                            parseUsage("<" + repeat + ">]", 0, args, res, 1);
-                        } while (res.containsKey(repeat));
-                        String[] vres = new String[v.size()];
-                        res.put(repeat, v.toArray(vres));
-                    }
+                    parseRepeat(args, res);
                     pos = ulen;
                 } else {
                     throw new Exception("Unexpected usage end: "
@@ -484,7 +373,142 @@ public abstract class CommandGroupAdapter implements CommandGroup {
         return pos;
     }
 
-  public static class DynamicCmd {
+    private void parseRepeat(String[] args, Hashtable<String, Object> res) throws Exception {
+        String repeat = (String) res.get(LAST);
+        if (repeat != null && res.containsKey(repeat)) {
+            ArrayList<String> v = new ArrayList<>();
+            do {
+                v.add(res.remove(repeat).toString());
+                parseUsage("<" + repeat + ">]", 0, args, res, 1);
+            } while (res.containsKey(repeat));
+            String[] vres = new String[v.size()];
+            res.put(repeat, v.toArray(vres));
+        }
+    }
+
+    private int parseArgument(String usage, int pos, String[] args, Hashtable<String, Object> res, int level) throws Exception {
+        res.put(DOING_ARGS, "");
+        int wstart = ++pos;
+        pos = usage.indexOf('>', ++pos);
+        if (pos == -1) {
+            throw new Exception("Unmatched: "
+                    + usage.substring(wstart - 1));
+        }
+        String key = usage.substring(wstart, pos++);
+        int i;
+        for (i = 0; i < args.length; i++) {
+            if (args[i] != null) {
+                if (args[i].startsWith("-")) {
+                    // '--' means '-' at beginning of args
+                    if (args[i].startsWith("--")) {
+                        args[i] = args[i].substring(1);
+                    } else {
+                        throw new Exception("Unknown flag: " + args[i]);
+                    }
+                }
+                if (res.put(key, args[i]) != null) {
+                    throw new Exception("Duplicate argname in usage: "
+                            + key);
+                }
+                args[i] = null;
+                break;
+            }
+        }
+        if (i == args.length && level == 0) {
+            throw new Exception("Mandatory argument not set: " + key);
+        }
+        res.put(LAST, key);
+        return pos;
+    }
+
+    private int parseFlag(String usage, int pos, String[] args, Hashtable<String, Object> res, int level) throws Exception {
+        if (res.containsKey(DOING_ARGS)) {
+            throw new Exception("Can not mix flags and args: "
+                    + usage.substring(pos));
+        }
+        final int ulen = usage.length();
+        boolean found = false;
+        String flag;
+        boolean alt;
+        do {
+            alt = false;
+            int start = pos++;
+            pos = stepToSpaceOrEndBracket(usage, pos);
+            flag = usage.substring(start, pos);
+            Object val = 1;
+            int fpos = -1;
+            for (int i = 0; i < args.length; i++) {
+                if (flag.equals(args[i])) {
+                    fpos = i;
+                    break;
+                }
+            }
+            pos = stepOverSpaces(usage, pos);
+            if (pos < ulen) {
+                if (usage.charAt(pos) == '#') {
+                    pos = stepToSpaceOrEndBracket(usage, pos);
+                    if (fpos >= 0) {
+                        if (fpos + 1 < args.length) {
+                            val = args[fpos + 1];
+                            args[fpos + 1] = null;
+                        } else {
+                            throw new Exception("No value for: " + flag);
+                        }
+                    }
+                    pos = stepOverSpaces(usage, pos);
+                }
+                if (pos < ulen) {
+                    if (usage.charAt(pos) == '|') {
+                        pos++;
+                        pos = stepOverSpaces(usage, pos);
+                        if (usage.charAt(pos) == '-') {
+                            alt = true;
+                        } else {
+                            throw new Exception(
+                                    "Missing flag in OR-expression: "
+                                            + usage.substring(pos));
+                        }
+                    }
+                }
+            }
+            if (fpos >= 0) {
+                Object old = res.put(args[fpos], val);
+                if (old != null) {
+                    if (old instanceof Integer) {
+                        res.put(args[fpos], ((Integer) old) + 1);
+                    } else {
+                        throw new Exception(
+                                "Duplicate flagname with value in usage: "
+                                        + args[fpos]);
+                    }
+                }
+                args[fpos] = null;
+                found = true;
+            }
+        } while (alt);
+        if (!found && level == 0) {
+            throw new Exception("Mandatory flag not set, flags: "
+                    + usage);
+        }
+        return pos;
+    }
+
+    private int stepToSpaceOrEndBracket(String usage, int pos) {
+        while (pos < usage.length() && usage.charAt(pos) != ' '
+            && usage.charAt(pos) != ']') {
+            pos++;
+        }
+        return pos;
+    }
+
+    private int stepOverSpaces(String usage, int pos) {
+        while (pos < usage.length() && usage.charAt(pos) == ' ') {
+            pos++;
+        }
+        return pos;
+    }
+
+    public static class DynamicCmd {
 
     public Method cmd;
 
@@ -533,10 +557,8 @@ public abstract class CommandGroupAdapter implements CommandGroup {
             help = (String[]) f[match].get(cg);
             usage = (String) cls.getField("USAGE_" + name.toUpperCase())
                     .get(cg);
-            cmd = cls.getMethod("cmd" + name.substring(0, 1).toUpperCase()
-                    + name.substring(1).toLowerCase(), new Class[] {
-                    java.util.Dictionary.class, java.io.Reader.class,
-                    java.io.PrintWriter.class, Session.class });
+            cmd = cls.getMethod("cmd" + name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase(),
+                Dictionary.class, Reader.class, PrintWriter.class, Session.class);
             if (!cmd.getReturnType().getName().equals("int")) {
                 throw new Exception("No such command: " + name);
             }

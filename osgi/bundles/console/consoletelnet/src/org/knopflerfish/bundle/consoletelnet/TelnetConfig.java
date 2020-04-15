@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,41 +47,24 @@ public class TelnetConfig
 {
 
   // public constants
-
   public static final String PORT_KEY = "port";
-
   public static final String HOST_KEY = "host";
-
   public static final String UM_KEY = "um";
-
   public static final String REQUIRED_GROUP_KEY = "requiredGroup";
-
   public static final String FORBIDDEN_GROUP_KEY = "forbiddenGroup";
-
   public static final String BUSYWAIT_KEY = "busywait";
-
   public static final String DEFAULT_USER_KEY = "defaultUser";
-
   public static final String DEFAULT_PASSWORD_KEY = "defaultPassword";
 
   // private fields
-
   private static Dictionary<String, Object> configuration;
-
   private static int port = 23;
-
   private static String host = "";
-
   private static boolean um = false;
-
   private static String requiredGroup = "";
-
   private static String forbiddenGroup = "";
-
   private static String defaultUser = "admin";
-
   private static String defaultPassword = "admin";
-
   private static boolean busyWait = false;
 
   // constructors
@@ -107,7 +90,7 @@ public class TelnetConfig
     if (null != po && 0 < po.length()) {
       try {
         port = Integer.parseInt(po);
-      } catch (final Exception _e) {
+      } catch (final Exception ignored) {
       }
     }
 
@@ -125,11 +108,11 @@ public class TelnetConfig
   public static Dictionary<String,Object> getDefaultConfig()
   {
 
-    final Dictionary<String,Object> config = new Hashtable<String, Object>();
+    final Dictionary<String,Object> config = new Hashtable<>();
 
-    config.put(PORT_KEY, new Integer(port));
+    config.put(PORT_KEY, port);
     config.put(HOST_KEY, host);
-    config.put(UM_KEY, new Boolean(um));
+    config.put(UM_KEY, um);
     config.put(REQUIRED_GROUP_KEY, requiredGroup);
     config.put(FORBIDDEN_GROUP_KEY, forbiddenGroup);
     config.put(BUSYWAIT_KEY, busyWait);
@@ -147,59 +130,54 @@ public class TelnetConfig
     mergeConfiguration(configuration);
   }
 
-  public void mergeConfiguration(Dictionary<String,?> configuration)
+  public void mergeConfiguration(Dictionary<String, ?> configuration)
       throws ConfigurationException
   {
     if (configuration == null) {
       return;
     }
 
-    final Enumeration<String> e = configuration.keys();
-    while (e.hasMoreElements()) {
-      final String key = e.nextElement();
+    final Enumeration<String> enumeration = configuration.keys();
+    while (enumeration.hasMoreElements()) {
+      final String key = enumeration.nextElement();
       final Object value = configuration.get(key);
       try {
-        if (key.equals(PORT_KEY)) {
-          if (value instanceof Short) {
-            port = ((Short) value).intValue();
-          } else {
-            port = ((Integer) value).intValue();
-          }
-          TelnetConfig.configuration.put(key, value);
-        } else if (key.equals(HOST_KEY)) {
-          host = ((String) value);
-          TelnetConfig.configuration.put(key, value);
-        } else if (key.equals(UM_KEY)) {
-          um = ((Boolean) value).booleanValue();
-          TelnetConfig.configuration.put(key, value);
-        } else if (key.equals(REQUIRED_GROUP_KEY)) {
-          requiredGroup = ((String) value).trim();
-          TelnetConfig.configuration.put(key, value);
-        } else if (key.equals(FORBIDDEN_GROUP_KEY)) {
-          forbiddenGroup = ((String) value).trim();
-          TelnetConfig.configuration.put(key, value);
-        } else if (key.equals(BUSYWAIT_KEY)) {
-          busyWait = ((Boolean) value).booleanValue();
-          TelnetConfig.configuration.put(key, value);
-        } else if (key.equals(DEFAULT_USER_KEY)) {
-          defaultUser = ((String) value).trim();
-          TelnetConfig.configuration.put(key, value);
-        } else if (key.equals(DEFAULT_PASSWORD_KEY)) {
-          defaultPassword = ((String) value).trim();
-          TelnetConfig.configuration.put(key, value);
-        } else {
-          TelnetConfig.configuration.put(key, value);
+        switch (key) {
+          case PORT_KEY:
+            port = ((Number) value).intValue();
+            break;
+          case HOST_KEY:
+            host = (String) value;
+            break;
+          case UM_KEY:
+            um = (Boolean) value;
+            break;
+          case REQUIRED_GROUP_KEY:
+            requiredGroup = ((String) value).trim();
+            break;
+          case FORBIDDEN_GROUP_KEY:
+            forbiddenGroup = ((String) value).trim();
+            break;
+          case BUSYWAIT_KEY:
+            busyWait = (Boolean) value;
+            break;
+          case DEFAULT_USER_KEY:
+            defaultUser = ((String) value).trim();
+            break;
+          case DEFAULT_PASSWORD_KEY:
+            defaultPassword = ((String) value).trim();
+            break;
         }
-      } catch (final IndexOutOfBoundsException ioobe) {
+        TelnetConfig.configuration.put(key, value);
+      } catch (final IndexOutOfBoundsException e) {
         throw new ConfigurationException(key, "Wrong type");
-      } catch (final ClassCastException cce) {
-        throw new ConfigurationException(key, "Wrong type: "
-                                              + value.getClass().getName());
+      } catch (final ClassCastException e) {
+        throw new ConfigurationException(key, "Wrong type: " + value.getClass().getName());
       }
     }
   }
 
-  public Dictionary<String,Object> getConfiguration()
+  public Dictionary<String, Object> getConfiguration()
   {
     return configuration;
   }
@@ -222,13 +200,9 @@ public class TelnetConfig
       addressStr = (String) configuration.get(HOST_KEY);
       if (addressStr != null) {
         addressStr = addressStr.trim();
-        if ("".equals(addressStr)) {
-          inetAddress = null;
-        } else {
+        if (!"".equals(addressStr)) {
           inetAddress = InetAddress.getByName(addressStr);
         }
-      } else {
-        inetAddress = null;
       }
     } catch (final ClassCastException cce) {
       throw new IllegalArgumentException("Wrong type for "

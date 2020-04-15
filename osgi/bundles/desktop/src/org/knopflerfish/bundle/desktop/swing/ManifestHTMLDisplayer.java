@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -195,7 +195,7 @@ public class ManifestHTMLDisplayer
 
     private Map<String, String> getParams()
     {
-      final HashMap<String, String> params = new HashMap<String, String>();
+      final HashMap<String, String> params = new HashMap<>();
       params.put(URL_RESOURCE_KEY_BID, String.valueOf(bid));
       params.put(URL_RESOURCE_KEY_SCR, String.valueOf(isScr));
       return params;
@@ -235,7 +235,7 @@ public class ManifestHTMLDisplayer
     }
   }
 
-  class JHTML
+  static class JHTML
     extends JHTMLBundle
   {
     private static final String BUNDLE_LICENSE = "Bundle-License";
@@ -278,7 +278,7 @@ public class ManifestHTMLDisplayer
 
       final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
       if (bsl != null) {
-        String level = "";
+        String level;
         try {
           level = Integer.toString(bsl.getStartLevel());
           if (bsl.isPersistentlyStarted()) {
@@ -295,8 +295,7 @@ public class ManifestHTMLDisplayer
                 "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
                 "");
 
-      final ArrayList<String> headerKeys =
-        new ArrayList<String>(headers.size());
+      final ArrayList<String> headerKeys = new ArrayList<>(headers.size());
       for (final Enumeration<String> e = headers.keys(); e.hasMoreElements();) {
         headerKeys.add(e.nextElement());
       }

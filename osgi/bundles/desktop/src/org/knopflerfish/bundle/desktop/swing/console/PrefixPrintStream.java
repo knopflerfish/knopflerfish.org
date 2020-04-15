@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,19 +36,17 @@ package org.knopflerfish.bundle.desktop.swing.console;
 
 import java.io.PrintStream;
 
-
 public class PrefixPrintStream extends PrintStream {
-  PrintStream ps;
-  PrintStream orig;
-  String      prefix;
+  private PrintStream orig;
+  private String      prefix;
 
   public PrefixPrintStream(PrintStream ps, String prefix, PrintStream orig) {
     super(ps);
     this.orig   = orig;
-    this.ps     = ps;
     this.prefix = prefix;
   }
 
+  @Override
   public void println(String x) {
     super.print(prefix);
     super.println(x);
@@ -57,6 +55,7 @@ public class PrefixPrintStream extends PrintStream {
     }
   }
 
+  @Override
   public void println(Object x) {
     super.print(prefix);
     super.println(x);

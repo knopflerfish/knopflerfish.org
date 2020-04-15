@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,31 +44,27 @@ import javax.swing.JPanel;
 public class JCardPane extends JPanel {
   private static final long serialVersionUID = 1L;
 
-  Map<String, Component> tabs = new HashMap<String, Component>();
-  CardLayout card;
+  private Map<String, Component> tabs = new HashMap<>();
+  private CardLayout card;
 
   public JCardPane() {
     card = new CardLayout();
-
     setLayout(card);
   }
 
-  public Component addTab(String name, Component comp) {
+  public void addTab(String name, Component comp) {
     add(comp, name);
     card.addLayoutComponent(comp, name);
 
     tabs.put(name, comp);
     revalidate();
-
-    return comp;
   }
 
   public void removeTab(String name) {
-    Component comp = getTab(name);
-
-    remove(comp);
+    remove(getTab(name));
   }
 
+  @Override
   public void remove(Component comp) {
     super.remove(comp);
     card.removeLayoutComponent(comp);
@@ -77,7 +73,7 @@ public class JCardPane extends JPanel {
   }
 
   public void showTab(String name) {
-    if(null != getTab(name)) {
+    if (null != getTab(name)) {
       card.show(this, name);
     }
   }

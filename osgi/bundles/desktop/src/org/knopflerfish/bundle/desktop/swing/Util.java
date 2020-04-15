@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -230,8 +230,7 @@ public class Util
                                        String key,
                                        boolean def)
   {
-    return ((Boolean) getProp(sr, key, def ? Boolean.TRUE : Boolean.FALSE))
-        .booleanValue();
+    return (Boolean) getProp(sr, key, def ? Boolean.TRUE : Boolean.FALSE);
   }
 
   public static String stateName(int state)
@@ -261,7 +260,7 @@ public class Util
 
   public static String getHeader(Bundle b, String name, String def)
   {
-    final String s = b != null ? (String) b.getHeaders().get(name) : def;
+    final String s = b != null ? b.getHeaders().get(name) : def;
 
     return s;
   }
@@ -377,7 +376,7 @@ public class Util
   /**
    * Mapping from bundle to its icon.
    */
-  static Map<Bundle, Icon> iconMap = new HashMap<Bundle, Icon>();
+  private static final Map<Bundle, Icon> iconMap = new HashMap<>();
 
   // Get the bundle icon for a bundle. Icons are cached.
   public static Icon getBundleIcon(Bundle b)
@@ -417,7 +416,7 @@ public class Util
     }
   }
 
-  static Hashtable<Integer, Color> colors = new Hashtable<Integer, Color>();
+  static Hashtable<Integer, Color> colors = new Hashtable<>();
 
   static int maxK = 256;
 
@@ -447,7 +446,7 @@ public class Util
     final int g = (int) (g1 + (double) K * (g2 - g1) / maxK);
     final int b = (int) (b1 + (double) K * (b2 - b1) / maxK);
 
-    final Integer key = new Integer((r << 16) | (g << 8) | g);
+    final Integer key = (r << 16) | (g << 8) | g;
 
     Color c = colors.get(key);
     if (c == null) {
@@ -482,8 +481,7 @@ public class Util
     final int g = (int) (g1 + (double) (g2 - g1));
     final int b = (int) (b1 + (double) (b2 - b1));
 
-    final Color c = new Color(r, g, b);
-    return c;
+    return new Color(r, g, b);
   }
 
   public static byte[] readStream(InputStream is)
@@ -521,10 +519,10 @@ public class Util
   static public Set<Bundle> getClosure(final Bundle target, Set<Bundle> handled)
   {
     if (handled == null) {
-      handled = new HashSet<Bundle>();
+      handled = new HashSet<>();
     }
 
-    final Set<Bundle> closure = new TreeSet<Bundle>(Util.bundleIdComparator);
+    final Set<Bundle> closure = new TreeSet<>(Util.bundleIdComparator);
     if (target.getState() == Bundle.UNINSTALLED) {
       return closure;
     }
@@ -669,7 +667,7 @@ public class Util
 
     try {
       final TreeMap<String, String> props =
-        new TreeMap<String, String>(Activator.getSystemProperties());
+          new TreeMap<>(Activator.getSystemProperties());
 
       sb.append("<table>\n");
 
@@ -865,7 +863,7 @@ public class Util
   {
     final String os = Util.getProperty("os.name", null);
     if (os != null) {
-      return -1 != os.toLowerCase().indexOf("win");
+      return os.toLowerCase().contains("win");
     }
     return false;
   }
@@ -891,7 +889,7 @@ public class Util
         while (null != line) {
           line = br.readLine();
         }
-      } catch (final IOException _ioe) {
+      } catch (final IOException ignored) {
       }
     }
   }
@@ -917,7 +915,7 @@ public class Util
     if (null != sValue && 0 < sValue.length()) {
       try {
         return Integer.parseInt(sValue);
-      } catch (final Exception _e) {
+      } catch (final Exception ignored) {
       }
     }
     return def;
@@ -946,7 +944,7 @@ public class Util
       // getBundleContext() is an R4.1 method, but try to grab it
       // using reflection and punch a hole in the method modifiers.
       // Should work on recent KF and recent Felix.
-      final Method m = clazz.getMethod("getBundleContext", new Class[] {});
+      final Method m = clazz.getMethod("getBundleContext");
 
       m.setAccessible(true);
       return (BundleContext) m.invoke(b, new Object[] {});

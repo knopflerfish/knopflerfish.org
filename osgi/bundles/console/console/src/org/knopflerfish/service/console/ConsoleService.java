@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,8 +64,7 @@ public interface ConsoleService {
      * @exception IOException
      *                if we fail to use input or output
      */
-    public Session runSession(String name, Reader in, PrintWriter out)
-            throws IOException;
+    Session runSession(String name, Reader in, PrintWriter out) throws IOException;
 
     /**
      * Run a command string. Here we can only execute a single command. There is
@@ -77,10 +76,10 @@ public interface ConsoleService {
      *            command and arguments as string
      * @return Resulting output of command
      */
-    public String runCommand(String command);
+    String runCommand(String command);
 
     /**
      * Set alias value for a shortcut key.
      */
-    public String[] setAlias(String key, String[] val);
+    String[] setAlias(String key, String[] val);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,41 +37,26 @@ package org.knopflerfish.bundle.console2command;
 import java.io.*;
 import java.util.*;
 
-import org.osgi.service.command.*;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import org.knopflerfish.service.console.CommandGroup;
 import org.knopflerfish.service.console.CommandGroupAdapter;
 import org.knopflerfish.service.console.Session;
 
 public class Dispatcher {
-  CommandGroupAdapter cg;
-  public Dispatcher( CommandGroupAdapter cg) {
-    this.cg = cg;
+  private CommandGroupAdapter commandGroupAdapter;
+
+  public Dispatcher( CommandGroupAdapter commandGroupAdapter) {
+    this.commandGroupAdapter = commandGroupAdapter;
   }
   
   public String toString() {
-    return "Dispatcher[" + 
-      "cg=" + cg + 
-      "]";
+    return "Dispatcher[" + "cg=" + commandGroupAdapter + "]";
   }
   
   public void main(Object[] args0) {
-    /*
-      System.out.println(this + ".main " + args0);
-      for(int i = 0; args0 != null && i < args0.length; i++) {
-      System.out.println(" " + i + ": " + args0[i]);
-      }
-    */
     try {
       String name = args0[0].toString();
-      // System.out.println("main " + name + ", " + args0.length);
-      
-      CommandGroupAdapter.DynamicCmd cmd = 
-        new CommandGroupAdapter.DynamicCmd(cg, name);
+
+      CommandGroupAdapter.DynamicCmd command =
+        new CommandGroupAdapter.DynamicCmd(commandGroupAdapter, name);
       
       StringWriter sout = new StringWriter();
       PrintWriter out = new PrintWriter(sout);
@@ -80,12 +65,11 @@ public class Dispatcher {
       for(int i = 0; i < args0.length; i++) {
         args[i] = args0[i] != null ? args0[i].toString() : "";
       }
-      Dictionary opts = cg.getOpt(args, cmd.usage);
-      
-      
+      Dictionary<String, Object> opts = commandGroupAdapter.getOpt(args, command.usage);
+
       Reader in = new InputStreamReader(System.in);
       Session session = null;
-      cmd.cmd.invoke(cg, new Object[] { opts, in, out, session  });
+      command.cmd.invoke(commandGroupAdapter, opts, in, out, session);
       
       System.out.println(sout.toString());
     } catch (Exception e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,34 +61,21 @@ import org.osgi.framework.ServiceReference;
  */
 public class Command implements ServiceListener, Runnable {
 
-    final static String COMMAND_GROUP = org.knopflerfish.service.console.CommandGroup.class
-            .getName();
+    private static SessionCommandGroup sessionCommandGroup;
 
-    static SessionCommandGroup sessionCommandGroup;
-
-    final BundleContext bc;
-
-    String[] args;
+    private final BundleContext bc;
+    private String[] args;
+    private Alias aliases;
+    private String groupName;
+    private Session session;
+    private ServiceReference<CommandGroup> commandGroupRef;
+    private int status = -1;
 
     Reader in;
-
     Writer out;
-
-    Alias aliases;
-
-    String groupName;
-
-    Session session;
-
-    ServiceReference<CommandGroup> commandGroupRef;
-
     Thread thread = null;
-
-    int status = -1;
-
-    public boolean isPiped = false;
-
-    public boolean isBackground = false;
+    boolean isPiped = false;
+    boolean isBackground = false;
 
     public Command(BundleContext bc, String group, Alias aliases,
             final StreamTokenizer cmd, Reader in, PrintWriter out,
@@ -103,11 +90,9 @@ public class Command implements ServiceListener, Runnable {
         }
         groupName = group;
         try {
-            AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-                public Object run() throws IOException {
-                    parseCommand(cmd);
-                    return null;
-                }
+            AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
+                parseCommand(cmd);
+                return null;
             });
         } catch (PrivilegedActionException e) {
             Exception ee = e.getException();
@@ -128,7 +113,7 @@ public class Command implements ServiceListener, Runnable {
         String[] aliasBuf = null;
         int aliasPos;
         if (aliases != null
-                && (aliasBuf = (String[]) aliases.get(in.sval)) != null) {
+                && (aliasBuf = aliases.get(in.sval)) != null) {
             word = aliasBuf[0];
             aliasPos = 1;
         } else {
@@ -144,19 +129,20 @@ public class Command implements ServiceListener, Runnable {
             if (SessionCommandGroup.NAME.equals(groupName)) {
                 commandGroupRef = null;
             } else {
-                Collection<ServiceReference<CommandGroup>> refs = null;
                 try {
-                    refs = bc.getServiceReferences(CommandGroup.class,
-                                                   "(groupName=" + groupName + ")");
+                    Collection<ServiceReference<CommandGroup>> refs = bc.getServiceReferences(CommandGroup.class,
+                        "(groupName=" + groupName + ")");
+                    if (refs.isEmpty()) {
+                        throw new IOException("No such command group: " + groupName);
+                    }
+
+                    commandGroupRef = refs.iterator().next();
                 } catch (InvalidSyntaxException ignore) {
+                    // 2020-03-31: before refactoring, NPE was thrown in this case
                 }
-                if (refs.isEmpty()) {
-                    throw new IOException("No such command group: " + groupName);
-                }
-                commandGroupRef = refs.iterator().next();
             }
         }
-        ArrayList<String> vargs = new ArrayList<String>();
+        ArrayList<String> vargs = new ArrayList<>();
         boolean done = false;
         while (!done) {
             if (word != null) {
@@ -223,39 +209,37 @@ public class Command implements ServiceListener, Runnable {
     
     public synchronized void run() {
         bc.addServiceListener(this);
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            public Object run() {
-                CommandGroup cg;
-                if (commandGroupRef != null) {
-                    cg = bc.getService(commandGroupRef);
-                    if (cg == null) {
-                        status = -2;
-                        return null;
-                    }
-                } else {
-                    cg = sessionCommandGroup;
+        AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+            CommandGroup cg;
+            if (commandGroupRef != null) {
+                cg = bc.getService(commandGroupRef);
+                if (cg == null) {
+                    status = -2;
+                    return null;
                 }
-                if (out instanceof PrintWriter) {
-                    status = cg.execute(args, in, (PrintWriter) out, session);
-                } else {
-                    status = cg.execute(args, in, new PrintWriter(out), session);
-                }
-                if (commandGroupRef != null) {
-                    try {
-                        bc.ungetService(commandGroupRef);
-                    } catch (IllegalStateException ignore) {
-                        // Can happen if the command has invalidated our bc (e.g. update)
-                        // TODO: Warn about this? The input can be screwed up.
-                    }
-                }
-                if (out instanceof Pipe) {
-                    try {
-                        out.close();
-                    } catch (IOException ignore) {
-                    }
-                }
-                return null;
+            } else {
+                cg = sessionCommandGroup;
             }
+            if (out instanceof PrintWriter) {
+                status = cg.execute(args, in, (PrintWriter) out, session);
+            } else {
+                status = cg.execute(args, in, new PrintWriter(out), session);
+            }
+            if (commandGroupRef != null) {
+                try {
+                    bc.ungetService(commandGroupRef);
+                } catch (IllegalStateException ignore) {
+                    // Can happen if the command has invalidated our bc (e.g. update)
+                    // TODO: Warn about this? The input can be screwed up.
+                }
+            }
+            if (out instanceof Pipe) {
+                try {
+                    out.close();
+                } catch (IOException ignore) {
+                }
+            }
+            return null;
         });
         try {
             bc.removeServiceListener(this);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ package org.knopflerfish.bundle.consoletelnet;
 /**
  * * The SUPGA command has no sub negotiable parameter
  */
-
 public class TelnetCommandSupga extends TelnetCommand {
 
     public TelnetCommandSupga(TelnetSession ts, int commandCode,
@@ -46,26 +45,28 @@ public class TelnetCommandSupga extends TelnetCommand {
     }
 
     /**
-     * * Option negotiation and execution mechanism * * To follow the intentions
-     * of RFC 854, a change in status * is always followed by a response but if
-     * trying to enter a mode * that we are already in, no response is returned. * *
-     * This is essential to prevent negotiation loops. * *
-     * 
-     * @parameter action, one of the telnet protocol basic actions * DO, DONT,
-     *            WILL, WONT or SE *
-     * @parameter optionCode, the option code *
-     * @parameter parameters, a string with optional parameters to the option
-     *            code. * *
+     * Option negotiation and execution mechanism
+     *
+     * To follow the intentions of RFC 854, a change in status
+     * is always followed by a response but if trying to enter a mode
+     * that we are already in, no response is returned.
+     *
+     * This is essential to prevent negotiation loops.
+     *
+     * @param action, one of the telnet protocol basic actions DO, DONT, WILL, WONT or SE
+     * @param optionCode, the option code
+     * @param parameters, a string with optional parameters to the option code.
+     *
      * @return a String with the response to the command.
      */
-
+    @Override
     public String execute(int action, int optionCode, byte[] parameters) {
         // printCommand(action, optionCode, parameters);
         StringBuilder sb = new StringBuilder();
 
         switch (action) {
         case TCC.DO:
-            if (doStatus == true) {
+            if (doStatus) {
                 // willing and ready, send no resonse,
                 // to prevent creation of negotiation loop
             } else {
@@ -74,7 +75,7 @@ public class TelnetCommandSupga extends TelnetCommand {
             break;
 
         case TCC.WILL:
-            if (doStatus == true) {
+            if (doStatus) {
                 // willing and ready, send no resonse,
                 // to prevent creation of negotiation loop
             } else {
@@ -83,7 +84,7 @@ public class TelnetCommandSupga extends TelnetCommand {
             break;
 
         case TCC.DONT:
-            if (doStatus == true) {
+            if (doStatus) {
                 sb.append(getWONT());
                 doStatus = false;
                 // now not willing, send no resonse,
@@ -94,7 +95,7 @@ public class TelnetCommandSupga extends TelnetCommand {
             break;
 
         case TCC.WONT:
-            if (doStatus == true) {
+            if (doStatus) {
                 // no appropriate answer to send
                 doStatus = false;
                 // now not willing, send no resonse,
@@ -108,7 +109,7 @@ public class TelnetCommandSupga extends TelnetCommand {
         // are finished and both parties have agreed
 
         case TCC.SE:
-            if (doStatus == true) {
+            if (doStatus) {
 
             } else { // not in right state
                 sb.append(getDONT());

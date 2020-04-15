@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,109 +41,112 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * * This extension of FilterOutputStream makes the following * translations on
- * data in the output stream * * CR LF to no change * CR n, when n != LF to CR
- * NULL n * n LF to n CR LF * * All characters in the output buffer are * anded
- * with a mask from the session. * This mask is either 0x7F (7 bit) or 0xFF (8
- * bit) * * It also has a clear method to empty the output buffer * and a
- * writeCommand method to send telnet commands. *
+ * This extension of FilterOutputStream makes the following
+ * translations on data in the output stream
+ *
+ * CR LF to no change
+ * CR n, when n != LF to CR NULL n
+ * n LF to n CR LF
+ *
+ * All characters in the output buffer are
+ * anded with a mask from the session.
+ * This mask is either 0x7F (7 bit) or 0xFF (8 bit)
+ *
+ * It also has a clear method to empty the output buffer
+ * and a writeCommand method to send telnet commands.
  */
 
 public class TelnetOutputStream extends FilterOutputStream {
-    private TelnetSession ts;
-
-    private ByteArrayOutputStream baos; // Intermediate byte array stream
-
-    private DataOutputStream dos2; // Internal DataOutputStream
-
+    private TelnetSession telnetSession;
+    private ByteArrayOutputStream byteArrayOutputStream; // Intermediate byte array stream
+    private DataOutputStream dataOutputStream; // Internal DataOutputStream
     private boolean prevWasCR = false; // True if previous char was CR
 
-    public TelnetOutputStream(OutputStream os, TelnetSession ts) {
+    public TelnetOutputStream(OutputStream os, TelnetSession telnetSession) {
         super(os);
-        this.ts = ts;
+        this.telnetSession = telnetSession;
         OutputStream os1 = super.out; // get the underlaying stream
-        baos = new ByteArrayOutputStream(); // intermediate array stream
-        super.out = baos; // replace underlying Stream with a
+        byteArrayOutputStream = new ByteArrayOutputStream(); // intermediate array stream
+        super.out = byteArrayOutputStream; // replace underlying Stream with a
                             // ByteArrayOutputStream
-        dos2 = new DataOutputStream(os1); // a new OutputStream that uses the
+        dataOutputStream = new DataOutputStream(os1); // a new OutputStream that uses the
         // original output stream
     }
 
     /**
      * * Override flush and close methods,
      */
-
+    @Override
     public void flush() throws IOException {
         scanBuf();
-        dos2.flush();
+        dataOutputStream.flush();
     }
 
+    @Override
     public void close() throws IOException {
         flush();
-        baos.close();
-        dos2.close();
+        byteArrayOutputStream.close();
+        dataOutputStream.close();
     }
 
     /**
      * * Override all write methods, add CRLF when appropriate
      */
-
+    @Override
     public void write(byte[] b) throws IOException {
-        baos.write(b);
+        byteArrayOutputStream.write(b);
     }
 
+    @Override
     public void write(byte[] b, int off, int len) {
-        baos.write(b, off, len);
+        byteArrayOutputStream.write(b, off, len);
     }
 
+    @Override
     public void write(int b) {
-        baos.write(b);
+        byteArrayOutputStream.write(b);
     }
 
     /**
      * * Scan the output buffer for: * * CR LF to no change * CR n, when n != LF
      * to CR NULL n * n LF to n CR LF *
      */
-
     private synchronized void scanBuf() throws IOException {
-        byte[] buf = baos.toByteArray();
-        baos.reset();
-        byte mask = (byte) ts.getMask();
+        byte[] buf = byteArrayOutputStream.toByteArray();
+        byteArrayOutputStream.reset();
+        byte mask = (byte) telnetSession.getMask();
 
-        for (int i = 0; i < buf.length; i++) {
-            if (prevWasCR == true) {
-                if (buf[i] != (byte) TCC.LF) { // add a LF
-                    dos2.write((byte) TCC.LF);
-                    dos2.write(buf[i] & mask);
-                } else {
-                    dos2.write(buf[i] & mask);
+        for (byte b : buf) {
+            if (prevWasCR) {
+                if (b != (byte) TCC.LF) { // add a LF
+                    dataOutputStream.write((byte) TCC.LF);
                 }
+                dataOutputStream.write(b & mask);
             } else {
-                if (buf[i] == (byte) TCC.LF) { // a single LF -> CRLF
-                    dos2.write((byte) TCC.CR);
-                    dos2.write((byte) TCC.LF);
+                if (b == (byte) TCC.LF) { // a single LF -> CRLF
+                    dataOutputStream.write((byte) TCC.CR);
+                    dataOutputStream.write((byte) TCC.LF);
                 } else {
-                    dos2.write(buf[i] & mask);
+                    dataOutputStream.write(b & mask);
                 }
             }
-            prevWasCR = (buf[i] == (byte) TCC.CR) ? true : false;
+            prevWasCR = b == (byte) TCC.CR;
         }
     }
 
     public synchronized void reset() {
-        baos.reset();
+        byteArrayOutputStream.reset();
     }
 
     /**
      * * Write a telnet command in the output stream. * *
      * 
-     * @parameter tc, command string to write
+     * @param tc, command string to write
      */
-
     public synchronized void writeCommand(String tc) throws IOException {
         if (tc != null) {
-            dos2.writeBytes(tc);
-            dos2.flush();
+            dataOutputStream.writeBytes(tc);
+            dataOutputStream.flush();
         }
     }
 }

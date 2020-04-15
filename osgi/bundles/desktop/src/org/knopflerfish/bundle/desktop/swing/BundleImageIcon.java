@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,8 +79,8 @@ public class BundleImageIcon
     new ImageIcon(BundleImageIcon.class.getResource("/overlay_starting.png"));
   static final ImageIcon OVERLAY_STOPPING =
     new ImageIcon(BundleImageIcon.class.getResource("/overlay_stopping.png"));
-  static final ImageIcon OVERLAY_UNINSTALLED = null; // No overlay for
-                                                     // uninstalled
+  static final ImageIcon OVERLAY_UNINSTALLED = null; // No overlay for uninstalled
+  public static final int MAX_ICON_SIZE = 32;
 
   /**
    * Get the bundle icon URL for icon with size 32 from the manifest header
@@ -94,7 +94,6 @@ public class BundleImageIcon
    * @param bundle
    *          The bundle to get icon URL for.
    *
-   * @return
    */
   private static URL getBundleIconURL(final Bundle bundle)
   {
@@ -107,31 +106,31 @@ public class BundleImageIcon
         String iconName = null;
         int iconSize = -1;
         // We prefer a 32x32 size icon.
-        for (final HeaderEntry he : org.knopflerfish.framework.Util
+        for (final HeaderEntry headerEntry : org.knopflerfish.framework.Util
             .parseManifestHeader(BUNDLE_ICON, bih, false, true, false)) {
-          final List<String> icns = he.getKeys();
-          final String sizeS = (String) he.getAttributes().get("size");
+          final List<String> icons = headerEntry.getKeys();
+          final String sizeS = (String) headerEntry.getAttributes().get("size");
 
           if (null == sizeS) {
             // Icon with unspecified size; use it if no other icon
             // has been found.
             if (null == iconName) {
-              iconName = icns.get(0);
+              iconName = icons.get(0);
             }
           } else {
             int size = -1;
             try {
               size = Integer.parseInt(sizeS);
-            } catch (final NumberFormatException nfe) {
+            } catch (final NumberFormatException ignored) {
             }
             if (-1 < size) {
               if (-1 == iconSize) {
                 // First icon with a valid size; start with it.
-                iconName = icns.get(0);
+                iconName = icons.get(0);
                 iconSize = size;
-              } else if (Math.abs(size - 32) < Math.abs(iconSize - 32)) {
-                // Icon is closer in size to 32 than old icon; use it
-                iconName = icns.get(0);
+              } else if (Math.abs(size - MAX_ICON_SIZE) < Math.abs(iconSize - MAX_ICON_SIZE)) {
+                // Icon is closer in size to optimal size than old icon; use it
+                iconName = icons.get(0);
                 iconSize = size;
               }
             }
@@ -175,7 +174,6 @@ public class BundleImageIcon
    *
    * @param bundle
    *          the bundle to get an application icon for.
-   * @return
    */
   private static URL getApplicationIconURL(final Bundle bundle)
   {
@@ -340,9 +338,9 @@ public class BundleImageIcon
       setImage(ii.getImage());
       lastModified = bundle.getLastModified();
       loadImage(getImage());
-      if (32 < getIconWidth() || 32 < getIconHeight()) {
-        // Image too large; scale it down to 32x32.
-        setImage(getScaledImage(getImage(), 32, 32));
+      if (MAX_ICON_SIZE < getIconWidth() || MAX_ICON_SIZE < getIconHeight()) {
+        // Image too large; scale it down.
+        setImage(getScaledImage(getImage()));
       }
     }
   }
@@ -352,20 +350,16 @@ public class BundleImageIcon
    *
    * @param srcImg
    *          - source image to scale
-   * @param w
-   *          - desired width
-   * @param h
-   *          - desired height
    * @return - the new resized image
    */
-  private static Image getScaledImage(Image srcImg, int w, int h)
+  private static Image getScaledImage(Image srcImg)
   {
     final BufferedImage resizedImg =
-      new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+      new BufferedImage(MAX_ICON_SIZE, MAX_ICON_SIZE, BufferedImage.TYPE_INT_ARGB);
     final Graphics2D g2 = resizedImg.createGraphics();
     g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                         RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-    g2.drawImage(srcImg, 0, 0, w, h, null);
+    g2.drawImage(srcImg, 0, 0, MAX_ICON_SIZE, MAX_ICON_SIZE, null);
     g2.dispose();
     return resizedImg;
   }

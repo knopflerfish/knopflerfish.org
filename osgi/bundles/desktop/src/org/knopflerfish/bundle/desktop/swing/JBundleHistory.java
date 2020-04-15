@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -143,10 +143,10 @@ public class JBundleHistory extends JPanel {
     Dimension size = getSize();
     Component[] cl = panel.getComponents();
     int n = cl.length;
-    if(n > 0) {
-      for(int i = 0; i < n; i++) {
-        JComponent jc = (JComponent)cl[i];
-        int w = Math.max(20, Math.min(size.height, size.width/(n+2)));
+    if (n > 0) {
+      for (Component component : cl) {
+        JComponent jc = (JComponent) component;
+        int w = Math.max(20, Math.min(size.height, size.width / (n + 2)));
         Dimension s = new Dimension(w, w);
         jc.setPreferredSize(s);
       }
@@ -219,15 +219,14 @@ public class JBundleHistory extends JPanel {
       Graphics2D g = (Graphics2D)_g;
       Dimension size = getSize();
 
-
       g.setColor(getBackground());
       g.fillRect(0, 0, size.width, size.height);
 
       int width  = Math.min(size.width, size.height);
       int height = width;
 
-      double fx = (double)width / icon.getIconWidth();
-      double fy = (double)height / icon.getIconHeight();
+      double fx = (double) width / icon.getIconWidth();
+      double fy = (double) height / icon.getIconHeight();
 
       AffineTransform oldTrans = g.getTransform();
       g.scale(fx, fy);

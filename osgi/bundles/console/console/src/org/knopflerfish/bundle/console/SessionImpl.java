@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,44 +54,29 @@ import org.osgi.framework.BundleContext;
  * @author Jan Stein
  */
 public class SessionImpl extends Thread implements Session {
-
-    final static String ALIAS_SAVE = "aliases";
-
-    final BundleContext bc;
-
-    private Dictionary<String, Object> properties = new Hashtable<String,Object>();
-
-    Vector<SessionListener> listeners = new Vector<SessionListener>();
-
-    Vector<Command> cmdline = new Vector<Command>();
+    private final BundleContext bc;
+    private Dictionary<String, Object> properties = new Hashtable<>();
+    private Vector<SessionListener> listeners = new Vector<>();
+    private final Vector<Command> cmdline = new Vector<>();
+    private boolean closed = false;
+    private boolean stopped = false;
+    private StreamTokenizer cmd;
+    private Reader in;
+    private PrintWriter out;
+    private ReadThread readThread;
 
     String currentGroup = "";
-
     String prompt = "%> ";
-
-    String name = "UNKNOWN";
-
-    boolean closed = false;
-
-    boolean stopped = false;
-
-    StreamTokenizer cmd;
-
-    Reader in;
-
-    PrintWriter out;
-
     Alias aliases;
 
-    ReadThread readT;
 
     public SessionImpl(BundleContext bcontext, String name, Reader in,
             PrintWriter out, Alias aliases) {
         super(name);
         this.bc = bcontext;
         this.out = out;
-        this.readT = new ReadThread(in, this);
-        this.in = readT.getReader();
+        readThread = new ReadThread(in, this);
+        this.in = readThread.getReader();
         this.cmd = setupTokenizer(this.in);
 
         if (aliases != null) {
@@ -151,7 +136,7 @@ public class SessionImpl extends Thread implements Session {
         if (closed) {
             throw new IllegalStateException("Session is closed");
         }
-        return readT.escapeChar;
+        return readThread.escapeChar;
     }
 
     /**
@@ -164,7 +149,7 @@ public class SessionImpl extends Thread implements Session {
         if (closed) {
             throw new IllegalStateException("Session is closed");
         }
-        readT.escapeChar = ch;
+        readThread.escapeChar = ch;
     }
 
     /**
@@ -176,7 +161,7 @@ public class SessionImpl extends Thread implements Session {
         if (closed) {
             throw new IllegalStateException("Session is closed");
         }
-        return readT.interruptString;
+        return readThread.interruptString;
     }
 
     /**
@@ -189,7 +174,7 @@ public class SessionImpl extends Thread implements Session {
         if (closed) {
             throw new IllegalStateException("Session is closed");
         }
-        readT.interruptString = str;
+        readThread.interruptString = str;
     }
 
     /**
@@ -200,7 +185,7 @@ public class SessionImpl extends Thread implements Session {
         if (closed) {
             return;
         }
-        readT.close();
+        readThread.close();
         abortCommand();
         closed = true;
         for (Enumeration<SessionListener> e = listeners.elements(); e.hasMoreElements();) {
@@ -253,10 +238,10 @@ public class SessionImpl extends Thread implements Session {
      *
      */
     public void run() {
-        readT.start();
+        readThread.start();
         while (!stopped) {
             cmdline.removeAllElements();
-            Command c = null;
+            Command command = null;
             if (prompt != null) {
                 int i = prompt.indexOf('%');
                 if (i != -1) {
@@ -271,14 +256,14 @@ public class SessionImpl extends Thread implements Session {
                 while (cmd.nextToken() != StreamTokenizer.TT_EOF
                         && cmd.ttype != StreamTokenizer.TT_EOL) {
                     cmd.pushBack();
-                    if (c != null && c.isPiped) {
-                        c = new Command(bc, currentGroup, aliases, cmd,
-                                ((Pipe) c.out).getReader(), out, this);
+                    if (command != null && command.isPiped) {
+                        command = new Command(bc, currentGroup, aliases, cmd,
+                                ((Pipe) command.out).getReader(), out, this);
                     } else {
-                        c = new Command(bc, currentGroup, aliases, cmd, in,
+                        command = new Command(bc, currentGroup, aliases, cmd, in,
                                 out, this);
                     }
-                    cmdline.addElement(c);
+                    cmdline.addElement(command);
                 }
             } catch (IOException e) {
                 out.println("ERROR: " + e.getMessage());
@@ -296,15 +281,15 @@ public class SessionImpl extends Thread implements Session {
                 break;
             }
             if (cmdline.size() > 0) {
-                if (!c.isPiped) {
+                if (command == null || !command.isPiped) {
                     int first = 0;
                     for (int i = 0; i < cmdline.size(); i++) {
-                        c = cmdline.elementAt(i);
-                        c.runThreaded();
-                        if (c.isPiped) {
+                        command = cmdline.elementAt(i);
+                        command.runThreaded();
+                        if (command.isPiped) {
                             continue;
                         }
-                        if (c.isBackground) {
+                        if (command.isBackground) {
                             // Need to close input for this command chain
                             Command f = cmdline.elementAt(first);
                             f.in = null;
@@ -313,7 +298,7 @@ public class SessionImpl extends Thread implements Session {
                         }
                         try {
                             for (int j = first; j <= i; j++) {
-                                c.thread.join();
+                                command.thread.join();
                             }
                         } catch (InterruptedException e) {
                             // TODO: cleanup

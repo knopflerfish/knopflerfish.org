@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,24 +42,21 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
 public class KnopflerfishTheme extends DefaultMetalTheme {
-  final ColorUIResource primary1 = new ColorUIResource(160, 133, 95);
-  final ColorUIResource primary2 = new ColorUIResource(213, 185, 145);
-  final ColorUIResource primary3 = new ColorUIResource(255, 238, 185);
+  private final ColorUIResource primary1 = new ColorUIResource(160, 133, 95);
+  private final ColorUIResource primary2 = new ColorUIResource(213, 185, 145);
+  private final ColorUIResource primary3 = new ColorUIResource(255, 238, 185);
 
-  final ColorUIResource secondary1 = new ColorUIResource(112, 112, 112);
-  final ColorUIResource secondary2 = new ColorUIResource(163, 163, 163);
-  final ColorUIResource secondary3 = new ColorUIResource(229, 229, 220);
+  private final ColorUIResource secondary1 = new ColorUIResource(112, 112, 112);
+  private final ColorUIResource secondary2 = new ColorUIResource(163, 163, 163);
+  private final ColorUIResource secondary3 = new ColorUIResource(229, 229, 220);
 
-  FontUIResource controlFont;
-  FontUIResource systemFont;
-  FontUIResource userFont;
-  FontUIResource smallFont;
+  private FontUIResource controlFont;
+//  private FontUIResource systemFont;
+//  private FontUIResource userFont;
+//  private FontUIResource smallFont;
 
   public String getName() {
     return "Knopflerfish";
-  }
-
-  public KnopflerfishTheme() {
   }
 
   // these are blue in Metal Default Theme

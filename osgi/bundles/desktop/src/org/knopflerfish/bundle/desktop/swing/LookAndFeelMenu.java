@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -93,8 +92,8 @@ public class LookAndFeelMenu
     final UIManager.LookAndFeelInfo[] iLF
       = UIManager.getInstalledLookAndFeels();
 
-    List<String> classes = new ArrayList<String>();
-    List<String> names   = new ArrayList<String>();
+    List<String> classes = new ArrayList<>();
+    List<String> names   = new ArrayList<>();
 
     for(Entry<String,LookAndFeel> entry : lfManager.customLF.entrySet()) {
       final String className = entry.getKey();
@@ -146,7 +145,7 @@ public class LookAndFeelMenu
 
   }//LookAndFeelMenu
 
-  Set<Component> roots = new HashSet<Component>();
+  Set<Component> roots = new HashSet<>();
 
   void addRoot(Component root) {
     roots.add(root);
@@ -183,7 +182,7 @@ public class LookAndFeelMenu
     final String currentLFClassName = UIManager.getLookAndFeel().getName();
 
 
-    LookAndFeel cLF = (LookAndFeel)lfManager.customLF.get(newLFClassName);
+    LookAndFeel cLF = lfManager.customLF.get(newLFClassName);
 
     if(cLF != null) {     // First, check if it any of the custom LFs
       try {
@@ -195,9 +194,8 @@ public class LookAndFeelMenu
         Activator.log.debug("set custom LF " + newLFClassName);
         UIManager.setLookAndFeel(cLF);
 
-        for(Iterator<Component> it = roots.iterator(); it.hasNext();) {
-          Component root = it.next();
-          SwingUtilities.updateComponentTreeUI( root );
+        for (Component root : roots) {
+          SwingUtilities.updateComponentTreeUI(root);
         }
 
       } catch (Exception ex) {
@@ -209,9 +207,8 @@ public class LookAndFeelMenu
           Activator.log.debug("set installed LF " + newLFClassName);
           UIManager.setLookAndFeel(newLFClassName);
           try {
-            for(Iterator<Component> it = roots.iterator(); it.hasNext();) {
-              Component root = it.next();
-              SwingUtilities.updateComponentTreeUI( root );
+            for (Component root : roots) {
+              SwingUtilities.updateComponentTreeUI(root);
             }
 
           } catch (NullPointerException npe) {
@@ -229,10 +226,9 @@ public class LookAndFeelMenu
           // Find the menu item with the cross platform L&F and select it
           for (Enumeration<AbstractButton> lfBEnum = lfGroup.getElements();
                lfBEnum.hasMoreElements(); ) {
-            final AbstractButton ab =(AbstractButton)lfBEnum.nextElement();
+            final AbstractButton ab = lfBEnum.nextElement();
             if (cpLFcn.equals( ab.getActionCommand() )) {
-              SwingUtilities.invokeLater( new Runnable(){
-                  public void run() { ab.setSelected(true); }} );
+              SwingUtilities.invokeLater(() -> ab.setSelected(true));
               break;
             }
           }

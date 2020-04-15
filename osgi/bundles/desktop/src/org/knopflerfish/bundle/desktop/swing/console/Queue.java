@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ public class Queue<E> extends Vector<E> {
   private static final long serialVersionUID = 1L;
 
   /** @serial */
-  private int m_nMaxSize = -1;
+  private int m_nMaxSize;
   /** @serial */
   private boolean queueClosed = false;
 
@@ -113,7 +113,7 @@ public class Queue<E> extends Vector<E> {
           wait(Math.round(timeout * 1000.0f));
         } else
           wait();
-      } catch (InterruptedException e) {
+      } catch (InterruptedException ignored) {
       }
     }
 
@@ -124,7 +124,7 @@ public class Queue<E> extends Vector<E> {
     try {
       obj = firstElement();
       removeElementAt(0);
-    } catch (Exception e) {
+    } catch (Exception ignored) {
     }
 
     return obj;

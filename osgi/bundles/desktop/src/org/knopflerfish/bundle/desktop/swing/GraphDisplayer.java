@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,6 @@ package org.knopflerfish.bundle.desktop.swing;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -50,7 +48,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import javax.swing.BoxLayout;
 import javax.swing.ButtonModel;
@@ -76,39 +73,35 @@ import org.knopflerfish.service.desktop.BundleSelectionListener;
 import org.knopflerfish.service.desktop.BundleSelectionModel;
 public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
-  ButtonModel autorefreshModel = new JToggleButton.ToggleButtonModel();
+  ButtonModel autoRefreshModel = new JToggleButton.ToggleButtonModel();
 
   public GraphDisplayer(BundleContext bc) {
     super(bc, "Graph", "Graph display of bundles", false);
 
-    autorefreshModel.setSelected(true);
+    autoRefreshModel.setSelected(true);
   }
-
-
 
   @Override
   public void bundleChanged(final BundleEvent ev) {
     super.bundleChanged(ev);
-    SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          for (final JComponent jComponent : components) {
-            final JMainBundles comp = (JMainBundles)jComponent;
-            switch(ev.getType()) {
-            case BundleEvent.INSTALLED:
-              comp.addBundle(ev.getBundle());
-              break;
-            case BundleEvent.UNINSTALLED:
-              comp.removeBundle(ev.getBundle());
-              break;
-            default:
-              comp.updateBundleComp(ev.getBundle());
-              break;
-            }
-          }
-
-          repaintComponents();
+    SwingUtilities.invokeLater(() -> {
+      for (final JComponent jComponent : components) {
+        final JMainBundles comp = (JMainBundles)jComponent;
+        switch(ev.getType()) {
+        case BundleEvent.INSTALLED:
+          comp.addBundle(ev.getBundle());
+          break;
+        case BundleEvent.UNINSTALLED:
+          comp.removeBundle(ev.getBundle());
+          break;
+        default:
+          comp.updateBundleComp(ev.getBundle());
+          break;
         }
-      });
+      }
+
+      repaintComponents();
+    });
   }
 
   @Override
@@ -139,77 +132,68 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   BundleSelectionModel bsmProxy = new BundleSelectionModel() {
-      public void    clearSelection() {
-        bundleSelModel.clearSelection();
-      }
-      public boolean isSelected(long bid) {
-        return bundleSelModel.isSelected(bid);
-      }
-      public void    setSelected(long bid, boolean bSelected) {
-        bundleSelModel.setSelected(bid, bSelected);
-      }
-      public void    setSelected(List<Long> bids, boolean bSelected)
-      {
-        bundleSelModel.setSelected(bids, bSelected);
-      }
-      public void    addBundleSelectionListener(BundleSelectionListener l) {
-        bundleSelModel.addBundleSelectionListener(l);
-      }
-      public void    removeBundleSelectionListener(BundleSelectionListener l) {
-        bundleSelModel.removeBundleSelectionListener(l);
-      }
-      public int getSelectionCount() {
-        return bundleSelModel.getSelectionCount();
-      }
-      public long getSelected() {
-        return bundleSelModel.getSelected();
-      }
-    };
+    public void    clearSelection() {
+      bundleSelModel.clearSelection();
+    }
+    public boolean isSelected(long bid) {
+      return bundleSelModel.isSelected(bid);
+    }
+    public void    setSelected(long bid, boolean bSelected) {
+      bundleSelModel.setSelected(bid, bSelected);
+    }
+    public void    setSelected(List<Long> bids, boolean bSelected)
+    {
+      bundleSelModel.setSelected(bids, bSelected);
+    }
+    public void    addBundleSelectionListener(BundleSelectionListener l) {
+      bundleSelModel.addBundleSelectionListener(l);
+    }
+    public void    removeBundleSelectionListener(BundleSelectionListener l) {
+      bundleSelModel.removeBundleSelectionListener(l);
+    }
+    public int getSelectionCount() {
+      return bundleSelModel.getSelectionCount();
+    }
+    public long getSelected() {
+      return bundleSelModel.getSelected();
+    }
+  };
 
   class JMainBundles extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    JPanel panel;
+    private Set<JSoftGraphBundle> views = new LinkedHashSet<>();
 
-    Set<JSoftGraphBundle> views = new LinkedHashSet<JSoftGraphBundle>();
-    // JSoftGraphBundle serviceView = null;
-    // JSoftGraphBundle packageView = null;
+    private JBundleHistory bundleHistory;
 
-    JBundleHistory bundleHistory;
-
-    JPopupMenu    contextPopupMenu;
-    JCheckBoxMenuItem autorefreshCB;
+    private JCheckBoxMenuItem autoRefreshCB;
 
     MouseAdapter contextMenuListener = new MouseAdapter() {
-        @Override
-        public void mousePressed(MouseEvent e) {
-          maybeShowPopup(e);
+      @Override
+      public void mousePressed(MouseEvent e) {
+        maybeShowPopup(e);
+      }
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        maybeShowPopup(e);
+      }
+      private void maybeShowPopup(MouseEvent e) {
+        if(e.isPopupTrigger() ||
+           ((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0) ||
+           e.getButton() > 1) {
+          JPopupMenu contextPopupMenu = makePopup();
+          final Component comp = e.getComponent();
+          contextPopupMenu.show(comp, e.getX(), e.getY());
         }
-        @Override
-        public void mouseReleased(MouseEvent e) {
-          maybeShowPopup(e);
-        }
-        private void maybeShowPopup(MouseEvent e) {
-          if(e.isPopupTrigger() ||
-             ((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0) ||
-             e.getButton() > 1) {
-            contextPopupMenu = makePopup();
-            final Component comp = e.getComponent();
-            contextPopupMenu.show(comp, e.getX(), e.getY());
-          }
-        }
-      };
+      }
+    };
 
     JPopupMenu makePopup() {
-      final JPopupMenu     menu    = new JPopupMenu();
-
-
-      final Map<Long, Bundle>            bundles = new TreeMap<Long, Bundle>();
-      final Bundle[] bl      = Activator.getBundles();
+      final JPopupMenu menu = new JPopupMenu();
 
       final Bundle[] selbl = Activator.desktop.getSelectedBundles();
-      if(selbl != null && selbl.length > 0) {
+      if (selbl != null && selbl.length > 0) {
         final Bundle b = selbl[0];
         final JMenuItem item = makeBundleItem(b, "#" + makeBundleItemText(b));
         menu.add(item);
@@ -219,11 +203,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       {
         final JMenuItem item = new JMenuItem("New window");
 
-        item.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              addWindow();
-            }
-          });
+        item.addActionListener(ev -> addWindow());
 
         menu.add(item);
         menu.add(new JPopupMenu.Separator());
@@ -238,32 +218,24 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
       menu.add(new JPopupMenu.Separator());
 
-      autorefreshCB = new JCheckBoxMenuItem("Automatic view refresh", true);
-      autorefreshCB.setModel(autorefreshModel);
+      autoRefreshCB = new JCheckBoxMenuItem("Automatic view refresh", true);
+      autoRefreshCB.setModel(autoRefreshModel);
 
       final JMenuItem refreshItem = new JMenuItem("Refresh view");
-      refreshItem.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            if(Activator.desktop != null &&
-               Activator.desktop.getPackageManager() != null) {
-              Activator.desktop.getPackageManager().refresh();
-              for (final JSoftGraphBundle view : views) {
-                view.startFade();
-              }
-            }
+      refreshItem.addActionListener(ev -> {
+        if(Activator.desktop != null &&
+           Activator.desktop.getPackageManager() != null) {
+          Activator.desktop.getPackageManager().refresh();
+          for (final JSoftGraphBundle view : views) {
+            view.startFade();
           }
-        });
+        }
+      });
 
-      menu.add(autorefreshCB);
+      menu.add(autoRefreshCB);
       menu.add(refreshItem);
 
       menu.add(new JPopupMenu.Separator());
-
-
-      for(int i = 0; bl != null && i < bl.length; i++) {
-        bundles.put(new Long(bl[i].getBundleId()), bl[i]);
-      }
-
 
       final Map<String, Collection<Bundle>> buckets = Activator.desktop.makeBundleBuckets();
 
@@ -288,7 +260,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     boolean isAutoRefresh() {
-      return autorefreshCB == null || autorefreshCB.isSelected();
+      return autoRefreshCB == null || autoRefreshCB.isSelected();
     }
 
     String makeBundleItemText(final Bundle bundle)
@@ -305,22 +277,20 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
     {
       final JMenuItem item = new JMenuItem(txt);
 
-      item.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            for (final JSoftGraphBundle view : views) {
-              view.setBundle(bundle);
-            }
-            bundleHistory.addBundle(bundle);
-            bundleSelModel.clearSelection();
-            bundleSelModel.setSelected(bundle.getBundleId(), true);
-          }
-        });
+      item.addActionListener(ev -> {
+        for (final JSoftGraphBundle view : views) {
+          view.setBundle(bundle);
+        }
+        bundleHistory.addBundle(bundle);
+        bundleSelModel.clearSelection();
+        bundleSelModel.setSelected(bundle.getBundleId(), true);
+      });
       return item;
     }
 
     JFrame frame;
 
-    Set<JMainBundles> windows = new HashSet<JMainBundles>();
+    Set<JMainBundles> windows = new HashSet<>();
 
     public void close() {
       for (final JMainBundles comp : windows) {
@@ -369,16 +339,11 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
         b = bc.getBundle(0);
       }
       setLayout(new BorderLayout());
-      panel = new JPanel(new BorderLayout());
 
       final JButton newButton = new JButton("+") {
         private static final long serialVersionUID = 1L;
         {
-          addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                addWindow();
-              }
-            });
+          addActionListener(ev -> addWindow());
       }};
       newButton.setToolTipText("Open new window");
       // newButton.setBorder(null);
@@ -448,7 +413,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
         };
       // view2.setMaxDepth(9);
       view2.addMouseListener(contextMenuListener);
-      view2.setPaintRootName(true);
+      view2.setPaintRootName();
 
       views.add(view2);
       views.add(view1);
@@ -462,6 +427,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
         vp.add(view);
       }
 
+      JPanel panel = new JPanel(new BorderLayout());
 
       panel.add(vp, BorderLayout.CENTER);
       panel.add(bundleHistory, BorderLayout.SOUTH);
@@ -501,7 +467,6 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
         comp = comp.getParent();
       }
     }
-
 
     public void addBundle(Bundle b) {
     }

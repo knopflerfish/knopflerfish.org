@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,10 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import javax.swing.table.*;
+import javax.swing.event.TableModelListener;
+import javax.swing.event.TableModelEvent;
+
 /**
  * In a chain of data manipulators some behavior is common. TableMap
  * provides most of this behavior and can be sub-classed by filters
@@ -45,10 +49,6 @@ package org.knopflerfish.bundle.desktop.swing;
  *
  * @version 1.4 12/17/97
  * @author Philip Milne */
-
-import javax.swing.table.*;
-import javax.swing.event.TableModelListener;
-import javax.swing.event.TableModelEvent;
 
 public class TableMap extends AbstractTableModel
                       implements TableModelListener {

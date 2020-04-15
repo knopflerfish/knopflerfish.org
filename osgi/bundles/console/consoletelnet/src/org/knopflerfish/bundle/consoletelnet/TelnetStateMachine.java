@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,22 +36,18 @@ package org.knopflerfish.bundle.consoletelnet;
 
 import java.util.Vector;
 
-public class TelnetStateMachine
-{
+public class TelnetStateMachine {
 
   private final TelnetSession telnetSession; // callback reference
-
-  private int state = 0; // initial state
-
+  private int state; // initial state
   private final Vector<Byte> subNegBuffer; // Telnet command buffer
-
   private int subCode; // sub command code
 
   public TelnetStateMachine(TelnetSession telnetSession)
   {
     state = 0;
     subCode = 0;
-    subNegBuffer = new Vector<Byte>();
+    subNegBuffer = new Vector<>();
     this.telnetSession = telnetSession;
   }
 
@@ -75,19 +71,10 @@ public class TelnetStateMachine
   public int nextState(int state, int code)
   {
     int newState = 0;
-    // System.out.println("State = " + String.valueOf(state) + " Code = " +
-    // String.valueOf(code));
 
     switch (state) {
     case 0: // data mode, look for IAC only
-      switch (code) {
-      case TCC.IAC:
-        newState = 1;
-        break;
-      default:
-        newState = 0;
-        break;
-      }
+      newState = code == TCC.IAC ? 1 : 0;
       break;
 
     case 1: // command mode
@@ -149,7 +136,7 @@ public class TelnetStateMachine
         final byte[] subNegArray = new byte[subNegBuffer.size() - 1];
         for (int i = 0; i < subNegBuffer.size() - 1; i++) {
           final Byte b = subNegBuffer.elementAt(i);
-          subNegArray[i] = b.byteValue();
+          subNegArray[i] = b;
         }
         telnetSession.execSE(subCode, subNegArray);
         newState = 0;
@@ -180,25 +167,13 @@ public class TelnetStateMachine
       break;
 
     case 30: // Sub negotiation sub command code
-      switch (code) {
-      default:
-        subCode = code;
-        newState = 31;
-        break;
-      }
+      subCode = code;
+      newState = 31;
       break;
 
     case 31: // Sub negotiation parameter collection mode end ?
-      switch (code) {
-      case TCC.IAC:
-        subNegBuffer.addElement(new Byte((byte) code));
-        newState = 32;
-        break;
-      default:
-        subNegBuffer.addElement(new Byte((byte) code));
-        newState = 31;
-        break;
-      }
+      subNegBuffer.addElement((byte) code);
+      newState = code == TCC.IAC ? 32 : 31;
       break;
 
     case 32: // Sub negotiation parameter collection mode end ?
@@ -211,7 +186,7 @@ public class TelnetStateMachine
         final byte[] subNegArray = new byte[subNegBuffer.size() - 1];
         for (int i = 0; i < subNegBuffer.size() - 1; i++) {
           final Byte b = subNegBuffer.elementAt(i);
-          subNegArray[i] = b.byteValue();
+          subNegArray[i] = b;
         }
         telnetSession.execSE(subCode, subNegArray);
         newState = 0;

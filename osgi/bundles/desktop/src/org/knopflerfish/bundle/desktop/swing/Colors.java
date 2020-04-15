@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ package org.knopflerfish.bundle.desktop.swing;
 
 import java.awt.Color;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  * color names to set to java colors instances.
@@ -54,13 +53,13 @@ public class Colors extends HashMap<String,Color> {
    * Get a color, either defined by #RRGGBB or an X11 name as "ivory"
    */
   public static Color getColor(String name) {
-    Color c = null;
-    if(name.startsWith("#")) {
+    Color c;
+    if (name.startsWith("#")) {
       c = parseColor(name);
     } else {
-      c = (Color)COLORS.get(name.toLowerCase());
+      c = COLORS.get(name.toLowerCase());
     }
-    if(c == null) {
+    if (c == null) {
       System.err.println("X11Colors: No color '" + name + "'");
     }
     return c;
@@ -68,20 +67,18 @@ public class Colors extends HashMap<String,Color> {
   }
 
   public static Color parseColor(String rgb) {
-    Color c = Color.black;
-    if(rgb.startsWith("#")) {
+    if (rgb.startsWith("#")) {
       rgb = rgb.substring(1);
     }
-    if(rgb.length() < 6) {
+    if (rgb.length() < 6) {
       throw new IllegalArgumentException("Color string must be a color name or RRGGBB format, found '" + rgb + "'");
-
     }
+
     int r = Integer.parseInt(rgb.substring(0,2), 16);
     int g = Integer.parseInt(rgb.substring(2,4), 16);
     int b = Integer.parseInt(rgb.substring(4,6), 16);
 
-    c = new Color(r, g, b);
-    return c;
+    return new Color(r, g, b);
   }
 
   /**
@@ -90,11 +87,9 @@ public class Colors extends HashMap<String,Color> {
   public static String toString(Color c) {
     StringBuilder sb = new StringBuilder();
 
-    for(Iterator<String> it = COLORS.keySet().iterator(); it.hasNext();) {
-      String name = it.next();
-      Color  col  = COLORS.get(name);
-      if(col.equals(c)) {
-        return name;
+    for (Entry<String, Color> entry : COLORS.entrySet()) {
+      if (entry.getValue().equals(c)) {
+        return entry.getKey();
       }
     }
 
@@ -144,8 +139,7 @@ public class Colors extends HashMap<String,Color> {
     int b = (int)(b1 + k * (double)(b2 - b1));
     int a = (int)(a1 + k * (double)(a2 - a1));
 
-    Color c = new Color(r, g, b, a);
-    return c;
+    return new Color(r, g, b, a);
   }
 
   public static Color rgbInterpolate(Color c1, Color c2, double k) {
@@ -168,22 +162,11 @@ public class Colors extends HashMap<String,Color> {
     int g = (int)(g1 + k * (double)(g2 - g1));
     int b = (int)(b1 + k * (double)(b2 - b1));
 
-    Color c = new Color(r, g, b);
-    return c;
+    return new Color(r, g, b);
   }
 
 
   private Colors() {
-    put("grey", parseColor("#cccccc"));
-    put("gray", parseColor("#cccccc"));
-    put("red", parseColor("#ff0000"));
-    put("yellow", parseColor("#ffff00"));
-    put("green", parseColor("#00ff00"));
-    put("orange", parseColor("#ff9966"));
-    put("cyan", parseColor("#00ffff"));
-    put("blue", parseColor("#0000ff"));
-
-
     // std X11 color database
     put("snow", new Color(255, 250, 250));
     put("ghost white", new Color(248, 248, 255));

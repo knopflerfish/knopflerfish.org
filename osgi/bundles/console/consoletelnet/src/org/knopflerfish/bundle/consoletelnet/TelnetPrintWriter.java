@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,53 +41,57 @@ import java.io.PrintWriter;
 import java.io.Writer;
 
 /**
- * * This extension of a PrintWriter makes the following * translations on data
- * in the output stream * * CR LF -> no change * CR <n>, when n != LF -> CR NULL
- * <n> * <n> LF -> <n> CR LF * * All characters in the output buffer are * anded
- * with a mask from the session. * This mask is either 0x7F (7 bit) or 0xFF (8
- * bit) * * It also has a clear method to empty the output buffer * and a
- * writeCommand method to send telnet commands. *
+ * This extension of a PrintWriter makes the following
+ * translations on data in the output stream
+ *
+ * CR LF -> no change
+ * CR <n>, when n != LF -> CR NULL <n>
+ * <n> LF -> <n> CR LF
+ *
+ * All characters in the output buffer are
+ * anded with a mask from the session.
+ * This mask is either 0x7F (7 bit) or 0xFF (8 bit)
+ *
+ * It also has a clear method to empty the output buffer
+ * and a writeCommand method to send telnet commands.
  */
-
 public class TelnetPrintWriter extends PrintWriter {
-    private TelnetSession ts;
-
-    private CharArrayWriter caw; // Intermediate array writer
-
-    private PrintWriter pw2; // Private PrintWriter
-
+    private TelnetSession telnetSession;
+    private CharArrayWriter charArrayWriter; // Intermediate array writer
+    private PrintWriter printWriter; // Private PrintWriter
     private boolean prevWasCR = false;
 
     public TelnetPrintWriter(OutputStream os, TelnetStateMachine tsm,
-            TelnetSession ts) {
+            TelnetSession telnetSession) {
         super(os);
-        this.ts = ts;
-        Writer w1 = super.out; // get the underlaying writer
-        caw = new CharArrayWriter(); // intermediate array writer
-        super.out = caw; // replace underlying Writer with a CharArrayWriter
-        pw2 = new PrintWriter(w1); // a private PrintWriter
+        this.telnetSession = telnetSession;
+        Writer w1 = super.out; // get the underlying writer
+        charArrayWriter = new CharArrayWriter(); // intermediate array writer
+        super.out = charArrayWriter; // replace underlying Writer with a CharArrayWriter
+        printWriter = new PrintWriter(w1); // a private PrintWriter
     }
 
     /**
      * * Override flusg and close methods,
      */
-
+    @Override
     public void flush() {
-        caw.flush();
+        charArrayWriter.flush();
         pribuf();
-        pw2.flush();
+        printWriter.flush();
     }
 
+    @Override
     public void close() {
         flush();
-        caw.close();
-        pw2.close();
+        charArrayWriter.close();
+        printWriter.close();
     }
 
     /**
      * * Override all println methods, add CRLF as end of line
      */
-
+    @Override
     public synchronized void println() {
         // super.println();
         write(TCC.CR);
@@ -95,11 +99,13 @@ public class TelnetPrintWriter extends PrintWriter {
         flush();
     }
 
+    @Override
     public synchronized void println(boolean b) {
         super.print(b);
         this.println();
     }
 
+    @Override
     public synchronized void println(char c) {
         synchronized (this) {
             super.print(c);
@@ -107,31 +113,37 @@ public class TelnetPrintWriter extends PrintWriter {
         }
     }
 
+    @Override
     public synchronized void println(int i) {
         super.print(i);
         this.println();
     }
 
+    @Override
     public synchronized void println(long l) {
         super.print(l);
         this.println();
     }
 
+    @Override
     public synchronized void println(float f) {
         super.print(f);
         this.println();
     }
 
+    @Override
     public synchronized void println(double d) {
         super.print(d);
         this.println();
     }
 
+    @Override
     public synchronized void println(char[] c) {
         super.print(c);
         this.println();
     }
 
+    @Override
     public synchronized void println(String s) {
         synchronized (this) {
             super.print(s);
@@ -139,6 +151,7 @@ public class TelnetPrintWriter extends PrintWriter {
         }
     }
 
+    @Override
     public synchronized void println(Object o) {
         super.print(o);
         this.println();
@@ -147,33 +160,36 @@ public class TelnetPrintWriter extends PrintWriter {
     /**
      * * Override all write methods, write to internal buffer first
      */
-
+    @Override
     public synchronized void write(char[] buf) {
-        caw.write(buf, 0, buf.length);
+        charArrayWriter.write(buf, 0, buf.length);
     }
 
+    @Override
     public synchronized void write(char[] buf, int off, int len) {
-        caw.write(buf, off, len);
+        charArrayWriter.write(buf, off, len);
     }
 
+    @Override
     public synchronized void write(String s) {
         synchronized (this) {
             try {
-                caw.write(s);
+                charArrayWriter.write(s);
             } catch (IOException iox) {
-                System.out
-                        .println("Exception in TelnetPrintWriter write (String) "
+                System.out.println("Exception in TelnetPrintWriter write (String) "
                                 + iox.toString());
             }
         }
     }
 
+    @Override
     public synchronized void write(int c) {
-        caw.write(c);
+        charArrayWriter.write(c);
     }
 
+    @Override
     public synchronized void write(String s, int off, int len) {
-        caw.write(s, off, len);
+        charArrayWriter.write(s, off, len);
     }
 
     /**
@@ -182,45 +198,41 @@ public class TelnetPrintWriter extends PrintWriter {
      */
 
     private synchronized void pribuf() {
-        char[] buf = caw.toCharArray();
-        caw.reset();
-        char mask = ts.getMask();
+        char[] buf = charArrayWriter.toCharArray();
+        charArrayWriter.reset();
+        char mask = telnetSession.getMask();
 
-        for (int i = 0; i < buf.length; i++) {
-            if (prevWasCR == true) {
-                if (buf[i] != TCC.LF_char) { // add a NULL
-                    pw2.write(TCC.NULL_char);
-                    pw2.write(buf[i] & mask);
-                } else {
-                    pw2.write(buf[i] & mask);
+        for (char c : buf) {
+            if (prevWasCR) {
+                if (c != TCC.LF_char) { // add a NULL
+                    printWriter.write(TCC.NULL_char);
                 }
+                printWriter.write(c & mask);
             } else {
-                if (buf[i] == TCC.LF_char) { // a single LF -> CRLF
-                    pw2.write(TCC.CR_char);
-                    pw2.write(TCC.LF_char);
+                if (c == TCC.LF_char) { // a single LF -> CRLF
+                    printWriter.write(TCC.CR_char);
+                    printWriter.write(TCC.LF_char);
                 } else {
-                    pw2.write(buf[i] & mask);
+                    printWriter.write(c & mask);
                 }
             }
-            prevWasCR = (buf[i] == TCC.CR_char) ? true : false;
+            prevWasCR = c == TCC.CR_char;
         }
-        // pw2.flush();
     }
 
     public synchronized void reset() {
-        caw.reset();
+        charArrayWriter.reset();
     }
 
     /**
      * * Write a telnet command in the output stream. * *
      * 
-     * @parameter tc, command string to write
+     * @param tc, command string to write
      */
-
     public synchronized void writeCommand(String tc) {
         if (tc != null) {
-            pw2.print(tc);
-            pw2.flush();
+            printWriter.print(tc);
+            printWriter.flush();
         }
     }
 }

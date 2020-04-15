@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.InputStream;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.util.Vector;
 
@@ -65,16 +64,9 @@ public class SwingIO extends JPanel {
   JTextArea  text;
   JTextField tfCmd;
 
-  int p0 = -1;
-  int p1 = 0;
-
-  String last = "";
-
   InputStream origIn;
   PrintStream origOut;
   PrintStream origErr;
-
-  PipedOutputStream textSource;
 
   TextReader       in;
   PrintStream      out;
@@ -83,7 +75,7 @@ public class SwingIO extends JPanel {
   JScrollPane scroll;
   Label  cmdLabel;
 
-  Vector<String> history    = new Vector<String>();
+  Vector<String> history    = new Vector<>();
   int    historyPos = 0;
 
   boolean bGrabbed = false;
@@ -278,24 +270,22 @@ public class SwingIO extends JPanel {
   }
 
   void showLastLine() {
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        if (maxLines > 0) {
-          int linesToRemove = text.getLineCount() - maxLines;
-          int index = 0;
-          if (linesToRemove > 0) {
-            for (int i=0; i<linesToRemove; i++) {
-              index = text.getText().indexOf('\n', index) + 1;
-            }
-            text.setText(text.getText().substring(index));
+    SwingUtilities.invokeLater(() -> {
+      if (maxLines > 0) {
+        int linesToRemove = text.getLineCount() - maxLines;
+        int index = 0;
+        if (linesToRemove > 0) {
+          for (int i=0; i<linesToRemove; i++) {
+            index = text.getText().indexOf('\n', index) + 1;
           }
+          text.setText(text.getText().substring(index));
         }
+      }
 
-        JScrollBar bar = scroll.getVerticalScrollBar();
-        if(bar != null) {
-          int v = bar.getMaximum();
-          bar.setValue(v*2);
-        }
+      JScrollBar bar = scroll.getVerticalScrollBar();
+      if(bar != null) {
+        int v = bar.getMaximum();
+        bar.setValue(v*2);
       }
     });
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,7 @@ import javax.swing.filechooser.FileFilter;
 
 public class FileFilterImpl extends FileFilter implements java.io.FileFilter {
 
-  private Map<String, FileFilterImpl> filters
-    = new HashMap<String, FileFilterImpl>();
+  private Map<String, FileFilterImpl> filters = new HashMap<>();
   private String    description                = null;
   private String    fullDescription            = null;
   private boolean   useExtensionsInDescription = true;
@@ -58,9 +57,7 @@ public class FileFilterImpl extends FileFilter implements java.io.FileFilter {
         return true;
       }
       final String extension = getExtension(f);
-      if (extension != null && filters.get(extension) != null) {
-        return true;
-      }
+      return extension != null && filters.get(extension) != null;
     }
     return false;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003,2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,9 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -57,17 +54,17 @@ import javax.swing.event.AncestorListener;
 public class JFloatable extends JPanel {
   private static final long serialVersionUID = 1L;
 
-  JComponent main;
-  JComponent buttonFloat;
-  String     title;
+  private JComponent main;
+  private JComponent buttonFloat;
+  private String     title;
 
-  JFrame     frame = null;
-  JButton    buttonInfo;
+  private JFrame     frame = null;
+  private JButton    buttonInfo;
 
-  boolean    bAutoClose = true;
+  private boolean    bAutoClose = true;
 
-  Point      frameLocation = null;
-  Dimension  frameSize     = null;
+  private Point      frameLocation = null;
+  private Dimension  frameSize     = null;
 
 
   public JFloatable(JComponent main, String title) {
@@ -76,41 +73,41 @@ public class JFloatable extends JPanel {
     this.title  = title;
     buttonFloat = new JLabel(Desktop.floatIcon);
     buttonFloat.setToolTipText("Float window");
-    //    buttonFloat.setBorder(null);
     buttonFloat.addMouseListener(new MouseAdapter() {
-	public void mouseClicked(MouseEvent ev) {
-	  if(frame == null) {
-	    doFloat();
-	  } else {
-	    doUnfloat();
-	  }
-	}
-      });
+      public void mouseClicked(MouseEvent ev) {
+        if (frame == null) {
+          doFloat();
+        } else {
+          doUnfloat();
+        }
+      }
+    });
 
     buttonInfo = new JButton("Show window");
     buttonInfo.setToolTipText("Moves floating window to front");
-    buttonInfo.addActionListener(new ActionListener() {
-	public void actionPerformed(ActionEvent ev) {
-	  if(frame != null) {
-	    frame.toFront();
-	  }
-	}
-      });
+    buttonInfo.addActionListener(ev -> {
+      if (frame != null) {
+        frame.toFront();
+      }
+    });
 
     addAncestorListener(new AncestorListener() {
-	public void ancestorAdded(AncestorEvent event) {
-	}
-	public void ancestorMoved(AncestorEvent event) {
-	}
-	public void ancestorRemoved(AncestorEvent event) {
-	  if(bAutoClose) {
-	    if(frame != null) {
-	      frame.setVisible(false);
-	      frame = null;
-	    }
-	  }
-	}
-      });
+      @Override
+      public void ancestorAdded(AncestorEvent event) {
+      }
+      @Override
+      public void ancestorMoved(AncestorEvent event) {
+      }
+      @Override
+      public void ancestorRemoved(AncestorEvent event) {
+        if (bAutoClose) {
+          if (frame != null) {
+            frame.setVisible(false);
+            frame = null;
+          }
+        }
+      }
+    });
 
     add(main, BorderLayout.CENTER);
     JPanel top = new JPanel(new BorderLayout());
@@ -130,9 +127,9 @@ public class JFloatable extends JPanel {
       frame.getContentPane().setLayout(new BorderLayout());
       frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
       frame.addWindowListener(new WindowAdapter() {
-	  public void windowClosing(WindowEvent e) {
-	    doUnfloat();
-	  }
+        public void windowClosing(WindowEvent e) {
+          doUnfloat();
+        }
       });
       buttonFloat.setToolTipText("Unfloat window");
     }
@@ -147,26 +144,24 @@ public class JFloatable extends JPanel {
     frame.getContentPane().add(main, BorderLayout.CENTER);
 
     Dimension size = main.getPreferredSize();
-    size = new Dimension(Math.min(200, size.width),
-			 Math.min(200, size.height));
+    size = new Dimension(Math.min(200, size.width), Math.min(200, size.height));
 
-    if(frameLocation != null) {
+    if (frameLocation != null) {
       frame.setLocation(frameLocation);
     }
-    if(frameSize != null) {
+
+    if (frameSize != null) {
       main.setPreferredSize(frameSize);
     } else {
       frame.setSize(size);
     }
 
-
-    //    frame.setSize(size);
     frame.pack();
     frame.setVisible(true);
   }
 
   synchronized public void doUnfloat() {
-    if(frame != null) {
+    if (frame != null) {
       frameLocation = frame.getLocationOnScreen();
       frameSize     = main.getSize();
 

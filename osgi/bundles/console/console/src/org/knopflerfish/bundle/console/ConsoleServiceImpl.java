@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,9 +54,8 @@ import org.osgi.framework.BundleContext;
  */
 public class ConsoleServiceImpl implements ConsoleService {
 
-    final BundleContext bc;
-
-    Alias aliases;
+    private final BundleContext bc;
+    private Alias aliases;
 
     public ConsoleServiceImpl(BundleContext bc) {
         this.bc = bc;
@@ -66,33 +65,26 @@ public class ConsoleServiceImpl implements ConsoleService {
     }
 
     public String[] setAlias(final String key, final String[] val) {
-        String oldVal[] = (String[]) AccessController
-                .doPrivileged(new PrivilegedAction<Object>() {
-                    public Object run() {
-                        return aliases.put(key, val.clone());
-                    }
-                });
-
+        String[] oldVal = (String[]) AccessController
+                .doPrivileged((PrivilegedAction<Object>) () -> aliases.put(key, val.clone()));
         return oldVal;
     }
 
     /**
      * Start a command session
      *
-     * @param command
-     *            Command string to match against
      * @return Session object
      */
     public Session runSession(String name, Reader in, PrintWriter out) {
-        SessionImpl s = new SessionImpl(bc, name, in, out, aliases);
-        s.start();
-        return s;
+        SessionImpl session = new SessionImpl(bc, name, in, out, aliases);
+        session.start();
+        return session;
     }
 
     /**
      * Run a single command
      *
-     * @param commands
+     * @param command
      *            String with command to run
      * @return Result of commands
      */

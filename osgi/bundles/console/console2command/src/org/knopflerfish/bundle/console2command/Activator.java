@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,34 +34,25 @@
 
 package org.knopflerfish.bundle.console2command;
 
-import java.io.*;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.service.command.*;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.knopflerfish.service.console.CommandGroup;
 import org.knopflerfish.service.console.CommandGroupAdapter;
 
-public class Activator implements  BundleActivator {
-  static BundleContext bc;
-  ServiceTracker cmdTracker;
-  public void start(BundleContext bc) throws Exception {
+public class Activator implements BundleActivator {
+  private BundleContext bc;
+  private ServiceTracker<CommandGroup, CommandGroup> cmdTracker;
+
+  public void start(BundleContext bc) {
     this.bc = bc;    
     
-    cmdTracker = new ServiceTracker(bc, 
-                                    CommandGroup.class.getName(), 
-                                    cmdTrackerCustomizer);    
-
+    cmdTracker = new ServiceTracker<>(bc, CommandGroup.class.getName(), cmdTrackerCustomizer);
     cmdTracker.open();
   }
   
@@ -73,35 +64,35 @@ public class Activator implements  BundleActivator {
   }  
   
  
-  Map/*<ServiceReference, ConsoleWrapper>*/ wrappers = new HashMap();
+  private final Map<ServiceReference<?>, ConsoleWrapper> wrappers = new HashMap<>();
 
-  ServiceTrackerCustomizer cmdTrackerCustomizer = 
-    new ServiceTrackerCustomizer() {
+  ServiceTrackerCustomizer<CommandGroup, CommandGroup> cmdTrackerCustomizer =
+    new ServiceTrackerCustomizer<CommandGroup, CommandGroup>() {
       
-      public Object addingService(ServiceReference sr) {
-        Object obj = bc.getService(sr);
-        modifiedService(sr, obj);
-        return obj;
+      public CommandGroup addingService(ServiceReference<CommandGroup> sr) {
+        CommandGroup commandGroup = bc.getService(sr);
+        modifiedService(sr, commandGroup);
+        return commandGroup;
       }
       
-      public void modifiedService(ServiceReference sr, Object service) {
-        synchronized(wrappers) {
-          ConsoleWrapper wrapper = (ConsoleWrapper)wrappers.get(sr);
+      public void modifiedService(ServiceReference<CommandGroup> sr, CommandGroup service) {
+        synchronized (wrappers) {
+          ConsoleWrapper wrapper = wrappers.get(sr);
           if(wrapper != null) {
             wrapper.close();
             wrappers.remove(sr);
           }
           if(service instanceof CommandGroupAdapter) {
-            wrapper = new ConsoleWrapper(bc, sr, (CommandGroupAdapter)service);
+            wrapper = new ConsoleWrapper(sr, (CommandGroupAdapter) service);
             wrappers.put(sr, wrapper);
             wrapper.open();
           }
         }
       }
       
-      public void removedService(ServiceReference sr, Object service) {
-        synchronized(wrappers) {
-          ConsoleWrapper wrapper = (ConsoleWrapper)wrappers.get(sr);
+      public void removedService(ServiceReference<CommandGroup> sr, CommandGroup service) {
+        synchronized (wrappers) {
+          ConsoleWrapper wrapper = wrappers.get(sr);
           if(wrapper != null) {
             wrapper.close();
             wrappers.remove(sr);

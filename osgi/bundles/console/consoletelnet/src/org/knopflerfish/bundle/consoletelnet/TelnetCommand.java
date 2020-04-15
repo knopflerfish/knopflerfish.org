@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,11 +60,11 @@ public abstract class TelnetCommand {
     /**
      * Parameters in the constructor:
      *
-     * @parameter ts TelnetSession, to provide callback to the telnet session
-     * @parameter int commandCode
-     * @parameter boolean doStatus, if true the command has been asked to be
+     * @param ts TelnetSession, to provide callback to the telnet session
+     * @param commandCode
+     * @param doStatus, if true the command has been asked to be
      *            active
-     * @parameter boolean show, if true the commands is shown
+     * @param show, if true the commands is shown
      */
     public TelnetCommand(TelnetSession ts, int commandCode, boolean doStatus,
             boolean show) {
@@ -78,28 +78,28 @@ public abstract class TelnetCommand {
 
     public String getWILL() {
         return TCC.IAC_string + TCC.WILL_string
-                + String.valueOf((char) commandCode);
+                + (char) commandCode;
     }
 
     /** WONT string of command */
 
     public String getWONT() {
         return TCC.IAC_string + TCC.WONT_string
-                + String.valueOf((char) commandCode);
+                + (char) commandCode;
     }
 
     /** DONT string of command */
 
     public String getDONT() {
         return TCC.IAC_string + TCC.DONT_string
-                + String.valueOf((char) commandCode);
+                + (char) commandCode;
     }
 
     /** DO string of command */
 
     public String getDO() {
         return TCC.IAC_string + TCC.DO_string
-                + String.valueOf((char) commandCode);
+                + (char) commandCode;
     }
 
     public void setDoStatus(boolean state) {
@@ -125,21 +125,18 @@ public abstract class TelnetCommand {
     /**
      * * Debug printout
      */
-
     void printCommand(int action, int optionCode, byte[] parameters) {
-        System.out.print("Telnet Command code: " + String.valueOf(action)
-                + " option: " + String.valueOf(optionCode) + " status now: "
-                + String.valueOf(doStatus));
+        System.out.print("Telnet Command code: " + action
+                + " option: " + optionCode + " status now: "
+                + doStatus);
         if (parameters != null) {
             System.out.print(" parameters:");
-            for (int i = 0; i < parameters.length; i++) {
-                System.out.print(" " + String.valueOf(parameters[i]));
+            for (byte parameter : parameters) {
+                System.out.print(" " + String.valueOf(parameter));
             }
-            System.out.println();
-        } else {
-            // System.out.println(" no parameters");
-            System.out.println();
         }
+
+        System.out.println();
     }
 
     /**
@@ -149,10 +146,10 @@ public abstract class TelnetCommand {
      * in, no response is returned. This is essential to prevent
      * negotiation loops.
      *
-     * @parameter action, one of the telnet protocol basic actions
+     * @param action, one of the telnet protocol basic actions
      *            DO, DONT, WILL, WONT or SE
-     * @parameter optionCode, the option code
-     * @parameter parameters, a byte array with optional parameters,
+     * @param optionCode, the option code
+     * @param parameters, a byte array with optional parameters,
      *            addition data to the option command.
      *
      * @return a String with the response of the command.

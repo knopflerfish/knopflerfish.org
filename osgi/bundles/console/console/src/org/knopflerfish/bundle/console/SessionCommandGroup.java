@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2020, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,17 +35,12 @@
 package org.knopflerfish.bundle.console;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.TreeSet;
 
 import org.knopflerfish.service.console.CommandGroup;
@@ -53,67 +48,34 @@ import org.knopflerfish.service.console.Session;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogService;
 
-// ******************** SessionCommandGroup ********************
 /**
- * * Interface for commands to be handled by the console. * *
+ * Interface for commands to be handled by the console.
  * 
- * @author Gatespace AB *
+ * @author Gatespace AB
  */
 
 public class SessionCommandGroup implements CommandGroup {
 
-    final static String NAME = "session";
+    static final String NAME = "session";
+    private static final String ALIAS_SAVE = "aliases";
 
-    final static String help_alias = "alias [<alias>] [<val>] ...  - Set or show aliases";
-
-    final static String help_help = "help [<command group> | all] - Help about specific command group or all command groups";
-
-    final static String help_echo = "echo [-n] ...                - Echo command arguments";
-
-    final static String help_enter = "enter <command group>        - Enter command group mode";
-
-    final static String help_leave = "leave                        - Leave command group mode";
-
-    final static String help_prompt = "prompt <command prompt>      - Set command prompt";
-
-    final static String help_quit = "quit                         - Exit this session";
-
-    final static String help_save = "save [<file>]                - Save current aliases as a property file";
-
-    final static String help_restore = "restore [<file>]             - Restore aliases from a property file or from default aliases";
-
-    final static String help_source = "source <URL>                 - Source commands at URL";
-
-    final static String help_unalias = "unalias <alias name>         - Remove an alias";
+    private static final String help_alias   = "alias [<alias>] [<val>] ...  - Set or show aliases";
+    private static final String help_help    = "help [<command group> | all] - Help about specific command group or all command groups";
+    private static final String help_echo    = "echo [-n] ...                - Echo command arguments";
+    private static final String help_enter   = "enter <command group>        - Enter command group mode";
+    private static final String help_leave   = "leave                        - Leave command group mode";
+    private static final String help_prompt  = "prompt <command prompt>      - Set command prompt";
+    private static final String help_quit    = "quit                         - Exit this session";
+    private static final String help_save    = "save [<file>]                - Save current aliases as a property file";
+    private static final String help_restore = "restore [<file>]             - Restore aliases from a property file or from default aliases";
+    private static final String help_source  = "source <URL>                 - Source commands at URL";
+    private static final String help_unalias = "unalias <alias name>         - Remove an alias";
 
     private BundleContext bc;
 
     public SessionCommandGroup(BundleContext bc) {
         this.bc = bc;
-    }
-
-    /**
-     * Utility method used for logging.
-     * 
-     * @param level
-     *            log level
-     * @param msg
-     *            log message
-     * @param t
-     *            throwable
-     */
-    void log(int level, String msg, Throwable t) {
-        ServiceReference<LogService> srLog = bc
-                .getServiceReference(LogService.class);
-        if (srLog != null) {
-            LogService sLog = bc.getService(srLog);
-            if (sLog != null) {
-                sLog.log(level, msg, t);
-            }
-            bc.ungetService(srLog);
-        }
     }
 
     /**
@@ -150,7 +112,7 @@ public class SessionCommandGroup implements CommandGroup {
 
     /**
      * Executes the command.
-     * 
+     *
      * @param args
      *            argument list passed to the command
      * @param out
@@ -161,256 +123,270 @@ public class SessionCommandGroup implements CommandGroup {
      */
     public int execute(String[] args, Reader in, PrintWriter out,
             Session session) {
-        SessionImpl si = (SessionImpl) session;
-        String usage = null;
+        SessionImpl sessionImpl = (SessionImpl) session;
         if (args.length > 0) {
-            //
-            // Help
-            //
             if ("help".startsWith(args[0])) {
-                if (args.length == 1) {
-                    if ("".equals(si.currentGroup)) {
-                        return help(out, si);
-                    }
-                    return helpAbout(si.currentGroup, out, si);
-                } else if (args.length == 2) {
-                    if (args[1].equals("all")) {
-                        return help(out, si);
-                    }
-                    return helpAbout(args[1], out, si);
-                }
-                usage = help_help;
-                //
-                // Alias
-                //
+                return executeHelp(args, out, sessionImpl);
             } else if ("alias".startsWith(args[0])) {
-                if (si == null) {
-                    out.println("Alias not available from runCommand method");
-                    return 1;
-                }
-                if (args.length == 1) {
-                    for (Enumeration<String> e = si.aliases.keys(); e.hasMoreElements();) {
-                        String a = e.nextElement();
-                        out.println(a + " = " + si.aliases.getString(a));
-                    }
-                } else if (args.length == 2) {
-                    String a = si.aliases.getString(args[1]);
-                    if (a != null) {
-                        out.println(args[1] + " = " + a);
-                    } else {
-                        out.println("No alias for: " + args[1]);
-                    }
-                } else {
-                    String[] na = new String[args.length - 2];
-                    System.arraycopy(args, 2, na, 0, na.length);
-                    si.aliases.put(args[1], na);
-                }
-                return 0;
-                //
-                // Enter
-                //
+                return executeAlias(args, out, sessionImpl);
             } else if ("enter".startsWith(args[0])) {
-                if (args.length == 2) {
-                    try {
-                        ServiceReference<CommandGroup> ref
-                          = Command.matchCommandGroup(bc, args[1]);
-                        if (ref != null) {
-                            si.currentGroup = (String) ref
-                                    .getProperty("groupName");
-                        } else {
-                            si.currentGroup = NAME;
-                        }
-                        return 0;
-                    } catch (IOException e) {
-                        out.println(e.getMessage());
-                        return 1;
-                    }
-                }
-                usage = help_enter;
-                return 1;
-                //
-                // Echo
-                //
+                return executeEnter(args, out, sessionImpl);
             } else if ("echo".startsWith(args[0])) {
-                int pos = 1;
-                boolean nl = true;
-                if (args.length >= 2 && "-n".equals(args[1])) {
-                    nl = false;
-                    pos = 2;
-                }
-                while (pos < args.length) {
-                    out.print(args[pos]);
-                    if (++pos < args.length) {
-                        out.print(" ");
-                    }
-                }
-                if (nl) {
-                    out.println();
+                return executeEcho(args, out);
+            } else if ("leave".startsWith(args[0])) {
+                return executeLeave(args, out, sessionImpl);
+            } else if ("prompt".startsWith(args[0])) {
+                return executePrompt(args, out, sessionImpl);
+            } else if ("quit".startsWith(args[0])) {
+                return executeQuit(args, out, sessionImpl);
+            } else if ("save".startsWith(args[0])) {
+                return executeSave(args, out, sessionImpl);
+            } else if ("restore".startsWith(args[0])) {
+                return executeRestore(args, out, sessionImpl);
+            } else if ("source".startsWith(args[0])) {
+                return executeSource(args, out);
+            } else if ("unalias".startsWith(args[0])) {
+                return executeUnalias(args, out, sessionImpl);
+            }
+        }
+        printUsage(out, getLongHelp());
+        return -1;
+    }
+
+    private int executeHelp(String[] args, PrintWriter out, SessionImpl session) {
+        if (args.length == 1) {
+            if ("".equals(session.currentGroup)) {
+                return help(out);
+            }
+            return helpAbout(session.currentGroup, out);
+        } else if (args.length == 2) {
+            if (args[1].equals("all")) {
+                return help(out);
+            }
+            return helpAbout(args[1], out);
+        }
+        printUsage(out, help_help);
+        return -1;
+    }
+
+    private int executeAlias(String[] args, PrintWriter out, SessionImpl session) {
+        if (session == null) {
+            out.println("Alias not available from runCommand method");
+            return 1;
+        }
+        if (args.length == 1) {
+            session.aliases.keySet().stream()
+                .map(aliasName -> aliasName + " = " + session.aliases.getString(aliasName))
+                .forEach(out::println);
+        } else if (args.length == 2) {
+            String aliasString = session.aliases.getString(args[1]);
+            if (aliasString != null) {
+                out.println(args[1] + " = " + aliasString);
+            } else {
+                out.println("No alias for: " + args[1]);
+            }
+        } else {
+            String[] newAlias = new String[args.length - 2];
+            System.arraycopy(args, 2, newAlias, 0, newAlias.length);
+            session.aliases.put(args[1], newAlias);
+        }
+        return 0;
+    }
+
+    private int executeEnter(String[] args, PrintWriter out, SessionImpl session) {
+        if (args.length == 2) {
+            try {
+                ServiceReference<CommandGroup> ref
+                  = Command.matchCommandGroup(bc, args[1]);
+                if (ref != null) {
+                    session.currentGroup = (String) ref
+                            .getProperty("groupName");
+                } else {
+                    session.currentGroup = NAME;
                 }
                 return 0;
-                //
-                // Leave
-                //
-            } else if ("leave".startsWith(args[0])) {
-                if (args.length == 1) {
-                    si.currentGroup = "";
-                    return 0;
-                }
-                usage = help_leave;
-                //
-                // Prompt
-                //
-            } else if ("prompt".startsWith(args[0])) {
-                if (args.length == 2) {
-                    si.prompt = args[1];
-                    return 0;
-                }
-                usage = help_prompt;
-                //
-                // Quit
-                //
-            } else if ("quit".startsWith(args[0])) {
-                if (args.length == 1) {
-                    si.close();
-                    return 0;
-                }
-                usage = help_quit;
-                //
-                // Save
-                //
-            } else if ("save".startsWith(args[0])) {
-                File file = null;
-                if (args.length == 1) {
-                    file = bc.getDataFile(SessionImpl.ALIAS_SAVE);
-                } else if (args.length == 2) {
-                    file = new File(args[1]);
-                }
-                if (file != null) {
-                    try {
-                        OutputStream p = new FileOutputStream(file);
-                        si.aliases.save(p);
-                    } catch (IOException e) {
-                        out.println("Failed to save aliases: " + e);
-                        return 1;
-                    }
-                    return 0;
-                }
-                usage = help_save;
-                //
-                // Restore
-                //
-            } else if ("restore".startsWith(args[0])) {
-                if (args.length == 1) {
-                    si.aliases.setDefault();
-                    return 0;
-                } else if (args.length == 2) {
-                    try {
-                        InputStream r = new FileInputStream(new File(args[1]));
-                        si.aliases.clear();
-                        si.aliases.restore(r);
-                    } catch (IOException e) {
-                        out.println("Failed to restore aliases from " + args[1]
-                                + ": " + e);
-                        return 1;
-                    }
-                    return 0;
-                }
-                usage = help_restore;
-                //
-                // Source
-                //
-            } else if ("source".startsWith(args[0])) {
-                if (args.length == 2) {
-                    InputStreamReader sin = null;
-                    try {
-                        URL surl = new URL(args[1]);
-                        sin = new InputStreamReader(surl.openStream());
-                        SessionImpl ss = new SessionImpl(bc, "source: "
-                                + args[1], sin, out, null);
-                        ss.prompt = null;
-                        ss.start();
-                        try {
-                            ss.join();
-                        } catch (InterruptedException ignore) {
-                        }
-                        ss.close();
-                    } catch (IOException e) {
-                        out.println("Failed to source URL: " + e.getMessage());
-                        return 1;
-                    } finally {
-                        if (sin != null) {
-                            try {
-                                sin.close();
-                            } catch (IOException ignore) {
-                            }
-                        }
-                    }
-                    return 0;
-                }
-                usage = help_source;
-                //
-                // Unalias
-                //
-            } else if ("unalias".startsWith(args[0])) {
-                if (si == null) {
-                    out.println("Unalias not available from runCommand method");
-                    return 1;
-                }
-                if (args.length == 2) {
-                    if (si.aliases.remove(args[1]) != null) {
-                        return 0;
-                    }
-                    return 1;
-                }
-                usage = help_unalias;
+            } catch (IOException e) {
+                out.println(e.getMessage());
+                return 1;
             }
-
         }
+        printUsage(out, help_enter);
+        return 1;
+    }
+
+    private int executeEcho(String[] args, PrintWriter out) {
+        int pos = 1;
+        boolean nl = true;
+        if (args.length >= 2 && "-n".equals(args[1])) {
+            nl = false;
+            pos = 2;
+        }
+        while (pos < args.length) {
+            out.print(args[pos]);
+            if (++pos < args.length) {
+                out.print(" ");
+            }
+        }
+        if (nl) {
+            out.println();
+        }
+        return 0;
+    }
+
+    private int executeLeave(String[] args, PrintWriter out, SessionImpl session) {
+        if (args.length == 1) {
+            session.currentGroup = "";
+            return 0;
+        }
+        printUsage(out, help_leave);
+        return -1;
+    }
+
+    private int executePrompt(String[] args, PrintWriter out, SessionImpl session) {
+        if (args.length == 2) {
+            session.prompt = args[1];
+            return 0;
+        }
+        printUsage(out, help_prompt);
+        return -1;
+    }
+
+    private int executeQuit(String[] args, PrintWriter out, SessionImpl session) {
+        if (args.length == 1) {
+            session.close();
+            return 0;
+        }
+        printUsage(out, help_quit);
+        return -1;
+    }
+
+    private int executeSave(String[] args, PrintWriter out, SessionImpl session) {
+        File file = null;
+        if (args.length == 1) {
+            file = bc.getDataFile(ALIAS_SAVE);
+        } else if (args.length == 2) {
+            file = new File(args[1]);
+        }
+        if (file != null) {
+            try {
+                session.aliases.save(file);
+            } catch (IOException e) {
+                out.println("Failed to save aliases: " + e);
+                return 1;
+            }
+            return 0;
+        }
+        printUsage(out, help_save);
+        return -1;
+    }
+
+    private int executeRestore(String[] args, PrintWriter out, SessionImpl session) {
+        if (args.length == 1) {
+            session.aliases.setDefault();
+            return 0;
+        } else if (args.length == 2) {
+            try {
+                session.aliases.clear();
+                session.aliases.restore(new File(args[1]));
+            } catch (IOException e) {
+                out.println("Failed to restore aliases from " + args[1]
+                        + ": " + e);
+                return 1;
+            }
+            return 0;
+        }
+        printUsage(out, help_restore);
+        return -1;
+    }
+
+    private int executeSource(String[] args, PrintWriter out) {
+        if (args.length == 2) {
+            InputStreamReader sin = null;
+            try {
+                URL surl = new URL(args[1]);
+                sin = new InputStreamReader(surl.openStream());
+                SessionImpl ss = new SessionImpl(bc, "source: "
+                        + args[1], sin, out, null);
+                ss.prompt = null;
+                ss.start();
+                try {
+                    ss.join();
+                } catch (InterruptedException ignore) {
+                }
+                ss.close();
+            } catch (IOException e) {
+                out.println("Failed to source URL: " + e.getMessage());
+                return 1;
+            } finally {
+                if (sin != null) {
+                    try {
+                        sin.close();
+                    } catch (IOException ignore) {
+                    }
+                }
+            }
+            return 0;
+        }
+        printUsage(out, help_source);
+        return -1;
+    }
+
+    private int executeUnalias(String[] args, PrintWriter out, SessionImpl session) {
+        if (session == null) {
+            out.println("Unalias not available from runCommand method");
+            return 1;
+        }
+        if (args.length == 2) {
+            if (session.aliases.remove(args[1]) != null) {
+                return 0;
+            }
+            return 1;
+        }
+        printUsage(out, help_unalias);
+        return -1;
+    }
+
+    private void printUsage(PrintWriter out, String usage) {
         if (usage != null) {
             usage = "Usage: " + usage;
         } else {
             usage = getLongHelp();
         }
         out.println(usage);
-        return -1;
     }
 
-  /**
+    /**
    * Help about available command groups.
    * 
    * @param out
    *          output device to print result
    */
-  int help(PrintWriter out, SessionImpl si)
-  {
-    final TreeSet<String> cgInfos = new TreeSet<String>();
-    cgInfos.add(helpLine(this));
+  int help(PrintWriter out) {
+    final TreeSet<String> commandGroupInfos = new TreeSet<>();
+    commandGroupInfos.add(helpLine(this));
 
     try {
-      final Collection<ServiceReference<CommandGroup>> refs = bc
+      final Collection<ServiceReference<CommandGroup>> services = bc
           .getServiceReferences(CommandGroup.class, null);
 
-      for (ServiceReference<CommandGroup> srcg : refs) {
-        final CommandGroup c = bc.getService(srcg);
-        if (c != null) {
-          cgInfos.add(helpLine(c));
-          bc.ungetService(srcg);
+      for (ServiceReference<CommandGroup> service : services) {
+        final CommandGroup commandGroup = bc.getService(service);
+        if (commandGroup != null) {
+          commandGroupInfos.add(helpLine(commandGroup));
+          bc.ungetService(service);
         }
       }
 
       out.println("Available command groups (type 'enter' to enter a group):");
-      for (String cgLine : cgInfos) {
-        out.println(cgLine);
-      }
-      cgInfos.clear();
+      commandGroupInfos.forEach(out::println);
+      commandGroupInfos.clear();
     } catch (InvalidSyntaxException ignore) {
     }
 
     return 0;
   }
 
-  private String helpLine(final CommandGroup commandGroup)
-  {
+  private String helpLine(final CommandGroup commandGroup) {
     return commandGroup.getGroupName() + " - " + commandGroup.getShortHelp();
   }
 
@@ -420,14 +396,13 @@ public class SessionCommandGroup implements CommandGroup {
    * @param out
    *          output device to print result
    */
-  int helpAbout(String group, PrintWriter out, SessionImpl si)
-  {
+  int helpAbout(String group, PrintWriter out) {
     try {
       ServiceReference<CommandGroup> ref = Command.matchCommandGroup(bc, group);
       if (ref != null) {
-        CommandGroup c = (CommandGroup) bc.getService(ref);
-        if (c != null) {
-          out.print(c.getLongHelp());
+        CommandGroup commandGroup = bc.getService(ref);
+        if (commandGroup != null) {
+          out.print(commandGroup.getLongHelp());
           bc.ungetService(ref);
           return 0;
         }
