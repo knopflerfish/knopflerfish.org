@@ -477,11 +477,26 @@ class ReferenceListener
           switch (se.type) {
           case ServiceEvent.MODIFIED:
           case ServiceEvent.REGISTERED:
-            op = serviceRefs.add(se.sr) ? ADD_OP : UPDATE_OP;
+            op = ADD_OP;
+            // Since service reference might changed, remove doesn't work
+            for (Iterator<ServiceReference<?>> sri = serviceRefs.iterator(); sri.hasNext(); ) {
+              if (sri.next() == se.sr) {
+                sri.remove();
+                op = UPDATE_OP;
+                break;
+              }
+            }
+            serviceRefs.add(se.sr);
             break;
           case ServiceEvent.MODIFIED_ENDMATCH:
           case ServiceEvent.UNREGISTERING:
-            serviceRefs.remove(se.sr);
+            // Since service reference might changed, remove doesn't work
+            for (Iterator<ServiceReference<?>> sri = serviceRefs.iterator(); sri.hasNext(); ) {
+              if (sri.next() == se.sr) {
+                sri.remove();
+                break;
+              }
+            }
             if  (selectedServiceRef == se.sr) {
               wasSelected = true;
             }

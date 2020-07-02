@@ -19,7 +19,7 @@
   <property name="frameworkdoc_template"
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.base.version"   value="8.0.10"/>
+  <property name="fw.base.version"   value="8.0.11"/>
   <property name="version.suffix"    value=""/>
   <condition property="fw.impl.version"
              value="${fw.base.version}"
