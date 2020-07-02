@@ -48,15 +48,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.framework.*;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.runtime.ServiceComponentRuntime;
 
@@ -395,11 +391,16 @@ class SCR implements SynchronousBundleListener
           if (!rs[i].isRefOptional()) {
             final Component [] cs = serviceComponents.get(rs[i].refDesc.interfaceName);
             if (cs != null) {
+              Filter targetFilter = rs[i].getCurrentTarget();
+              boolean prototype_required =  ReferenceDescription.SCOPE_PROTOTYPE_REQUIRED.equals(rs[i].getScope());
               // Loop through all found components
               for (final Component c : cs) {
-                final String res = checkCircularReferences(c, path);
-                if (res != null) {
-                  return res;
+                if ((targetFilter == null || targetFilter.match(c.getProperties())) &&
+                    (!prototype_required || Constants.SCOPE_PROTOTYPE.equals(c.getScope()))) {
+                  final String res = checkCircularReferences(c, path);
+                  if (res != null) {
+                    return res;
+                  }
                 }
               }
             }
