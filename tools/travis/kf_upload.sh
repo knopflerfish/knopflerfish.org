@@ -78,8 +78,8 @@ ENDSSH
 cd $KF_RELEASES_DIR && rm $LINK && ln -s $1 $LINK && \
 cd ~/$KF_REPO_DIR/maven2 && rm release && ln -s ../maven2-release/$1 release && \
 cd ~/$KF_REPO_DIR && \
-chmod -R a=rX maven2-release/$1 && \
 tar -zcv -C maven2-release/$1 -f $KF_MVN_ARCHIVE_DIR/$KF_MVN_RELEASE_ARCHIVE org && \
+chmod -R a=rX maven2-release/$1 && \
 rm $KF_MVN_ARCHIVE_DIR/$KF_MVN_CURRENT_RELEASE_ARCHIVE && \
 ln -s $KF_MVN_RELEASE_ARCHIVE $KF_MVN_ARCHIVE_DIR/$KF_MVN_CURRENT_RELEASE_ARCHIVE
 ENDSSH
