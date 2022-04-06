@@ -53,7 +53,7 @@ public class LogoutCommand extends IconCommand {
     // noop
   }
   
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
     if(console.login.bRequireLogin) {
       out.print(" <a class=\"std\" href=\"" + Activator.SERVLET_ALIAS + "?" + 
 		Login.LOGOUT_CMD + "=true" + "\">" + 

@@ -37,8 +37,6 @@ package org.knopflerfish.bundle.httpconsole;
 import javax.servlet.http.*;
 import java.io.*;
 
-import org.osgi.framework.*;
-
 public class InstallURLCommand extends IconCommand {
 
   InstallURLCommand() {
@@ -58,7 +56,7 @@ public class InstallURLCommand extends IconCommand {
     
     if(!(url == null || "".equals(url))) {
       try {
-        Bundle b = Activator.bc.installBundle(url);
+        Activator.bc.installBundle(url);
         sb.append("installed ").append(url).append("<br/>");
       } catch (Exception e) {
         sb.append(Util.toHTML(e));
@@ -70,7 +68,7 @@ public class InstallURLCommand extends IconCommand {
     return sb;
   }
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
     out.println("<div class=\"shadow\">" + getName() + "</div>");
     out.print("<input alt=\"URL\"" + 
 		" type=\"text\"" + 

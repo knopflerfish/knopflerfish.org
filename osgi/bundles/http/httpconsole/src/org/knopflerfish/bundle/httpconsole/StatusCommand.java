@@ -48,26 +48,15 @@ public class StatusCommand implements Command {
     return 0;
   }
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    Bundle[] bl = new Bundle[0];
-
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
     try {
       Activator.bc.getBundles();
     } catch (IllegalStateException e) {
-      out.println("HTTP console updated itself, please " + 
-		  "<a href=\"" + Activator.SERVLET_ALIAS + "\">reload</a>");
+      out.println("HTTP console updated itself, please " +
+          "<a href=\"" + Activator.SERVLET_ALIAS + "\">reload</a>");
       return;
     }
-    int nActive = 0;
-    int nTotal  = bl.length;
-    
-    for(int i = 0; i < bl.length; i++) {
-      Bundle b = bl[i];
-      if(b.getState() == Bundle.ACTIVE) {
-        nActive++;
-      }
-    }
-    
+
     out.print(" <nobr style=\"vertical-align:top;\">");
     out.print(Activator.bc.getProperty(Constants.FRAMEWORK_VENDOR));
     out.print(" on ");
@@ -92,7 +81,7 @@ public class StatusCommand implements Command {
   }
 
   public String getDescription() {
-    return "Fframework status";
+    return "Framework status";
   }
 
   public boolean isTrigger(HttpServletRequest request) {

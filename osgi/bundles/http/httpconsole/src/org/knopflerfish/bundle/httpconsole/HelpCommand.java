@@ -60,21 +60,21 @@ public class HelpCommand extends IconCommand {
     sb.append("<div class=\"shadow\">Toolbar</div>\n");
 
 
-    for(int i = 0; i < console.commands.length; i++) {
-      if(console.commands[i] instanceof IconCommand) {
+    for (Command consoleCommand : console.commands) {
+      if (consoleCommand instanceof IconCommand) {
         sb.append(" <div>\n");
-        StringWriter sw  = new StringWriter();
+        StringWriter sw = new StringWriter();
 
         sb.append(" <span>\n");
         try {
-          console.commands[i].toHTML(request, new PrintWriter(sw));
+          consoleCommand.toHTML(request, new PrintWriter(sw));
           sb.append(sw.toString());
         } catch (Exception e) {
           sb.append(e.toString());
         }
         sb.append(" </span>\n");
         sb.append(" <span style=\"vertical-align:top;\">\n");
-        sb.append(console.commands[i].getDescription());
+        sb.append(consoleCommand.getDescription());
         sb.append(" </span>\n");
         sb.append("</div>\n");
       }

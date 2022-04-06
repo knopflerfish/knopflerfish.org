@@ -73,7 +73,7 @@ public class ConsoleWrapper {
   }
 
   private String[] getCommands(CommandGroup commandGroup) {
-    if(commandGroup instanceof CommandGroupAdapter) {
+    if (commandGroup instanceof CommandGroupAdapter) {
       CommandGroupAdapter commandGroupAdapter = (CommandGroupAdapter) commandGroup;
       return commandGroupAdapter.getCommandNames().keySet().toArray(new String[0]);
     }
@@ -81,7 +81,7 @@ public class ConsoleWrapper {
   }
 
   public void close() {
-    if(serviceRegistration == null) {
+    if (serviceRegistration == null) {
       return;
     }
 

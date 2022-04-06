@@ -70,7 +70,7 @@ public class InstallFileCommand extends IconCommand {
     return sb;
   }
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
     out.println(" <input alt=\"" + getDescription() + "\"" +
                 " title=\"" + getDescription() + "\"" +
                 " type=\"image\"" +

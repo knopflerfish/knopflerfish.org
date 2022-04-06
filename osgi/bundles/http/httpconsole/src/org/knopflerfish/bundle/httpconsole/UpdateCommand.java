@@ -54,16 +54,16 @@ public class UpdateCommand extends IconCommand {
 
     sb.append("<div class=\"shadow\">").append(getName()).append("</div>");
 
-    if(bids.length == 0) {
+    if (bids.length == 0) {
       sb.append("No bundles selected");
     }
 
-    for(int i = 0; i < bids.length; i++) {
+    for (long bid : bids) {
       try {
-        Bundle b = Activator.bc.getBundle(bids[i]);
+        Bundle b = Activator.bc.getBundle(bid);
         b.update();
         sb.append("Updated ").append(Util.getName(b)).append("<br/>");
-            } catch (Exception e) {
+      } catch (Exception e) {
         sb.append(Util.toHTML(e));
       }
     }

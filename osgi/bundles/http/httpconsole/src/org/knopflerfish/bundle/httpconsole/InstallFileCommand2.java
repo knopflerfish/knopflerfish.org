@@ -83,7 +83,7 @@ public class InstallFileCommand2 implements Command {
     return sb;
   }
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
     out.println("<div class=\"shadow\">" + getName() + "</div>");
 
     out.print("<input alt=\"File\"" +
@@ -98,7 +98,7 @@ public class InstallFileCommand2 implements Command {
               ">");
   }
 
-  public String       getId() {
+  public String getId() {
     return "cmd_installfile2";
   }
 

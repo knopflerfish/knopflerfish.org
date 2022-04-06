@@ -120,7 +120,7 @@ public class TestFW  {
 
     StringBuilder sb = new StringBuilder();
 
-    sb.append(now);   // date
+    sb.append(now);        // date
     sb.append(logId);
 
     sb.append(", ");       // id

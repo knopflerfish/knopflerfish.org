@@ -34,11 +34,8 @@
 
 package org.knopflerfish.bundle.httpconsole;
 
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-
-import org.osgi.framework.*;
 
 /**
  * Abstract command implementation that prints a image submit button
@@ -68,7 +65,7 @@ public abstract class IconCommand implements Command {
 
   public abstract StringBuilder run(HttpServletRequest request);
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
     out.print(" <input " +
               " alt=\"" + getDescription() + "\"" +
               " title=\"" + getDescription() + "\"" +

@@ -57,10 +57,10 @@ public class StartCommand extends IconCommand {
       sb.append("No bundles selected");
     }
 
-    for(int i = 0; i < bids.length; i++) {
+    for (long bid : bids) {
       try {
-        Bundle b = Activator.bc.getBundle(bids[i]);
-        if(b.getState() != Bundle.ACTIVE) {
+        Bundle b = Activator.bc.getBundle(bid);
+        if (b.getState() != Bundle.ACTIVE) {
           b.start();
           sb.append("Started ").append(Util.getName(b)).append("<br/>");
         }
