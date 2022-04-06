@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: TCP-Console
 Bundle-SymbolicName: org.knopflerfish.bundle.consoletcp
-Bundle-Version: 5.0.0
+Bundle-Version: 5.1.0
 Bundle-Description: Console Service Server accepting TCP connection.
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish

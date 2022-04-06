@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JSDK
 Bundle-SymbolicName: org.knopflerfish.bundle.jsdk
-Bundle-Version: 2.5.0.kf3-2
+Bundle-Version: 2.6.0.kf3-2
 Bundle-Description: The servlet API classes
 Bundle-Vendor: Knopflerfish/Sun/Apache
 Bundle-APIVendor: Sun

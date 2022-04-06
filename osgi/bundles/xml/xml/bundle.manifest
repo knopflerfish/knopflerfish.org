@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: xml
 Bundle-SymbolicName: org.knopflerfish.bundle.xml
-Bundle-Version: 4.1.0
+Bundle-Version: 4.2.0
 Bundle-Category: osgi
 Bundle-Description: XML
 Bundle-Vendor: Knopflerfish
