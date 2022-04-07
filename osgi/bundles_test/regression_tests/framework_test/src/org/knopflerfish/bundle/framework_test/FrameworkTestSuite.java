@@ -245,7 +245,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       k =  "Bundle-Version";
       info = (String) ai.get(k);
-      assertEquals("bad Bundle-Version", "1.0.3", info);
+      assertEquals("bad Bundle-Version", "1.1.0", info);
 
       k =  "Bundle-ManifestVersion";
       info = (String) ai.get(k);
