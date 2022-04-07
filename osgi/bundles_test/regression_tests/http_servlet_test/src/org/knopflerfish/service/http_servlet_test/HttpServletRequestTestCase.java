@@ -42,6 +42,10 @@ import org.knopflerfish.bundle.http_servlet_test.HttpTestServlet;
 
 import junit.framework.TestCase;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+
 /**
  * Test suite for HttpServletRequest API
  * 
@@ -89,12 +93,12 @@ public class HttpServletRequestTestCase extends TestCase {
     }
     
     public void testServerName() {
-      assertEquals("localhost", request.getServerName());
+      assertLocalhost(request.getServerName());
     }
-    
+
     public void testMethod() {
-      assertEquals(TestData.method, request.getMethod());
-    }
+        assertEquals(TestData.method, request.getMethod());
+      }
     
     public void testContentLenght() {
       if ("GET".equals(TestData.method)) 
@@ -118,8 +122,29 @@ public class HttpServletRequestTestCase extends TestCase {
       assertEquals(HttpServletTestSuite.TEST_SERVLET_ALIAS, request.getRequestURI());
     }
     
-    public void testRequestURL() {
-      assertEquals(TestData.requestURL, request.getRequestURL().toString());
+    public void testRequestURL() throws MalformedURLException {
+      URL expectedUrl = new URL(TestData.requestURL);
+      URL actualUrl = new URL(request.getRequestURL().toString());
+
+      assertEquals(expectedUrl.getProtocol(), actualUrl.getProtocol());
+      assertEquals(expectedUrl.getPort(), actualUrl.getPort());
+      assertEquals(expectedUrl.getPath(), actualUrl.getPath());
+      assertEquals(expectedUrl.getQuery(), actualUrl.getQuery());
+      assertEquals(expectedUrl.getRef(), actualUrl.getRef());
+
+      if (isLocalhost(expectedUrl.getHost())) {
+        assertLocalhost(actualUrl.getHost());
+      } else {
+        assertEquals(expectedUrl.getHost(), actualUrl.getHost());
+      }
     }
-    
-  }
+
+    private void assertLocalhost(String hostName) {
+      assertTrue(isLocalhost(hostName));
+    }
+
+    private boolean isLocalhost(String hostName) {
+      return Arrays.asList("localhost", "127.0.0.1").contains(hostName);
+    }
+
+}
