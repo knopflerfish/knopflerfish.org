@@ -45,6 +45,11 @@ OSGi Compendium Specification
 
 * Internally use StringBuilder instead of StringBuffer.
 
+### Component (SCR) 6.0.7
+
+* Improved fixed for issue #53, ConcurrentModificationException in SCR service
+  listener.
+
 ### Component (SCR) 6.0.6
 
 * Fixed issue #53, Fix ConcurrentModificationException in SCR service
