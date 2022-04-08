@@ -118,7 +118,7 @@
     <isset property="release.build"/>
   </condition>
 
-  <property name="version.base"       value="6.1.5"/>
+  <property name="version.base"       value="6.1.5.snapshot"/>
   <condition property="version"
              value="${version.base}"
              else="${version.base}-${version.suffix}">
@@ -130,7 +130,7 @@
   <!-- The release date of this release -->
   <!-- *** Un-comment and set here on release branch. *** -->
   <!-- Defaults to current date, set here if another value is wanted. -->
-  <property name="release.date"     value="2022-04-07"/>
+  <property name="release.date"     value="2022-04-08"/>
 
   <!-- The previous official release version for this build -->
   <property name="version.previous"   value="6.1.4"/>
