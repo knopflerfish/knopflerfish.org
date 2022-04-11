@@ -7,7 +7,7 @@
   
   <property name="base_uri" value="https://repo1.maven.org/maven2/com/google/code/gson"/>
   <property name="artifact.name" value="gson"/>
-  <property name="artifact.version" value="2.7"/>
+  <property name="artifact.version" value="2.9.0"/>
 
   <property name="bundle.name" value="${artifact.jar}" />
   
