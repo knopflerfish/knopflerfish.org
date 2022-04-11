@@ -109,6 +109,7 @@ public class ClassAnalyserASM
       currentClassFile = new File(fileName);
       cr.accept(this, 0);
     } catch (Exception e) {
+      System.out.println("Exception when analysing class " + fileName);
       e.printStackTrace();
     }
   }
