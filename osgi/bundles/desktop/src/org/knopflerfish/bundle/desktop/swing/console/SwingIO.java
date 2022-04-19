@@ -36,8 +36,6 @@ package org.knopflerfish.bundle.desktop.swing.console;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
-import java.awt.Label;
-import java.awt.Panel;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -73,7 +71,7 @@ public class SwingIO extends JPanel {
 
   JPanel panel;
   JScrollPane scroll;
-  Label  cmdLabel;
+  JTextArea  cmdLabel;
 
   Vector<String> history    = new Vector<>();
   int    historyPos = 0;
@@ -235,10 +233,10 @@ public class SwingIO extends JPanel {
       // in key press
       text.addKeyListener(new  KeyAdapter() {
           public void keyPressed(KeyEvent ev) {
-            int modifiers = ev.getModifiers();
+            int modifiers = ev.getModifiersEx();
 
             // Don't steal special key events like CTRL-C
-            if(modifiers == 0) {
+            if (modifiers == 0) {
               tfCmd.requestFocus();
             }
           }
@@ -247,16 +245,18 @@ public class SwingIO extends JPanel {
 
       out = new PrintStream(new TextAreaOutputStream(this, text));
 
-      panel.add(scroll,         BorderLayout.CENTER);
+      panel.add(scroll, BorderLayout.CENTER);
 
-      Panel cmdPanel = new Panel(new BorderLayout());
+      JPanel cmdPanel = new JPanel(new BorderLayout());
 
-      cmdLabel = new Label("> ");
-      cmdPanel.add(cmdLabel,        BorderLayout.WEST);
-      cmdPanel.add(tfCmd,           BorderLayout.CENTER);
+      cmdLabel = new JTextArea("> ");
+      cmdLabel.setEditable(false);
+      cmdLabel.setFocusable(false);
 
-      panel.add(cmdPanel,        BorderLayout.SOUTH);
+      cmdPanel.add(cmdLabel, BorderLayout.WEST);
+      cmdPanel.add(tfCmd, BorderLayout.CENTER);
 
+      panel.add(cmdPanel, BorderLayout.SOUTH);
 
       reinit();
     } catch (Exception e) {
@@ -290,10 +290,8 @@ public class SwingIO extends JPanel {
     });
   }
 
-  Font font;
-
   synchronized void reinit() {
-    font = new Font(ConsoleSwing.config.fontName, Font.PLAIN, ConsoleSwing.config.fontSize);
+    Font font = new Font(ConsoleSwing.config.fontName, Font.PLAIN, ConsoleSwing.config.fontSize);
 
     text.setBackground(Config.parseColor(ConsoleSwing.config.bgColor));
     text.setForeground(Config.parseColor(ConsoleSwing.config.textColor));
@@ -319,6 +317,7 @@ public class SwingIO extends JPanel {
     }
   }
 
+  @SuppressWarnings("SameParameterValue")
   void disableInput(String reason) {
     if(ConsoleSwing.config.grabSystemIO) {
       restoreSystemIO();
