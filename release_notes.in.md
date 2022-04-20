@@ -43,6 +43,10 @@ OSGi Compendium Specification
 * Fixed issue #43, Removed faulty circular component errors when
   using target filters.
 
+### HTTP-Server 5.3.1
+
+* Fixed issue #58, SocketListener limits transactions, not threads.
+
 
 Knopflerfish Services
 ----------------------------------------------------------------------
