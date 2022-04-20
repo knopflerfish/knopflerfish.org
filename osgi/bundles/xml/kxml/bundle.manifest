@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: kXML 2
 Bundle-SymbolicName: org.knopflerfish.bundle.kxml
-Bundle-Version: 2.4.0.kf4-001
+Bundle-Version: 2.3.0.kf6-2-001
 Bundle-Category: lib
 Bundle-Description: Packing of kXML 2 as a bundle
 Bundle-Vendor: kXML.org  http://kxml.sourceforge.net/

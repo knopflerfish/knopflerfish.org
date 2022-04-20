@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: httpclient_connector
 Bundle-SymbolicName: org.knopflerfish.bundle.httpclient_connector
-Bundle-Version: 3.2.0.kf5-001
+Bundle-Version: 3.1.3.kf6-2-001
 Bundle-Description: A HTTP IO-Connector with proxy support,
  based on apache commons http client 3.1.
 Bundle-Vendor: Knopflerfish
