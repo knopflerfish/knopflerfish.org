@@ -285,7 +285,7 @@ public class HttpUtils {
      */
 
     public static StringBuffer getRequestURL (HttpServletRequest req) {
-	StringBuffer url = new StringBuffer();
+	StringBuffer url = new StringBuffer ();
 	String scheme = req.getScheme ();
 	int port = req.getServerPort ();
 	String urlPath = req.getRequestURI();
