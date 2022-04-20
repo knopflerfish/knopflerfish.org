@@ -436,7 +436,7 @@ public class SocketListener
         try {
           tempTr.close();
 
-        } catch (final Exception excpt) {
+        } catch (final Exception ignored) {
         }
       }
     }
@@ -452,8 +452,7 @@ public class SocketListener
 
       try {
 
-        while (transactionManager.activeCount() >= httpConfig
-            .getMaxConnections()) {
+        while (transactionManager.getActiveTransactionCount() >= httpConfig.getMaxConnections()) {
           try {
             Thread.sleep(50);
             if (done) {

@@ -101,6 +101,7 @@ public class HttpTestSuite extends TestSuite  {
       addTest(new Http060a());
       addTest(new Http065a());
       addTest(new Http085a());
+      addTest(new HttpThreadsTest(bc));
       addTest(new Cleanup());
       addTest(new Http100a());
     }
