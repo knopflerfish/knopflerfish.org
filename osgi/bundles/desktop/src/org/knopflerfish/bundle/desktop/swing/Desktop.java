@@ -1,5 +1,4 @@
 /*
-/*
  * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
