@@ -96,7 +96,7 @@ public class HttpUtils {
       throw new IllegalArgumentException();
     }
     Hashtable ht = new Hashtable();
-    StringBuilder sb = new StringBuilder();
+    StringBuffer sb = new StringBuffer();
     StringTokenizer st = new StringTokenizer(s, "&");
     while (st.hasMoreTokens()) {
       String pair = (String)st.nextToken();
