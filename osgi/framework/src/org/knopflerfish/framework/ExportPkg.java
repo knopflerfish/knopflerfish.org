@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2016, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
