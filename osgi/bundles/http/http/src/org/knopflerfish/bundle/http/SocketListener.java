@@ -459,7 +459,7 @@ public class SocketListener
       } catch (final IOException e) {
         if (!done && log.doDebug()) {
           log.debug("Communication error on "
-                    + (host != null ? (host + ":") : "") + port, iioe);
+                    + (host != null ? (host + ":") : "") + port, e);
         }
       } catch (final ThreadDeath td) {
         throw td;
