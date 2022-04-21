@@ -35,7 +35,6 @@
 package org.knopflerfish.bundle.http;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -50,8 +49,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import org.knopflerfish.service.log.LogRef;
 
-//NOTE: Use rawtypes to avoid explicit dependency on SSLServerSocketFactory.
-@SuppressWarnings("rawtypes")
+// NOTE: Use raw types to avoid explicit dependency on SSLServerSocketFactory.
 public class SocketListener
   implements Runnable, ServiceTrackerCustomizer
 {
@@ -105,7 +103,6 @@ public class SocketListener
     this.httpServer = httpServer;
   }
 
-  @SuppressWarnings("unchecked")
   public void updated()
       throws ConfigurationException
   {
@@ -116,7 +113,7 @@ public class SocketListener
     }
 
     isSecure = httpConfig.isSecure();
-    requireClientAuth = new Boolean(httpConfig.requireClientAuth());
+    requireClientAuth = httpConfig.requireClientAuth();
     port = httpConfig.getPort();
     host = httpConfig.getHost();
     maxConnections = httpConfig.getMaxConnections();
@@ -128,7 +125,7 @@ public class SocketListener
       return;
     }
 
-    /**
+    /*
      * We want to be able to do either HTTPS or HTTP. The latter would always be
      * executed synchronously, e.g. in this invocation. This might not be the
      * case for HTTPs, which might happen on different threads. Therefore, try
@@ -191,9 +188,6 @@ public class SocketListener
   @SuppressWarnings("unchecked")
   public Object addingService(ServiceReference sRef)
   {
-    // TE this class must not explicitly reference SSLServerFactory.
-    Object factory = null;
-
     if (this.socket != null) {
       if (log.doWarn()) {
         log.warn("SEVERAL  SSLServerSocketFactories are available,"
@@ -202,30 +196,24 @@ public class SocketListener
       return null; // do not track
     }
 
-    factory = this.bc.getService(sRef);
+    // TE this class must not explicitly reference SSLServerFactory.
+    Object factory = this.bc.getService(sRef);
 
     // find the two methods using reflection
     Method create2 = null;
     Method create3 = null;
 
     try {
-      create2 =
-        factory.getClass().getMethod("createServerSocket",
-                                     new Class[] { int.class, int.class });
-      create3 =
-        factory.getClass().getMethod("createServerSocket",
-                                     new Class[] { int.class, int.class,
-                                                  InetAddress.class });
+      create2 = factory.getClass().getMethod("createServerSocket", int.class, int.class);
+      create3 = factory.getClass().getMethod("createServerSocket", int.class, int.class, InetAddress.class);
     } catch (final Exception cmethE) {
       log.error("not an SSL factory, or no access : " + factory, cmethE);
     }
 
     if (host == null || host.length() == 0) {
       try {
-        socket =
-          (ServerSocket) create2
-              .invoke(factory, new Object[] { new Integer(port),
-                                             new Integer(maxConnections) });
+        //noinspection ConstantConditions
+        socket = (ServerSocket) create2.invoke(factory, port, maxConnections);
       } catch (final Exception ex) {
         final Throwable cause = ex.getCause();
         final String msg =
@@ -238,11 +226,8 @@ public class SocketListener
     } else {
       try {
         try {
-          socket =
-            (ServerSocket) create3
-                .invoke(factory, new Object[] { new Integer(port),
-                                               new Integer(maxConnections),
-                                               InetAddress.getByName(host) });
+          //noinspection ConstantConditions
+          socket = (ServerSocket) create3.invoke(factory, port, maxConnections, InetAddress.getByName(host));
         } catch (final UnknownHostException uhe) {
           final String msg =
             "Failed to open HTTPS Server Socket on " + host + ":" + port
@@ -250,10 +235,8 @@ public class SocketListener
           if (log.doWarn()) {
             log.warn(msg, uhe);
           }
-          socket =
-            (ServerSocket) create2
-                .invoke(factory, new Object[] { new Integer(port),
-                                               new Integer(maxConnections) });
+          //noinspection ConstantConditions
+          socket = (ServerSocket) create2.invoke(factory, port, maxConnections);
         }
       } catch (final Exception ex) {
         final String msg =
@@ -270,9 +253,8 @@ public class SocketListener
         final Class<?> sslSockClass =
           Class.forName("javax.net.ssl.SSLServerSocket");
         final Method auth =
-          sslSockClass.getMethod("setNeedClientAuth",
-                                 new Class[] { boolean.class });
-        auth.invoke(socket, new Object[] { requireClientAuth });
+          sslSockClass.getMethod("setNeedClientAuth", boolean.class);
+        auth.invoke(socket, requireClientAuth);
       } catch (final Exception exc) {
         final String msg =
           "Failed to configure client authentification for HTTPS server on "
@@ -446,7 +428,7 @@ public class SocketListener
   {
     ServerSocket socket = this.socket;
     Socket client = null;
-    System.out.println("starting up");
+    log.debug("starting up");
     
     while (!done) {
 
@@ -458,7 +440,7 @@ public class SocketListener
             if (done) {
               break;
             }
-          } catch (final Exception e) {
+          } catch (final Exception ignored) {
           }
         }
 
@@ -472,15 +454,10 @@ public class SocketListener
         
         transactionManager.startTransaction(client, httpConfig);
 
-      } catch (final InterruptedIOException iioe) {
+      } catch (final IOException iioe) {
         if (!done && log.doDebug()) {
           log.debug("Communication error on "
                     + (host != null ? (host + ":") : "") + port, iioe);
-        }
-      } catch (final IOException ioe) {
-        if (!done && log.doDebug()) {
-          log.debug("Communication error on "
-                    + (host != null ? (host + ":") : "") + port, ioe);
         }
       } catch (final ThreadDeath td) {
         throw td;
@@ -499,7 +476,6 @@ public class SocketListener
       }
     } catch (final IOException ignore) {
     }
-    socket = null;
   }
 
   public boolean isOpen()
@@ -509,7 +485,7 @@ public class SocketListener
 
   public boolean portConfigMatch(HttpConfigWrapper config) {
     return isSecure == config.isSecure() && (requireClientAuth != null)
-        && (requireClientAuth.booleanValue() == config.requireClientAuth())
+        && (requireClientAuth == config.requireClientAuth())
         && port == config.getPort() && config.getHost().equals(host)
         && config.getMaxConnections() == maxConnections
         && isEnabled == config.isEnabled();
