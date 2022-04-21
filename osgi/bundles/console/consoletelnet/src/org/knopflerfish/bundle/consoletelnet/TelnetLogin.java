@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,16 +37,13 @@ package org.knopflerfish.bundle.consoletelnet;
 import org.osgi.service.useradmin.Authorization;
 
 /**
- * * This class contains if a login was permitted, * the login name and also if
- * there is an associated * authorization object (that might be null) *
+ * This class contains if a login was permitted, the login name and also if
+ * there is an associated authorization object (that might be null)
  */
-
 public class TelnetLogin {
-    Authorization authorization;
-
-    boolean loginStatus;
-
-    String userName;
+    private Authorization authorization;
+    private boolean loginStatus;
+    private String userName;
 
     public TelnetLogin(boolean loginStatus, Authorization authorization,
             String userName) {

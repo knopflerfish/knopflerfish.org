@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,6 @@ package org.knopflerfish.bundle.desktop.swing;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.lang.reflect.Method;
@@ -56,7 +54,6 @@ import javax.swing.JViewport;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLEditorKit;
 
 import org.osgi.framework.Bundle;
@@ -86,15 +83,14 @@ public abstract class JHTMLBundle extends JPanel
   protected static final String BG_COLOR_BUNDLE_DATA   = "#f8f8f8";
   protected static final String BG_COLOR_BUNDLE_HEADER = "#eeeeee";
 
-  JPanel      panel;
   JTextPane   html;
   JScrollPane scroll;
 
   DefaultSwingBundleDisplayer displayer;
 
-  ArrayList<URL> historyBack    = new ArrayList<URL>();
+  ArrayList<URL> historyBack    = new ArrayList<>();
   URL            historyCurrent = null;
-  ArrayList<URL> historyFwd     = new ArrayList<URL>();
+  ArrayList<URL> historyFwd     = new ArrayList<>();
 
   JButton backButton = null;
   JButton fwdButton = null;
@@ -102,7 +98,7 @@ public abstract class JHTMLBundle extends JPanel
   private long currentBid = -1;
 
   private static final List<JHTMLBundleLinkHandler> linkHandlers
-    = new ArrayList<JHTMLBundleLinkHandler>();
+    = new ArrayList<>();
 
   JHTMLBundle(DefaultSwingBundleDisplayer _displayer)
   {
@@ -123,33 +119,29 @@ public abstract class JHTMLBundle extends JPanel
     try {
       // Call htmlEditor.setAutoFormSubmission(false); if available (Java 5+)
       final Method setAutoFormSubmissionMethod = htmlEditor.getClass()
-        .getMethod("setAutoFormSubmission", new Class[]{ Boolean.TYPE});
-      setAutoFormSubmissionMethod.invoke(htmlEditor,
-                                         new Object[]{Boolean.FALSE});
+        .getMethod("setAutoFormSubmission", Boolean.TYPE);
+      setAutoFormSubmissionMethod.invoke(htmlEditor, Boolean.FALSE);
     } catch (final Throwable t) {
       Activator.log.warn("Failed to enable auto form submission for JHTMLBundle.", t);
     }
 
     html.setEditable(false);
 
-    html.addHyperlinkListener(new HyperlinkListener() {
-      @Override
-      public void hyperlinkUpdate(HyperlinkEvent e) {
-        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-          final URL url = e.getURL();
-          if (openURL(url)) {
-            // Internal URL to be added to the navigation history list.
-            if (null==historyCurrent) {
-              historyBack.add(Util.bundleURL(getCurrentBID()));
-            } else {
-              historyBack.add(historyCurrent);
-            }
-            historyCurrent = url;
-            if (!historyFwd.isEmpty()) {
-              historyFwd.clear();
-            }
-            alignHistoryButtonEnableState();
+    html.addHyperlinkListener(e -> {
+      if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        final URL url = e.getURL();
+        if (openURL(url)) {
+          // Internal URL to be added to the navigation history list.
+          if (null==historyCurrent) {
+            historyBack.add(Util.bundleURL(getCurrentBID()));
+          } else {
+            historyBack.add(historyCurrent);
           }
+          historyCurrent = url;
+          if (!historyFwd.isEmpty()) {
+            historyFwd.clear();
+          }
+          alignHistoryButtonEnableState();
         }
       }
     });
@@ -165,18 +157,15 @@ public abstract class JHTMLBundle extends JPanel
         add(backButton = new JButton(Desktop.prevIcon) {
           private static final long serialVersionUID = 1L;
           {
-            addActionListener(new ActionListener() {
-              @Override
-              public void actionPerformed(ActionEvent ev) {
-                if (!historyBack.isEmpty()) {
-                  final URL url
-                    = historyBack.remove(historyBack.size() - 1);
-                  historyFwd.add(historyCurrent);
-                  historyCurrent = url;
-                  openURL(url);
-                }
-                alignHistoryButtonEnableState();
+            addActionListener(ev -> {
+              if (!historyBack.isEmpty()) {
+                final URL url
+                  = historyBack.remove(historyBack.size() - 1);
+                historyFwd.add(historyCurrent);
+                historyCurrent = url;
+                openURL(url);
               }
+              alignHistoryButtonEnableState();
             });
             setToolTipText(Strings.get("tt_html_back"));
           }
@@ -185,18 +174,15 @@ public abstract class JHTMLBundle extends JPanel
         add(fwdButton = new JButton(Desktop.nextIcon) {
           private static final long serialVersionUID = 1L;
           {
-            addActionListener(new ActionListener() {
-              @Override
-              public void actionPerformed(ActionEvent ev) {
-                if (historyFwd.size() > 0) {
-                  final URL url
-                    = historyFwd.remove(historyFwd.size() - 1);
-                  historyBack.add(historyCurrent);
-                  historyCurrent = url;
-                  openURL(url);
-                }
-                alignHistoryButtonEnableState();
+            addActionListener(ev -> {
+              if (historyFwd.size() > 0) {
+                final URL url
+                  = historyFwd.remove(historyFwd.size() - 1);
+                historyBack.add(historyCurrent);
+                historyCurrent = url;
+                openURL(url);
               }
+              alignHistoryButtonEnableState();
             });
             setToolTipText(Strings.get("tt_html_forward"));
           }
@@ -270,7 +256,7 @@ public abstract class JHTMLBundle extends JPanel
       for (final Iterator<JHTMLBundleLinkHandler> it = linkHandlers.iterator(); it.hasNext() && !handled;) {
         final JHTMLBundleLinkHandler handler = it.next();
         if (handler.canRenderUrl(url)) {
-          final StringBuffer sb = new StringBuffer(600);
+          final StringBuilder sb = new StringBuilder(600);
           addToHistory = handler.renderUrl(url, sb);
           setHTML(sb.toString());
           handled = true;
@@ -298,7 +284,7 @@ public abstract class JHTMLBundle extends JPanel
   /**
    * Override this to provide bundle info in HTML format.
    */
-  public abstract StringBuffer  bundleInfo(Bundle b);
+  public abstract StringBuilder bundleInfo(Bundle b);
 
   /**
    * Get header text for no selected bundle page.
@@ -323,9 +309,7 @@ public abstract class JHTMLBundle extends JPanel
   {
     final BundleRevision rev = b.adapt(BundleRevision.class);
     final boolean isFragment =
-      rev != null
-        ? (rev.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0
-        : false;
+        rev != null && (rev.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0;
 
     return "#" + b.getBundleId() + "  " + Util.getBundleName(b)
            + (isFragment ? "  (fragment)" : "");
@@ -374,8 +358,8 @@ public abstract class JHTMLBundle extends JPanel
     @Override
     public void run()
     {
-      Bundle[] bl = null;
-      synchronized(JHTMLBundle.this.valueChangedLock) {
+      Bundle[] bl;
+      synchronized (JHTMLBundle.this.valueChangedLock) {
         bl = currentSelection;
         currentUpdater = null;
       }
@@ -398,7 +382,7 @@ public abstract class JHTMLBundle extends JPanel
       return;
     }
 
-    final StringBuffer sb = new StringBuffer(400);
+    final StringBuilder sb = new StringBuilder(400);
     sb.append("<html>\n");
 
     if(bl == null || bl.length == 0) {
@@ -421,13 +405,6 @@ public abstract class JHTMLBundle extends JPanel
       sb.append("</p>\n" +
                 "</html>");
     } else {
-      if(bl.length == 1) {
-        if(bl[0].getBundleId() == getCurrentBID()) {
-          //      System.out.println("skip already set bid=" + getCurrentBID());
-          //      return;
-        }
-      }
-
       setCurrentBID(bl[0].getBundleId());
 
       for (final Bundle bundle : bl) {
@@ -478,24 +455,21 @@ public abstract class JHTMLBundle extends JPanel
   void setHTML(String s) {
     html.setText(s);
 
-    SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            final JViewport vp = scroll.getViewport();
-            if(vp != null) {
-              vp.setViewPosition(new Point(0,0));
-              scroll.setViewport(vp);
-            }
-          } catch (final Exception e) {
-            e.printStackTrace();
-          }
+    SwingUtilities.invokeLater(() -> {
+      try {
+        final JViewport vp = scroll.getViewport();
+        if(vp != null) {
+          vp.setViewPosition(new Point(0,0));
+          scroll.setViewport(vp);
         }
-      });
+      } catch (final Exception e) {
+        e.printStackTrace();
+      }
+    });
   }
 
 
-  static void appendRow(StringBuffer sb, String c1, String c2) {
+  static void appendRow(StringBuilder sb, String c1, String c2) {
     appendRow(sb, null, null, null, c1, c2);
   }
 
@@ -509,7 +483,7 @@ public abstract class JHTMLBundle extends JPanel
    * @param label Text in the first column.
    * @param value Text in the second column.
    */
-  static void appendRow(final StringBuffer sb,
+  static void appendRow(final StringBuilder sb,
                         String bgColor,
                         final String size,
                         final String align,
@@ -547,17 +521,17 @@ public abstract class JHTMLBundle extends JPanel
     sb.append("</td></tr>\n");
   }
 
-  static void startFont(final StringBuffer sb) {
+  static void startFont(final StringBuilder sb) {
     startFont(sb, "-2");
   }
 
-  static void startFont(final StringBuffer sb, final String size) {
+  static void startFont(final StringBuilder sb, final String size) {
     sb.append("<font size=\"");
     sb.append(size==null ? "-2" : size);
     sb.append("\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 
-  static void stopFont(final StringBuffer sb) {
+  static void stopFont(final StringBuilder sb) {
     sb.append("</font>");
   }
 

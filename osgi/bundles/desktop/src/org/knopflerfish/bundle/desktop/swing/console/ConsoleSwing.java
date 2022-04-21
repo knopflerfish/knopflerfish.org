@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@ public class ConsoleSwing
     ConsoleSwing.bc = bc;
     ConsoleSwing.theConsoleSwing = this;
     // Set up service tracker for the console service.
-    consoleTracker = new ServiceTracker<ConsoleService,ConsoleService>(bc, ConsoleService.class, this);
+    consoleTracker = new ServiceTracker<>(bc, ConsoleService.class, this);
   }
 
   public void start() {

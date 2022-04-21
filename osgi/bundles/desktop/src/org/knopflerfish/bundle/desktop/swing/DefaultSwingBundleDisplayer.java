@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,11 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.prefs.Preferences;
 
 import javax.swing.Icon;
@@ -106,7 +105,7 @@ public abstract class DefaultSwingBundleDisplayer
 
     open();
 
-    final Dictionary<String, Object> props = new Hashtable<String, Object>();
+    final Dictionary<String, Object> props = new Hashtable<>();
     props.put(SwingBundleDisplayer.PROP_NAME, getName());
     props.put(SwingBundleDisplayer.PROP_DESCRIPTION, getDescription());
     props.put(SwingBundleDisplayer.PROP_ISDETAIL, isDetail()
@@ -177,7 +176,7 @@ public abstract class DefaultSwingBundleDisplayer
 
     // Must clone components to avoid concurrent modification since dispose will
     // remove items from components.
-    for (final JComponent comp : new HashSet<JComponent>(components)) {
+    for (final JComponent comp : new HashSet<>(components)) {
       disposeJComponent(comp);
     }
     components.clear(); // Should be a noop since disposeJComponent shall remove it...
@@ -192,26 +191,22 @@ public abstract class DefaultSwingBundleDisplayer
   void getAllBundles()
   {
     try {
-      final Bundle[] bl = Activator.getBundles();
+      final Bundle[] bundles = Activator.getBundles();
 
       // do something reasonable with bundles already installed
-      for (int i = 0; bl != null && i < bl.length; i++) {
-        BundleEvent ev = null;
-        switch (bl[i].getState()) {
-        case Bundle.ACTIVE:
-          ev = new BundleEvent(BundleEvent.STARTED, bl[i]);
-          break;
-        default:
-          ev = new BundleEvent(BundleEvent.INSTALLED, bl[i]);
-          break;
+      for (int i = 0; bundles != null && i < bundles.length; i++) {
+        BundleEvent bundleEvent;
+        if (bundles[i].getState() == Bundle.ACTIVE) {
+          bundleEvent = new BundleEvent(BundleEvent.STARTED, bundles[i]);
+        } else {
+          bundleEvent = new BundleEvent(BundleEvent.INSTALLED, bundles[i]);
         }
-        bundleChanged(ev);
+        bundleChanged(bundleEvent);
       }
     } catch (final Exception e) {
       Activator.log
           .error("Failed to send catch-up events to bundle listeners: "
                      + e.getMessage(), e);
-      ;
     }
   }
 
@@ -298,16 +293,12 @@ public abstract class DefaultSwingBundleDisplayer
 
   void updateComponents(final Bundle[] bl)
   {
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run()
-      {
-        for (final JComponent comp : components) {
-          if (comp.isShowing()) {
-            if (comp instanceof JHTMLBundle) {
-              final JHTMLBundle jhtml = (JHTMLBundle) comp;
-              jhtml.valueChanged(bl);
-            }
+    SwingUtilities.invokeLater(() -> {
+      for (final JComponent comp : components) {
+        if (comp.isShowing()) {
+          if (comp instanceof JHTMLBundle) {
+            final JHTMLBundle jhtml = (JHTMLBundle) comp;
+            jhtml.valueChanged(bl);
           }
         }
       }
@@ -316,15 +307,9 @@ public abstract class DefaultSwingBundleDisplayer
 
   protected Bundle[] getAndSortBundles()
   {
-    final Bundle[] bl = Activator.getBundles();
-    final SortedSet<Bundle> set = new TreeSet<Bundle>(Util.bundleIdComparator);
-    for (final Bundle element : bl) {
-      set.add(element);
-    }
-
-    set.toArray(bl);
-
-    return bl;
+    final Bundle[] bundles = Activator.getBundles();
+    Arrays.sort(bundles, Util.bundleIdComparator);
+    return bundles;
   }
 
   @Override
@@ -342,7 +327,7 @@ public abstract class DefaultSwingBundleDisplayer
     return bundleSelModel;
   }
 
-  Set<JComponent> components = new HashSet<JComponent>();
+  Set<JComponent> components = new HashSet<>();
 
   @Override
   public JComponent createJComponent()

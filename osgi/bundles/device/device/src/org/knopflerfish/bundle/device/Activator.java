@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -825,7 +825,7 @@ public class Activator
 
   private String showDevice(ServiceReference<?> sr)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     Object o =
       sr.getProperty(org.osgi.service.device.Constants.DEVICE_CATEGORY);
     if (o instanceof String) {
@@ -854,7 +854,7 @@ public class Activator
 
   private String showDriver(ServiceReference<?> sr)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     final String s =
       (String) sr.getProperty(org.osgi.service.device.Constants.DRIVER_ID);
     sb.append(s != null ? s : "driver");

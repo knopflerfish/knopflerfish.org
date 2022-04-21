@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2017 KNOPFLERFISH project
+ * Copyright (c) 2003-2022 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -254,7 +254,7 @@ public class ResponseImpl
       setCookieHeader(e_cookies.nextElement());
     }
 
-    final StringBuffer head = new StringBuffer(128);
+    final StringBuilder head = new StringBuilder(128);
 
     // append response line
     head.append(request != null
@@ -305,7 +305,7 @@ public class ResponseImpl
   private static final GregorianCalendar cookieExpiresCalendar =
     new GregorianCalendar();
 
-  private void appendCookieExpires(final StringBuffer header, final int maxAge)
+  private void appendCookieExpires(final StringBuilder header, final int maxAge)
   {
     synchronized (cookieExpiresDateFormatter) {
       cookieExpiresCalendar.setTimeInMillis(System.currentTimeMillis());
@@ -322,31 +322,31 @@ public class ResponseImpl
       return;
     }
 
-    final StringBuffer header = new StringBuffer(32);
+    final StringBuilder header = new StringBuilder(32);
     String attrValue;
     int maxAge;
-    header.append(cookie.getName() + "=" + cookie.getValue());
+    header.append(cookie.getName()).append("=").append(cookie.getValue());
     if ((attrValue = cookie.getComment()) != null) {
-      header.append(";Comment=" + attrValue);
+      header.append(";Comment=").append(attrValue);
     }
     if ((attrValue = cookie.getDomain()) != null) {
-      header.append(";Domain=" + attrValue);
+      header.append(";Domain=").append(attrValue);
     }
     if ((maxAge = cookie.getMaxAge()) != -1) {
       if (maxAge > 0) {
         appendCookieExpires(header, maxAge);
       }
-      header.append(";Max-Age=" + maxAge);
+      header.append(";Max-Age=").append(maxAge);
     }
     if ((attrValue = cookie.getPath()) != null) {
-      header.append(";Path=" + attrValue);
+      header.append(";Path=").append(attrValue);
     } else {
       header.append(";Path=/");
     }
     if (cookie.getSecure()) {
       header.append(";Secure");
     }
-    header.append(";Version=" + cookie.getVersion());
+    header.append(";Version=").append(cookie.getVersion());
 
     setHeader("Set-Cookie", header.toString());
   }
@@ -527,7 +527,7 @@ public class ResponseImpl
             path = path.substring(0, hPos);
           }
         }
-        final StringBuffer sb = new StringBuffer(path);
+        final StringBuilder sb = new StringBuilder(path);
         if (0 < sb.length()) {
           sb.append(HttpUtil.SESSION_PARAMETER_KEY).append(session.getId());
         }
@@ -760,7 +760,7 @@ public class ResponseImpl
     	return;
     }
     
-    final StringBuffer sb = new StringBuffer(contentType.length());
+    final StringBuilder sb = new StringBuilder(contentType.length());
     final String newCharEncoding = HttpUtil.parseContentType(contentType, sb);
     contentTypeBare = sb.toString();
     setCharacterEncoding(newCharEncoding);

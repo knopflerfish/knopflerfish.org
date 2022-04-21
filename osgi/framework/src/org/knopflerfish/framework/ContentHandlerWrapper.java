@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -199,15 +199,15 @@ public class ContentHandlerWrapper
 
   @Override
   public String toString() {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     sb.append("ContentHandlerWrapper[");
 
     final ServiceReference<ContentHandler> ref = best;
-    sb.append("mimetype=" + mimetype);
+    sb.append("mimetype=").append(mimetype);
     if(ref != null) {
-      sb.append(", id=" + ref.getProperty(Constants.SERVICE_ID));
-      sb.append(", rank=" + ref.getProperty(Constants.SERVICE_RANKING));
+      sb.append(", id=").append(ref.getProperty(Constants.SERVICE_ID));
+      sb.append(", rank=").append(ref.getProperty(Constants.SERVICE_RANKING));
     } else {
       sb.append(" no service tracked");
     }

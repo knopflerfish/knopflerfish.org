@@ -180,10 +180,7 @@ public class MultipartRequestEntity implements RequestEntity {
      * @see org.apache.commons.httpclient.methods.RequestEntity#getContentType()
      */
     public String getContentType() {
-        StringBuffer buffer = new StringBuffer(MULTIPART_FORM_CONTENT_TYPE);
-        buffer.append("; boundary=");
-        buffer.append(EncodingUtil.getAsciiString(getMultipartBoundary()));
-        return buffer.toString();
+        return MULTIPART_FORM_CONTENT_TYPE + "; boundary=" + EncodingUtil.getAsciiString(getMultipartBoundary());
     }
 
 }

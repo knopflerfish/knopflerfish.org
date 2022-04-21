@@ -237,11 +237,11 @@ public class BasicScheme extends RFC2617Scheme {
         if (charset == null || charset.length() == 0) {
             throw new IllegalArgumentException("charset may not be null or empty");
         }
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append(credentials.getUserName());
         buffer.append(":");
         buffer.append(credentials.getPassword());
-        
+
         return "Basic " + EncodingUtil.getAsciiString(
                 Base64.encodeBase64(EncodingUtil.getBytes(buffer.toString(), charset)));
     }

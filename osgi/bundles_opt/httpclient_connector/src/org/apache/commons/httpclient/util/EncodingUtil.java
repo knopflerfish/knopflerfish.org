@@ -114,7 +114,7 @@ public class EncodingUtil {
      private static String doFormUrlEncode(NameValuePair[] pairs, String charset)
         throws UnsupportedEncodingException 
      {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         for (int i = 0; i < pairs.length; i++) {
             URLCodec codec = new URLCodec();
             NameValuePair pair = pairs[i];

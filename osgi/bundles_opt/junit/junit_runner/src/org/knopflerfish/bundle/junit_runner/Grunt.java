@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009,2018 KNOPFLERFISH project
+ * Copyright (c) 2004-2022 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -153,7 +153,7 @@ class Grunt  implements TestListener {
     if(tests.startsWith(FILTER_PREFIX)) {
       filterMode = true;
       String       filter = tests.substring(FILTER_PREFIX.length());
-      StringBuffer sb     = new StringBuffer();
+      StringBuilder sb     = new StringBuilder();
       try {
         ServiceReference[] srl = bc.getServiceReferences((String)null, filter);
         for(int i = 0; srl != null && i < srl.length; i++) {

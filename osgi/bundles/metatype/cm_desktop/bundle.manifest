@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: CM-Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.cm_desktop
-Bundle-Version: 5.0.2
+Bundle-Version: 5.1.0
 Bundle-Category: management
 Bundle-Description: CM desktop plugin
 Bundle-Vendor: Knopflerfish

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -136,7 +136,7 @@ public class BundleCapabilityImpl extends DTOId implements BundleCapability {
       }
       a = gen.archive.getAttribute("Bundle-License");
       if (a != null) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         try {
           List<HeaderEntry> lic = Util.parseManifestHeader("Bundle-License", a, true, true, false);
           for (HeaderEntry he : lic) {

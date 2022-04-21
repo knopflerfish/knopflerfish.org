@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,8 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-
-import org.osgi.framework.*;
 
 public class InstallURLCommand extends IconCommand {
 
@@ -50,20 +47,19 @@ public class InstallURLCommand extends IconCommand {
     displayFlags = DISPLAY_COMPACTLIST;
   }
   
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
    
     String url = request.getParameter(getId() + "_url");
 
-    sb.append("<div class=\"shadow\">" + getName() + "</div>");
+    sb.append("<div class=\"shadow\">").append(getName()).append("</div>");
     
     if(!(url == null || "".equals(url))) {
       try {
-	Bundle b = Activator.bc.installBundle(url);
-	sb.append("installed " + url + "<br/>");
-	
+        Activator.bc.installBundle(url);
+        sb.append("installed ").append(url).append("<br/>");
       } catch (Exception e) {
-	sb.append(Util.toHTML(e));
+        sb.append(Util.toHTML(e));
       }
     } else {
       sb.append("No URL entered");
@@ -72,7 +68,7 @@ public class InstallURLCommand extends IconCommand {
     return sb;
   }
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
     out.println("<div class=\"shadow\">" + getName() + "</div>");
     out.print("<input alt=\"URL\"" + 
 		" type=\"text\"" + 

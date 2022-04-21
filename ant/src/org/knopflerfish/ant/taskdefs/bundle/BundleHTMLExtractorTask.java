@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -606,7 +606,7 @@ public class BundleHTMLExtractorTask
                                           final Map<String, ?> map,
                                           final String linkSuffix)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     for (final Entry<String, ?> entry : map.entrySet()) {
       final String name = entry.getKey();
@@ -633,7 +633,7 @@ public class BundleHTMLExtractorTask
   private String getPackagesJavadocString(final String relPathUp,
                                           final Set<String> set)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (final String pkgName : set) {
       if (0 < sb.length()) {
         sb.append(", ");
@@ -781,7 +781,7 @@ public class BundleHTMLExtractorTask
     final Set<String> otherMfans = new TreeSet<String>(mfanSet);
     otherMfans.removeAll(skipAttribSet);
     otherMfans.removeAll(handledSet);
-    final StringBuffer mfOtherAttributes = new StringBuffer();
+    final StringBuilder mfOtherAttributes = new StringBuilder();
     for (final String string : otherMfans) {
       final String key = string.toString();
 
@@ -818,7 +818,7 @@ public class BundleHTMLExtractorTask
     final String relPathUp = varMap.get("relpathup").toString();
 
     // Build list of bundles depending on this bundle.
-    final StringBuffer dependingList = new StringBuffer();
+    final StringBuilder dependingList = new StringBuilder();
     if (ba.pkgProvidedMap.size() == 0) {
       dependingList.append("None found");
     } else {
@@ -860,7 +860,7 @@ public class BundleHTMLExtractorTask
 
     // Build list of bundles that this bundle depends on, i.e., bundles that
     // provides pkgs to this one.
-    final StringBuffer providersList = new StringBuffer();
+    final StringBuilder providersList = new StringBuilder();
     if (ba.pkgProvidersMap.size() == 0 && ba.pkgUnprovidedMap.size() == 0) {
       providersList.append("None found");
     } else {
@@ -922,7 +922,7 @@ public class BundleHTMLExtractorTask
   {
     final Map<String, Object> varMap = getVarMap(ba);
     final List<String> srcList = new ArrayList<String>();
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     if (include_source_files) {
       log("including source files in jardoc", Project.MSG_VERBOSE);
@@ -942,7 +942,7 @@ public class BundleHTMLExtractorTask
 
         sb.append(" <tr>\n");
         sb.append("  <td>\n");
-        sb.append("    <a href=\"" + uri + "\">" + name + "<a>\n");
+        sb.append("    <a href=\"").append(uri).append("\">").append(name).append("<a>\n");
         sb.append("  </td>\n");
         sb.append(" </tr>\n");
 
@@ -963,7 +963,7 @@ public class BundleHTMLExtractorTask
 
             sb.append(" <tr>\n");
             sb.append("  <td>\n");
-            sb.append("    <a href=\"" + href + "\">" + name + "<a>\n");
+            sb.append("    <a href=\"").append(href).append("\">").append(name).append("<a>\n");
             sb.append("  </td>\n");
             sb.append(" </tr>\n");
 
@@ -1020,8 +1020,8 @@ public class BundleHTMLExtractorTask
         : listHeader;
     String html = replace(template, "${bundle.list.header}", listHeaderRow);
 
-    final StringBuffer bundleList = new StringBuffer();
-    final StringBuffer unresolvedList = new StringBuffer();
+    final StringBuilder bundleList = new StringBuilder();
+    final StringBuilder unresolvedList = new StringBuilder();
 
     // Build the list of bundles
     for (final Entry<String, SortedSet<BundleArchive>> entry : bas.bnToBundleArchives
@@ -1034,7 +1034,7 @@ public class BundleHTMLExtractorTask
         if (0 < ba.pkgUnprovidedMap.size()) {
           // Build one row for each unprovided, non-system package
           final String urow = stdReplace(ba, indexMainUnresolvedRow);
-          final StringBuffer sbUpkg = new StringBuffer();
+          final StringBuilder sbUpkg = new StringBuilder();
           for (final Entry<String, VersionRange> uPkgEntry : ba.pkgUnprovidedMap
               .entrySet()) {
             final String pkgName = uPkgEntry.getKey();
@@ -1092,7 +1092,7 @@ public class BundleHTMLExtractorTask
                                 final BundleArchives bas)
       throws IOException
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     for (final Entry<String, SortedMap<Version, SortedSet<BundleArchive>>> entry : bas.allExports
         .entrySet()) {
@@ -1107,7 +1107,7 @@ public class BundleHTMLExtractorTask
         final String row =
           replace(rowTemplate, "${pkg}",
                   getPackageJavadocString(null, "", pkg, version));
-        final StringBuffer sbProviders = new StringBuffer();
+        final StringBuilder sbProviders = new StringBuilder();
         for (final Object element : providerBas) {
           final BundleArchive provider = (BundleArchive) element;
           sbProviders.append(stdReplace(provider, indexListRow));

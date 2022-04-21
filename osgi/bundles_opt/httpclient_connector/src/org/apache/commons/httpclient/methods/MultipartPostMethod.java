@@ -232,7 +232,7 @@ public class MultipartPostMethod extends ExpectContinueMethod {
                   + "HttpState, HttpConnection)");
 
         if (!parameters.isEmpty()) {
-            StringBuffer buffer = new StringBuffer(MULTIPART_FORM_CONTENT_TYPE);
+            StringBuilder buffer = new StringBuilder(MULTIPART_FORM_CONTENT_TYPE);
             if (Part.getBoundary() != null) {
                 buffer.append("; boundary=");
                 buffer.append(Part.getBoundary());

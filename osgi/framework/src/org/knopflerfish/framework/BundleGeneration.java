@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -917,7 +917,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    */
   URL getURL(int subId, String path) {
     try {
-      final StringBuffer u = new StringBuffer(BundleURLStreamHandler.PROTOCOL);
+      final StringBuilder u = new StringBuilder(BundleURLStreamHandler.PROTOCOL);
       u.append("://");
       u.append(bundle.id);
       if (generation > 0) {

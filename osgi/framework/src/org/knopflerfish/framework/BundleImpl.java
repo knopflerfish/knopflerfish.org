@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2016, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1588,16 +1588,16 @@ public class BundleImpl implements Bundle {
 
 
   String toString(int detail) {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     sb.append("Bundle[");
-    sb.append("id=" + getBundleId());
+    sb.append("id=").append(getBundleId());
     if (detail > 0) {
-      sb.append(", state=" + getState());
+      sb.append(", state=").append(getState());
     }
 
     if (detail > 1) {
-      sb.append(", startlevel=" + getStartLevel());
+      sb.append(", startlevel=").append(getStartLevel());
     }
 
     if (detail > 3) {
@@ -1609,11 +1609,11 @@ public class BundleImpl implements Bundle {
       }
     }
     if (detail > 4) {
-      sb.append(", loc=" + location);
+      sb.append(", loc=").append(location);
     }
 
     if (detail > 4) {
-      sb.append(", symName=" + getSymbolicName());
+      sb.append(", symName=").append(getSymbolicName());
     }
 
     sb.append("]");

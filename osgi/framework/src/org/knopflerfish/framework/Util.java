@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2016, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -555,7 +555,7 @@ public class Util {
                                      char citChar) {
     boolean bCit = false; // true when inside citation chars.
     final Vector<String> v = new Vector<String>(); // (String) individual words after splitting
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     int i = 0;
 
     while (i < s.length()) {
@@ -567,7 +567,7 @@ public class Util {
           bCit = !bCit;
         } else {
           if (buf == null) {
-            buf = new StringBuffer();
+            buf = new StringBuilder();
           }
           buf.append(c);
         }
@@ -616,7 +616,7 @@ public class Util {
                                         boolean trim)
   {
     final List<String> res = new ArrayList<String>();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     int pos = 0;
     final int length = s.length();
 
@@ -1086,7 +1086,7 @@ public class Util {
       skipWhite();
       boolean backslash = false;
       boolean quote = false;
-      final StringBuffer val = new StringBuffer();
+      final StringBuilder val = new StringBuilder();
       int end = 0;
       loop: for (; pos < length; pos++) {
         if (backslash) {

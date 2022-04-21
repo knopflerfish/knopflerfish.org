@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,28 +55,28 @@ public interface CommandGroup {
     /**
      * Property key for group name to use when registering a CommandGroup.
      */
-    public final static String GROUP_NAME = "groupName";
+    String GROUP_NAME = "groupName";
 
     /**
      * Returns a string with the command group name.
      * 
      * @return Command group name.
      */
-    public String getGroupName();
+    String getGroupName();
 
     /**
      * Returns a string containing a short help text for the command group.
      * 
      * @return Short command group help.
      */
-    public String getShortHelp();
+    String getShortHelp();
 
     /**
      * Returns a string containing a long help text for the command group.
      * 
      * @return Long command group help.
      */
-    public String getLongHelp();
+    String getLongHelp();
 
     /**
      * Executes a command in the command group. The command and its arguments
@@ -92,7 +92,7 @@ public interface CommandGroup {
      *            a handle to command session or null if single command
      * @return Status from execution, 0 means okey
      */
-    public int execute(String[] args, Reader in, PrintWriter out,
-            Session session);
+    int execute(String[] args, Reader in, PrintWriter out,
+                Session session);
 
 }

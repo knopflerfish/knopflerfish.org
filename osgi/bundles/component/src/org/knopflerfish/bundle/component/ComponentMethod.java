@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -363,7 +363,7 @@ class ComponentMethod
         Activator.logError(comp.bc, msg, e);
         return new ComponentException(msg, e);
       } catch (IllegalArgumentException e) {
-        StringBuffer msg = new StringBuffer();
+        StringBuilder msg = new StringBuilder();
         msg.append("Wrong arguments to \"");
         msg.append(method);
         msg.append("\" in: ");
