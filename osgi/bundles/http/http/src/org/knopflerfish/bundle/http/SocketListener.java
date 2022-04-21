@@ -456,7 +456,7 @@ public class SocketListener
         
         transactionManager.startTransaction(client, httpConfig);
 
-      } catch (final IOException iioe) {
+      } catch (final IOException e) {
         if (!done && log.doDebug()) {
           log.debug("Communication error on "
                     + (host != null ? (host + ":") : "") + port, iioe);
