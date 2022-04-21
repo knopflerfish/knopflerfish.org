@@ -50,6 +50,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.knopflerfish.service.log.LogRef;
 
 // NOTE: Use raw types to avoid explicit dependency on SSLServerSocketFactory.
+@SuppressWarnings("rawtypes")
 public class SocketListener
   implements Runnable, ServiceTrackerCustomizer
 {
@@ -103,6 +104,7 @@ public class SocketListener
     this.httpServer = httpServer;
   }
 
+  @SuppressWarnings("unchecked")
   public void updated()
       throws ConfigurationException
   {
