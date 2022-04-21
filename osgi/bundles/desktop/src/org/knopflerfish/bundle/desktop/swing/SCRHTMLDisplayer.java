@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, KNOPFLERFISH project
+ * Copyright (c) 2012-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -217,7 +217,7 @@ public class SCRHTMLDisplayer
     public ScrUrl(final ServiceReference<ScrService> scrSR,
                   final Component component)
     {
-      this.sid = ((Long) scrSR.getProperty(Constants.SERVICE_ID)).longValue();
+      this.sid = (Long) scrSR.getProperty(Constants.SERVICE_ID);
       this.cid = component.getId();
       // Include component name to handle components with id=-1 or changed id
       this.compName = component.getName();
@@ -289,7 +289,7 @@ public class SCRHTMLDisplayer
       this.compName = compName;
     }
 
-    private void appendBaseURL(final StringBuffer sb) {
+    private void appendBaseURL(final StringBuilder sb) {
       sb.append("http://");
       sb.append(URL_SCR_HOST);
       sb.append(URL_SCR_PREFIX_PATH);
@@ -317,7 +317,7 @@ public class SCRHTMLDisplayer
       return params;
     }
 
-    public void scrLink(final StringBuffer sb, final String label) {
+    public void scrLink(final StringBuilder sb, final String label) {
       sb.append("<a href=\"");
       appendBaseURL(sb);
       Util.appendParams(sb, getParams());
@@ -326,7 +326,7 @@ public class SCRHTMLDisplayer
       sb.append("</a>");
     }
 
-    public void stateForm(final StringBuffer sb, final Component comp) {
+    public void stateForm(final StringBuilder sb, final Component comp) {
 
       sb.append("<table border=0 cellspacing=1 cellpadding=1 width='100%'>\n");
       sb.append("<tr><td valign='middle'>");
@@ -400,7 +400,7 @@ public class SCRHTMLDisplayer
       if (bl == null || bl.length == 0) {
         setCurrentBID(-1L);
 
-        final StringBuffer sb = new StringBuffer(600);
+        final StringBuilder sb = new StringBuilder(600);
         appendComponentListHTML(sb, null, null);
         setHTML(sb.toString());
       } else {
@@ -414,8 +414,8 @@ public class SCRHTMLDisplayer
      * @param b the bundle to present components for.
      */
     @Override
-    public StringBuffer bundleInfo(Bundle b) {
-      final StringBuffer sb = new StringBuffer();
+    public StringBuilder bundleInfo(Bundle b) {
+      final StringBuilder sb = new StringBuilder();
 
       if (null == scrTracker) {
         startFont(sb, "+2");
@@ -443,7 +443,7 @@ public class SCRHTMLDisplayer
    * @param sb The buffer to append the resulting table to.
    * @param compName If non-null, only include components with a matching name.
    */
-  private void appendComponentListHTML(final StringBuffer sb,
+  private void appendComponentListHTML(final StringBuilder sb,
                                        final Bundle bundle,
                                        final String compName) {
     sb.append("<html>\n");
@@ -503,16 +503,16 @@ public class SCRHTMLDisplayer
     sb.append("</table>\n");
   }
 
-  void startComponentTable(final StringBuffer sb) {
+  void startComponentTable(final StringBuilder sb) {
     sb.append("<table border=0 cellspacing=1 cellpadding=10>\n");
     sb.append("<tr><th>ID</th><th align='left'>State</th><th align='left'>Name</th><th align='left'>Services</th></tr>\n");
   }
 
-  void stopComponentTable(final StringBuffer sb) {
+  void stopComponentTable(final StringBuilder sb) {
     sb.append("</table>");
   }
 
-  void appendComponentRow(final StringBuffer sb,
+  void appendComponentRow(final StringBuilder sb,
                           final ServiceReference<ScrService> scrSR,
                           final Component component) {
     final ScrUrl scrUrl = new ScrUrl(scrSR, component);
@@ -576,7 +576,7 @@ public class SCRHTMLDisplayer
     return ScrUrl.isScrLink(url);
   }
 
-  public boolean renderUrl(final URL url, final StringBuffer sb) {
+  public boolean renderUrl(final URL url, final StringBuilder sb) {
     final ScrUrl scrUrl = new ScrUrl(url);
 
     // Must save value here since the command state is cleared after execution.
@@ -621,7 +621,7 @@ public class SCRHTMLDisplayer
    *          URL holding service id of the ScrService owning the component
    *          to present and the id of it.
    */
-  void appendComponentHTML(final StringBuffer sb, final ScrUrl scrUrl) {
+  void appendComponentHTML(final StringBuilder sb, final ScrUrl scrUrl) {
     try {
       final ScrService scr = getScrServiceById(scrUrl.getSid());
       if (null != scr) {
@@ -650,7 +650,7 @@ public class SCRHTMLDisplayer
           sb.append("<tr><td width=\"100%\" bgcolor=\"");
           sb.append(JHTMLBundle.BG_COLOR_BUNDLE_HEADER);
           sb.append("\">");
-          sb.append("Service Component #" + comp.getId());
+          sb.append("Service Component #").append(comp.getId());
           if (scrServices.size()>1) {
             sb.append("@");
             sb.append(scrUrl.getSid());
@@ -666,7 +666,7 @@ public class SCRHTMLDisplayer
           }
 
           {
-            final StringBuffer sb2 = new StringBuffer(60);
+            final StringBuilder sb2 = new StringBuilder(60);
             scrUrl.stateForm(sb2, comp);
             appendComponentLine(sb, "State", sb2.toString());
           }
@@ -680,7 +680,7 @@ public class SCRHTMLDisplayer
           appendComponentLine(sb, "References", componentReferences(scrUrl.getSid(), comp));
 
           {
-            final StringBuffer bundleSb = new StringBuffer(20);
+            final StringBuilder bundleSb = new StringBuilder(20);
             Util.bundleLink(bundleSb, comp.getBundle());
             appendComponentLine(sb, "Bundle", bundleSb.toString());
           }
@@ -701,17 +701,17 @@ public class SCRHTMLDisplayer
 
           sb.append("</table>\n");
         } else {
-          sb.append("No SCR component with id=" + scrUrl.getCid());
+          sb.append("No SCR component with id=").append(scrUrl.getCid());
         }
       } else {
-        sb.append("No SCR service with sid=" + scrUrl.getSid());
+        sb.append("No SCR service with sid=").append(scrUrl.getSid());
       }
     } catch (final Exception e2) {
       e2.printStackTrace();
     }
   }
 
-  void appendComponentLine(final StringBuffer sb, final String label,
+  void appendComponentLine(final StringBuilder sb, final String label,
       final String value) {
     JHTMLBundle.appendRow(sb, null, "-1", "left", label, value);
   }
@@ -722,7 +722,7 @@ public class SCRHTMLDisplayer
   }
 
   String componentServices(final Component comp) {
-    final StringBuffer sb = new StringBuffer(100);
+    final StringBuilder sb = new StringBuilder(100);
 
     final String[] services = comp.getServices();
     if (null == services) {
@@ -739,7 +739,7 @@ public class SCRHTMLDisplayer
   }
 
   String componentProperties(final Component comp) throws IOException {
-    final StringBuffer sb = new StringBuffer(100);
+    final StringBuilder sb = new StringBuilder(100);
 
     // cellspacing:5 is compensated by cellpadding-left:-5 to left-justify table
     sb.append("<table cellpadding='0' cellspacing='5' border='0' width='100%'>\n");
@@ -771,7 +771,7 @@ public class SCRHTMLDisplayer
   }
 
   String componentReferences(final long sid, final Component comp) {
-    final StringBuffer sb = new StringBuffer(100);
+    final StringBuilder sb = new StringBuilder(100);
 
     final Reference[] refs = comp.getReferences();
     if (null == refs) {
@@ -838,7 +838,7 @@ public class SCRHTMLDisplayer
    * @param scrUrl
    *          Url that holds the data needed to find the reference to present.
    */
-  void appendReferenceHTML(final StringBuffer sb, final ScrUrl scrUrl) {
+  void appendReferenceHTML(final StringBuilder sb, final ScrUrl scrUrl) {
     try {
       final ScrService scr = getScrServiceById(scrUrl.getSid());
       if (null != scr) {
@@ -885,7 +885,7 @@ public class SCRHTMLDisplayer
             if (null == services) {
               appendComponentLine(sb, servicesLabel, "NONE");
             } else {
-              final StringBuffer serviceSb = new StringBuffer(100);
+              final StringBuilder serviceSb = new StringBuilder(100);
               for (int i = 0; i < services.length; i++) {
                 if (i > 0) {
                   serviceSb.append(", ");
@@ -910,13 +910,13 @@ public class SCRHTMLDisplayer
 
             sb.append("</table>\n");
           } else {
-            sb.append("No component reference with name=" + scrUrl.getRef());
+            sb.append("No component reference with name=").append(scrUrl.getRef());
           }
         } else {
-          sb.append("No component with id=" + scrUrl.getCid());
+          sb.append("No component with id=").append(scrUrl.getCid());
         }
       } else {
-        sb.append("No SCR service with sid=" + scrUrl.getSid());
+        sb.append("No SCR service with sid=").append(scrUrl.getSid());
       }
     } catch (final Exception e2) {
       e2.printStackTrace();

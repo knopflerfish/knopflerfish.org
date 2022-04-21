@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,13 +62,13 @@ public class Config {
 
       try {
         r = Integer.parseInt(sr, 16);
-      } catch(Exception e) { }
+      } catch(Exception ignored) { }
       try {
         g = Integer.parseInt(sg, 16);
-      } catch(Exception e) { }
+      } catch(Exception ignored) { }
       try {
         b = Integer.parseInt(sb, 16);
-      } catch(Exception e) { }
+      } catch(Exception ignored) { }
     }
     return new java.awt.Color(r, g, b);
   }

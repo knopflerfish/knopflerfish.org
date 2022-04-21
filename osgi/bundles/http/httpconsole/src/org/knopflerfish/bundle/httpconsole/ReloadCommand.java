@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,7 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
-import java.io.*;
-
-import org.osgi.framework.*;
 
 public class ReloadCommand extends IconCommand {
   public ReloadCommand() {
@@ -48,8 +44,7 @@ public class ReloadCommand extends IconCommand {
 	  Activator.RES_ALIAS + "/go-home.png");
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
-    return sb;
+  public StringBuilder run(HttpServletRequest request) {
+    return new StringBuilder();
   }
 }

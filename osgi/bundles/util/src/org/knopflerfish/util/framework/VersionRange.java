@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -278,7 +278,7 @@ public class VersionRange implements Comparable<VersionRange>
   public String toString()
   {
     if (high != null) {
-      final StringBuffer res = new StringBuffer();
+      final StringBuilder res = new StringBuilder();
       if (lowIncluded) {
         res.append('[');
       } else {
@@ -305,7 +305,7 @@ public class VersionRange implements Comparable<VersionRange>
    */
   public String toHtmlString()
   {
-    final StringBuffer res = new StringBuffer();
+    final StringBuilder res = new StringBuilder();
     if (high != null) {
       if (lowIncluded) {
         res.append('[');

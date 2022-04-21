@@ -282,7 +282,7 @@ public final class HttpAuthenticator {
         }
         String realm = authscheme.getRealm();
         if (LOG.isDebugEnabled()) {
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             buffer.append("Using credentials for ");
             if (realm == null) {
                 buffer.append("default");
@@ -299,7 +299,7 @@ public final class HttpAuthenticator {
             ? state.getProxyCredentials(realm, host) 
             : state.getCredentials(realm, host);
         if (credentials == null) {
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             buffer.append("No credentials available for the "); 
             if (realm == null) {
                 buffer.append("default");

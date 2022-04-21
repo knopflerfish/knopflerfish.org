@@ -165,7 +165,7 @@ public class HttpHost implements Cloneable {
      * @return The host uri.
      */
     public String toURI() {
-        StringBuffer buffer = new StringBuffer(50);        
+        StringBuilder buffer = new StringBuilder(50);
         buffer.append(this.protocol.getScheme());
         buffer.append("://");
         buffer.append(this.hostname);
@@ -180,9 +180,7 @@ public class HttpHost implements Cloneable {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        StringBuffer buffer = new StringBuffer(50);        
-        buffer.append(toURI());
-        return buffer.toString();
+        return toURI();
     }    
     
     /**

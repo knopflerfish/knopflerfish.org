@@ -311,7 +311,7 @@ public class HttpURL extends URI {
             String query, String fragment) throws URIException {
 
         // validate and contruct the URI character sequence
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (userinfo != null || host != null || port != -1) {
             _scheme = DEFAULT_SCHEME; // in order to verify the own protocol
             buff.append(_default_scheme);
@@ -368,7 +368,7 @@ public class HttpURL extends URI {
     
     protected static String toUserinfo(String user, String password) throws URIException {
         if (user == null) return null;
-        StringBuffer usrinfo = new StringBuffer(20); //sufficient for real world
+        StringBuilder usrinfo = new StringBuilder(20); //sufficient for real world
         usrinfo.append(URIUtil.encode(user, URI.allowed_within_userinfo));
         if (password == null) return usrinfo.toString();
         usrinfo.append(':');
@@ -772,7 +772,7 @@ public class HttpURL extends URI {
     public void setQuery(String queryName, String queryValue)
         throws URIException, NullPointerException {
 
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         // set the charset to do escape encoding
         String charset = getProtocolCharset();
         buff.append(encode(queryName, allowed_within_query, charset));
@@ -801,7 +801,7 @@ public class HttpURL extends URI {
             throw new URIException("wrong array size of query");
         }
 
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         // set the charset to do escape encoding
         String charset = getProtocolCharset();
         for (int i = 0; i < length; i++) {
@@ -837,7 +837,7 @@ public class HttpURL extends URI {
      */
     protected void setURI() {
         // set _uri
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         // ^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?
         if (_scheme != null) {
             buf.append(_scheme);

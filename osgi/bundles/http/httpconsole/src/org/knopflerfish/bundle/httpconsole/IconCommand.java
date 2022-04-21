@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,8 @@
 
 package org.knopflerfish.bundle.httpconsole;
 
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-
-import org.osgi.framework.*;
 
 /**
  * Abstract command implementation that prints a image submit button
@@ -66,9 +63,9 @@ public abstract class IconCommand implements Command {
     return displayFlags;
   }
 
-  public abstract StringBuffer run(HttpServletRequest request);
+  public abstract StringBuilder run(HttpServletRequest request);
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
     out.print(" <input " +
               " alt=\"" + getDescription() + "\"" +
               " title=\"" + getDescription() + "\"" +

@@ -10,7 +10,7 @@
   <property name="bundle.build.impl"     value="false"/>
   <property name="bundle.build.lib"      value="false"/>
   <property name="bundle.version.suffix" value=""/>
-  <property name="httpconsole.version"   value="4.0.1"/>
+  <property name="httpconsole.version"   value="4.1.0"/>
 
   <property name="bundle.build.doc"   value="true"/>
 

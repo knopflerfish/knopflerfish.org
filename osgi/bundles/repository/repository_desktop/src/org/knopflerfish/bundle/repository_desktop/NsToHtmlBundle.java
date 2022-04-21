@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ public class NsToHtmlBundle
     final Map<String, Object> attrs =
       new HashMap<String, Object>(capability.getAttributes());
 
-    final StringBuffer sb = new StringBuffer(50);
+    final StringBuilder sb = new StringBuilder(50);
     sb.append(attrs.remove(BundleRevision.BUNDLE_NAMESPACE));
 
     final Version version =
@@ -84,7 +84,7 @@ public class NsToHtmlBundle
   @Override
   public String toHTML(Requirement requirement)
   {
-    final StringBuffer sb = new StringBuffer(50);
+    final StringBuilder sb = new StringBuilder(50);
     final String filter = requirement.getDirectives().get("filter");
     final String bundleName =
       Util.getFilterValue(filter, BundleRevision.BUNDLE_NAMESPACE);

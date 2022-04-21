@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, KNOPFLERFISH project
+ * Copyright (c) 2016-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,8 +102,9 @@ class ComponentServiceListener
   synchronized void removeServiceListener(ReferenceListener rl)
   {
     String sn = rl.getInterface();
-    Set<ReferenceListener> rls = serviceListeners.get(sn);
+    HashSet<ReferenceListener> rls = serviceListeners.get(sn);
     if (rls != null) {
+      rls = (HashSet<ReferenceListener>)rls.clone();
       rls.remove(rl);
       if (rls.isEmpty()) {
         serviceListeners.remove(sn);
@@ -116,6 +117,8 @@ class ComponentServiceListener
             Activator.logError("Internal", ise);
           }
         }
+      } else {
+        serviceListeners.put(sn, rls);
       }
     }
     

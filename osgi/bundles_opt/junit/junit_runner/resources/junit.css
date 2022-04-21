@@ -39,11 +39,12 @@ BODY  {
 }
 
 code {
- font-family: Courier New, Courier;
- font-size:11px;
- color:#000000;
- text-align:left;
- font-weight:normal;
+  color:#000000;
+  font-family: Courier New, Courier, monospace;
+  font-size:11px;
+  font-weight:normal;
+  text-align:left;
+  white-space: pre;
 }
 
 div.schemaComp { border: 4px double gray; margin: 0em 1em; padding: 0em; }

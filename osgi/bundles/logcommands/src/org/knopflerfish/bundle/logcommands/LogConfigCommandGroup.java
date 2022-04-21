@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -278,7 +278,7 @@ public class LogConfigCommandGroup
       out.println("    -  "
                   + LogUtil
                       .fromLevel(getLevel(configuration, selection, ""), 8)
-                  + getFullName(selection) + " (Bundle not yet installed)");
+                  + getPaddedName(selection) + " (Bundle not yet installed)");
     }
   }
 
@@ -319,14 +319,10 @@ public class LogConfigCommandGroup
         .getFilter();
   }
 
-  private String getFullName(String bundle)
+  private String getPaddedName(String bundle)
   {
-    return fillName(new StringBuffer(bundle), 30);
-  }
-
-  private String fillName(StringBuffer sb, int length)
-  {
-    while (sb.length() < length) {
+    StringBuilder sb = new StringBuilder(bundle);
+    while (sb.length() < 30) {
       sb.append(' ');
     }
     return sb.toString();

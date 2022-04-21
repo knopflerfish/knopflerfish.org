@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -305,7 +305,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
    */
   @Override
   protected String toExternalForm(URL url) {
-    final StringBuffer res = new StringBuffer(url.getProtocol());
+    final StringBuilder res = new StringBuilder(url.getProtocol());
     res.append("://");
     res.append(url.getHost());
     final int port = url.getPort();

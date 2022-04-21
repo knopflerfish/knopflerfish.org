@@ -593,7 +593,7 @@ public class CookieSpecBase implements CookieSpec {
         if (cookie == null) {
             throw new IllegalArgumentException("Cookie may not be null");
         }
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(cookie.getName());
         buf.append("=");
         String s = cookie.getValue();
@@ -621,7 +621,7 @@ public class CookieSpecBase implements CookieSpec {
             throw new IllegalArgumentException("Cookie array may not be empty");
         }
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         for (int i = 0; i < cookies.length; i++) {
             if (i > 0) {
                 buffer.append("; ");

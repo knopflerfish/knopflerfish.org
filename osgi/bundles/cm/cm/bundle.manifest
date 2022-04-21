@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: cm
 Bundle-SymbolicName: org.knopflerfish.bundle.cm
-Bundle-Version: 5.1.0
+Bundle-Version: 5.2.0
 Bundle-Category: osgi
 Bundle-Description: Configuration Management Service
 Bundle-Vendor: Knopflerfish

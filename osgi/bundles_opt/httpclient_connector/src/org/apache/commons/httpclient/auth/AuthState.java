@@ -174,7 +174,7 @@ public class AuthState {
     }
     
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append("Auth state: auth requested [");
         buffer.append(this.authRequested);
         buffer.append("]; auth attempted [");

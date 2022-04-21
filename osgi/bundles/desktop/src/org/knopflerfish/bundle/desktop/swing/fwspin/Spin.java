@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -649,13 +649,13 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   }
 
   String indent(int level) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     while(level --> 0) sb.append(" ");
 
     return sb.toString();
   }
 
-  void getDeps(StringBuffer sb, Hashtable<String, String> lines, SpinItem item, int level) {
+  void getDeps(StringBuilder sb, Hashtable<String, String> lines, SpinItem item, int level) {
     if(item == null) return;
 
     String line = item.toString();
@@ -666,13 +666,13 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     String s = indent(level);
     //    System.out.println(level + ": " + s + item.toString());
     if(!line.equals("System Bundle")) {
-      sb.append(s + item.toString() + "\n");
+      sb.append(s).append(item.toString()).append("\n");
       lines.put(line, line);
     }
     Vector<? extends SpinItem> v = item.getNext(SpinItem.DIR_FROM);
     if(v != null) {
       if(level > 3 && v.size() > 0) {
-        sb.append(indent(level) + "...\n");
+        sb.append(indent(level)).append("...\n");
         return;
       }
       for(SpinItem next : v) {
@@ -686,7 +686,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
     if(item == null) return;
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     getDeps(sb, new Hashtable<String, String>(), item, 0);
 
 
@@ -1163,9 +1163,9 @@ class SX extends SpinItem {
 
   public void paintInfo(Graphics g, double x, double y) {
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
-    sb.append("" + sr + "\n");
+    sb.append(sr).append("\n");
 
     String[] keys = sr.getPropertyKeys();
     for(int i = 0; keys != null && i < keys.length; i++) {
@@ -1175,13 +1175,13 @@ class SX extends SpinItem {
       if(val.getClass().isArray()) {
         Object[] vals = (Object[])val;
         if(vals.length > 0) {
-          sb.append(keys[i] + " = " + vals[0] + "\n");
+          sb.append(keys[i]).append(" = ").append(vals[0]).append("\n");
           for(int j = 1; j < vals.length; j++) {
-            sb.append("   " + vals[j] + "\n");
+            sb.append("   ").append(vals[j]).append("\n");
           }
         }
       } else {
-        sb.append(keys[i] + " = " + val + "\n");
+        sb.append(keys[i]).append(" = ").append(val).append("\n");
       }
     }
 
@@ -1376,9 +1376,9 @@ class BX extends SpinItem {
 
   public void paintInfo(Graphics g, double x, double y) {
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
-    sb.append(b.getLocation() + ", id=" + b.getBundleId() + "\n");
+    sb.append(b.getLocation()).append(", id=").append(b.getBundleId()).append("\n");
 
     Dictionary<String, String> headers = b.getHeaders();
 
@@ -1386,7 +1386,7 @@ class BX extends SpinItem {
       final String key = e.nextElement();
       final String val = (String)headers.get(key);
 
-      sb.append(key + ": " + val + "\n");
+      sb.append(key).append(": ").append(val).append("\n");
     }
     spin.paintBox(sb.toString(), g, Color.white, Color.black, (int)x, (int)y,
                   .8, 300, 300);

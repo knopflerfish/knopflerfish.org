@@ -202,11 +202,11 @@ public class HttpVersion implements Comparable {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("HTTP/"); 
-        buffer.append(this.major); 
-        buffer.append('.'); 
-        buffer.append(this.minor); 
+        StringBuilder buffer = new StringBuilder();
+        buffer.append("HTTP/");
+        buffer.append(this.major);
+        buffer.append('.');
+        buffer.append(this.minor);
         return buffer.toString();
     }
 

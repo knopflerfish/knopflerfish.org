@@ -9,7 +9,6 @@ android:
 git:
   depth: 50
 jdk:
-- openjdk6
 - oraclejdk8
 env:
   matrix:
@@ -46,12 +45,12 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    jdk: openjdk6
+    jdk: oraclejdk8
     condition: $DEPLOY = true
 - provider: script
   script: tools/travis/kf_upload.sh $KF_SDK_BUILDNAME
   skip_cleanup: true
   on:
     tags: true
-    jdk: openjdk6
+    jdk: oraclejdk8
     condition: $DEPLOY = true

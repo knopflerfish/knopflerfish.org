@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2018, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,6 +109,7 @@ public class ClassAnalyserASM
       currentClassFile = new File(fileName);
       cr.accept(this, 0);
     } catch (Exception e) {
+      System.out.println("Exception when analysing class " + fileName);
       e.printStackTrace();
     }
   }

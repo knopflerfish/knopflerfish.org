@@ -13,7 +13,7 @@
   <property name="bmfa.Bundle-Description"    value="Tester"/>
   <property name="bmfa.Bundle-Category"       value="test"/>
   <property name="bmfa.Bundle-Vendor"         value="knopflerfish"/>
-  <property name="bmfa.Bundle-Version"        value="2.0.0"/>
+  <property name="bmfa.Bundle-Version"        value="2.1.0"/>
 
   <!-- Must import the org.knopflerfish.test.framework package since -->
   <!-- it needs to be loaded by the system classloader for the       -->

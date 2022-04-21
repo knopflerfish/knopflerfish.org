@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2017, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -445,7 +445,7 @@ class Resolver {
         if (res == null) {
           res = checkRequireBundle(bg);
           if (res == null) {
-            StringBuffer failReason = new StringBuffer(
+            StringBuilder failReason = new StringBuilder(
                 "Missing package(s) or can not resolve all of the them:");
             if (resolvePackages(importBpkgs.getImports(), failReason)) {
               if (triggers != null && triggers.length == 1) {
@@ -735,9 +735,9 @@ class Resolver {
    * @return True if all packages resolvable, otherwise false.
    * @throws BundleException Resolver hook throw an exception.
    */
-  private boolean resolvePackages(Iterator<ImportPkg> pkgs, StringBuffer failReason)
+  private boolean resolvePackages(Iterator<ImportPkg> pkgs, StringBuilder failReason)
       throws BundleException {
-    StringBuffer pkgFail = failReason != null || framework.debug.resolver ? new StringBuffer() : null;
+    StringBuilder pkgFail = failReason != null || framework.debug.resolver ? new StringBuilder() : null;
     boolean res = true;
     tempCollision = null;
     while (pkgs.hasNext()) {
@@ -900,7 +900,7 @@ class Resolver {
    * @throws BundleException Resolver hook throw an exception.
    */
   private ExportPkg pickProvider(ImportPkg ip, List<ExportPkg> possibleProvider,
-                                 StringBuffer failReason)
+                                 StringBuilder failReason)
                                      throws BundleException {
     if (framework.debug.resolver) {
       framework.debug.println("pickProvider: for - " + ip);
@@ -1005,7 +1005,7 @@ class Resolver {
   }
 
 
-  private void newFailReason(StringBuffer failReason, String string, ExportPkg ep) {
+  private void newFailReason(StringBuilder failReason, String string, ExportPkg ep) {
     if (failReason.length() > 0) {
       failReason.append(" || ");
     }

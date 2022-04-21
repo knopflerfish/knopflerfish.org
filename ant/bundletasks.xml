@@ -55,7 +55,7 @@
   </path>
   
   <!-- ASM 7 is used by the bundle_build tasks -->
-  <property name="asm.version"		value="7.3.1"/>
+  <property name="asm.version"		value="9.3"/>
   <property name="asm.jar"		value="asm-${asm.version}.jar" />
   <property name="asm.jar.location"	location="${ant.lib}/${asm.jar}" />
   <path id="asm.path">

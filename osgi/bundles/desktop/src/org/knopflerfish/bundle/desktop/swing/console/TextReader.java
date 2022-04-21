@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,11 @@ package org.knopflerfish.bundle.desktop.swing.console;
 import java.io.IOException;
 import java.io.Reader;
 
-
 public class TextReader extends Reader {
 
-  StringBuffer sb = new StringBuffer();
-
-  Object  lock     = new Object();
-  Object  waitLock = new Object();
+  private StringBuffer sb = new StringBuffer();
+  private final Object waitLock = new Object();
+  private char[] readBuffer = new char[1];
 
   public TextReader() {
   }
@@ -56,22 +54,26 @@ public class TextReader extends Reader {
     return sb.length();
   }
 
+  @Override
   public void close() {
     flush();
     sb = null;
   }
 
-  public void mark(int readlimit) {
+  @Override
+  public void mark(int readLimit) {
   }
 
-
+  @Override
   public boolean markSupported() {
     return false;
   }
 
+  @Override
   public void reset() {
   }
 
+  @Override
   public long skip(long n) {
     if(sb == null) {
       throw new RuntimeException("Stream closed");
@@ -81,11 +83,11 @@ public class TextReader extends Reader {
   }
 
   public void print(String s) {
-    if(sb == null) {
+    if (sb == null) {
       throw new RuntimeException("Stream closed");
     }
     sb.append(s);
-    if(s.length() > 0) {
+    if (s.length() > 0) {
       flush();
     }
   }
@@ -96,41 +98,45 @@ public class TextReader extends Reader {
     }
   }
 
-  char[] buf = new char[1];
-
+  @Override
   public int read() throws IOException {
-    if(-1 != read(buf, 0, 1)) {
-      return buf[0];
+    if(-1 != read(readBuffer, 0, 1)) {
+      return readBuffer[0];
     }
 
     return -1;
   }
 
+  @Override
   public int read(char[] b) throws IOException {
     return read(b, 0, b.length);
   }
 
+  @Override
   public int read(char[] cbuf, int off, int len) throws IOException {
-    synchronized(waitLock) {
-      if(sb == null) {
-	throw new RuntimeException("Stream closed");
-      }
-      if(len == 0) {
-	return 0;
-      }
-      try {
-	while(sb == null || len > sb.length()) {
-	  waitLock.wait();
-	}
-      } catch(InterruptedException e) {
-	throw new IOException(e.getMessage());
+    synchronized (waitLock) {
+      if (sb == null) {
+        throw new RuntimeException("Stream closed");
       }
 
-      int i   = 0;
-      while(i < len) {
-	cbuf[off + i] = sb.charAt(i);
-	i++;
+      if (len == 0) {
+        return 0;
       }
+
+      try {
+        while (sb == null || len > sb.length()) {
+          waitLock.wait();
+        }
+      } catch (InterruptedException e) {
+        throw new IOException(e.getMessage());
+      }
+
+      int i = 0;
+      while (i < len) {
+        cbuf[off + i] = sb.charAt(i);
+        i++;
+      }
+
       sb.delete(0, i);
       return len;
     }

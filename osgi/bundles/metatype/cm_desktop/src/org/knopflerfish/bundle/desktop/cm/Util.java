@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -216,20 +216,19 @@ public class Util
     return s;
   }
 
-  public static void startFont(StringBuffer sb)
+  public static void startFont(StringBuilder sb)
   {
     startFont(sb, "-2");
   }
 
-  public static void stopFont(StringBuffer sb)
+  public static void stopFont(StringBuilder sb)
   {
     sb.append("</font>");
   }
 
-  public static void startFont(StringBuffer sb, String size)
+  public static void startFont(StringBuilder sb, String size)
   {
-    sb.append("<font size=\"" + size
-              + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
+    sb.append("<font size=\"").append(size).append("\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 
   public static final String URL_CM_HOST = "desktop";
@@ -246,19 +245,18 @@ public class Util
   public static final String URL_SERVICE_PREFIX =
       "http://127.0.0.1/desktop/sid/";
 
-  public static void bundleLink(StringBuffer sb, Bundle b)
+  public static void bundleLink(StringBuilder sb, Bundle b)
   {
-    sb.append("<a href=\"" + URL_BUNDLE_PREFIX + b.getBundleId() + "\">");
+    sb.append("<a href=\"" + URL_BUNDLE_PREFIX).append(b.getBundleId()).append("\">");
     sb.append(Util.getBundleName(b));
     sb.append("</a>");
   }
 
-  public static void serviceLink(StringBuffer sb,
+  public static void serviceLink(StringBuilder sb,
                                  ServiceReference<?> sr,
                                  String txt)
   {
-    sb.append("<a href=\"" + URL_SERVICE_PREFIX
-              + sr.getProperty(Constants.SERVICE_ID) + "\">");
+    sb.append("<a href=\"" + URL_SERVICE_PREFIX).append(sr.getProperty(Constants.SERVICE_ID)).append("\">");
     sb.append(txt);
     sb.append("</a>");
   }

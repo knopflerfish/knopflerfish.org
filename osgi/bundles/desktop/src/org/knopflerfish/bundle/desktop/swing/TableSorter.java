@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,20 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+
 /**
  * A sorter for TableModels. The sorter has a model (conforming to TableModel)
  * and itself implements TableModel. TableSorter does not store or copy
@@ -52,22 +66,8 @@ package org.knopflerfish.bundle.desktop.swing;
  * @author Philip Milne
  */
 
-import java.awt.event.InputEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.TableModelEvent;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
-
 public class TableSorter
-  extends TableMap
+    extends TableMap
 {
   /**
    * Table models implementing this interface will be called after rows has been
@@ -92,8 +92,8 @@ public class TableSorter
 
   private static final long serialVersionUID = 1L;
 
-  int indexes[];
-  List<Integer> sortingColumns = new ArrayList<Integer>();
+  int[] indexes;
+  List<Integer> sortingColumns = new ArrayList<>();
   boolean ascending = true;
   int compares;
 
@@ -148,43 +148,23 @@ public class TableSorter
       final Number n2 = (Number) data.getValueAt(row2, column);
       final double d2 = n2.doubleValue();
 
-      if (d1 < d2) {
-        return -1;
-      } else if (d1 > d2) {
-        return 1;
-      } else {
-        return 0;
-      }
+      return Double.compare(d1, d2);
     } else if (type == java.util.Date.class) {
       final Date d1 = (Date) data.getValueAt(row1, column);
       final long n1 = d1.getTime();
       final Date d2 = (Date) data.getValueAt(row2, column);
       final long n2 = d2.getTime();
 
-      if (n1 < n2) {
-        return -1;
-      } else if (n1 > n2) {
-        return 1;
-      } else {
-        return 0;
-      }
+      return Long.compare(n1, n2);
     } else if (type == String.class) {
       final String s1 = (String) data.getValueAt(row1, column);
       final String s2 = (String) data.getValueAt(row2, column);
       final int result = s1.compareTo(s2);
 
-      if (result < 0) {
-        return -1;
-      } else if (result > 0) {
-        return 1;
-      } else {
-        return 0;
-      }
+      return Integer.compare(result, 0);
     } else if (type == Boolean.class) {
-      final Boolean bool1 = (Boolean) data.getValueAt(row1, column);
-      final boolean b1 = bool1.booleanValue();
-      final Boolean bool2 = (Boolean) data.getValueAt(row2, column);
-      final boolean b2 = bool2.booleanValue();
+      final boolean b1 = (Boolean) data.getValueAt(row1, column);
+      final boolean b2 = (Boolean) data.getValueAt(row2, column);
 
       if (b1 == b2) {
         return 0;
@@ -200,22 +180,15 @@ public class TableSorter
       final String s2 = v2.toString();
       final int result = s1.compareTo(s2);
 
-      if (result < 0) {
-        return -1;
-      } else if (result > 0) {
-        return 1;
-      } else {
-        return 0;
-      }
+      return Integer.compare(result, 0);
     }
   }
 
   public int compare(int row1, int row2)
   {
     compares++;
-    for (int level = 0; level < sortingColumns.size(); level++) {
-      final Integer column = sortingColumns.get(level);
-      final int result = compareRowsByColumn(row1, row2, column.intValue());
+    for (final Integer column : sortingColumns) {
+      final int result = compareRowsByColumn(row1, row2, column);
       if (result != 0) {
         return ascending ? result : -result;
       }
@@ -284,7 +257,7 @@ public class TableSorter
   // arrays. The number of compares appears to vary between N-1 and
   // NlogN depending on the initial order but the main reason for
   // using it here is that, unlike qsort, it is stable.
-  public void shuttlesort(int from[], int to[], int low, int high)
+  public void shuttlesort(int[] from, int[] to, int low, int high)
   {
     if (high - low < 2) {
       return;
@@ -312,8 +285,8 @@ public class TableSorter
      */
 
     if (high - low >= 4 && compare(from[middle - 1], from[middle]) <= 0) {
-      for (int i = low; i < high; i++) {
-        to[i] = from[i];
+      if (high - low >= 0) {
+        System.arraycopy(from, low, to, low, high - low);
       }
       return;
     }
@@ -368,7 +341,7 @@ public class TableSorter
   {
     this.ascending = ascending;
     sortingColumns.clear();
-    sortingColumns.add(new Integer(column));
+    sortingColumns.add(column);
     sort(this);
     if (model instanceof TableRowRearrangementAware) {
       final TableRowRearrangementAware bm = (TableRowRearrangementAware) model;
