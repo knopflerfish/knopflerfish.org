@@ -1275,11 +1275,11 @@ public class BundleImpl implements Bundle {
                 operation = IDLE;
               } else {
                 String reason = current.bpkgs.getResolveFailReason();
-                throw new BundleException("Bundle#" + id + ", unable to resolve: "
+                throw new BundleException("Bundle#" + id + " (" + getSymbolicName() + "), unable to resolve: "
                     + reason,
                     reason == Resolver.RESOLVER_HOOK_VETO ?
-                                                           BundleException.REJECTED_BY_HOOK :
-                                                             BundleException.RESOLVE_ERROR);
+                        BundleException.REJECTED_BY_HOOK :
+                        BundleException.RESOLVE_ERROR);
               }
             }
             if (triggers != null && triggers.length == 1) {
