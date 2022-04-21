@@ -88,6 +88,10 @@ OSGi Compendium Specification
 
 * Internally use StringBuilder instead of StringBuffer.
 
+### HTTP-Server 5.4.0
+
+* Fixed issue #58, SocketListener limits transactions, not threads.
+
 ### HTTP-Server 5.3.0
 
 * Internally use StringBuilder instead of StringBuffer.
