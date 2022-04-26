@@ -235,7 +235,7 @@ public class BundleImpl implements Bundle {
     synchronized (fwCtx.resolver) {
       final BundleGeneration current = current();
       if (current.isFragment()) {
-        throw new BundleException("Bundle#" + id +
+        throw new BundleException(formatBundleIdAndName() +
                                   ", cannot start a fragment bundle",
                                   BundleException.INVALID_OPERATION);
       }
@@ -251,7 +251,7 @@ public class BundleImpl implements Bundle {
       if (fwCtx.startLevelController != null) {
         if (getStartLevel() > fwCtx.startLevelController.getStartLevel()) {
           if ((options & START_TRANSIENT) != 0) {
-            throw new BundleException("Bundle#" + id +
+            throw new BundleException(formatBundleIdAndName() +
                                       ", can not transiently activate bundle with start level "
                                       + getStartLevel() + " when running on start level "
                                       + fwCtx.startLevelController.getStartLevel(),
@@ -341,7 +341,7 @@ public class BundleImpl implements Bundle {
         // This happens if call start from inside the BundleActivator.stop
         // method.
         // Don't allow it.
-        throw new BundleException("Bundle#" + id +
+        throw new BundleException(formatBundleIdAndName() +
                                   ", start called from BundleActivator.stop",
                                   BundleException.ACTIVATOR_ERROR);
       case UNINSTALLED:
@@ -417,7 +417,7 @@ public class BundleImpl implements Bundle {
       }
 
     } catch (Throwable t) {
-      res = new BundleException("Bundle#" + id + " start failed", error_type, t);
+      res = new BundleException(formatBundleIdAndName() + ", start failed", error_type, t);
     }
     
     // activator.start() done
@@ -451,7 +451,7 @@ public class BundleImpl implements Bundle {
         }
       }
       if (cause != null) {
-        res = new BundleException("Bundle#" + id + " start failed",
+        res = new BundleException(formatBundleIdAndName() + ", start failed",
                                 BundleException.STATECHANGE_ERROR, cause);
       }
     }
@@ -508,7 +508,7 @@ public class BundleImpl implements Bundle {
 
     synchronized (fwCtx.resolver) {
       if (current().isFragment()) {
-        throw new BundleException("Bundle#" + id + ", can not stop a fragment",
+        throw new BundleException(formatBundleIdAndName() + ", can not stop a fragment",
                                   BundleException.INVALID_OPERATION);
       }
 
@@ -580,7 +580,7 @@ public class BundleImpl implements Bundle {
       try {
         bactivator.stop(bundleContext);
       } catch (final Throwable e) {
-        res = new BundleException("Bundle#" + id + ", BundleActivator.stop() failed",
+        res = new BundleException(formatBundleIdAndName() + ", BundleActivator.stop() failed",
                                   BundleException.ACTIVATOR_ERROR, e);
       }
 
@@ -602,7 +602,7 @@ public class BundleImpl implements Bundle {
           }
         }
         if (cause != null) {
-          res = new BundleException("Bundle stop failed",
+          res = new BundleException(formatBundleIdAndName() + ", Bundle stop failed",
                                   BundleException.STATECHANGE_ERROR, cause);
         }
       }
@@ -804,7 +804,7 @@ public class BundleImpl implements Bundle {
       if (e instanceof BundleException) {
         throw (BundleException)e;
       } else {
-        throw new BundleException("Failed to get update Bundle#" + id , BundleException.UNSPECIFIED, e);
+        throw new BundleException(formatBundleIdAndName() + ", Failed to get update", BundleException.UNSPECIFIED, e);
       }
     }
 
@@ -1275,7 +1275,7 @@ public class BundleImpl implements Bundle {
                 operation = IDLE;
               } else {
                 String reason = current.bpkgs.getResolveFailReason();
-                throw new BundleException("Bundle#" + id + " (" + getSymbolicName() + "), unable to resolve: "
+                throw new BundleException(formatBundleIdAndName() + ", unable to resolve: "
                     + reason,
                     reason == Resolver.RESOLVER_HOOK_VETO ?
                         BundleException.REJECTED_BY_HOOK :
@@ -1303,6 +1303,15 @@ public class BundleImpl implements Bundle {
       }
     }
     return state;
+  }
+
+  /**
+   * Format bundle id and symbolic name for logging.
+   * Format example: Bundle#42 (Symbolic Name)
+   * If symbolicName is null, "null" will be printed.
+   */
+  private String formatBundleIdAndName() {
+    return "Bundle#" + id + " (" + getSymbolicName() + ")";
   }
 
 
@@ -1568,7 +1577,7 @@ public class BundleImpl implements Bundle {
         ba.setStartLevel(n);
       } catch (final Exception e) {
         fwCtx.frameworkError(this, new BundleException(
-            "Failed to set start level on #" + id, e));
+            formatBundleIdAndName() + ", Failed to set start level", e));
       }
     }
   }
