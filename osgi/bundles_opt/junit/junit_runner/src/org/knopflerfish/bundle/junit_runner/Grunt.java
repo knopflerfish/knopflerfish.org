@@ -357,12 +357,15 @@ class Grunt  implements TestListener {
         masterIndexPW.println("<knopflerfish_integration_tests>");
     
         testrunsReader = new BufferedReader(new FileReader(new File(outDir, TESTRUNS_FILE)));
+        List<String> testRunList = new ArrayList<>();
         String line;
         while(null != (line = testrunsReader.readLine())) {
           String rname = line.trim();
           log("found testrun: " + rname);
+          testRunList.add(rname);
           includeXMLContents(masterIndexPW, new File(outDir, rname + "-" + INDEX_FILE));
         }
+        MissingTestFinder.includeMissingSuites(masterIndexPW, testRunList, outDir);
         masterIndexPW.println("</knopflerfish_integration_tests>");
       } catch (Exception e) {
         log("Failed to create index file");
