@@ -103,7 +103,8 @@
 -install @commons-logging_all-N.N.N.jar@
 -install @httpclient_connector-N.N.N.jar@
 
-# the test cases
+# The test cases
+# To be notified if a bundle fails to start, add TestSuites to file init-tests-expected-suites
 -istart @framework_test-N.N.N.jar@
 -istart @filter_test-N.N.N.jar@
 -istart @servicetracker_test-N.N.N.jar@
