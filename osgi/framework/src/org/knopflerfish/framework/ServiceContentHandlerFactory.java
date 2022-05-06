@@ -50,6 +50,8 @@ import org.osgi.service.url.URLConstants;
 public class ServiceContentHandlerFactory
   implements ContentHandlerFactory
 {
+  private static final String AVOID_SYSTEM_HANDLER = "org.knopflerfish.framework.avoid_delegating_to_system_content_handler";
+
   FrameworkContext framework;
 
   // JVM classpath handlers. Initialized once at startup
@@ -105,7 +107,12 @@ public class ServiceContentHandlerFactory
       framework.debug.println("Using default ContentHandler for " + mimetype);
     }
 
+    if (framework.props.getBooleanProperty(AVOID_SYSTEM_HANDLER)) {
+      return createContentHandlerWrapper(mimetype);
+    }
+
     // delegate to system handler
+    // if we return null here, we will not get another chance for this mimetype since URLConnection.handlers is never reset.
     return null;
   }
 
@@ -119,13 +126,7 @@ public class ServiceContentHandlerFactory
         framework.services.get(ContentHandler.class.getName(), filter, framework.systemBundle, false);
 
       if (srl != null && srl.length > 0) {
-        ContentHandlerWrapper wrapper = wrapMap.get(mimetype);
-
-        if (wrapper == null) {
-          wrapper = new ContentHandlerWrapper(framework, mimetype);
-          wrapMap.put(mimetype, wrapper);
-        }
-        return wrapper;
+        return createContentHandlerWrapper(mimetype);
       }
     } catch (final InvalidSyntaxException e) {
       throw new RuntimeException("Failed to get service: " + e);
@@ -134,6 +135,15 @@ public class ServiceContentHandlerFactory
     return null;
   }
 
+  private ContentHandler createContentHandlerWrapper(String mimetype) {
+    ContentHandlerWrapper wrapper = wrapMap.get(mimetype);
+
+    if (wrapper == null) {
+      wrapper = new ContentHandlerWrapper(framework, mimetype);
+      wrapMap.put(mimetype, wrapper);
+    }
+    return wrapper;
+  }
 
 
   ContentHandler getJVMClassPathHandler(String mimetype) {

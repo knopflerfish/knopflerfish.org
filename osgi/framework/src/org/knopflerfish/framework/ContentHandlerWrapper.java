@@ -57,6 +57,7 @@ import org.osgi.service.url.URLConstants;
 public class ContentHandlerWrapper
   extends ContentHandler
 {
+  private static final String FALLBACK_ON_LOST_SERVICE = "org.knopflerfish.framework.fallback_on_lost_content_handler_service";
 
   FrameworkContext       framework;
   String                 mimetype;
@@ -94,14 +95,12 @@ public class ContentHandlerWrapper
               return ;
             }
 
-            if (compare(best, ref) > 0) {
-              best = ref;
-            }
+            updateBest(ref);
             break;
           case ServiceEvent.MODIFIED_ENDMATCH:
             // fall through
           case ServiceEvent.UNREGISTERING:
-            if (best.equals(ref)) {
+            if (best != null && best.equals(ref)) {
               best = null;
             }
           }
@@ -124,8 +123,8 @@ public class ContentHandlerWrapper
     final Object tmp1 = ref1.getProperty(Constants.SERVICE_RANKING);
     final Object tmp2 = ref2.getProperty(Constants.SERVICE_RANKING);
 
-    final int r1 = (tmp1 instanceof Integer) ? ((Integer)tmp1).intValue() : 0;
-    final int r2 = (tmp2 instanceof Integer) ? ((Integer)tmp2).intValue() : 0;
+    final int r1 = (tmp1 instanceof Integer) ? (Integer) tmp1 : 0;
+    final int r2 = (tmp2 instanceof Integer) ? (Integer) tmp2 : 0;
 
     if (r2 == r1) {
       final Long i1 = (Long)ref1.getProperty(Constants.SERVICE_ID);
@@ -133,7 +132,7 @@ public class ContentHandlerWrapper
       return i1.compareTo(i2);
 
     } else {
-      return r2 -r1;
+      return r2 - r1;
     }
   }
 
@@ -147,14 +146,18 @@ public class ContentHandlerWrapper
       if (refs != null) {
         best = refs[0];
         for (int i = 1; i < refs.length; i++) {
-          if (compare(best, refs[i]) > 0) {
-            best = refs[i];
-          }
+          updateBest(refs[i]);
         }
       }
     } catch (final Exception e) {
       // TODO, handle differently!? this should not happen.
       throw new IllegalArgumentException("Could not register url handler: " + e);
+    }
+  }
+
+  private void updateBest(ServiceReference<ContentHandler> ref) {
+    if (compare(best, ref) > 0) {
+      best = ref;
     }
   }
 
@@ -168,25 +171,31 @@ public class ContentHandlerWrapper
       }
 
       if (best == null) {
-        throw new IllegalStateException("null: Lost service for protocol="+ mimetype);
+        return null;
       }
 
       obj = framework.systemBundle.bundleContext.getService(best);
 
       if (obj == null) {
-        throw new IllegalStateException("null: Lost service for protocol=" + mimetype);
+        return null;
       }
 
     } catch (final Exception e) {
-      throw new IllegalStateException("null: Lost service for protocol=" + mimetype);
+      framework.debug.printStackTrace("Failed to get ContentHandler service", e);
+      return null;
     }
 
+    framework.debug.println("Service for " + mimetype + ": " + obj);
     return obj;
   }
 
   @Override
   public Object getContent(URLConnection urlc) throws IOException {
-    return getService().getContent(urlc);
+    final ContentHandler contentHandler = getService();
+    if (contentHandler == null) {
+      return handleLostService(urlc);
+    }
+    return contentHandler.getContent(urlc);
   }
 
   @Override
@@ -194,7 +203,18 @@ public class ContentHandlerWrapper
                            @SuppressWarnings("rawtypes") Class[] classes)
       throws IOException
   {
-    return getService().getContent(urlc, classes);
+    final ContentHandler contentHandler = getService();
+    if (contentHandler == null) {
+      return handleLostService(urlc);
+    }
+    return contentHandler.getContent(urlc, classes);
+  }
+
+  private Object handleLostService(URLConnection urlc) throws IOException {
+    if (framework.props.getBooleanProperty(FALLBACK_ON_LOST_SERVICE)) {
+      return urlc.getInputStream();
+    }
+    throw new IllegalStateException("null: Lost service for protocol="+ mimetype);
   }
 
   @Override
