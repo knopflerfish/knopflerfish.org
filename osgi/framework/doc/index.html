@@ -764,6 +764,31 @@ but "-D" should also work.
     <td>ignore</td>
   </tr>
   <tr>
+    <td>org.knopflerfish.framework.contenthandler.avoid_delegating_to_system</td>
+    <td>
+      If there is no ContentHandler for a MIME type, the default behaviour is
+      to delegate to java.net.URLConnection's UnknownContentHandler behaviour.
+      The problem with this is that the system gets stuck on this behaviour.
+      If this property is set, we will always stay in the Knopflerfish
+      implementation and a missing ContentHandler will be handled as a lost
+      service.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.contenthandler.fallback_on_lost_service</td>
+    <td>
+      When a tracked ContentHandler service is lost, trying to get its content
+      will throw IllegalStateException. If this property it set, we fallback to
+      using the URLConnection's InputStream instead of throwing the exception.
+      This is similar to java.net.URLConnection's UnknownContentHandler
+      behaviour.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
     <td>org.knopflerfish.framework.debug.automanifest</td>
     <td>
       Print debug output for automatic manifest actions.
