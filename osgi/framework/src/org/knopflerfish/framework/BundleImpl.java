@@ -1866,9 +1866,9 @@ public class BundleImpl implements Bundle {
     } else if (BundleDTO.class.equals(type)) {
       res = getDTO();
     } else if (ServiceReferenceDTO[].class.equals(type)) {
-      if (bundleContext != null) {
+      if (state != UNINSTALLED) {
         final Set<ServiceRegistrationImpl<?>> srs = fwCtx.services.getRegisteredByBundle(this);
-        ArrayList<ServiceReferenceDTO> srdtos = new ArrayList<ServiceReferenceDTO>();
+        ArrayList<ServiceReferenceDTO> srdtos = new ArrayList<>();
         for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : srs) {
           ServiceReferenceDTO srdto = serviceRegistrationImpl.getDTO();
           if (srdto != null) {

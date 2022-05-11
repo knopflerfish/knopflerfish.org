@@ -19,6 +19,8 @@ Knopflerfish Framework - OSGi Core Specification
 ### Framework 8.0.12
 
 * Internally use StringBuilder instead of StringBuffer.
+* Return empty ServiceReferenceDTO[] instead of null from Bundle.adapt() for
+  stopped bundles.
 * Added bundle names to BundleException messages in BundleImpl.
 
 ### Framework 8.0.11
