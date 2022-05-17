@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2016, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -328,7 +328,7 @@ class ExportPkg
    */
   @Override
   public String toString() {
-    final StringBuffer sb = new StringBuffer(pkgString());
+    final StringBuilder sb = new StringBuilder(pkgString());
     sb.append(' ');
     if (zombie) {
       sb.append("Zombie");
@@ -350,7 +350,7 @@ class ExportPkg
     final Map<String,String> res = new HashMap<String, String>(1);
 
     if (uses!=null) {
-      final StringBuffer sb = new StringBuffer(uses.size()*30);
+      final StringBuilder sb = new StringBuilder(uses.size()*30);
       for (final String pkg : uses) {
         if (sb.length()>0) sb.append(',');
         sb.append(pkg);

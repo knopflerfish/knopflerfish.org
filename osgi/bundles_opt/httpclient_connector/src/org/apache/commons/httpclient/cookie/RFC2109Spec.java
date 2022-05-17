@@ -204,7 +204,7 @@ public class RFC2109Spec extends CookieSpecBase {
      * @param param The parameter.
      * @param version The cookie version 
      */
-    private void formatParam(final StringBuffer buffer, final NameValuePair param, int version) {
+    private void formatParam(final StringBuilder buffer, final NameValuePair param, int version) {
         if (version < 1) {
             buffer.append(param.getName());
             buffer.append("=");
@@ -223,7 +223,7 @@ public class RFC2109Spec extends CookieSpecBase {
      * @param cookie The {@link Cookie} to be formatted as string
      * @param version The version to use.
      */
-    private void formatCookieAsVer(final StringBuffer buffer, final Cookie cookie, int version) {
+    private void formatCookieAsVer(final StringBuilder buffer, final Cookie cookie, int version) {
         String value = cookie.getValue();
         if (value == null) {
             value = "";
@@ -252,7 +252,7 @@ public class RFC2109Spec extends CookieSpecBase {
             throw new IllegalArgumentException("Cookie may not be null");
         }
         int version = cookie.getVersion();
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         formatParam(buffer, 
                 new NameValuePair("$Version", Integer.toString(version)), 
                 version);
@@ -278,7 +278,7 @@ public class RFC2109Spec extends CookieSpecBase {
                 version = cookie.getVersion();
             }
         }
-        final StringBuffer buffer = new StringBuffer();
+        final StringBuilder buffer = new StringBuilder();
         formatParam(buffer, 
                 new NameValuePair("$Version", Integer.toString(version)), 
                 version);

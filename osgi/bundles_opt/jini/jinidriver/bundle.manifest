@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Jini-Driver
 Bundle-SymbolicName: org.knopflerfish.bundle.jinidriver
-Bundle-Version: 0.1.0
+Bundle-Version: 0.2.0
 Bundle-Category: osgi
 Bundle-Description: Jini driver (experimental) using Sun's jini impl. 
  jini-core.jar and jini-ext.jar, see http://wwws.sun.com/software/jini

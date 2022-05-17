@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -288,7 +288,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
         assertEquals("D is a RequiredBundle",1,rbs.length);
         assertTrue("RequiredBundle removal pending",!rbs[0].isRemovalPending());
         Bundle[] dUsers = rbs[0].getRequiringBundles();
-        StringBuffer sb = new StringBuffer(buD +" is required by ");
+        StringBuilder sb = new StringBuilder(buD +" is required by ");
         for (int i=0; i<dUsers.length; i++) {
           sb.append(" ").append(dUsers[i].toString());
         }
@@ -328,7 +328,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
         assertTrue("RequiredBundle removal not pending after update",
                    !rbs[0].isRemovalPending());
         dUsers = rbs[0].getRequiringBundles();
-        sb = new StringBuffer(buD +" is required by ");
+        sb = new StringBuilder(buD +" is required by ");
         for (int i=0; i<dUsers.length; i++) {
           sb.append(" ").append(dUsers[i].toString());
         }
@@ -376,7 +376,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
         assertTrue("RequiredBundle removal not pending after refresh",
                    !rbs[0].isRemovalPending());
         dUsers = rbs[0].getRequiringBundles();
-        sb = new StringBuffer(buD +" is required by ");
+        sb = new StringBuilder(buD +" is required by ");
         for (int i=0; i<dUsers.length; i++) {
           sb.append(" ").append(dUsers[i].toString());
         }

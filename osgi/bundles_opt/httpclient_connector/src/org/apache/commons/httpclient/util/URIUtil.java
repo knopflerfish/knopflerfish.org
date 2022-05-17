@@ -638,12 +638,12 @@ public class URIUtil {
          * @return the replaced string
          */
         public static String replace(String original, char from, char to) {
-            StringBuffer result = new StringBuffer(original.length());
+            StringBuilder result = new StringBuilder(original.length());
             int at, saved = 0;
             do {
                 at = original.indexOf(from);
                 if (at >= 0) {
-                    result.append(original.substring(0, at));
+                    result.append(original, 0, at);
                     result.append(to);
                 } else {
                     result.append(original.substring(saved));

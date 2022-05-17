@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -126,7 +126,7 @@ public class PropertiesPanel
           className = className + "[]";
         }
 
-        final StringBuffer toolTip = new StringBuffer(200);
+        final StringBuilder toolTip = new StringBuilder(200);
         toolTip.append("<table width=\"400px\">");
         toolTip.append("<tr><th align=\"left\">");
         toolTip.append(ad.getName());

@@ -64,7 +64,7 @@ public class Main {
     File prefixFile = new File(prefixfilename);
 
     BufferedReader reader = null;
-    StringBuffer   sb     = new StringBuffer();
+    StringBuilder sb     = new StringBuilder();
     String line;
     int    lines = 0;
     System.out.println("cmdCopyright " + dirname + " " + prefixfilename);
@@ -396,7 +396,7 @@ public class Main {
     // String-creating methods as String.substring() and String concatenations.
 
     // Resulting string will hopefully be somewhere near this size
-    StringBuffer  r   = new StringBuffer(s.length() * v2.length() / v1.length());
+    StringBuilder r   = new StringBuilder(s.length() * v2.length() / v1.length());
 
     int start    = 0;
     int ix       = 0;
@@ -425,7 +425,7 @@ public class Main {
   public static String [] splitwords(String s, String whiteSpace) {
     boolean       bCit  = false;        // true when inside citation chars.
     Vector        v     = new Vector(); // (String) individual words after splitting
-    StringBuffer  buf   = null; 
+    StringBuilder buf   = null;
     int           i     = 0; 
     
     while(i < s.length()) {
@@ -437,7 +437,7 @@ public class Main {
 	  bCit = !bCit;
 	} else {
 	  if(buf == null) {
-	    buf = new StringBuffer();
+	    buf = new StringBuilder();
 	  }
 	  buf.append(c);
 	}

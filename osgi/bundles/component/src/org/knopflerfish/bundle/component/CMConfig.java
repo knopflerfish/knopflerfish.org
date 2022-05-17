@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, KNOPFLERFISH project
+ * Copyright (c) 2016-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -398,7 +398,7 @@ class CMConfig
 
 
     String[] getTargetedPIDs() {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       String [] cs = new String [] { pid,
                                      bundle.getSymbolicName(),
                                      bundle.getVersion().toString(),

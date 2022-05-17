@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,11 +62,11 @@ public class FWTestCase extends TestCase {
     int ix = name.lastIndexOf("$");
     if(ix != -1) {
       try {
-        Class        clazz = Class.forName(name.substring(0, ix));
-        Field        f     = clazz.getField("HELP_" +
-                                            getName().toUpperCase());
-        String[]     lines = (String[])f.get(null);
-        StringBuffer sb    = new StringBuffer();
+        Class         clazz = Class.forName(name.substring(0, ix));
+        Field         f     = clazz.getField("HELP_" +
+                                             getName().toUpperCase());
+        String[]      lines = (String[])f.get(null);
+        StringBuilder sb    = new StringBuilder();
 
         for(int i = 0; i < lines.length; i++) {
           sb.append(lines[i]);

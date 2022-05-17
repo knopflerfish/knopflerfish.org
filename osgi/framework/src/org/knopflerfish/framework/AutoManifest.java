@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -444,7 +444,7 @@ public class AutoManifest extends Manifest {
    * The package set is created by addFileName() calls
    */
   String getExports() {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (final String pkg : packages) {
       if(sb.length() > 0) {
         sb.append(",");

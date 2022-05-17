@@ -115,7 +115,7 @@ public class HeaderGroup {
         } else if (headers.length == 1) {
             return new Header(headers[0].getName(), headers[0].getValue());
         } else {
-            StringBuffer valueBuffer = new StringBuffer(headers[0].getValue());
+            StringBuilder valueBuffer = new StringBuilder(headers[0].getValue());
             
             for (int i = 1; i < headers.length; i++) {
                 valueBuffer.append(", ");

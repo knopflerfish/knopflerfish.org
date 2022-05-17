@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,8 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-
-import org.osgi.framework.*;
 
 public class LogoutCommand extends IconCommand {
   ConsoleServlet console;
@@ -51,12 +48,12 @@ public class LogoutCommand extends IconCommand {
     this.console = console;
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    return new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    return new StringBuilder();
     // noop
   }
   
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
     if(console.login.bRequireLogin) {
       out.print(" <a class=\"std\" href=\"" + Activator.SERVLET_ALIAS + "?" + 
 		Login.LOGOUT_CMD + "=true" + "\">" + 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,7 +155,7 @@ class NativeRequirement
       }
     }
     if (best == null && !optional) {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       sb.append("Bundle#").append(gen.bundle.id);
       sb.append(", no matching native code libraries, filters=[");
       boolean first = true;
@@ -251,7 +251,7 @@ class NativeRequirement
 
 
   private String getFilter() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     int elems = 0;
     for (NativeCodeEntry e : entries) {
       if (e.filter != null) {
@@ -305,7 +305,7 @@ class NativeRequirement
       if (vals == null) {
         return null;
       }
-      final StringBuffer sb = new StringBuffer(80);
+      final StringBuilder sb = new StringBuilder(80);
       if (vals.size() > 1) {
         sb.append("(|");
       }
@@ -327,7 +327,7 @@ class NativeRequirement
     }
 
 
-    private int andAdd(StringBuffer sb, String str) {
+    private int andAdd(StringBuilder sb, String str) {
       if (str == null) {
         return 0;
       }
@@ -338,7 +338,7 @@ class NativeRequirement
     private Filter toFilter(List<String> procs, List<String> oses, List<VersionRange> vers, List<String> langs, String sf)
       throws InvalidSyntaxException
     {
-      final StringBuffer sb = new StringBuffer(80);
+      final StringBuilder sb = new StringBuilder(80);
       int elems = 0;
       
       elems = andAdd(sb, orString(NativeNamespace.CAPABILITY_PROCESSOR_ATTRIBUTE, procs));

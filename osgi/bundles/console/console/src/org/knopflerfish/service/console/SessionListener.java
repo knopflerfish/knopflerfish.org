@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,6 @@ public interface SessionListener {
      * @param session
      *            Current session
      */
-    public void sessionEnd(Session session);
+    void sessionEnd(Session session);
 
 }

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: command
 Bundle-SymbolicName: org.knopflerfish.bundle.command
-Bundle-Version: 0.2
+Bundle-Version: 0.3
 Bundle-Description: Command Service
 Bundle-Vendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org

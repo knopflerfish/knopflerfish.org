@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2013,2015 KNOPFLERFISH project
+ * Copyright (c) 2004-2022 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,9 +67,24 @@ public class JUnitServiceImpl implements JUnitService {
     }
   }
 
-  public void runTestXML(PrintWriter out, TestSuite suite) throws IOException {
+  public TestResult runTestSuite(PrintWriter out, TestSuite suite) throws IOException {
+    ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
+    TestResult testResult;
+    
+    try {
+      Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+      testResult = runTestXML(out, suite);
+      out.flush ();
+    } finally {
+      Thread.currentThread().setContextClassLoader(oldLoader);
+    }
+    return testResult;
+  }
+  
+  public TestResult runTestXML(PrintWriter out, TestSuite suite) throws IOException {
 
-
+    TestResult testResult = null;
+    
     out.println("<?xml version=\"1.0\"?>");
     out.println("<?xml-stylesheet type=\"text/xsl\" href=\"junit_style.xsl\"?>");
     out.print("<junit");
@@ -79,7 +94,7 @@ public class JUnitServiceImpl implements JUnitService {
     dumpSystemProps(out);
 
     try {
-      runTestCase(out, suite);
+      testResult = runTestCase(out, suite);
     } catch (Exception e) {
       out.println(" <fail " +
                   "  message=\"" + e.getMessage() + "\"" +
@@ -89,6 +104,7 @@ public class JUnitServiceImpl implements JUnitService {
     }
 
     out.println("</junit>");
+    return testResult;
   }
 
   void dumpSystemProps(PrintWriter out) throws IOException {
@@ -135,8 +151,8 @@ public class JUnitServiceImpl implements JUnitService {
     out.println("</properties>");
   }
 
-  protected void runTestCase(PrintWriter out,
-                             TestSuite suite)  throws Exception {
+  protected TestResult runTestCase(PrintWriter out,
+                                   TestSuite suite)  throws Exception {
 
     out.println(" <testcase id=\"" + suite.getName() + "\">");
 
@@ -151,11 +167,12 @@ public class JUnitServiceImpl implements JUnitService {
     out.println("</docurl>");
 
     ServiceTracker testListenerTracker = null;
-
+    final TestResult tr = new TestResult();
+    
     try {
       System.out.println("run test on " + suite);
 
-      final TestResult tr = new TestResult();
+     
       testListenerTracker = new ServiceTracker(Activator.bc,
                                                TestListener.class.getName(),
                                                null) {
@@ -203,6 +220,7 @@ public class JUnitServiceImpl implements JUnitService {
         testListenerTracker.close();
       }
     }
+    return tr;
   }
 
   private void collectRegisteredTestReults()
@@ -344,7 +362,7 @@ public class JUnitServiceImpl implements JUnitService {
   }
 
   protected static String indent(int n) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     while(n --> 0) {
       sb.append(" ");
     }

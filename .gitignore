@@ -1,13 +1,16 @@
 *~
+.DS_Store
 /.classpath
 /.project
 /.settings
 /ant/classes/
 /ant/lib/
+/bin/
 /eclipse_bin/
 /osgi/bundles/remotefw/doc/client.xargs
 /osgi/bundles/remotefw/doc/server.xargs
 /osgi/bundles_examples/cpa/init.xargs
+/osgi/bundles_ext/json/gson/extsrc/
 /osgi/bundles_opt/classpatcher/resources/asm-6.2.jar
 /osgi/bundles_test/regression_tests/component_test/resources/
 /osgi/bundles_test/regression_tests/condpermadmin_test/resources/
@@ -15,9 +18,11 @@
 /osgi/bundles_test/regression_tests/extension_test/resources/
 /osgi/bundles_test/regression_tests/framework_test/resources/*.jar
 /osgi/bundles_test/regression_tests/out/
+/osgi/bundles_test/regression_tests/permissionadmin_test/resources/
 /osgi/bundles_test/regression_tests/restart_test/resources/
 /osgi/bundles_test/regression_tests/servicetracker_test/resources/
 /osgi/bundles_test/regression_tests/startlevel_test/resources/
+/osgi/datastoragedir/
 /osgi/dex_jars/
 /osgi/framework.jar
 /osgi/framework-javadoc.jar
@@ -31,6 +36,7 @@
 /osgi/init-tests.xargs
 /osgi/init.xargs
 /osgi/jars/
+/osgi/jars_ext/
 /osgi/junit_grunt/
 /osgi/minimal.xargs
 /osgi/out/
@@ -40,8 +46,7 @@
 /osgi/test-restart2.xargs
 /osgi/test_jars/
 /out/
-/bin/
+/tools/android/apk/projects/*/gen
 /tools/jarunpacker/out/
-*.iml
 .idea
-.DS_Store
+*.iml

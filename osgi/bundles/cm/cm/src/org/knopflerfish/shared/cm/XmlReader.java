@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -199,7 +199,7 @@ public class XmlReader {
       throws Exception
   {
     char c = readNextNonWhitespaceChar(r);
-    StringBuffer xmlName = new StringBuffer();
+    StringBuilder xmlName = new StringBuilder();
     if (isXMLNameStartChar(c)) {
       xmlName.append(c);
     } else {
@@ -237,7 +237,7 @@ public class XmlReader {
   {
     char c = readNextChar(r);
     throwIfNotExpectedChar(c, '\"');
-    StringBuffer value = new StringBuffer();
+    StringBuilder value = new StringBuilder();
     c = readNextChar(r);
     while (isXMLAttributeValueChar(c)) {
       if (isXMLEscapeCharacter(c)) {
@@ -309,10 +309,10 @@ public class XmlReader {
       throws Exception
   {
     char c = readNextNonWhitespaceChar(r);
-    StringBuffer text = null;
+    StringBuilder text = null;
     while (c != '<') {
       if (text == null) {
-        text = new StringBuffer();
+        text = new StringBuilder();
       }
       if (isXMLEscapeCharacter(c)) {
         c = readEscapedCharacter(r);
@@ -330,7 +330,7 @@ public class XmlReader {
   char readEscapedCharacter(PushbackReader r)
       throws Exception
   {
-    StringBuffer escapeCode = new StringBuffer();
+    StringBuilder escapeCode = new StringBuilder();
     char first = readNextChar(r);
     boolean isCharCode = first == '#';
     if (!isCharCode) {
@@ -467,8 +467,8 @@ public class XmlReader {
       throws Exception
   {
     if (c != expected) {
-      StringBuffer msg = new StringBuffer();
-      msg.append("Expected " + expected + " but found " + c + "\n");
+      StringBuilder msg = new StringBuilder();
+      msg.append("Expected ").append(expected).append(" but found ").append(c).append("\n");
       msg.append("At:");
       for (int i = 0; i < 20; ++i) {
         int rc = pbr.read();

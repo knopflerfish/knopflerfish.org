@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2013, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -412,7 +412,7 @@ public class Util
    *          The LDAP filter string to get the version range from.
    *          @param versionKey The key of the version attribute to parse.
    */
-  public static void appendVersion(final StringBuffer sb,
+  public static void appendVersion(final StringBuilder sb,
                                    final String filter,
                                    final String versionKey)
   {
@@ -436,7 +436,7 @@ public class Util
    *          The rquirement to extract and present the resolution directiv
    *          from.
    */
-  public static void appendResolution(final StringBuffer sb,
+  public static void appendResolution(final StringBuilder sb,
                                       final Requirement requirement)
   {
     final String resolution =
@@ -468,7 +468,7 @@ public class Util
       }
       return s;
     } else if (obj.getClass().isArray()) {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       final int len = Array.getLength(obj);
 
       for (int i = 0; i < len; i++) {
@@ -483,25 +483,22 @@ public class Util
     }
   }
 
-  public static void startFont(StringBuffer sb)
+  public static void startFont(StringBuilder sb)
   {
     startFont(sb, "-2");
   }
 
-  public static void startFont(StringBuffer sb, String size)
+  public static void startFont(StringBuilder sb, String size)
   {
-    sb.append("<font size=\"" + size
-              + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
+    sb.append("<font size=\"").append(size).append("\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 
-  public static void startFont(StringBuffer sb, String size, String color)
+  public static void startFont(StringBuilder sb, String size, String color)
   {
-    sb.append("<font size=\"" + size
-              + "\" face=\"Verdana, Arial, Helvetica, sans-serif\""
-              + "color=\"" + color + "\">");
+    sb.append("<font size=\"").append(size).append("\" face=\"Verdana, Arial, Helvetica, sans-serif\" color=\"").append(color).append("\">");
   }
 
-  public static void stopFont(StringBuffer sb)
+  public static void stopFont(StringBuilder sb)
   {
     sb.append("</font>");
   }
@@ -517,7 +514,7 @@ public class Util
    * @param s1
    *          The text to present.
    */
-  static void toHTMLtrError_2(final StringBuffer sb, final String s1)
+  static void toHTMLtrError_2(final StringBuilder sb, final String s1)
   {
     if (s1 != null && s1.length() > 0) {
       sb.append("<tr><td colspan=\"2\">");
@@ -540,7 +537,7 @@ public class Util
    * @param s1
    *          The text to present.
    */
-  static void toHTMLtrLog_2(final StringBuffer sb, final String s1)
+  static void toHTMLtrLog_2(final StringBuilder sb, final String s1)
   {
     if (s1 != null && s1.length() > 0) {
       sb.append("<tr>");
@@ -565,7 +562,7 @@ public class Util
    * @param s1
    *          The text to present.
    */
-  static void toHTMLtrHeading_2(final StringBuffer sb, final String s1)
+  static void toHTMLtrHeading_2(final StringBuilder sb, final String s1)
   {
     if (s1 != null && s1.length() > 0) {
       sb.append("<tr><td colspan='2'><b>");
@@ -588,7 +585,7 @@ public class Util
    * @param s2
    *          The text for column two.
    */
-  static void toHTMLtr_2(final StringBuffer sb, final String s1, final Object s2)
+  static void toHTMLtr_2(final StringBuilder sb, final String s1, final Object s2)
   {
     if (s2 != null && s2.toString().length() > 0) {
       sb.append("<tr><td valign='top'><em>");
@@ -614,7 +611,7 @@ public class Util
    * @param s1
    *          The text to present.
    */
-  static void toHTMLtrHeading1_1234_4(final StringBuffer sb, final String s1)
+  static void toHTMLtrHeading1_1234_4(final StringBuilder sb, final String s1)
   {
     if (s1 != null && s1.length() > 0) {
       sb.append("<tr><td colspan='4'><b>");
@@ -635,7 +632,7 @@ public class Util
    * @param s1
    *          The text to present.
    */
-  static void toHTMLtrHeading2_1234_4(final StringBuffer sb, final String s1)
+  static void toHTMLtrHeading2_1234_4(final StringBuilder sb, final String s1)
   {
     if (s1 != null && s1.length() > 0) {
       sb.append("<tr><td colspan='4'>&nbsp;&nbsp;<b>");
@@ -657,7 +654,7 @@ public class Util
    * @param s1
    *          The text for the column.
    */
-  static void toHTMLtr234_4(final StringBuffer sb, final String s1)
+  static void toHTMLtr234_4(final StringBuilder sb, final String s1)
   {
     if (s1 != null && s1.length() > 0) {
       sb.append("<tr><td>&nbsp;&nbsp;</td><td colspan='3' valign='top'>");
@@ -682,7 +679,7 @@ public class Util
    * @param s2
    *          The text for column two.
    */
-  static void toHTMLtr13_3(final StringBuffer sb,
+  static void toHTMLtr13_3(final StringBuilder sb,
                            final String sep,
                            final String s1,
                            final Object s2)

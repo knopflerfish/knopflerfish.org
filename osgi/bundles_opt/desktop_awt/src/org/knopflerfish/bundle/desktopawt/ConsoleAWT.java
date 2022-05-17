@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,16 +48,9 @@ public class ConsoleAWT extends Panel {
   TextArea  text;
   TextField tfCmd;
 
-  int p0 = -1;
-  int p1 = 0;
-
-  String last = "";
-
   InputStream origIn;
   PrintStream origOut;
   PrintStream origErr;
-
-  PipedOutputStream textSource;
 
   TextReader       in;
   PrintStream      out;
@@ -68,8 +61,6 @@ public class ConsoleAWT extends Panel {
 
   Vector history    = new Vector();
   int    historyPos = 0;
-
-  StringBuffer lineBuff = new StringBuffer();
 
   boolean bGrabbed = false;
 

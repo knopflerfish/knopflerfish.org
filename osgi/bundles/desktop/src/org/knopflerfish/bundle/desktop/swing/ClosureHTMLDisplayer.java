@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,8 +69,7 @@ public class ClosureHTMLDisplayer
     }
   }
 
-  class JHTML
-    extends JHTMLBundle
+  static class JHTML extends JHTMLBundle
   {
     private static final long serialVersionUID = 1L;
 
@@ -82,7 +81,7 @@ public class ClosureHTMLDisplayer
     @Override
     public void updateView(Bundle[] bl)
     {
-      final StringBuffer sb = new StringBuffer("<html>\n");
+      final StringBuilder sb = new StringBuilder("<html>\n");
 
       if (bl == null || bl.length == 0) {
         setCurrentBID(-1);
@@ -130,18 +129,17 @@ public class ClosureHTMLDisplayer
     }
 
     @Override
-    public StringBuffer bundleInfo(Bundle target)
+    public StringBuilder bundleInfo(Bundle target)
     {
-      return new StringBuffer("---- " + target);
+      return new StringBuilder("---- " + target);
     }
 
-    public StringBuffer bundleInfo(Bundle[] targets)
+    public StringBuilder bundleInfo(Bundle[] targets)
     {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
 
       startFont(sb);
-      final Set<Bundle> closure =
-        new TreeSet<Bundle>(Util.bundleIdComparator);
+      final Set<Bundle> closure = new TreeSet<>(Util.bundleIdComparator);
 
       for (final Bundle target : targets) {
         int state = target.getState();
@@ -178,8 +176,7 @@ public class ClosureHTMLDisplayer
       sb.append("<br>");
 
       // Add xarsg info if we seem to be running knopflerfish
-      if (targets.length > 0
-          && (-1 != targets[0].getClass().getName().indexOf("knopflerfish"))) {
+      if (targets.length > 0 && (targets[0].getClass().getName().contains("knopflerfish"))) {
         if (!containsUninstalled) {
           final String xargs =
               Util.getXARGS(null, closure).toString();

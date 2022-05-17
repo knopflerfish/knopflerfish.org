@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Console
 Bundle-SymbolicName: org.knopflerfish.bundle.console
-Bundle-Version: 4.0.1
+Bundle-Version: 4.1.0
 Bundle-Description: Knopflerfish Console Service
 Bundle-APIVendor: Knopflerfish
 Bundle-Vendor: Knopflerfish
@@ -19,7 +19,9 @@ api-Import-Package: org.osgi.framework; version="[1.9,2)",
  java.io,
  java.lang,
  java.lang.reflect,
- java.util
+ java.util,
+ java.util.function,
+ java.util.stream
 Import-Package: org.osgi.framework; version="[1.9,2)",
  org.osgi.service.log; version="[1.3,2)",
  org.knopflerfish.service.console; version="[2,3)",
@@ -28,4 +30,6 @@ Import-Package: org.osgi.framework; version="[1.9,2)",
  java.lang.reflect,
  java.net,
  java.util,
- java.security
+ java.security,
+ java.util.function,
+ java.util.stream

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -165,17 +165,17 @@ class Pkg {
 
 
   public String toString(int level) {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     sb.append("Pkg[");
 
     if(level > 0) {
-      sb.append("pkg=" + pkg);
+      sb.append("pkg=").append(pkg);
     }
     if(level > 1) {
-      sb.append(", providers=" + providers);
+      sb.append(", providers=").append(providers);
     }
     if(level > 2) {
-      sb.append(", exporters=" + exporters);
+      sb.append(", exporters=").append(exporters);
     }
     sb.append("]");
 

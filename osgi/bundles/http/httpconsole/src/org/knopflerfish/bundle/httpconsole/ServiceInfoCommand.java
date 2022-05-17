@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,8 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
-import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -49,8 +47,8 @@ public class ServiceInfoCommand extends IconCommand {
 	  null);
   }
 
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
 
     String serviceID = request.getParameter("service.id");
 
@@ -61,10 +59,10 @@ public class ServiceInfoCommand extends IconCommand {
 
     String filter = "(service.id=" + serviceID + ")";
     try {
-      ServiceReference[] srl = Activator.bc.getServiceReferences((String)null, filter);
+      ServiceReference<?>[] srl = Activator.bc.getServiceReferences((String)null, filter);
 
       for(int i = 0; srl != null && i < srl.length; i++) {
-	printServiceInfo(sb, srl[i]);
+        printServiceInfo(sb, srl[i]);
       }
 
     } catch (Exception e) {
@@ -74,10 +72,8 @@ public class ServiceInfoCommand extends IconCommand {
     return sb;
   }
 
-  void printServiceInfo(StringBuffer sb, ServiceReference sr) {
-    sb.append("<div class=\"shadow\">Service #" + 
-	      sr.getProperty("service.id") + 
-	      "</div>");
+  void printServiceInfo(StringBuilder sb, ServiceReference<?> sr) {
+    sb.append("<div class=\"shadow\">Service #").append(sr.getProperty("service.id")).append("</div>");
 
     String[] keys = sr.getPropertyKeys();
     
@@ -90,12 +86,12 @@ public class ServiceInfoCommand extends IconCommand {
 
       sb.append("<td>\n");
       try {
-	Object val = sr.getProperty(keys[i]);
-	StringWriter sw = new StringWriter();
-	Util.printObject(new PrintWriter(sw), val);
-	sb.append(sw.toString());
+        Object val = sr.getProperty(keys[i]);
+        StringWriter sw = new StringWriter();
+        Util.printObject(new PrintWriter(sw), val);
+        sb.append(sw.toString());
       } catch (Exception e) {
-	sb.append(Util.toHTML(e));
+        sb.append(Util.toHTML(e));
       }
       sb.append("</td>\n");
       sb.append(" </tr>\n");
@@ -103,10 +99,10 @@ public class ServiceInfoCommand extends IconCommand {
     sb.append("</table>\n");
   }
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
   }
 
-  public boolean      isTrigger(HttpServletRequest request) {
+  public boolean isTrigger(HttpServletRequest request) {
     return null != request.getParameter("service.id");
   }
 }

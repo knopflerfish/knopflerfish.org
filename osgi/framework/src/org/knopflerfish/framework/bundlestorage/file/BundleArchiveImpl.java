@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2015, KNOPFLERFISH project
+ * Copyright (c) 2003-2018, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@ import org.knopflerfish.framework.BundleResourceStream;
 import org.knopflerfish.framework.FileArchive;
 import org.knopflerfish.framework.FileTree;
 import org.knopflerfish.framework.HeaderDictionary;
+import org.knopflerfish.framework.ReferenceURLStreamHandler;
 import org.knopflerfish.framework.bundlestorage.Util;
 
 /**
@@ -122,7 +123,7 @@ public class BundleArchiveImpl implements BundleArchive
   {
     URL source = null;
     try {
-      source = new URL(bundleLocation);
+      source = ReferenceURLStreamHandler.createURL(bundleLocation);
     } catch (final Exception e) {
     }
     bundleDir = dir;
@@ -200,7 +201,7 @@ public class BundleArchiveImpl implements BundleArchive
 
     final boolean bReference = (is == null);
     if(bReference) {
-      source = new URL(location);
+      source = ReferenceURLStreamHandler.createURL(location);
     }
     archive = storage.createArchive(this, bundleDir, rev);
     archive.downloadArchive(is, source);
@@ -295,7 +296,7 @@ public class BundleArchiveImpl implements BundleArchive
   /**
    * Set bundle generation associated with this bundle archive.
    *
-   * @param BundleGeneration object.
+   * @param bg BundleGeneration object.
    */
   public void setBundleGeneration(BundleGeneration bg) {
     bundleGeneration = bg;
@@ -595,7 +596,7 @@ public class BundleArchiveImpl implements BundleArchive
    * Write string to named file.
    *
    * @param f File to write too
-   * @param contenet String to write
+   * @param content String to write
    * @exception IOException if we fail to save our string
    */
   private void putContent(String f, String content) throws IOException {

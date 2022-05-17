@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2015, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,10 +107,12 @@ public class RequestImpl implements Request
   @Override
   public StringBuffer getRequestURL()
   {
-    final StringBuffer sb =
-        new StringBuffer((httpConfig.isSecure() ? "https" : "http") + "://"
-            + getLocalName() + ":" + getLocalPort() + base.getURI());
-    return sb;
+    return new StringBuffer(httpConfig.isSecure() ? "https" : "http")
+        .append("://")
+        .append(getLocalName())
+        .append(":")
+        .append(getLocalPort())
+        .append(base.getURI());
   }
 
   @Override

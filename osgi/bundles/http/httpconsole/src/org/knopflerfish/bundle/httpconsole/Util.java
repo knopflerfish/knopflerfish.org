@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -321,7 +321,7 @@ public class Util {
 
   public static byte[] loadFormData(HttpServletRequest request,
                                     String target,
-                                    StringBuffer fileName)
+                                    StringBuilder fileName)
     throws ServletException,IOException
   {
     String      contentType = request.getHeader("content-type");

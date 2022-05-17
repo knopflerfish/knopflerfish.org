@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@ import org.knopflerfish.service.console.ConsoleService;
 import org.knopflerfish.service.console.Session;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ManagedService;
@@ -55,7 +54,6 @@ import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-// ******************** ConsoleTty ********************
 /**
  * Bundle activator implementation.
  *
@@ -63,25 +61,17 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
  * @version $Revision: 1.1.1.1 $
  */
 public class ConsoleTty
-  implements BundleActivator, ManagedService, ServiceTrackerCustomizer
+  implements BundleActivator, ManagedService, ServiceTrackerCustomizer<ConsoleService, ConsoleService>
 {
-    final static private String logServiceName = LogService.class.getName();
-
-    final static private String consoleServiceName = ConsoleService.class
-            .getName();
-
+    private static final String logServiceName = LogService.class.getName();
+    private static final String consoleServiceName = ConsoleService.class.getName();
     final static private String NONBLOCKING = "nonblocking";
 
-    boolean nonblocking = false;
-
-    private ServiceTracker consoleTracker;
-
+    private boolean nonblocking = false;
+    private ServiceTracker<ConsoleService, ConsoleService> consoleTracker;
     private Session consoleSession = null;
-
     private BundleContext bc;
-
     private Reader reader;
-
     private PrintWriter writer;
 
     /*---------------------------------------------------------------------------*
@@ -90,26 +80,24 @@ public class ConsoleTty
 
     // ==================== start ====================
     /**
-     * * Called by the framework when this bundle is started. * *
+     * Called by the framework when this bundle is started.
      *
-     * @param bc
-     *            Bundle context. *
-     * @exception BundleException
-     *                shold be thrown when implemented
+     * @param bc Bundle context.
      */
-    public void start(BundleContext bc) throws Exception {
+    @Override
+    public void start(BundleContext bc) {
         this.bc = bc;
 
         log(LogService.LOG_INFO, "Starting");
 
         // Get config
-        Hashtable p = new Hashtable();
-        p.put(Constants.SERVICE_PID, getClass().getName());
-        bc.registerService(ManagedService.class.getName(), this, p);
+        Hashtable<String, Object> props = new Hashtable<>();
+        props.put(Constants.SERVICE_PID, getClass().getName());
+        bc.registerService(ManagedService.class.getName(), this, props);
 
         PrintStream out = null;
         try {
-            ServiceReference[] srl = bc.getServiceReferences(PrintStream.class
+            ServiceReference<?>[] srl = bc.getServiceReferences(PrintStream.class
                     .getName(), "(service.pid=java.lang.System.out)");
             if (srl != null && srl.length == 1) {
                 out = (PrintStream) bc.getService(srl[0]);
@@ -124,7 +112,7 @@ public class ConsoleTty
         reader = new InputStreamReader(new SystemIn(bc));
         writer = new PrintWriter(out);
 
-        consoleTracker = new ServiceTracker(bc, consoleServiceName, this);
+        consoleTracker = new ServiceTracker<>(bc, consoleServiceName, this);
         consoleTracker.open();
     }
 
@@ -134,6 +122,7 @@ public class ConsoleTty
      *
      * @param bc Bundle context.
      */
+    @Override
     public synchronized void stop(BundleContext bc) {
         log(LogService.LOG_INFO, "Stopping");
         consoleTracker.close();
@@ -154,14 +143,15 @@ public class ConsoleTty
     /**
      * Called by CM when it got this bundles configuration.
      *
-     * @param cfg contains the new configuration properties.
+     * @param config contains the new configuration properties.
      */
-    public synchronized void updated(Dictionary cfg)
+    @Override
+    public synchronized void updated(Dictionary<String, ?> config)
             throws IllegalArgumentException {
-        if (cfg != null) {
-            Boolean b = (Boolean) cfg.get(NONBLOCKING);
+        if (config != null) {
+            Boolean b = (Boolean) config.get(NONBLOCKING);
             if (b != null) {
-                nonblocking = b.booleanValue();
+                nonblocking = b;
             }
         } else {
             nonblocking = false;
@@ -172,8 +162,9 @@ public class ConsoleTty
      *			  ServiceTrackerCustomizer implementation
      *---------------------------------------------------------------------------*/
 
-    public Object addingService(ServiceReference reference) {
-        ConsoleService console = (ConsoleService) bc.getService(reference);
+    @Override
+    public ConsoleService addingService(ServiceReference<ConsoleService> reference) {
+        ConsoleService console = bc.getService(reference);
         try {
             consoleSession = console.runSession("console tty", reader, writer);
         } catch (IOException ioe) {
@@ -183,10 +174,12 @@ public class ConsoleTty
         return console;
     }
 
-    public void modifiedService(ServiceReference reference, Object service) {
+    @Override
+    public void modifiedService(ServiceReference<ConsoleService> reference, ConsoleService service) {
     }
 
-    public void removedService(ServiceReference reference, Object service) {
+    @Override
+    public void removedService(ServiceReference<ConsoleService> reference, ConsoleService service) {
         if (consoleSession != null) {
             consoleSession.close();
             consoleSession = null;
@@ -209,7 +202,7 @@ public class ConsoleTty
     }
 
     public void log(int level, String msg, Exception e) {
-        ServiceReference srLog = bc.getServiceReference(logServiceName);
+        ServiceReference<?> srLog = bc.getServiceReference(logServiceName);
         if (srLog != null) {
             LogService sLog = (LogService) bc.getService(srLog);
             if (sLog != null) {
@@ -230,11 +223,11 @@ public class ConsoleTty
      */
     class SystemIn extends InputStream {
 
-        InputStream in;
+        private InputStream in;
 
         SystemIn(BundleContext bc) {
             try {
-                ServiceReference[] srl = bc.getServiceReferences(
+                ServiceReference<?>[] srl = bc.getServiceReferences(
                         InputStream.class.getName(),
                         "(service.pid=java.lang.System.in)");
                 if (srl != null && srl.length == 1) {
@@ -248,14 +241,17 @@ public class ConsoleTty
             }
         }
 
+        @Override
         public void close() throws IOException {
             in.close();
         }
 
+        @Override
         public int available() throws IOException {
             return in.available();
         }
 
+        @Override
         public int read() throws IOException {
             byte[] b = new byte[1];
             if (read(b) == 1) {
@@ -264,17 +260,19 @@ public class ConsoleTty
             return -1;
         }
 
+        @Override
         public int read(byte[] b) throws IOException {
             return read(b, 0, b.length);
         }
 
+        @Override
         public int read(byte[] buf, int off, int len) throws IOException {
             if (nonblocking) {
                 int nap = 50;
                 while (in.available() == 0) {
                     try {
                         Thread.sleep(nap);
-                    } catch (InterruptedException e) {
+                    } catch (InterruptedException ignored) {
                     }
                     nap = 200;
                 }

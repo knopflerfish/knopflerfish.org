@@ -46,6 +46,7 @@ import org.osgi.framework.hooks.weaving.WovenClass;
 import org.osgi.framework.hooks.weaving.WovenClassListener;
 
 import org.knopflerfish.framework.FrameworkContext;
+import org.osgi.framework.wiring.BundleWiring;
 
 
 /**
@@ -171,9 +172,12 @@ public class PermissionsHandle implements WovenClassListener {
   public void modified(WovenClass wc)
   {
     if ((wc.getState() & (WovenClass.DEFINED|WovenClass.DEFINE_FAILED)) != 0) {
-      PermissionsWrapper pw = pcCache.get(new Long(wc.getBundleWiring().getBundle().getBundleId()));
-      if (pw != null) { // TODO, is this really necessary.
-        pw.addWovenDynamicImport(wc.getDynamicImports());
+      BundleWiring bundleWiring = wc.getBundleWiring();
+      if (bundleWiring != null) {
+        PermissionsWrapper pw = pcCache.get(new Long(bundleWiring.getBundle().getBundleId()));
+        if (pw != null) { // TODO, is this really necessary.
+          pw.addWovenDynamicImport(wc.getDynamicImports());
+        }
       }
     }
   }

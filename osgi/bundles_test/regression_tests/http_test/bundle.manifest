@@ -14,7 +14,10 @@ Import-Package: javax.servlet,javax.servlet.http,
  org.knopflerfish.service.http_test,
  org.osgi.framework,
  org.osgi.service.http,
+ org.osgi.service.url,
  java.io,
  java.lang,
  java.net,
- java.util
+ java.nio.charset,
+ java.util,
+ java.util.function

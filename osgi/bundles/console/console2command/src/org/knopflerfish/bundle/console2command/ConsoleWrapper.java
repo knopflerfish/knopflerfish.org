@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,86 +34,59 @@
 
 package org.knopflerfish.bundle.console2command;
 
-import java.io.*;
 import java.util.*;
 
 import org.osgi.service.command.*;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.knopflerfish.service.console.CommandGroup;
 import org.knopflerfish.service.console.CommandGroupAdapter;
-import org.knopflerfish.service.console.Session;
 
 public class ConsoleWrapper {
-  ServiceReference    sr;
-  CommandGroupAdapter        cg;
-  BundleContext       bc;
-  ServiceRegistration reg;
-  Dispatcher          dispatcher;
+  private ServiceReference<?> serviceReference;
+  private CommandGroupAdapter commandGroupAdapter;
+  private ServiceRegistration<?> serviceRegistration;
 
-  public ConsoleWrapper(BundleContext bc, 
-                        ServiceReference sr, 
-                        CommandGroupAdapter cg) {
-    this.bc = bc;    
-    this.sr = sr;
-    this.cg = cg;
+  public ConsoleWrapper(ServiceReference<?> serviceReference,
+                        CommandGroupAdapter commandGroupAdapter) {
+    this.serviceReference = serviceReference;
+    this.commandGroupAdapter = commandGroupAdapter;
   }
 
   public void open() {
-    if(reg != null) {
+    if (serviceRegistration != null) {
       return;
     }
 
-    String[] names = getCommands(cg); 
-    if(names != null && names.length > 0) {
-      Hashtable props = new Hashtable();
-      props.put(CommandProcessor.COMMAND_SCOPE, cg.getGroupName());
+    String[] names = getCommands(commandGroupAdapter);
+    if (names != null && names.length > 0) {
+      Dispatcher dispatcher = new Dispatcher(commandGroupAdapter);
+
+      Hashtable<String, Object> props = new Hashtable<>();
+      props.put(CommandProcessor.COMMAND_SCOPE, commandGroupAdapter.getGroupName());
       props.put(CommandProcessor.COMMAND_FUNCTION, names);
 
-      dispatcher = new Dispatcher(cg);
-      
-      /*
-      System.out.println("register " + dispatcher + ", scope=" + cg.getGroupName() + " with " + names.length + " commands");
-      for(int i = 0; i < names.length; i++) {
-        System.out.println(" " + names[i]);
-        
-      }
-      */
-      BundleContext regBC = sr.getBundle().getBundleContext();
-      reg = regBC.registerService(Object.class.getName(), dispatcher, props);
-    } else {
-      // System.out.println("no names in " + cg);
+      BundleContext bundleContext = serviceReference.getBundle().getBundleContext();
+      serviceRegistration = bundleContext.registerService(Object.class.getName(), dispatcher, props);
     }
   }
 
-  
-  String[] getCommands(CommandGroup cg) {
-    if(cg instanceof CommandGroupAdapter) {
-      CommandGroupAdapter cga = (CommandGroupAdapter)cg;
-      Map namesMap = cga.getCommandNames();
-      String[] names = new String[namesMap.size()];
-      int i = 0;
-      for(Iterator it = namesMap.keySet().iterator(); it.hasNext(); ) {
-        String name = (String)it.next();
-        String help = (String)namesMap.get(name);
-        names[i] = name;
-        i++;
-      }
-      return names;
+  private String[] getCommands(CommandGroup commandGroup) {
+    if (commandGroup instanceof CommandGroupAdapter) {
+      CommandGroupAdapter commandGroupAdapter = (CommandGroupAdapter) commandGroup;
+      return commandGroupAdapter.getCommandNames().keySet().toArray(new String[0]);
     }
     return null;
   }
 
   public void close() {
-    if(reg == null) {
+    if (serviceRegistration == null) {
       return;
     }
 
-    reg.unregister();
-    reg = null;
+    serviceRegistration.unregister();
+    serviceRegistration = null;
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2018, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,7 @@ public class ClassAnalyserASM
   public ClassAnalyserASM(final BundlePackagesInfo bpInfo,
                           final Task task)
   {
-    super(Opcodes.ASM6);
+    super(Opcodes.ASM7);
     this.cv = this;
     this.bpInfo = bpInfo;
     this.task   = task;
@@ -109,6 +109,7 @@ public class ClassAnalyserASM
       currentClassFile = new File(fileName);
       cr.accept(this, 0);
     } catch (Exception e) {
+      System.out.println("Exception when analysing class " + fileName);
       e.printStackTrace();
     }
   }
@@ -343,5 +344,9 @@ public class ClassAnalyserASM
   public void visitEnd()
   {
   }
+
+  public void visitNestHost(String nestHost) {}
+
+  public void visitNestMember(String nestHost) {}
 
 }

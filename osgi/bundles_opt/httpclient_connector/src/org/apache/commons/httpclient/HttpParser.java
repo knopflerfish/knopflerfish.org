@@ -171,7 +171,7 @@ public class HttpParser {
 
         ArrayList headers = new ArrayList();
         String name = null;
-        StringBuffer value = null;
+        StringBuilder value = null;
         for (; ;) {
             String line = HttpParser.readLine(is, charset);
             if ((line == null) || (line.trim().length() < 1)) {
@@ -202,7 +202,7 @@ public class HttpParser {
                     throw new ProtocolException("Unable to parse header: " + line);
                 }
                 name = line.substring(0, colon).trim();
-                value = new StringBuffer(line.substring(colon + 1).trim());
+                value = new StringBuilder(line.substring(colon + 1).trim());
             }
 
         }

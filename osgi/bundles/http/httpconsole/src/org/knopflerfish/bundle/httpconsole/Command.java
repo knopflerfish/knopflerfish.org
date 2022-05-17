@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ public interface Command extends HTMLable {
    * Typically, this happens when <tt>isTrigger</tt> has returned
    * true.
    */
-  public StringBuffer run(HttpServletRequest request);
+  public StringBuilder run(HttpServletRequest request);
 
   /**
    * Id of the command. Typically used to identify a submit button.

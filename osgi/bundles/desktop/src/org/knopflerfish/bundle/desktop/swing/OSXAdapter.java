@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,7 +110,7 @@ public class OSXAdapter implements InvocationHandler {
    * Set up an object and a method to call on it when the Application receives a
    * quit request. The installed application quit handler will always cancel the
    * quit request so it is up to the quitHandler-method on the target object to
-   * shut-down the JRE by calling {@link System#exit()} if it decides that it is
+   * shut-down the JRE by calling {@link System#exit} if it decides that it is
    * time to quit.
    *
    * @param target

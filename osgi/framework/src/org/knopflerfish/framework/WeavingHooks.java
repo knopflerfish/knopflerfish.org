@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,24 +111,28 @@ class WeavingHooks {
     listenerTracker = null;
   }
 
-  synchronized public boolean isOpen() {
-    return weavingHookTracker != null;
-  }
-
-  synchronized void callHooks(WovenClassImpl wc) throws Exception {
+  /**
+   * Call hooks
+   * Called by from a syncronized BundleClassLoader
+   *
+   * @param wc
+   */
+  void callHooks(WovenClassImpl wc) throws Exception {
     boolean ok = false;
-    if (!isOpen()) {
-      return;
-    }
+    final SortedMap<ServiceReference<WeavingHook>, TrackedWeavingHook> hooks;
 
     if (wc.isWeavingComplete()) {
       throw new RuntimeException("ERROR!!");
     }
 
-    try {
-      final SortedMap<ServiceReference<WeavingHook>, TrackedWeavingHook> hooks = weavingHookTracker
-          .getTracked();
+    synchronized(this) {
+      if (weavingHookTracker == null) {
+        return;
+      }
+      hooks = weavingHookTracker.getTracked();
+    }
 
+    try {
       for (final TrackedWeavingHook twh : hooks.values()) {
         if (twh.isBlackListed())
           continue;
@@ -156,15 +160,24 @@ class WeavingHooks {
     }
   }
 
-  synchronized void callListeners(WovenClassImpl wc) {
+  /**
+   * Call listeners
+   * Called indirectly from a syncronized BundleClassLoader
+   *
+   * @param wc
+   */
+  void callListeners(WovenClassImpl wc) {
     WovenClassListener wcl = fwCtx.perm.getWovenClassListener();
+    ServiceReference<WovenClassListener> [] srs;
     if (wcl != null) {
       wcl.modified(wc);
     }
-    if (listenerTracker == null) {
-      return;
+    synchronized (this) {
+      if (listenerTracker == null) {
+        return;
+      }
+      srs = listenerTracker.getServiceReferences();
     }
-    ServiceReference<WovenClassListener> [] srs = listenerTracker.getServiceReferences();
     if (srs != null) {
       for (ServiceReference<WovenClassListener> wlsr : srs) {
         try {
@@ -261,7 +274,11 @@ class WeavingHooks {
     }
   
     public BundleWiring getBundleWiring() {
-      return bundle.current().bundleRevision.getWiring();
+      BundleRevisionImpl br = bundle.current().bundleRevision;
+      if (br != null) {
+        return br.getWiring();
+      }
+      return null;
     }
 
     public int getState() {
@@ -286,7 +303,7 @@ class WeavingHooks {
     }
   
     String getDynamicImportsAsString() {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       for (final String s : dynamicImports) {
         if (sb.length() > 0) {
           sb.append(", ");
@@ -297,7 +314,7 @@ class WeavingHooks {
     }
   
     String toString(List<String> sl) {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       sb.append("(");
       for (final String s : sl) {
         if (sb.length() > 1) {

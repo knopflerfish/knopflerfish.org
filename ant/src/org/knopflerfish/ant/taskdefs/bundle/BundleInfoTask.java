@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2018, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -675,7 +675,7 @@ public class BundleInfoTask extends Task {
         // Found export package mismatch
         log("Provided package to export:  " + providedExportSet, Project.MSG_ERR);
         log("Given Export-Package header: " + manifestExportSet, Project.MSG_ERR);
-        final StringBuffer msg = new StringBuffer();
+        final StringBuilder msg = new StringBuilder();
         final TreeSet<String> tmp = new TreeSet<String>(manifestExportSet);
         tmp.removeAll(providedExportSet);
         if (0 < tmp.size()) {
@@ -915,7 +915,7 @@ public class BundleInfoTask extends Task {
         // Spec is empty, must remove the emtpy value marker for now.
         importsSpec = "";
       }
-      final StringBuffer sb = new StringBuffer(importsSpec);
+      final StringBuilder sb = new StringBuilder(importsSpec);
 
       final String exportsSpec = proj.getProperty(exportsProperty);
       if (!BundleManifestTask.isPropertyValueEmpty(exportsSpec)) {
@@ -985,7 +985,7 @@ public class BundleInfoTask extends Task {
     return null;
   }
 
-  private void appendUsesDirective(final StringBuffer sb, final String pkgName) {
+  private void appendUsesDirective(final StringBuilder sb, final String pkgName) {
     if (doUses()) {
       final String sep = ",";
       final Set<String> usesPkgs = bpInfo.getPackagesReferencedFromPackage(pkgName);
@@ -1019,7 +1019,7 @@ public class BundleInfoTask extends Task {
     final String sep = ",";
     final String versionPrefix = ";version=";
 
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     for (final String pkgName : exportPackages) {
       if (sb.length() > 0) {
@@ -1049,7 +1049,7 @@ public class BundleInfoTask extends Task {
    *           when conflicting version specifications are found for a package.
    */
   protected String validateExportPackagesValue(final String oldExportsVal) {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     final String sep = ",";
 
     // TODO handle multiple keys per header entry (must not use destructive
@@ -1296,7 +1296,7 @@ public class BundleInfoTask extends Task {
    *          String to use as separator between elements.
    */
   static protected String toString(Set<String> set, String separator) {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     for (final String name : set) {
       if (sb.length() > 0) {

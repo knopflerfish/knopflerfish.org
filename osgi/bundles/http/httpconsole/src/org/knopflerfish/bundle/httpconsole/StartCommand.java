@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,7 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
-import java.io.*;
 
 import org.osgi.framework.*;
 
@@ -48,26 +46,26 @@ public class StartCommand extends IconCommand {
 	  Activator.RES_ALIAS + "/player_play.png");
   }
 	       
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
+  public StringBuilder run(HttpServletRequest request) {
+    StringBuilder sb = new StringBuilder();
 
     long[] bids = Util.getBundleIds(request);
 
-    sb.append("<div class=\"shadow\">" + getName() + "</div>");
+    sb.append("<div class=\"shadow\">").append(getName()).append("</div>");
 
     if(bids.length == 0) {
       sb.append("No bundles selected");
     }
 
-    for(int i = 0; i < bids.length; i++) {
+    for (long bid : bids) {
       try {
-	Bundle b = Activator.bc.getBundle(bids[i]);
-	if(b.getState() != Bundle.ACTIVE) {
-	  b.start();
-	  sb.append("Started " + Util.getName(b) + "<br/>");
-	}
+        Bundle b = Activator.bc.getBundle(bid);
+        if (b.getState() != Bundle.ACTIVE) {
+          b.start();
+          sb.append("Started ").append(Util.getName(b)).append("<br/>");
+        }
       } catch (Exception e) {
-	sb.append(Util.toHTML(e));
+        sb.append(Util.toHTML(e));
       }
     }
     

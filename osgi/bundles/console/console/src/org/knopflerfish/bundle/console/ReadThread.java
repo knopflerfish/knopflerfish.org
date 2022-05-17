@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,16 +48,12 @@ import org.knopflerfish.service.console.Session;
  */
 public class ReadThread extends Thread {
 
-    Reader in;
-
-    Session session;
-
-    Pipe pipe;
-
-    boolean open = true;
+    private Reader in;
+    private Session session;
+    private Pipe pipe;
+    private boolean open = true;
 
     char escapeChar = '\026'; // default CTRL-V
-
     String interruptString = "\003"; // default CTRL-C
 
     public ReadThread(Reader in, Session session) {
@@ -82,10 +78,6 @@ public class ReadThread extends Thread {
 
     /**
      * Run
-     *
-     * @param commands
-     *            String with command to run
-     * @return Result of commands
      */
     public void run() {
         boolean escape = false;

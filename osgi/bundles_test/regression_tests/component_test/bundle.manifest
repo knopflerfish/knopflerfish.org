@@ -1,6 +1,6 @@
 Bundle-Name: component_test
 Bundle-SymbolicName: component_test
-Bundle-Version: 1.6.0
+Bundle-Version: 1.7.0
 Bundle-Description: Test bundle for the DS service
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org
@@ -11,7 +11,10 @@ Export-Package: org.knopflerfish.service.component_test
 Import-Package: junit.framework,
  org.osgi.service.cm,
  org.osgi.service.component,
+ org.osgi.service.component.runtime,
+ org.osgi.service.component.runtime.dto,
  org.osgi.framework,
+ org.osgi.framework.dto,
  org.osgi.service.log,
  org.osgi.util.tracker
 DynamicImport-Package: org.knopflerfish.service.componentX_test,

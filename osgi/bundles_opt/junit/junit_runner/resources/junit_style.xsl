@@ -60,16 +60,54 @@
  JUnit test resuls for id=<xsl:value-of select="/junit/testcase/@id"/>
 </title>
 
+<!-- <LINK href="junit.css" rel="stylesheet" type="text/css"/> -->
+<LINK href="css/knopflerfish.css" rel="stylesheet" type="text/css"/>
 <LINK href="junit.css" rel="stylesheet" type="text/css"/>
 
+<style type="text/css">
+  BODY  {
+  background: #fff;
+  margin-top:   5px;
+  margin-left:  10px;
+  margin-right: 10px;
+  font-size: 0.8125em;
+  font-family: Lucida Grande, Tahoma, Verdana, Helvetica, sans-serif;
+  }
+</style>
 </head>
 
 <body>
+
+  <div id="header" style="width:100%;">
+    <div id="header_logo">
+      <a href="index.html"><img src="images/kf300_black.png" border="0" alt="knopflerfish logo"/></a>
+    </div>
+    <div id="header_centerbox">
+      <div class="header_centerinfo_top">
+        Distribution Documentation
+      </div>
+      <div class="header_centerinfo_bottom">
+        Knopflerfish Integration Tests
+      </div>
+    </div>
+    <div id="header_rightinfo">
+      <div class="header_stylish">
+        Open Source OSGi Service Platform Maintained by
+      </div>
+      <a href="http://www.makewave.com">
+        <img border="0" alt="Makewave" src="images/makewave_logo.png" style="margin-top: 4px;"/>
+      </a>
+    </div>
+    <!--<div style="clear:both;"></div> -->
+    <div id="header_fade">
+    </div>
+  </div>
+
   <xsl:for-each select="/junit/testcase">
-  <h3 class="shadow">JUnit test results for id '<xsl:value-of select="@id"/>'
+  <h1 class="kf">JUnit test results for id '<xsl:value-of select="@id"/>'
   - 
 <xsl:value-of select="/junit/@date"/>
-  </h3>
+  </h1>
 
 
 
@@ -114,14 +152,14 @@
 
   <xsl:for-each select="suite">
     <a name="{@name}"></a>
-    <h3 class="shadow">Test Suite: <xsl:value-of select="@name"/></h3>
+    <h2 class="kf">Test Suite: <xsl:value-of select="@name"/></h2>
    <pre>
 Class: <xsl:value-of select="@class"/>
 Time:  <xsl:value-of select="@time"/>ms
    </pre>
 
-   <h4 class="shadow">Test cases</h4>
-   <table>
+   <h3 class="kf">Test cases</h3>
+   <table class="kf">
     <tr>
      <th>Name</th>
      <th>Status</th>
@@ -170,7 +208,7 @@ Time:  <xsl:value-of select="@time"/>ms
   <xsl:for-each select="testresult">
 
    <xsl:for-each select="errors">
-    <h3 class="shadow">Errors</h3>
+    <h3 class="kf">Errors</h3>
     <xsl:for-each select="failure">
      <a name="{@failedTestCaseName}"></a>
      <div class="schemaComp">
@@ -190,7 +228,7 @@ Time:  <xsl:value-of select="@time"/>ms
    </xsl:for-each>
 
    <xsl:for-each select="failures">
-    <h3 class="shadow">Failures</h3>
+    <h3 class="kf">Failures</h3>
     <xsl:for-each select="failure">
      <a name="{@failedTestCaseName}"></a>
      <div class="schemaComp">
@@ -215,9 +253,10 @@ Time:  <xsl:value-of select="@time"/>ms
 
  <a name="properties"></a>
  <xsl:for-each select="/junit/properties">
-  <h3 class="shadow"><xsl:value-of select="@name"/></h3>
+  <h3 class="kf"><xsl:value-of select="@name"/></h3>
+  <p>
   <a name="{@name}"></a>
-  <table>
+  <table class="kf">
    <xsl:for-each select="value">
     <tr>
      <td><xsl:value-of select="@key"/></td>
@@ -225,7 +264,8 @@ Time:  <xsl:value-of select="@time"/>ms
     </tr>
    </xsl:for-each>
   </table>
- </xsl:for-each>
+  </p>
+</xsl:for-each>
 
 </body>
 </html>

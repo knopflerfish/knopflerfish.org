@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@ package org.knopflerfish.bundle.consoletelnet;
  * The STATUS command has one sub negotiable parameter that may be IS
  * or SEND.
  */
-
 public class TelnetCommandStatus extends TelnetCommand {
 
     public TelnetCommandStatus(TelnetSession ts, int commandCode,
@@ -53,21 +52,20 @@ public class TelnetCommandStatus extends TelnetCommand {
      * in, no response is returned. This is essential to prevent
      * negotiation loops.
      *
-     * @parameter action, one of the telnet protocol basic actions DO, DONT,
+     * @param action, one of the telnet protocol basic actions DO, DONT,
      *            WILL, WONT or SE
-     * @parameter optionCode, the option code
-     * @parameter parameters, a string with optional parameters to the option
+     * @param optionCode, the option code
+     * @param parameters, a string with optional parameters to the option
      *            code.
      * @return a String with the response to the command.
      */
-
+    @Override
     public String execute(int action, int optionCode, byte[] parameters) {
-        // printCommand(action, optionCode, parameters);
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         switch (action) {
         case TCC.DO:
-            if (doStatus == true) {
+            if (doStatus) {
                 // willing and ready, send no resonse,
                 // to prevent creation of negotiation loop
             } else {
@@ -77,7 +75,7 @@ public class TelnetCommandStatus extends TelnetCommand {
             break;
 
         case TCC.WILL:
-            if (doStatus == true) {
+            if (doStatus) {
                 // willing and ready, send no resonse,
                 // to prevent creation of negotiation loop
             } else {
@@ -87,7 +85,7 @@ public class TelnetCommandStatus extends TelnetCommand {
             break;
 
         case TCC.DONT:
-            if (doStatus == true) {
+            if (doStatus) {
                 sb.append(getWONT());
                 doStatus = false;
                 // now not willing, send no resonse,
@@ -98,7 +96,7 @@ public class TelnetCommandStatus extends TelnetCommand {
             break;
 
         case TCC.WONT:
-            if (doStatus == true) {
+            if (doStatus) {
                 // no appropriate answer to send
                 doStatus = false;
                 // now not willing, send no resonse,
@@ -112,8 +110,8 @@ public class TelnetCommandStatus extends TelnetCommand {
         // are finished and both parties have agreed
 
         case TCC.SE:
-            if (doStatus == true) {
-                sb.append(doCommand(action, optionCode, parameters));
+            if (doStatus) {
+                sb.append(doCommand(optionCode, parameters));
             } else { // not in right state
                 sb.append(getDONT());
             }
@@ -125,32 +123,29 @@ public class TelnetCommandStatus extends TelnetCommand {
         return sb.toString();
     }
 
-    public String doCommand(int action, int optionCode, byte[] parameters) {
-        // printCommand( action, optionCode, parameters);
-
-        StringBuffer sb = new StringBuffer();
+    private String doCommand(int optionCode, byte[] parameters) {
+        StringBuilder sb = new StringBuilder();
         if (parameters != null && (parameters[0] == (byte) TCC.SEND)) {
             // assume SEND
-            sb.append(TCC.IAC_string + TCC.SB_string
-                    + String.valueOf((char) optionCode) + TCC.IS_string);
+            sb.append(TCC.IAC_string).append(TCC.SB_string).append((char) optionCode).append(TCC.IS_string);
 
             TelnetCommand[] tcs = getCommands();
             for (int i = 0; i < tcs.length; i++) {
                 TelnetCommand tc = tcs[i];
                 if (tc != null) {
                     sb.append(TCC.WILL_string);
-                    sb.append(String.valueOf((char) i));
+                    sb.append((char) i);
 
-                    if (tc.getDoStatus() == true) {
+                    if (tc.getDoStatus()) {
                         sb.append(TCC.DO_string);
-                        sb.append(String.valueOf((char) i));
+                        sb.append((char) i);
                     } else {
                         sb.append(TCC.DONT_string);
-                        sb.append(String.valueOf((char) i));
+                        sb.append((char) i);
                     }
                 }
             }
-            sb.append(TCC.IAC_string + TCC.SE_string);
+            sb.append(TCC.IAC_string).append(TCC.SE_string);
         } else if (parameters != null && (parameters[0] == (byte) TCC.IS)) {
 
         }

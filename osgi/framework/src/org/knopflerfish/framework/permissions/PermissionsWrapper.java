@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -325,10 +325,7 @@ public class PermissionsWrapper extends PermissionCollection {
       pc.add(new FilePermission((new File(dataRoot, "-")).getPath(),
                                 "read,write,delete"));
     }
-    final StringBuffer sb = new StringBuffer("(id=");
-    sb.append(b.getBundleId());
-    sb.append(")");
-    pc.add(new AdminPermission(sb.toString(),
+    pc.add(new AdminPermission("(id=" + b.getBundleId() + ")",
                                AdminPermission.RESOURCE + "," +
                                AdminPermission.METADATA + "," +
                                AdminPermission.CLASS));

@@ -44,9 +44,17 @@
 
 
   <!-- The asm jar used by the build system. -->
-  <property name="asm.version"		value="6.2"/>
+  <property name="asm-all.version"		value="6.2"/>
+  <property name="asm-all.jar"		value="asm-${asm-all.version}.jar" />
+  <property name="asm-all.jar.location"	location="${osgi.dir}/resources/${asm-all.jar}" />
+  <path id="asm-all.path">
+    <pathelement location="${asm-all.jar.location}" />
+  </path>
+  
+  <!-- ASM 9 is used by the bundle_build tasks -->
+  <property name="asm.version"	value="9.3"/>
   <property name="asm.jar"		value="asm-${asm.version}.jar" />
-  <property name="asm.jar.location"	location="${osgi.dir}/resources/${asm.jar}" />
+  <property name="asm.jar.location"	location="${ant.lib}/${asm.jar}" />
   <path id="asm.path">
     <pathelement location="${asm.jar.location}" />
   </path>
@@ -65,6 +73,10 @@
             value="org.osgi.impl.bundle.repoindex.ant-0.0.1.jar"/>
   <property name="org.osgi.impl.bundle.repoindex.ant.download.url"
             value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.ant/" />
+
+  <target name="setup">
+    <mkdir dir="${ant.lib}" />
+  </target>
 
   <target name="install_repoindex">
     <get src="${org.osgi.impl.bundle.repoindex.cli.download.url}/${org.osgi.impl.bundle.repoindex.cli.jar}"
@@ -157,7 +169,7 @@
             value="proguard-anttask-${proguard.version}.jar"/>
   <property name="proguard-base.jar"
             value="proguard-base-${proguard.version}.jar"/>
-  <property name="maven.url" value="http://repo1.maven.org/maven2"/>
+  <property name="maven.url" value="https://repo1.maven.org/maven2"/>
   <property name="proguard.url" value="${maven.url}/net/sf/proguard"/>
   <property name="proguard-anttask.url"
             value="${proguard.url}/proguard-anttask/${proguard.version}/${proguard-anttask.jar}"/>
@@ -183,7 +195,7 @@
 
   <property name="flexmark.version"	value="0.32.24"/>
   <property name="flexmark.jar"		value="flexmark-all-${flexmark.version}-lib.jar" />
-  <property name="flexmark.url"		value="Http://repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-all/${flexmark.version}/${flexmark.jar}" />
+  <property name="flexmark.url"		value="Https://repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-all/${flexmark.version}/${flexmark.jar}" />
 
   <target name="install_flexmark">
     <get src="${flexmark.url}"
@@ -191,7 +203,17 @@
 	 verbose="true"
 	 skipexisting="true" />
   </target>
-  
+
+  <property name="asm.url"		value="${maven.url}/org/ow2/asm/asm/${asm.version}/${asm.jar}" />
+  <property name="asm-all.url"		value="${maven.url}/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" />
+
+  <target name="install_asm">
+    <get src="${asm.url}"
+         dest="${asm.jar.location}"
+         verbose="true"
+         skipexisting="true" />
+  </target>
+
   <!-- Compile and pack the Knopflerfish bundle tasks.  -->
   <property name="bundle_tasks.jar" location="${ant.lib}/bundle_tasks.jar"/>
   <property name="kf_ant_util_tasks.jar" location="${ant.lib}/kf_ant_util_tasks.jar"/>
@@ -239,7 +261,7 @@
   </target>
 
   <target name="build_util_tasks"
-	  depends="install_flexmark">
+	  depends="setup,install_flexmark">
     <mkdir dir="${antclasses}"/>
     <javac destdir="${antclasses}"
            classpathref="util_tasks.path"
@@ -269,7 +291,7 @@
   </target>
 
   <target name="build_bundle_tasks"
-          depends="chkBundleTaskSrc,chkBundleTasksBuild"
+          depends="install_asm,chkBundleTaskSrc,chkBundleTasksBuild"
           unless="bundleTasksBuild.notRequired">
     <mkdir dir="${antclasses}"/>
     <javac destdir="${antclasses}"

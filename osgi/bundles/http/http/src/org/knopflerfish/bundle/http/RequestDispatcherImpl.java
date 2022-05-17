@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013,2015 KNOPFLERFISH project
+ * Copyright (c) 2003-2022 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -349,7 +349,7 @@ public class RequestDispatcherImpl
 
     byte c;
     boolean tagBegin = false;
-    final StringBuffer buf = new StringBuffer(20);
+    final StringBuilder buf = new StringBuilder(20);
     while ((c = (byte) is.read()) != -1) {
       if (c == '<') {
         buf.setLength(0);

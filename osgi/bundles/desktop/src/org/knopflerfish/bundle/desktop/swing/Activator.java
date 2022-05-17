@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,7 +114,7 @@ public class Activator
     }
     Bundle[] bl = bc.getBundles();
     if(bundleFilter != null) {
-      final ArrayList<Bundle> al = new ArrayList<Bundle>();
+      final ArrayList<Bundle> al = new ArrayList<>();
       for(int i = 0; bl != null && i < bl.length; i++) {
         if(bundleFilter.accept(bl[i])) {
           al.add(bl[i]);
@@ -160,8 +160,7 @@ public class Activator
   /**
    * Get default service reference from the target BC.
    */
-  public static <T> ServiceReference<T>
-    getTargetBC_getServiceReference(final Class<T> type)
+  public static <T> ServiceReference<T> getTargetBC_getServiceReference(final Class<T> type)
   {
     final BundleContext tbc = getTargetBC();
     if(null != tbc) {
@@ -172,7 +171,6 @@ public class Activator
 
   /**
    * Get default service reference from the target BC.
-   * @return
    */
   public static <T> T getTargetBC_getService(final ServiceReference<T> sr)
   {
@@ -244,7 +242,7 @@ public class Activator
       // There is no method in BundleContext that enumerates
       // properties, thus use the set of keys from the system properties.
       final Properties props = System.getProperties();
-      final Map<String, String> map = new HashMap<String, String>();
+      final Map<String, String> map = new HashMap<>();
 
       for(final Enumeration<?> e = props.keys(); e.hasMoreElements();) {
         final String key = (String)e.nextElement();
@@ -309,8 +307,7 @@ public class Activator
   static ServiceTracker<RemoteFramework,RemoteFramework> remoteTracker;
 
 
-  Map<DefaultSwingBundleDisplayer, ServiceRegistration<?>> displayers
-    = new HashMap<DefaultSwingBundleDisplayer, ServiceRegistration<?>>();
+  Map<DefaultSwingBundleDisplayer, ServiceRegistration<?>> displayers = new HashMap<>();
 
   public void start(final BundleContext bc) {
     Activator.setBC(bc);
@@ -339,7 +336,7 @@ public class Activator
         final RemoteFramework obj = super.addingService(sr);
         try {
           desktop.setRemote(true);
-        } catch (final Exception e) {
+        } catch (final Exception ignored) {
         }
         return obj;
       }
@@ -350,7 +347,7 @@ public class Activator
       {
         try {
           desktop.setRemote(false);
-        } catch (final Exception e) {
+        } catch (final Exception ignored) {
         }
         super.removedService(sr, service);
       }
@@ -358,17 +355,15 @@ public class Activator
     remoteTracker.open();
 
     // Spawn to avoid race conditions in resource loading
-    javax.swing.SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          // Do nothing if stopped.
-          if (!Activator.isStopped()) {
-            //Block stop() while starting.
-            synchronized(stopLock) {
-              openDesktop();
-            }
-          }
+    javax.swing.SwingUtilities.invokeLater(() -> {
+      // Do nothing if stopped.
+      if (!Activator.isStopped()) {
+        //Block stop() while starting.
+        synchronized(stopLock) {
+          openDesktop();
         }
-      });
+      }
+    });
   }
 
   void openDesktop() {
@@ -422,7 +417,7 @@ public class Activator
       try {
         final Class<?> clazz = Class.forName(className);
         final Constructor<?> cons =
-          clazz.getConstructor(new Class[] { BundleContext.class });
+          clazz.getConstructor(BundleContext.class);
 
         disp =
           (DefaultSwingBundleDisplayer) cons
@@ -435,28 +430,26 @@ public class Activator
     }
 
     // Must be executed even later, to allow for plugin comps to be ready.
-    javax.swing.SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          // Do nothing if stopped.
-          if (!Activator.isStopped()) {
-            //Block stop() while starting.
-            synchronized(stopLock) {
-              final String defDisp
-                = Util.getProperty("org.knopflerfish.desktop.display.main",
-                                   LargeIconsDisplayer.NAME);
-              if (null!=desktop) {
-                // We really want this one to be displayed.
-                desktop.bundlePanelShowTab(defDisp);
+    javax.swing.SwingUtilities.invokeLater(() -> {
+      // Do nothing if stopped.
+      if (!Activator.isStopped()) {
+        //Block stop() while starting.
+        synchronized(stopLock) {
+          final String defDisp
+            = Util.getProperty("org.knopflerfish.desktop.display.main",
+                               LargeIconsDisplayer.NAME);
+          if (null!=desktop) {
+            // We really want this one to be displayed.
+            desktop.bundlePanelShowTab(defDisp);
 
-                final int ix = desktop.detailPanel.indexOfTab("Manifest");
-                if(ix != -1) {
-                  desktop.detailPanel.setSelectedIndex(ix);
-                }
-              }
+            final int ix = desktop.detailPanel.indexOfTab("Manifest");
+            if(ix != -1) {
+              desktop.detailPanel.setSelectedIndex(ix);
             }
           }
         }
-      });
+      }
+    });
   }
 
   // Shutdown code that must exectue on the EDT
@@ -474,11 +467,7 @@ public class Activator
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
           closeDesktop0();
         } else {
-          javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-              public void run() {
-                closeDesktop0();
-              }
-            });
+          javax.swing.SwingUtilities.invokeAndWait(this::closeDesktop0);
         }
       }
 

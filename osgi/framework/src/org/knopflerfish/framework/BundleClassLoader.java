@@ -209,7 +209,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
   @Override
   protected URL findResource(String name) {
     final Enumeration<URL> res = getBundleResources(name, true);
-    if (res != null) {
+    if (res != null && res.hasMoreElements()) {
       return res.nextElement();
     } else {
       return null;

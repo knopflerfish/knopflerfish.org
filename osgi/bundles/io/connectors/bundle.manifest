@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Connection-Factories
 Bundle-SymbolicName: org.knopflerfish.bundle.connectors
-Bundle-Version: 3.0.0
+Bundle-Version: 3.1.0
 Bundle-Description: OSGi IO http, socket and datagram-receive Connectors
 Bundle-Vendor: Knopflerfish
 Bundle-Category: service

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -190,12 +190,10 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
   BundleListener bundleListener = new BundleListener() {
       public void bundleChanged(BundleEvent ev) {
         if(jmb.isAutoRefresh()) {
-          SwingUtilities.invokeLater(new Runnable() {
-              public void run() {
-                JSoftGraphBundle.this.bundleChanged();
-                startFade();
-              }
-            });
+          SwingUtilities.invokeLater(() -> {
+            JSoftGraphBundle.this.bundleChanged();
+            startFade();
+          });
         }
       }
     };
@@ -203,11 +201,7 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
   ServiceListener serviceListener = new ServiceListener() {
       public void serviceChanged(ServiceEvent ev) {
         if(jmb.isAutoRefresh()) {
-          SwingUtilities.invokeLater(new Runnable() {
-              public void run() {
-                startFade();
-              }
-            });
+          SwingUtilities.invokeLater(() -> startFade());
         }
       }
     };
@@ -300,7 +294,7 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
     }
     */
 
-    if(bNeedText) {
+    if (bNeedText) {
       g.scale(1.0/f, 1.0/f);
       paintString(g, "#" + b.getBundleId() + " " + Util.getBundleName(b),
                   20, icon.getIconHeight() + 4,

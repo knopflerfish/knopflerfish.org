@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2016, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -545,7 +545,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   void initSystemBundle() {
     bundleContext = new BundleContextImpl(this);
-    final StringBuffer sp = new StringBuffer(
+    final StringBuilder sp = new StringBuilder(
         fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES));
     if (sp.length() == 0) {
       // Try the system packages file
@@ -686,7 +686,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
-   * Read a file with package names and add them to a stringbuffer.
+   * Read a file with package names and add them to a StringBuilder.
    * Each line can have a java version guard at the end with format <tt>!VersionRange</tt>.
    *
    * @param sp Buffer to append the exports to. Same format as the
@@ -694,7 +694,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    * @param sysPkgFile File name.
    * @param guard Version to test version guarded lines against.
    */
-  private void addSysPackagesFromFile(StringBuffer sp, String sysPkgFile, Version guard) {
+  private void addSysPackagesFromFile(StringBuilder sp, String sysPkgFile, Version guard) {
     if (fwCtx.debug.resolver) {
       fwCtx.debug.println("Will add system packages from file " + sysPkgFile);
     }
@@ -719,7 +719,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
-   * Read a resource with package names and add them to a stringbuffer.
+   * Read a resource with package names and add them to a StringBuilder.
    * Each line can have a java version guard at the end with format <tt>!VersionRange</tt>.
    *
    * @param sp Buffer to append the exports to. Same format as the
@@ -727,7 +727,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    * @param sysPkgResource Resource name.
    * @param guard Version to test version guarded lines against.
    */
-  private void addSysPackagesFromResource(StringBuffer sp, String sysPkgResource, Version guard) {
+  private void addSysPackagesFromResource(StringBuilder sp, String sysPkgResource, Version guard) {
     if (fwCtx.debug.resolver) {
       fwCtx.debug.println("Will add system packages from resource " + sysPkgResource);
     }
@@ -751,7 +751,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
-   * Read a stream with package names and add them to a stringbuffer.
+   * Read a stream with package names and add them to a StringBuilder.
    * Each line can have a java version guard at the end with format <tt>!VersionRange</tt>.
    *
    * @param sp Buffer to append the exports to. Same format as the
@@ -759,7 +759,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    * @param reader Reader for stream to load packages to be exported from.
    * @param guard Version to test version guarded lines against.
    */
-  private void addSysPackagesFromStream(StringBuffer sp, Reader reader, Version guard)
+  private void addSysPackagesFromStream(StringBuilder sp, Reader reader, Version guard)
     throws IOException
   {
     BufferedReader in = null;
@@ -820,10 +820,10 @@ public class SystemBundle extends BundleImpl implements Framework {
    * {@code osgi.ee}-capabilities the name shall be "JavaSE" independent of Java
    * release.
    *
-   * @param sp string buffer with all framework provided capabilities to append
+   * @param sp StringBuilder with all framework provided capabilities to append
    * to.
    */
-  private void addSysCapabilitiesFromEE(StringBuffer sp)
+  private void addSysCapabilitiesFromEE(StringBuilder sp)
   {
     final Map<String, SortedSet<Version>> eeNameVersions
       = new HashMap<String, SortedSet<Version>>();
@@ -896,7 +896,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   }
 
 
-  private void addSysCapabilityForEE(final StringBuffer sb,
+  private void addSysCapabilityForEE(final StringBuilder sb,
                                      final Map<String, SortedSet<Version>> eeNameVersions)
   {
     for (final Entry<String, SortedSet<Version>> entry : eeNameVersions
@@ -1075,7 +1075,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   private void saveClasspaths() {
-    final StringBuffer bootClasspath = new StringBuffer();
+    final StringBuilder bootClasspath = new StringBuilder();
     for (final BundleGeneration bundleGeneration : fwCtx.bundles.getFragmentBundles(current())) {
       final BundleGeneration ebg = bundleGeneration;
       final String path = ebg.archive.getJarLocation();
@@ -1091,7 +1091,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     try {
       final File bcpf = new File(Util.getFrameworkDir(fwCtx), BOOT_CLASSPATH_FILE);
       if (bootClasspath.length() > 0) {
-        saveStringBuffer(bcpf, bootClasspath);
+        saveString(bcpf, bootClasspath.toString());
       } else {
         bcpf.delete();
       }
@@ -1103,11 +1103,11 @@ public class SystemBundle extends BundleImpl implements Framework {
   }
 
 
-  private void saveStringBuffer(File f, StringBuffer content) throws IOException {
+  private void saveString(File f, String content) throws IOException {
     PrintStream out = null;
     try {
       out = new PrintStream(new FileOutputStream(f));
-      out.println(content.toString());
+      out.println(content);
     } finally {
       if (out != null) {
         out.close();

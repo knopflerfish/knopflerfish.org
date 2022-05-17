@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -200,7 +200,7 @@ public class LogCommandGroup
             }
           }
 
-          final StringBuffer sb = new StringBuffer();
+          final StringBuilder sb = new StringBuilder();
           final SimpleDateFormat tf = new SimpleDateFormat("MMM dd HH:mm:ss ");
 
           for (e = lv.elements(); e.hasMoreElements();) {
@@ -228,7 +228,7 @@ public class LogCommandGroup
             pad(sb, 23);
             final Bundle b = le.getBundle();
             if (b != null) {
-              sb.append(" #" + b.getBundleId());
+              sb.append(" #").append(b.getBundleId());
               pad(sb, 28);
               sb.append(Util.shortName(b));
             } else {
@@ -256,7 +256,7 @@ public class LogCommandGroup
     return res.intValue();
   }
 
-  void pad(StringBuffer sb, int n)
+  void pad(StringBuilder sb, int n)
   {
     while (sb.length() < n) {
       sb.append(" ");

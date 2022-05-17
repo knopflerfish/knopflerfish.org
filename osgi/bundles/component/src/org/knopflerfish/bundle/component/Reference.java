@@ -153,14 +153,8 @@ class Reference implements org.apache.felix.scr.Reference
    * @see org.apache.felix.scr.Reference.getTarget
    */
   public String getTarget() {
-    Filter target;
-    final ReferenceListener l = listener;
-    if (l != null)  {
-      target = l.getTargetFilter();
-    } else {
-      target = targetFilter;
-    }
-    return target != null ? targetFilter.toString() : null;
+    final Filter target = getCurrentTarget();
+    return target != null ? target.toString() : null;
   }
 
 
@@ -483,6 +477,17 @@ class Reference implements org.apache.felix.scr.Reference
       res.addAll(factoryListeners.values());
     }
     return res;
+  }
+
+
+  Filter getCurrentTarget() {
+    Filter target;
+    final ReferenceListener l = listener;
+    if (l != null)  {
+      return l.getTargetFilter();
+    } else {
+      return targetFilter;
+    }
   }
 
 

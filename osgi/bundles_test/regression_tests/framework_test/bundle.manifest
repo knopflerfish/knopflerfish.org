@@ -1,7 +1,7 @@
 Bundle-ManifestVersion: 2
 Bundle-Name: framework_test
 Bundle-SymbolicName: framework_test
-Bundle-Version: 1.0.3
+Bundle-Version: 1.1.0
 Bundle-Description: Test bundle for framework
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org

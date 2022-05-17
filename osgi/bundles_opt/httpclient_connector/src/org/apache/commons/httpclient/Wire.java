@@ -58,7 +58,7 @@ class Wire {
     
     private void wire(String header, InputStream instream)
       throws IOException {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         int ch;
         while ((ch = instream.read()) != -1) {
             if (ch == 13) {

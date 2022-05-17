@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<components>
+
+  <component name="org.knopflerfish.bundle.componentFilter_testA"
+	     immediate="true"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation
+       class="org.knopflerfish.bundle.componentFilter_test.GeneralComponentImplA"/>
+
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentFilter_test.GeneralComponent"/>
+    </service>
+
+    <property name="actionName" value="A" />
+
+    <reference  name = "org.knopflerfish.service.componentFilter_test.OtherComponent"
+		interface = "org.knopflerfish.service.componentFilter_test.OtherComponent"
+		bind = "setOtherComponent"
+		policy="static"
+		cardinality="1..1"
+		/>
+    
+  </component>
+
+  <component name="org.knopflerfish.bundle.componentFilter_testB"
+	     immediate="true"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.0.0">
+    
+    <implementation
+       class="org.knopflerfish.bundle.componentFilter_test.GeneralComponentImplB"/>
+
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentFilter_test.GeneralComponent"/>
+    </service>
+
+    <property name="actionName" value="B" /> 
+    
+    <reference  name = "org.knopflerfish.service.componentFilter_test.GeneralComponent"
+		interface = "org.knopflerfish.service.componentFilter_test.GeneralComponent"
+		target = "(actionName=A)"
+		bind = "setGeneralComponentImplA"
+		policy="static"
+		cardinality="1..1"
+		/>
+    
+  </component>
+
+</components>
