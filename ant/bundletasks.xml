@@ -42,15 +42,6 @@
   <property name="osgi.dir"      location="${ant.dir}/../osgi"/>
   <property name="framework.dir" location="${osgi.dir}/framework"/>
 
-
-  <!-- The asm jar used by the build system. -->
-  <property name="asm-all.version"		value="6.2"/>
-  <property name="asm-all.jar"		value="asm-${asm-all.version}.jar" />
-  <property name="asm-all.jar.location"	location="${osgi.dir}/resources/${asm-all.jar}" />
-  <path id="asm-all.path">
-    <pathelement location="${asm-all.jar.location}" />
-  </path>
-  
   <!-- ASM 9 is used by the bundle_build tasks -->
   <property name="asm.version"	value="9.3"/>
   <property name="asm.jar"		value="asm-${asm.version}.jar" />
@@ -205,7 +196,6 @@
   </target>
 
   <property name="asm.url"		value="${maven.url}/org/ow2/asm/asm/${asm.version}/${asm.jar}" />
-  <property name="asm-all.url"		value="${maven.url}/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" />
 
   <target name="install_asm">
     <get src="${asm.url}"
