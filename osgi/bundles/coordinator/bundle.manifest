@@ -17,7 +17,6 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/coordinator/
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 api-Import-Package: org.osgi.framework;version="[1.9,2)",
- org.osgi.service.coordinator;version="[1.0.2,1.1)",
  java.io,
  java.lang,
  java.security,
