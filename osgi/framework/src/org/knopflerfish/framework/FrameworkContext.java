@@ -220,7 +220,7 @@ public class FrameworkContext  {
   /**
    * JVM global lock.
    */
-  static Object globalFwLock = new Object();
+  static final Object globalFwLock = new Object();
 
   /**
    * Id to use for next instance of KF framework.
@@ -311,7 +311,7 @@ public class FrameworkContext  {
 
     final String v = props.getProperty(FWProps.VALIDATOR_PROP);
     if (!v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
-      validator = new ArrayList<Validator>();
+      validator = new ArrayList<>();
       for (int start = 0; start < v.length(); ) {
         int end = v.indexOf(',', start);
         if (end == -1) {
@@ -379,8 +379,8 @@ public class FrameworkContext  {
           (Class<? extends BundleStorage>) Class.forName(storageClass);
 
       final Constructor<? extends BundleStorage> cons =
-          storageImpl.getConstructor(new Class[] { FrameworkContext.class });
-      storage = cons.newInstance(new Object[] { this });
+          storageImpl.getConstructor(FrameworkContext.class);
+      storage = cons.newInstance(this);
     } catch (final Exception e) {
       Throwable cause = e;
       if (e instanceof InvocationTargetException) {
@@ -399,7 +399,7 @@ public class FrameworkContext  {
     }
 
     BundleThread.checkWarnStopActionNotSupported(this);
-    bundleThreads = new LinkedList<BundleThread>();
+    bundleThreads = new LinkedList<>();
 
     resolver  = new Resolver(this);
     services  = new Services(this, perm);
@@ -452,9 +452,9 @@ public class FrameworkContext  {
 
   private Object doNew(final String clazz) {
     try {
-      final Class<?> n = (Class<?>) Class.forName(clazz);
-      final Constructor<?> nc = n.getConstructor(new Class[] { FrameworkContext.class });
-      return nc.newInstance(new Object[] { this });
+      final Class<?> n = Class.forName(clazz);
+      final Constructor<?> nc = n.getConstructor(FrameworkContext.class);
+      return nc.newInstance(this);
     } catch (final InvocationTargetException ite) {
       throw new RuntimeException(clazz + ", constructor failed with, " + ite.getTargetException(), ite);
     } catch (final NoSuchMethodException e) {
@@ -503,6 +503,7 @@ public class FrameworkContext  {
     resolver.clear();
     resolver = null;
 
+    //noinspection SynchronizeOnNonFinalField
     synchronized (bundleThreads) {
       while (!bundleThreads.isEmpty()) {
         bundleThreads.remove(0).quit();
@@ -646,7 +647,7 @@ public class FrameworkContext  {
    *
    */
   void checkOurBundle(Bundle b) {
-    if (b == null || !(b instanceof BundleImpl) || this != ((BundleImpl)b).fwCtx) {
+    if (!(b instanceof BundleImpl) || this != ((BundleImpl) b).fwCtx) {
       throw new IllegalArgumentException("Bundle does not belong to this framework: " + b);
     }
   }
@@ -661,7 +662,7 @@ public class FrameworkContext  {
       = props.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
 
     bootDelegationUsed = bootDelegationString.length() > 0;
-    bootDelegationPatterns = new ArrayList<String>(1);
+    bootDelegationPatterns = new ArrayList<>(1);
 
     if (bootDelegationUsed) {
       try {
@@ -682,7 +683,7 @@ public class FrameworkContext  {
                            (Constants.FRAMEWORK_BOOTDELEGATION
                             +" entry ends with '.': " +key));
           }
-          else if (key.indexOf("*") != - 1) {
+          else if (key.contains("*")) {
             frameworkError(systemBundle, new IllegalArgumentException
                            (Constants.FRAMEWORK_BOOTDELEGATION
                             +" entry contains a '*': " + key));
@@ -708,9 +709,7 @@ public class FrameworkContext  {
     // Convert resource name to class name format, preserving the
     // package part of the path/name.
     final int pos = name.lastIndexOf('/');
-    return pos != -1
-      ? isBootDelegated(name.substring(0,pos).replace('/','.')+".X")
-      : false;
+    return pos != -1 && isBootDelegated(name.substring(0, pos).replace('/', '.') + ".X");
   }
 
 
@@ -812,7 +811,7 @@ public class FrameworkContext  {
   /**
    * Convenience method for throwing framework warning event.
    *
-   * @param b Bundle which caused the throwable.
+   * @param bg Bundle which caused the throwable.
    * @param t Throwable generated.
    */
   public void frameworkWarning(BundleGeneration bg, Throwable t, FrameworkListener... oneTimeListeners) {
