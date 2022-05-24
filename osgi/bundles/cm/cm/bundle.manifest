@@ -17,6 +17,11 @@ Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/cm/cm/
 Bundle-Icon: icon.png;size=32
 Bundle-Activator: org.knopflerfish.bundle.cm.Activator
-Provide-Capability: osgi.service;
- objectClass:List<String>="org.osgi.service.cm.ConfigurationAdmin"
+Provide-Capability: osgi.implementation;
+    osgi.implementation="osgi.cm";
+    version:Version="1.6";
+    uses:="org.osgi.service.cm",
+  osgi.service;
+    objectClass:List<String>="org.osgi.service.cm.ConfigurationAdmin";
+    uses:="org.osgi.service.cm"
 api-Provide-Capability: [bundle.emptystring]
