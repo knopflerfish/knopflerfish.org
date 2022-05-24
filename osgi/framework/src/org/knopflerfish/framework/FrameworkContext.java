@@ -234,13 +234,12 @@ public class FrameworkContext  {
 
 
   static void setupURLStreamHandleFactory() {
-    ServiceURLStreamHandlerFactory res = new ServiceURLStreamHandlerFactory();
+    systemUrlStreamHandlerFactory = new ServiceURLStreamHandlerFactory();
     try {
-      URL.setURLStreamHandlerFactory(res);
-      systemUrlStreamHandlerFactory = res;
+      URL.setURLStreamHandlerFactory(systemUrlStreamHandlerFactory);
     } catch (final Throwable e) {
       System.err.println("Cannot set global URL handlers, "
-         +"continuing without OSGi service URL handler (" +e +")");
+         +"continuing without OSGi service URL handler (" + e +")");
     }
   }
 
