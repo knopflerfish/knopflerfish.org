@@ -179,7 +179,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Start this framework.
    *
-   * @see org.osgi.framework.Framework#start
+   * @see org.osgi.framework.launch.Framework#start
    */
   @Override
   public void start(int options) throws BundleException {
@@ -238,7 +238,9 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
+   * Wait until this Framework has completely stopped.
    *
+   * @see org.osgi.framework.launch.Framework#waitForStop
    */
   @Override
   public FrameworkEvent waitForStop(long timeout) throws InterruptedException {
@@ -246,28 +248,22 @@ public class SystemBundle extends BundleImpl implements Framework {
       // Already stopped?
       if (((INSTALLED | RESOLVED) & state) == 0) {
         stopEvent = null;
-        while (true) {
-          final long st = Util.timeMillis();
-          try {
-            lock.wait(timeout);
-            if (stopEvent != null) {
-              break;
-            }
-          } catch (final InterruptedException _ignore) {
+        while (stopEvent == null) {
+          final long startTime = Util.timeMillis();
+          lock.wait(timeout);
+          if (stopEvent != null) {
+            return stopEvent;
           }
           if (timeout > 0) {
-            timeout = timeout - (Util.timeMillis() - st);
-              if (timeout <= 0) {
-                break;
-              }
+            timeout -= Util.timeMillis() - startTime;
+            if (timeout <= 0) {
+              return new FrameworkEvent(FrameworkEvent.WAIT_TIMEDOUT, this, null);
             }
           }
-          if (stopEvent == null) {
-            return new FrameworkEvent(FrameworkEvent.WAIT_TIMEDOUT, this, null);
-          }
-        } else if (stopEvent == null) {
-        // Return this if stop or update have not been called and framework is
-        // stopped.
+        }
+      }
+      if (stopEvent == null) {
+        // Return this if stop or update have not been called and framework is stopped.
         stopEvent = new FrameworkEvent(FrameworkEvent.STOPPED, this, null);
       }
       return stopEvent;
@@ -278,7 +274,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Stop this framework.
    *
-   * @see org.osgi.framework.Framework#stop
+   * @see org.osgi.framework.launch.Framework#stop
    */
   @Override
   public void stop(int options) throws BundleException {
@@ -290,7 +286,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Restart this framework.
    *
-   * @see org.osgi.framework.Framework#update
+   * @see org.osgi.framework.launch.Framework#update
    */
   @Override
   public void update(InputStream in) throws BundleException {
@@ -308,7 +304,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Uninstall of framework are not allowed.
    *
-   * @see org.osgi.framework.Framework#uninstall
+   * @see org.osgi.framework.launch.Framework#uninstall
    */
   @Override
   public void uninstall() throws BundleException {
