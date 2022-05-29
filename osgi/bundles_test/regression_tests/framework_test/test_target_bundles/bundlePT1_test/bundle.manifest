@@ -4,8 +4,8 @@ Bundle-SymbolicName: PT1_test
 Bundle-Version: 1.0.0
 Bundle-Description: PT1 bundle
 Bundle-Vendor: Knopflerfish/Makewave AB
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundlePT1_test.BundleActivator
 Bundle-Category: testing
 Import-Package: org.knopflerfish.service.bundleA_test;version=0.1.2,org.osgi.framework

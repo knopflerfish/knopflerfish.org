@@ -167,7 +167,7 @@ public class Activator
 
     // Fall-back http-URL for the documentation
     private static final String  RES_DOC_URL
-      = "http://www.knopflerfish.org/releases/current/docs";
+      = "https://www.knopflerfish.org/releases/current/docs";
 
     private File baseDir = null;
     private URL  baseURL  = null;

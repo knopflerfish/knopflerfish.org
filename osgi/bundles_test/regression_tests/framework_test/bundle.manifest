@@ -4,8 +4,8 @@ Bundle-SymbolicName: framework_test
 Bundle-Version: 1.0.3
 Bundle-Description: Test bundle for framework
 Bundle-Vendor: Knopflerfish/Makewave AB
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.framework_test.Activator
 Bundle-Category: testing
 Bundle-Classpath: ., subdir/res1.jar, res2.jar, res1.jar, subdir

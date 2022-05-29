@@ -6,8 +6,8 @@ Bundle-SymbolicName: org.knopflerfish.cpaexample.admin
 Bundle-Category: example
 Bundle-Description: Condition Permission Admin example
 Bundle-Vendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+Bundle-ContactAddress: https://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles_examples/cpa/admin/

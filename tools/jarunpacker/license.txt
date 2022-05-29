@@ -6,7 +6,7 @@ respective copyright owners.
 More information about Knopflerfish 
 can be found at
 
-  http://www.knopflerfish.org
+  https://www.knopflerfish.org
 
 
 ------------ Knopflerfish license -------------

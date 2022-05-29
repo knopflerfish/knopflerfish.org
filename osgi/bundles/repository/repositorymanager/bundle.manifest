@@ -6,11 +6,11 @@ Bundle-Version: 1.3.0
 Bundle-Activator: org.knopflerfish.bundle.repositorymanager.Activator
 Bundle-Description: Repository Manager
 Bundle-Vendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
  /index.html?docpage=repositorycommands/index.html
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  description="BSD 3-clause";
- link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
+ link="https://www.knopflerfish.org/licenses/knopflerfish-1.txt"
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/repositorymanager/
 Bundle-Category: utility

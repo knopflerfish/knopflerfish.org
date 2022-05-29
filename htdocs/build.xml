@@ -35,7 +35,7 @@
 
     <property name="htdocs.distname" value="Knopflerfish OSGi, version ${version} - "/>
     <property name="base.url"
-	      value="http://www.knopflerfish.org/releases"/>
+	      value="https://www.knopflerfish.org/releases"/>
 
     <!-- Properties used by the makehtml task. -->
     <property name="htdocs.link.enabled.class" value="navigation_enabled"/>

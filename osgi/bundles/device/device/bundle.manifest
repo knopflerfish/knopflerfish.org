@@ -6,8 +6,8 @@ Bundle-Version: 4.0.1
 Bundle-Description: Device manager
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
-Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+Bundle-ContactAddress: https://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/device/device/

@@ -94,7 +94,7 @@
                default="Knopflerfish"/>
     <attribute name="orgUrl"
                description="URL part of the organiztion element in the pom"
-               default="http://www.knopflerfish.org/"/>
+               default="https://www.knopflerfish.org/"/>
     <attribute name="artifactBundle"
                description="Bundle jar file for the artifact to deploy"/>
     <attribute name="packing"

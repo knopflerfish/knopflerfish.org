@@ -3,8 +3,8 @@ Bundle-Name: bundleEnd7_test
 Bundle-SymbolicName: org.knopflerfish.bundle.bundleEnd7_test
 Bundle-Version: 1.0.0
 Bundle-Vendor: Knopflerfish/Makewave AB
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleEnd7_test.Activator
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.bundleEnd7_test

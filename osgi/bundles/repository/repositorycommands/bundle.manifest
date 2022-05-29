@@ -6,12 +6,12 @@ Bundle-Version: 1.1.1
 Bundle-Activator: org.knopflerfish.bundle.repositorycommands.Activator
 Bundle-Description: Repository commands
 Bundle-Vendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+Bundle-ContactAddress: https://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=repositorycommands/index.html
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  description="BSD 3-clause";
- link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
+ link="https://www.knopflerfish.org/licenses/knopflerfish-1.txt"
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/repositorycommands/
 Bundle-Category: management

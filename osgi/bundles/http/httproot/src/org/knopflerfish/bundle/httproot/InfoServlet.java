@@ -229,7 +229,7 @@ public class InfoServlet extends HttpServlet {
     out.println("    <a class=\"button_closed\" href=\"/index.html\">Home</a>");
     out.println("    <a class=\"button_closed\" href=\"/docs/\">Documentation</a>");
     out.println("    <a class=\"button_open\" href=\"/servlet/knopflerfish-info\">Http-Server-Info</a>");
-    out.println("    <a class=\"button_closed\" href=\"http://www.knopflerfish.org/\">www.knopflerfish.org</a>");
+    out.println("    <a class=\"button_closed\" href=\"https://www.knopflerfish.org/\">www.knopflerfish.org</a>");
     out.println("   </div>");
     out.println("  </div>");
     out.println(" <div id=\"mainblock\">");

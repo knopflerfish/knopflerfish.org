@@ -931,7 +931,7 @@ public class BundleManifestTask extends Task {
 
 
   private final static String DOC_URL_PREFIX
-    = "http://www.knopflerfish.org/releases/current/";
+    = "https://www.knopflerfish.org/releases/current/";
   private final static String GIT_URL_PREFIX
     = "https://github.com/knopflerfish/knopflerfish.org/tree/master/";
 

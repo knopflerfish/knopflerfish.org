@@ -4,8 +4,8 @@ Bundle-SymbolicName: org.knopflerfish.bundle.bundleA_lazy2
 Bundle-Version: 1.0.0
 Bundle-Description: %description
 Bundle-Vendor: Knopflerfish/Makewave AB
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-ActivationPolicy: lazy;include:="org.knopflerfish.service.bundleA_lazy"
 Bundle-Activator: org.knopflerfish.bundle.bundleA_lazy.BundleActivator
 Bundle-Category: testing

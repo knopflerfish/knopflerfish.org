@@ -201,7 +201,7 @@
   </tstamp>
 
   <!-- The URL that this release will be available on after installation. -->
-  <property name="base.url" value="http://www.knopflerfish.org/releases"/>
+  <property name="base.url" value="https://www.knopflerfish.org/releases"/>
 
   <property name="jarunpacker.dir" location="tools/jarunpacker"/>
 

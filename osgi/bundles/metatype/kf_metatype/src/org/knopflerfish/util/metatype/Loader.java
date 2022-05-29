@@ -128,7 +128,7 @@ public class Loader
   static final String ATTR_ARRAY = "array";
 
   static final String XSD_NS = "http://www.w3.org/2001/XMLSchema";
-  static final String METATYPE_NS = "http://www.knopflerfish.org/XMLMetatype";
+  static final String METATYPE_NS = "https://www.knopflerfish.org/XMLMetatype";
 
   static final String TAG_ANNOTATION = "annotation";
   static final String TAG_SIMPLETYPE = "simpleType";
@@ -1036,7 +1036,7 @@ public class Loader
 
     if (bMetatypeTag) {
       out.println("<metatype:metatype\n"
-                  + "  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\"\n"
+                  + "  xmlns:metatype=\"https://www.knopflerfish.org/XMLMetatype\"\n"
                   + "  xmlns:xsd     = \"http://www.w3.org/2001/XMLSchema\">");
     }
     out.println("");
@@ -1181,7 +1181,7 @@ public class Loader
     }
 
     out.println(" <metatype:values\n"
-                + "  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\">");
+                + "  xmlns:metatype=\"https://www.knopflerfish.org/XMLMetatype\">");
     out.println("");
 
     for (final Object name : propList) {

@@ -7,7 +7,7 @@ Bundle-Category: management
 Bundle-Description: AWT framework desktop
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles_opt/desktop_awt/
 Bundle-Activator: org.knopflerfish.bundle.desktopawt.Activator

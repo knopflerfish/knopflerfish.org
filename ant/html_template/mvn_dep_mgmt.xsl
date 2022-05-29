@@ -25,9 +25,9 @@
       
       <title><xsl:value-of select="@product"/>&#160;<xsl:value-of select="@version"/> Maven Artifacts</title>
       <link rel="stylesheet" type="text/css"
-	    href="http://www.knopflerfish.org./css/knopflerfish2.1.css"/>
+	    href="https://www.knopflerfish.org./css/knopflerfish2.1.css"/>
       <link rel="shortcut icon"
-	    href="http://www.knopflerfish.org./images/favicon.png"/>
+	    href="https://www.knopflerfish.org./images/favicon.png"/>
     </head>
 
     <body>
@@ -36,36 +36,36 @@
         <a name="top"></a>
         <div id="header">
           <div id="header_logo">
-            <a href="http://www.knopflerfish.org/index.html"><img src="http://www.knopflerfish.org./images/kf300_black.png" border="0" alt="Knopflerfish logo"/></a>
+            <a href="https://www.knopflerfish.org/index.html"><img src="https://www.knopflerfish.org./images/kf300_black.png" border="0" alt="Knopflerfish logo"/></a>
           </div>
 	  <div id="header_ad">
 	    <div class="header_stylish">
 	      Open Source OSGi Service Platform Maintained by<br/>
 	      <a href="http://www.makewave.com">
 		<img style="margin-top: 4px;" alt="Makewave" border="0"
-		     src="http://www.knopflerfish.org./images/makewave_logo.png"/>
+		     src="https://www.knopflerfish.org./images/makewave_logo.png"/>
 	      </a>
 	    </div>
 	  </div>
 	  <div class="break"></div>
 	  <div id="header_menu">
-	    <a class="button_closed" href="http://www.knopflerfish.org./index.html">Home</a>
+	    <a class="button_closed" href="https://www.knopflerfish.org./index.html">Home</a>
 	  </div>
         </div>
 
 	<div id="leftmenu">
-	  <div class="nrow1_closed"><a href="http://www.knopflerfish.org./license.html">License</a></div>
+	  <div class="nrow1_closed"><a href="https://www.knopflerfish.org./license.html">License</a></div>
 	  <div class="nrow1_closed">&#160;</div>
-	  <div class="nrow1_closed"><a href="http://www.knopflerfish.org./mailman/listinfo">Mailing lists </a></div>
-	  <div class="nrow1_closed"><a  href="http://sourceforge.net/tracker/?atid=567241&amp;group_id=82798&amp;func=browse">Bug tracker <img border="0" alt="" src="http://www.knopflerfish.org./images/extlink.gif"/></a></div>
-	  <div class="nrow1_closed"><a href="https://sourceforge.net/forum/forum.php?forum_id=328005">Forum<img border="0" src="http://www.knopflerfish.org./images/extlink.gif" alt=""/></a></div>
-	  <div class="nrow1_closed"><a href="http://knopflerfish.blogspot.com/">Knopflerfish Blog<img border="0" src="http://www.knopflerfish.org./images/extlink.gif" alt=""/></a></div>
+	  <div class="nrow1_closed"><a href="https://www.knopflerfish.org./mailman/listinfo">Mailing lists </a></div>
+	  <div class="nrow1_closed"><a  href="http://sourceforge.net/tracker/?atid=567241&amp;group_id=82798&amp;func=browse">Bug tracker <img border="0" alt="" src="https://www.knopflerfish.org./images/extlink.gif"/></a></div>
+	  <div class="nrow1_closed"><a href="https://sourceforge.net/forum/forum.php?forum_id=328005">Forum<img border="0" src="https://www.knopflerfish.org./images/extlink.gif" alt=""/></a></div>
+	  <div class="nrow1_closed"><a href="http://knopflerfish.blogspot.com/">Knopflerfish Blog<img border="0" src="https://www.knopflerfish.org./images/extlink.gif" alt=""/></a></div>
 	  <div class="makewave">Maintained by<br/>
-	    <a href="http://www.makewave.com"><img src="http://www.knopflerfish.org./images/makewave_logo_126x16.gif" alt="Makewave" border="0"/></a><br/>
+	    <a href="http://www.makewave.com"><img src="https://www.knopflerfish.org./images/makewave_logo_126x16.gif" alt="Makewave" border="0"/></a><br/>
 	    <div class="makewave_2">
-	      <a href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro<img border="0" alt="" src="http://www.knopflerfish.org./images/extlink.gif"/></a><br/>
-	      <a href="http://www.makewave.com/site.en/products/osgi_training.shtml">OSGi Training<img border="0" alt="" src="http://www.knopflerfish.org./images/extlink.gif"/></a><br/>
-	      <a href="http://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services<img border="0" alt="" src="http://www.knopflerfish.org./images/extlink.gif"/></a><br/>
+	      <a href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro<img border="0" alt="" src="https://www.knopflerfish.org./images/extlink.gif"/></a><br/>
+	      <a href="http://www.makewave.com/site.en/products/osgi_training.shtml">OSGi Training<img border="0" alt="" src="https://www.knopflerfish.org./images/extlink.gif"/></a><br/>
+	      <a href="http://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services<img border="0" alt="" src="https://www.knopflerfish.org./images/extlink.gif"/></a><br/>
 	    </div>
 	  </div>
 	  <div class="makewave">

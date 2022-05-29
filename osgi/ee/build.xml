@@ -60,7 +60,7 @@
         <attribute name="Description"
                    value="Annotations with source retension for EEs that does not define them."/>
         <attribute name="License"
-                   value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
+                   value="&quot;https://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;https://www.knopflerfish.org/license.html&quot;"/>
         <attribute name="Build-Date"             value="${framework.tstamp}"/>
       </manifest>
     </jar>
@@ -80,7 +80,7 @@
         <attribute name="Description"
                    value="Android classes need for knopflerfish compilation."/>
         <attribute name="License"
-                   value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
+                   value="&quot;https://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;https://www.knopflerfish.org/license.html&quot;"/>
         <attribute name="Build-Date"             value="${framework.tstamp}"/>
       </manifest>
     </jar>

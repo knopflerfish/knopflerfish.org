@@ -225,7 +225,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       String k =  "Bundle-ContactAddress";
       String info = (String) ai.get(k);
-      assertEquals("bad Bundle-ContactAddress", "http://www.knopflerfish.org", info);
+      assertEquals("bad Bundle-ContactAddress", "https://www.knopflerfish.org", info);
 
       k =  "Bundle-Description";
       info = (String) ai.get(k);
@@ -233,7 +233,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       k =  "Bundle-DocURL";
       info = (String) ai.get(k);
-      assertEquals("bad Bundle-DocURL", "http://www.knopflerfish.org", info);
+      assertEquals("bad Bundle-DocURL", "https://www.knopflerfish.org", info);
 
       k =  "Bundle-Name";
       info = (String) ai.get(k);

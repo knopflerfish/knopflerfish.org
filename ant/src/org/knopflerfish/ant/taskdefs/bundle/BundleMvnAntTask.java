@@ -411,7 +411,7 @@ public class BundleMvnAntTask extends Task {
 	fw.write("asNode().appendNode('name', '" + ba.name + "')\n");
 	fw.write("def orgNode = asNode().appendNode('organization')\n");
 	fw.write("orgNode.appendNode('name', 'Knopflerfish')\n");
-	fw.write("orgNode.appendNode('url', 'http://www.knopflerfish.org')\n");
+	fw.write("orgNode.appendNode('url', 'https://www.knopflerfish.org')\n");
 
         addGradleLicense(fw, ba);
         addGradleDependencies(fw, ba);
