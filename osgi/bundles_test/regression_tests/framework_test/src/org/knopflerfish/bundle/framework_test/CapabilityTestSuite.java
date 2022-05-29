@@ -63,7 +63,7 @@ public class CapabilityTestSuite extends TestSuite implements FrameworkTest
 
 
   public CapabilityTestSuite (BundleContext bc) {
-    super("CapabiltyTestSuite");
+    super("CapabilityTestSuite");
     this.bc = bc;
 
     addTest(new Setup());
@@ -177,7 +177,7 @@ public class CapabilityTestSuite extends TestSuite implements FrameworkTest
 
 
   public final static String [] HELP_FRAME610A =  {
-    "Check that we care about uses on Require-Capablity"
+    "Check that we care about uses on Require-Capability"
   };
 
   class Frame610a extends FWTestCase {
@@ -187,7 +187,7 @@ public class CapabilityTestSuite extends TestSuite implements FrameworkTest
       assertNotNull(buCU1);
       // NOTE! Currently KF will not resolve the same package with
       // different version within the same resolve operation.
-      // Therefore we resolve each package seperatly before trying
+      // Therefore we resolve each package separately before trying
       // to resolve the bundle that uses both.
       try {
         buCUC1.start();
