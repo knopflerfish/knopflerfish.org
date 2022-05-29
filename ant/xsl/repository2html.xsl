@@ -67,7 +67,7 @@
           <div class="header_stylish">
             Open Source OSGi Service Platform Maintained by
           </div>
-          <a href="http://www.makewave.com">
+          <a href="https://www.makewave.com">
             <img border="0" alt="Makewave" src="../../docs/images/makewave_logo.png" style="margin-top: 4px;"/>
           </a>
         </div>

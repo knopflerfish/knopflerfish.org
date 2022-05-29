@@ -65,6 +65,6 @@ their respective owners and are hereby recognized.
 Feedback
 
 This specification can be downloaded from the OSGi web site:
-http://www.osgi.org.  Comments about this specification can be mailed
+https://www.osgi.org.  Comments about this specification can be mailed
 to: speccomments@mail.osgi.org
 

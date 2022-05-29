@@ -21,7 +21,7 @@ copyright owners.
 ----------------------------------------------------------------------
 This product includes the OSGi Service Platform API code from the OSGi
 Alliance provided under an Apache 2 license.
-http://www.osgi.org
+https://www.osgi.org
 
 Copyright (c) OSGi Alliance (2000, 2014). All Rights Reserved.
 
@@ -39,7 +39,7 @@ http://tango.freedesktop.org/Tango_Desktop_Project
 ----------------------------------------------------------------------
 This product includes the ASM byte code manipulation library from
 INRIA (BSD Style License)
-http://asm.ow2.org/
+https://asm.ow2.io/
 
 Copyright (c) 2000-2005 INRIA, France Telecom
 All rights reserved.
@@ -82,7 +82,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 This product includes the commons_logging bundle which includes
 software developed by the Apache Commons Logging project released
 under Apache Software License, Version 2.0. (c) 2001-2004
-http://commons.apache.org/logging/
+https://commons.apache.org/proper/commons-logging/
 
 ----------------------------------------------------------------------
 -	Crimson Bundle Notice
@@ -105,14 +105,14 @@ under Apache Software License, Version 2.0. (c) 2001-2004
 This product includes the junit bundles which includes
 software developed by the JUnit project released under a Common Public
 License, Version 1.0
-http://junit.sourceforge.net/
+https://www.junit.org/
 
 ----------------------------------------------------------------------
 -	kxml Bundle Notice
 ----------------------------------------------------------------------
 This product includes the kxml bundle which includes software
 developed by Stefan Haustein provided under a BSD style license.
-http://kxml.sourceforge.net
+https://github.com/kobjects/kxml2
 
 Copyright (c) 2002,2003, Stefan Haustein, Oberhausen, Rhld., Germany
 
@@ -142,7 +142,7 @@ information.
 This product includes the xerces bundle which includes software
 developed by the Apache Xalan project released under Apache Software
 License, Version 2.0. (c) 2001-2004
-http://xml.apache.org/xalan-j/
+https://xml.apache.org/xalan-j/
 
 ----------------------------------------------------------------------
 -	Xerces Bundle Notice
@@ -150,4 +150,4 @@ http://xml.apache.org/xalan-j/
 This product includes the xerces bundle which includes software
 developed by the Apache Xerces project released under Apache Software
 License, Version 2.0. (c) 2001-2004
-http://xerces.apache.org/
+https://xerces.apache.org/

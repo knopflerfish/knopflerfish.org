@@ -60,7 +60,7 @@ import org.osgi.resource.Resource;
  * Unscoped subsystems have more than one parent if they are installed in more
  * than one subsystem within the same region. The subsystem graph may be thought
  * of as an <a
- * href="http://en.wikipedia.org/wiki/Directed_acyclic_graph">acyclic
+ * href="https://en.wikipedia.org/wiki/Directed_acyclic_graph">acyclic
  * digraph</a> with one and only one source vertex, which is the root subsystem.
  * The edges have the child as the head and parent as the tail.
  * 

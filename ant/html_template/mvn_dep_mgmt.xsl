@@ -41,7 +41,7 @@
 	  <div id="header_ad">
 	    <div class="header_stylish">
 	      Open Source OSGi Service Platform Maintained by<br/>
-	      <a href="http://www.makewave.com">
+	      <a href="https://www.makewave.com">
 		<img style="margin-top: 4px;" alt="Makewave" border="0"
 		     src="https://www.knopflerfish.org./images/makewave_logo.png"/>
 	      </a>
@@ -61,16 +61,16 @@
 	  <div class="nrow1_closed"><a href="https://sourceforge.net/forum/forum.php?forum_id=328005">Forum<img border="0" src="https://www.knopflerfish.org./images/extlink.gif" alt=""/></a></div>
 	  <div class="nrow1_closed"><a href="http://knopflerfish.blogspot.com/">Knopflerfish Blog<img border="0" src="https://www.knopflerfish.org./images/extlink.gif" alt=""/></a></div>
 	  <div class="makewave">Maintained by<br/>
-	    <a href="http://www.makewave.com"><img src="https://www.knopflerfish.org./images/makewave_logo_126x16.gif" alt="Makewave" border="0"/></a><br/>
+	    <a href="https://www.makewave.com"><img src="https://www.knopflerfish.org./images/makewave_logo_126x16.gif" alt="Makewave" border="0"/></a><br/>
 	    <div class="makewave_2">
-	      <a href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro<img border="0" alt="" src="https://www.knopflerfish.org./images/extlink.gif"/></a><br/>
-	      <a href="http://www.makewave.com/site.en/products/osgi_training.shtml">OSGi Training<img border="0" alt="" src="https://www.knopflerfish.org./images/extlink.gif"/></a><br/>
-	      <a href="http://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services<img border="0" alt="" src="https://www.knopflerfish.org./images/extlink.gif"/></a><br/>
+	      <a href="https://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro<img border="0" alt="" src="https://www.knopflerfish.org./images/extlink.gif"/></a><br/>
+	      <a href="https://www.makewave.com/site.en/products/osgi_training.shtml">OSGi Training<img border="0" alt="" src="https://www.knopflerfish.org./images/extlink.gif"/></a><br/>
+	      <a href="https://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services<img border="0" alt="" src="https://www.knopflerfish.org./images/extlink.gif"/></a><br/>
 	    </div>
 	  </div>
 	  <div class="makewave">
-	    <a href="http://www.twitter.com/knopflerfish">
-	      <img src="http://twitter-badges.s3.amazonaws.com/follow_us-b.png"
+	    <a href="https://www.twitter.com/knopflerfish">
+	      <img src="https://twitter-badges.s3.amazonaws.com/follow_us-b.png"
 		   alt="Follow knopflerfish on Twitter" border="0"/>
 	    </a>
 	  </div>

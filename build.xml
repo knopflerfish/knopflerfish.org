@@ -182,7 +182,7 @@
   <property name="kf.mvn.current.release.repo"
 	    value="current-maven-release.tar.gz" />
   <property name="kf.mvn.current.release.repo.url"
-	    value="http://resources.knopflerfish.org/repo/maven2-archives/${kf.mvn.current.release.repo}" />
+	    value="https://resources.knopflerfish.org/repo/maven2-archives/${kf.mvn.current.release.repo}" />
   <property name="distrib.sdk.name"
 	    value="knopflerfish_osgi_sdk_${version}" />
   <property name="distrib.sdk.file"
@@ -925,7 +925,7 @@
 
   <!--|
       | The program used to check for broken links is the W3C checklink program:
-      | http://validator.w3.org/docs/checklink.html
+      | https://validator.w3.org/checklink/docs/checklink.html
       |
       | It must be locally installed as it checks the generated docs on the local
       | file system. Only tested on OS X so far.
