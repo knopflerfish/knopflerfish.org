@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JUnit
 Bundle-SymbolicName: org.knopflerfish.bundle.junit
-Bundle-Version: 3.8.1.kf4-003
+Bundle-Version: 3.8.1.kf6-2-001
 Bundle-Category: testing
 Bundle-Description: JUnit support
 Bundle-Vendor: JUnit/Knopflerfish

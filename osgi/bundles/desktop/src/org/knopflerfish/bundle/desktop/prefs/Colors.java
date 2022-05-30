@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,7 +96,7 @@ public class Colors extends Hashtable<String,Color> {
       }
     }
 
-    final StringBuffer sb = new StringBuffer("#");
+    final StringBuilder sb = new StringBuilder("#");
     int r = c.getRed();
     int g = c.getGreen();
     int b = c.getBlue();
@@ -112,11 +112,11 @@ public class Colors extends Hashtable<String,Color> {
    * Convert an integer to a (zero-padded) hex string.
    */
   public static String toHex(int n, int len) {
-    StringBuffer s = new StringBuffer(Integer.toHexString(n));
-    while(s.length() < len) {
-      s.insert(0, "0");
+    StringBuilder sb = new StringBuilder(Integer.toHexString(n));
+    while(sb.length() < len) {
+      sb.insert(0, "0");
     }
-    return s.toString();
+    return sb.toString();
   }
 
   public static Color rgbInterpolate(Color c1, Color c2, double k) {

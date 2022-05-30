@@ -51,7 +51,6 @@
 
   <import file="${ant.dir}/android.xml"/>
 
-
   <!-- ************************************************************ -->
   <!-- Properties configuring javac settings.                       -->
   <!-- ************************************************************ -->
@@ -165,10 +164,15 @@
 
   <!-- The root of the default bundle repository. -->
   <property name="osgi.jars.dir" location="${osgi.dir}/jars"/>
+  <property name="osgi.jars.ext.dir" location="${osgi.dir}/jars_ext"/>
 
   <!-- The root of the local bundle repository, in which built bundles -->
   <!-- are placed.                                                     -->
   <property name="jars.dir" location="${topdir}/jars"/>
+
+  <!-- The root of the local bundle repository, in which built bundles -->
+  <!-- are placed.                                                     -->
+  <property name="jars.ext.dir" location="${topdir}/jars_ext"/>
 
   <!-- Name of the subdirectory of jars.dir where this projects bundles -->
   <!-- shall be placed. -->
@@ -242,7 +246,7 @@
 
   <!-- A comma separated list of packages that does not need to be imported. -->
   <!-- I.e., packages that are made available through the system classloader.-->
-  <property name="bundle.stdimports"   value="java."/>
+  <property name="bundle.stdimports"   value="java., org.osgi.annotation.versioning"/>
 
   <!-- A comma separated list of packages that needs to be imported even -->
   <!-- though that they are not explicitly referenced from inside the -->
@@ -447,14 +451,30 @@
           <exclude name="**/*-javadoc.jar"/>
           <include name="**/*.jar"/>
         </fileset>
+        <fileset dir="${jars.ext.dir}">
+          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-javadoc.jar"/>
+          <include name="**/*.jar"/>
+        </fileset>
         <!-- Search the local default repository second -->
         <fileset dir="${osgi.jars.dir}">
           <exclude name="**/*-source.jar"/>
           <exclude name="**/*-javadoc.jar"/>
           <include name="**/*.jar"/>
         </fileset>
+        <fileset dir="${osgi.jars.ext.dir}">
+          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-javadoc.jar"/>
+          <include name="**/*.jar"/>
+        </fileset>
         <!-- Search the default repository third -->
         <fileset dir="${osgi.dir}/jars">
+          <exclude name="**/*-source.jar"/>
+          <exclude name="**/*-javadoc.jar"/>
+          <include name="**/*.jar"/>
+        </fileset>
+        <!-- Search the default repository third -->
+        <fileset dir="${osgi.dir}/jars_ext">
           <exclude name="**/*-source.jar"/>
           <exclude name="**/*-javadoc.jar"/>
           <include name="**/*.jar"/>

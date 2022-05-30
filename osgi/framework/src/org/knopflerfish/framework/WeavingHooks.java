@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -303,7 +303,7 @@ class WeavingHooks {
     }
   
     String getDynamicImportsAsString() {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       for (final String s : dynamicImports) {
         if (sb.length() > 0) {
           sb.append(", ");
@@ -314,7 +314,7 @@ class WeavingHooks {
     }
   
     String toString(List<String> sl) {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       sb.append("(");
       for (final String s : sl) {
         if (sb.length() > 1) {

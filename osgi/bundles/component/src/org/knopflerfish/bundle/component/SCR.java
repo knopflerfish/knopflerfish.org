@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -374,7 +374,7 @@ class SCR implements SynchronousBundleListener
                                  ArrayList<Component> path) {
     final int len = path.size();
     if (len > 0 && path.get(0) == component) {
-      final StringBuffer sb = new StringBuffer("Found circular component chain: ");
+      final StringBuilder sb = new StringBuilder("Found circular component chain: ");
       for (final Component element : path) {
         sb.append((element).compDesc.getName());
         sb.append("->");

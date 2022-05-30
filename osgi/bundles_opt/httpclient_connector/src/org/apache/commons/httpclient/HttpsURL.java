@@ -313,7 +313,7 @@ public class HttpsURL extends HttpURL {
             String query, String fragment) throws URIException {
 
         // validate and contruct the URI character sequence
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         if (userinfo != null || host != null || port != -1) {
             _scheme = DEFAULT_SCHEME; // in order to verify the own protocol
             buff.append(_default_scheme);

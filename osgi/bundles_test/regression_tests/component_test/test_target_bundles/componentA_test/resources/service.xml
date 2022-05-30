@@ -3,7 +3,7 @@
 
 
 <!-- this component is used to check the lazy instanciation of components -->
- <component name="componentA1.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0">
+ <component name="componentA1.test" xmlns="http://www.osgi.org/xmlns/scr/v1.3.0">
   <implementation class="org.knopflerfish.bundle.componentA_test.ComponentA1"/>
   <service>
    <provide interface="org.knopflerfish.bundle.componentA_test.ComponentA1"/>
@@ -16,7 +16,7 @@
 
 
 <!-- A references B -->
- <component name="componentA.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ <component name="componentA.test" xmlns="http://www.osgi.org/xmlns/scr/v1.3.0" >
  
   <implementation class="org.knopflerfish.bundle.componentA_test.ComponentA"/>
 
@@ -30,7 +30,7 @@
 
 
 <!-- B references C -->
- <component name="componentB.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ <component name="componentB.test" xmlns="http://www.osgi.org/xmlns/scr/v1.3.0" >
  
   <implementation class="org.knopflerfish.bundle.componentA_test.ComponentB"/>
 
@@ -51,7 +51,7 @@
 
 
 <!-- C reference TestService -->
- <component name="componentC.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ <component name="componentC.test" xmlns="http://www.osgi.org/xmlns/scr/v1.3.0" >
  
   <implementation class="org.knopflerfish.bundle.componentA_test.ComponentC"/>
 
@@ -69,7 +69,7 @@
 
 <!-- this component is used to check that properties defined here are --
   -- propagated to the registered service. -->
- <component name="componentP.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0">
+ <component name="componentP.test" xmlns="http://www.osgi.org/xmlns/scr/v1.3.0">
   <implementation class="org.knopflerfish.bundle.componentA_test.ComponentP"/>
   <property name="String1" type="String" value="string1"/>
   <property name="Strings" type="String">
@@ -117,25 +117,25 @@
     6
     7
   </property>
-  <property name="Character1" type="Character" value="1"/>
+  <property name="Character1" type="Character" value="49"/>
   <property name="Characters" type="Character">
-    1
-    2
-    3
-    4
-    5
-    6
-    7
-    8
+    49
+    50
+    51
+    52
+    53
+    54
+    55
+    56
   </property>
-  <property name="Character2"  type="Character" value="2"/>
+  <property name="Character2"  type="Character" value="50"/>
   <property name="Characters2" type="Character">
-    3
-    4
-    5
-    6
-    7
-    8
+      51
+      52
+      53
+      54
+      55
+      56
   </property>
   <property name="Boolean1" type="Boolean" value="true"/>
   <property name="Booleans" type="Boolean">
@@ -163,7 +163,7 @@
 
 
 <!-- Test that circular check works -->
- <component name="componentD.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ <component name="componentD.test" enabled="false" xmlns="http://www.osgi.org/xmlns/scr/v1.3.0" >
  
   <implementation class="org.knopflerfish.bundle.componentA_test.NoClass"/>
 

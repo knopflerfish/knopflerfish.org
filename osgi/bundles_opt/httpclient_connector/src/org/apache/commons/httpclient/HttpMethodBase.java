@@ -245,7 +245,7 @@ public abstract class HttpMethodBase implements HttpMethod {
      * @see org.apache.commons.httpclient.HttpMethod#getURI()
      */
     public URI getURI() throws URIException {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         if (this.httphost != null) {
             buffer.append(this.httphost.getProtocol().getScheme());
             buffer.append("://");
@@ -1496,7 +1496,7 @@ public abstract class HttpMethodBase implements HttpMethod {
         LOG.trace("enter HttpMethodBase.generateRequestLine(HttpConnection, "
             + "String, String, String, String)");
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         // Append method name
         buf.append(name);
         buf.append(" ");

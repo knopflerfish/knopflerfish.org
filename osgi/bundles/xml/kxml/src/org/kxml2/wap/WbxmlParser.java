@@ -158,8 +158,7 @@ public class WbxmlParser implements XmlPullParser {
 
     public String getPositionDescription() {
 
-        StringBuffer buf =
-        new StringBuffer(
+        StringBuilder buf = new StringBuilder(
         type < TYPES.length ? TYPES[type] : "unknown");
         buf.append(' ');
 
@@ -171,27 +170,22 @@ public class WbxmlParser implements XmlPullParser {
                 buf.append('/');
 
             if (prefix != null)
-                buf.append("{" + namespace + "}" + prefix + ":");
+                buf.append("{").append(namespace).append("}").append(prefix).append(":");
             buf.append(name);
 
             int cnt = attributeCount << 2;
             for (int i = 0; i < cnt; i += 4) {
                 buf.append(' ');
                 if (attributes[i + 1] != null)
-                    buf.append(
-                    "{"
-                    + attributes[i]
-                    + "}"
-                    + attributes[i
-                    + 1]
-                    + ":");
-                buf.append(
-                attributes[i
-                + 2]
-                + "='"
-                + attributes[i
-                + 3]
-                + "'");
+                    buf.append("{")
+                        .append(attributes[i])
+                        .append("}")
+                        .append(attributes[i + 1])
+                        .append(":");
+                buf.append(attributes[i + 2])
+                    .append("='")
+                    .append(attributes[i + 3])
+                    .append("'");
             }
 
             buf.append('>');
@@ -786,15 +780,14 @@ public class WbxmlParser implements XmlPullParser {
             }
 
             String name = resolveId(attrStartTable, id);
-            StringBuffer value;
+            StringBuilder value;
 
             int cut = name.indexOf('=');
 
             if (cut == -1)
-                value = new StringBuffer();
+                value = new StringBuilder();
             else {
-                value =
-                new StringBuffer(name.substring(cut + 1));
+                value = new StringBuilder(name.substring(cut + 1));
                 name = name.substring(0, cut);
             }
 
@@ -869,7 +862,7 @@ public class WbxmlParser implements XmlPullParser {
     protected String resolveWapExtension(int id, Object data){
 
     	if(data instanceof byte[]){
-    		StringBuffer sb = new StringBuffer();
+    		StringBuilder sb = new StringBuilder();
     		byte[] b = (byte[]) data;
 
     		for (int i = 0; i < b.length; i++) {

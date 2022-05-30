@@ -9,6 +9,14 @@
   <property name = "bundle.build.all"  value="true"/>
   <property name = "bundle.build.impl" value="false"/>
   <property name = "bundle.build.lib"  value="false"/>
+  <property name = "build.resources"   location="${proj.dir}/build.resources" />
+  <property name = "resources.dir"     location="${build.resources}" />
+
+  <condition property="docsrc.dir" value="${topdir}/../htdocs">
+    <available type="dir" file="${topdir}/../htdocs" />
+  </condition>
+  <property name = "docsrc.dir" value="${topdir}/../docs" />
+    
 
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.minimum"/>
@@ -25,6 +33,27 @@
    <pathelement location="../junit/resources/junit.jar"/>
   </path>
 
+  <!-- want to include doc pages for consistent look, but at the same time be self contained -->
+  <target name="bundle.custom.pre">
+    <mkdir dir="${build.resources}" />
+    <copy todir="${build.resources}">
+      <fileset dir="${proj.dir}/resources" />
+      <fileset dir="${docsrc.dir}">
+	<include name="css/knopflerfish.css" />
+	<include name="images/fadeout_15.png" />
+	<include name="images/kf300_black.png" />
+	<include name="images/makewave_logo.png" />
+	<include name="images/shortfadeout_20px.png" />
+      </fileset>
+    </copy>
+  </target>
+
+  <!-- need to undo the bundle.custom.pre step and do not want to -->
+  <!-- overwrite clean -->
+  <target name="bundle.custom.post">
+    <delete dir="${build.resources}" />
+  </target>
+  
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

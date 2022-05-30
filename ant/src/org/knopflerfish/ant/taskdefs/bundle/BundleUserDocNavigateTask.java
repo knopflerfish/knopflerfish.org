@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -280,7 +280,7 @@ public class BundleUserDocNavigateTask
   // Build a html-string with links to the lds in the set.
   private String links(final Set<LinkData> lds)
   {
-    final StringBuffer sb = new StringBuffer(1024);
+    final StringBuilder sb = new StringBuilder(1024);
     for (final LinkData ld : lds) {
       sb.append("      <dd class=\"leftmenu");
       sb.append(ld.depth +1);

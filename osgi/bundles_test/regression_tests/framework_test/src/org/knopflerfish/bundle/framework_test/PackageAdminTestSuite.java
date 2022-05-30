@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004,2006 KNOPFLERFISH project
+ * Copyright (c) 2004-2022 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -691,7 +691,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
   // General status check functions
   // prevent control characters to be printed
   private String xlateData(byte [] b1) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < b1.length ; i++) {
       if (-128 <= b1[i] && b1[i] < 0) {
 	sb.append(new String(b1, i, 1));
@@ -711,22 +711,22 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
   // General printout of PermissionInfo
 
   private void printPermission(Object _out, PermissionInfo pi) {
-    StringBuffer sb1 = new StringBuffer();
+    StringBuilder sb1 = new StringBuilder();
 
     sb1.append("ENCODED: ");
-    if (pi.getEncoded() != null) { sb1.append(pi.getEncoded() + lineseparator); } else { sb1.append("null" + lineseparator); }
+    sb1.append(pi.getEncoded()).append(lineseparator);
 
     sb1.append("ACTIONS: ");
-    if (pi.getActions() != null) { sb1.append(pi.getActions() + lineseparator); } else { sb1.append("null" + lineseparator); }
+    sb1.append(pi.getActions()).append(lineseparator);
 
     sb1.append("NAME: ");
-    if (pi.getName() != null) { sb1.append(pi.getName() + lineseparator); } else { sb1.append("null" + lineseparator); }
+    sb1.append(pi.getName()).append(lineseparator);
 
     sb1.append("TYPE: ");
-    if (pi.getType() != null) { sb1.append(pi.getType() + lineseparator); } else { sb1.append("null" + lineseparator); }
+    sb1.append(pi.getType()).append(lineseparator);
 
     sb1.append("STRING: ");
-    if (pi.toString() != null) { sb1.append(pi.toString() + lineseparator); } else { sb1.append("null" + lineseparator); }
+    sb1.append(pi.toString()).append(lineseparator);
 
     out.println(sb1.toString());
   }
@@ -734,12 +734,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
   // Condensed printout of PermissionInfo
 
   private void printPermissionShort (Object _out, PermissionInfo pi) {
-    StringBuffer sb1 = new StringBuffer();
-
-    sb1.append("  ENCODED: ");
-    if (pi.getEncoded() != null) { sb1.append(pi.getEncoded()); } else { sb1.append("null"); }
-
-    out.println(sb1.toString());
+		out.println("  ENCODED: " + pi.getEncoded());
   }
 
   // Check that the expected implications occur 

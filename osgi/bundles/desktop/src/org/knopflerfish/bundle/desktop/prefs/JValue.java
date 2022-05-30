@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,7 +103,7 @@ public class JValue
 
     String desc = null;
 
-    StringBuffer extProps = new StringBuffer();
+    StringBuilder extProps = new StringBuilder();
 
     // add extra info if ExtPreferences
     if(node instanceof ExtPreferences) {
@@ -117,9 +117,8 @@ public class JValue
 
       // add all ext properties except for type and description
       for(int i = 0; extNames != null && i < extNames.length; i++) {
-        if(ExtPreferences.PROP_DESC.equals(extNames[i]) ||
-           ExtPreferences.PROP_TYPE.equals(extNames[i])) {
-        } else {
+        if (!ExtPreferences.PROP_DESC.equals(extNames[i]) &&
+            !ExtPreferences.PROP_TYPE.equals(extNames[i])) {
           if(extProps.length() > 0) {
             extProps.append("<br>\n");
           }
@@ -136,8 +135,7 @@ public class JValue
       shortType = shortType.substring(ix + 1);
     }
 
-
-    StringBuffer tt = new StringBuffer();
+    StringBuilder tt = new StringBuilder();
     tt.append("<html>");
     tt.append("<b>");
     tt.append(key);

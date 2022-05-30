@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -490,7 +490,7 @@ public class Bundle
   private void handleClassPath()
       throws ManifestException
   {
-    final StringBuffer value = new StringBuffer();
+    final StringBuilder value = new StringBuilder();
 
     boolean rootIncluded = false;
     if (baseDir != null || classes.size() == 0) {
@@ -553,7 +553,7 @@ public class Bundle
   {
     final Iterator<Entry<String,String>> i = packageMap.entrySet().iterator();
     if (i.hasNext()) {
-      final StringBuffer valueBuffer = new StringBuffer();
+      final StringBuilder valueBuffer = new StringBuilder();
       while (i.hasNext()) {
         final Entry<String, String> entry = i.next();
         final String name = entry.getKey();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,7 @@ import java.awt.Color;
 
 public class Util {
 
-
-
-
-// StringBuffer (red.green.blue) -> Color
+  // Integer (red.green.blue) -> Color
   static Hashtable colors = new Hashtable();
   
   static int maxK = 256;

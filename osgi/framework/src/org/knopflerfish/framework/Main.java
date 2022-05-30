@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2018, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1116,10 +1116,10 @@ public class Main
         final String [] subdirs = new String[v.size()];
         v.toArray(subdirs);
 
-        final StringBuffer sb = new StringBuffer();
-        sb.append("file:" + jarBaseDir + "/");
+        final StringBuilder sb = new StringBuilder();
+        sb.append("file:").append(jarBaseDir).append("/");
         for (final String subdir : subdirs) {
-          sb.append(";file:" + jarBaseDir + "/" + subdir + "/");
+          sb.append(";file:").append(jarBaseDir).append("/").append(subdir).append("/");
         }
         sb.append(FWResourceURLStreamHandler.PROTOCOL + ":jars/");
         jars = sb.toString().replace('\\', '/');
@@ -1308,7 +1308,7 @@ public class Main
       } else {
         in = getXargsReader(xargsPath);
       }
-      StringBuffer contLine = new StringBuffer();
+      StringBuilder contLine = new StringBuilder();
       String       line     = null;
       String       tmpline  = null;
       for(tmpline = in.readLine(); tmpline != null;
@@ -1322,7 +1322,7 @@ public class Main
           // buffered continuation line
           tmpline = tmpline.substring(0, tmpline.length() - 1);
           if(contLine == null) {
-            contLine = new StringBuffer(tmpline);
+            contLine = new StringBuilder(tmpline);
           } else {
             contLine.append(tmpline);
           }

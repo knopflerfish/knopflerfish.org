@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, KNOPFLERFISH project
+ * Copyright (c) 2011-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -451,7 +451,7 @@ public class ScrCommandGroup
         lenBid = tmp;
       }
     }
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     sb.append(Util.showRight(lenId, "ID"));
     sb.append(" State        ");
     sb.append(Util.showRight(lenBid, "BID"));
@@ -571,7 +571,7 @@ public class ScrCommandGroup
         }
         for (final String key : keys) {
           sb.setLength(baseLen);
-          sb.append("Property " + key + " = ");
+          sb.append("Property ").append(key).append(" = ");
           final Object val = props.get(key);
           if (val.getClass().isArray()) {
             sb.append("[");
@@ -582,7 +582,7 @@ public class ScrCommandGroup
                 if (i > 0) {
                   sb.append(", ");
                 }
-                sb.append(Boolean.toString(vals[i]));
+                sb.append(vals[i]);
               }
             } else if (ct == Byte.TYPE) {
               final byte[] vals = (byte[]) val;
@@ -590,7 +590,7 @@ public class ScrCommandGroup
                 if (i > 0) {
                   sb.append(", ");
                 }
-                sb.append(Byte.toString(vals[i]));
+                sb.append(vals[i]);
               }
             } else if (ct == Character.TYPE) {
               final char[] vals = (char[]) val;
@@ -598,7 +598,7 @@ public class ScrCommandGroup
                 if (i > 0) {
                   sb.append(", ");
                 }
-                sb.append(Character.toString(vals[i]));
+                sb.append(vals[i]);
               }
             } else if (ct == Double.TYPE) {
               final double[] vals = (double[]) val;
@@ -606,7 +606,7 @@ public class ScrCommandGroup
                 if (i > 0) {
                   sb.append(", ");
                 }
-                sb.append(Double.toString(vals[i]));
+                sb.append(vals[i]);
               }
             } else if (ct == Float.TYPE) {
               final float[] vals = (float[]) val;
@@ -614,7 +614,7 @@ public class ScrCommandGroup
                 if (i > 0) {
                   sb.append(", ");
                 }
-                sb.append(Float.toString(vals[i]));
+                sb.append(vals[i]);
               }
             } else if (ct == Integer.TYPE) {
               final int[] vals = (int[]) val;
@@ -622,7 +622,7 @@ public class ScrCommandGroup
                 if (i > 0) {
                   sb.append(", ");
                 }
-                sb.append(Integer.toString(vals[i]));
+                sb.append(vals[i]);
               }
             } else if (ct == Long.TYPE) {
               final long[] vals = (long[]) val;
@@ -630,7 +630,7 @@ public class ScrCommandGroup
                 if (i > 0) {
                   sb.append(", ");
                 }
-                sb.append(Long.toString(vals[i]));
+                sb.append(vals[i]);
               }
             } else if (ct == Short.TYPE) {
               final short[] vals = (short[]) val;
@@ -638,7 +638,7 @@ public class ScrCommandGroup
                 if (i > 0) {
                   sb.append(", ");
                 }
-                sb.append(Short.toString(vals[i]));
+                sb.append(vals[i]);
               }
             } else {
               final Object[] vals = (Object[]) val;
@@ -663,7 +663,7 @@ public class ScrCommandGroup
         } else {
           final String factory = c.getFactory();
           if (factory != null) {
-            sb.append("Factory component, name = " + factory);
+            sb.append("Factory component, name = ").append(factory);
           } else {
             sb.append("Delayed component");
           }
@@ -671,7 +671,7 @@ public class ScrCommandGroup
         if (c.isDefaultEnabled()) {
           sb.append(", default enabled");
         }
-        sb.append(", config policy = " + c.getConfigurationPolicy());
+        sb.append(", config policy = ").append(c.getConfigurationPolicy());
         out.println(sb.toString());
       }
     }

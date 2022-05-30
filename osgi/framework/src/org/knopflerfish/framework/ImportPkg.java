@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2017, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -420,7 +420,7 @@ class ImportPkg
 
   private Filter toFilter()
   {
-    final StringBuffer sb = new StringBuffer(80);
+    final StringBuilder sb = new StringBuilder(80);
     boolean multipleConditions = false;
 
     sb.append('(');
@@ -444,7 +444,7 @@ class ImportPkg
       sb.append('=');
       sb.append(bundleSymbolicName);
       sb.append(')');
-      multipleConditions |= true;
+      multipleConditions = true;
     }
 
     if (bundleRange != null) {
@@ -458,7 +458,7 @@ class ImportPkg
       sb.append('=');
       sb.append(entry.getValue().toString());
       sb.append(')');
-      multipleConditions |= true;
+      multipleConditions = true;
     }
 
     if (multipleConditions) {

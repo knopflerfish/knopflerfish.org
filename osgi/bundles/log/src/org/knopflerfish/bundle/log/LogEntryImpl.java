@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,10 +51,9 @@ public final class LogEntryImpl implements LogEntry {
 
   // The SimpleDateFormat class is not thread safe; wrap access to it
   // in synchronized methods.
-  private static final SimpleDateFormat simpleDateFormat
-    = new SimpleDateFormat();
+  private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
 
-  static final void setTimestampPattern(final String pattern)
+  static void setTimestampPattern(final String pattern)
   {
     synchronized(simpleDateFormat) {
       try {
@@ -64,7 +63,7 @@ public final class LogEntryImpl implements LogEntry {
     }
   }
 
-  static final String formatTimestamp(final Date date)
+  static String formatTimestamp(final Date date)
   {
     synchronized(simpleDateFormat) {
       return simpleDateFormat.format(date);
@@ -73,39 +72,34 @@ public final class LogEntryImpl implements LogEntry {
 
   // Log entry data.
   private final Bundle bundle;
-
-  private final ServiceReference<?> sr;
-
+  private final ServiceReference<?> serviceReference;
   private final int level;
+  private final String message;
+  private final Throwable throwable;
+  private final long timestamp;
 
-  private final String msg;
-
-  private final Throwable e;
-
-  private final long millis;
-
-  public LogEntryImpl(final Bundle bc, final int l, final String m) {
-    this(bc, null, l, m, null);
+  public LogEntryImpl(final Bundle bundle, final int level, final String message) {
+    this(bundle, null, level, message, null);
   }
 
-  public LogEntryImpl(final Bundle bc, final int l, final String m,
-                      final Throwable e) {
-    this(bc, null, l, m, e);
+  public LogEntryImpl(final Bundle bundle, final int level, final String message,
+                      final Throwable throwable) {
+    this(bundle, null, level, message, throwable);
   }
 
-  public LogEntryImpl(final Bundle bc, final ServiceReference<?> sd, final int l,
-                      final String m) {
-    this(bc, sd, l, m, null);
+  public LogEntryImpl(final Bundle bundle, final ServiceReference<?> serviceReference, final int level,
+                      final String message) {
+    this(bundle, serviceReference, level, message, null);
   }
 
-  public LogEntryImpl(final Bundle bc, final ServiceReference<?> sd, final int l,
-                      final String m,  final Throwable e) {
-    this.bundle = bc;
-    this.sr = sd;
-    this.level = l;
-    this.msg = m;
-    this.e = e;
-    this.millis = System.currentTimeMillis();
+  public LogEntryImpl(final Bundle bundle, final ServiceReference<?> serviceReference, final int level,
+                      final String message,  final Throwable throwable) {
+    this.bundle = bundle;
+    this.serviceReference = serviceReference;
+    this.level = level;
+    this.message = message;
+    this.throwable = throwable;
+    this.timestamp = System.currentTimeMillis();
   }
 
   /**
@@ -116,12 +110,11 @@ public final class LogEntryImpl implements LogEntry {
    *  level    YYYYMMDD HH:MM:ss bid#NR - [Service] - Message (Exception)
    * </pre>
    */
-  public String toString() {
-
-    final StringBuffer sb = new StringBuffer(100);
+  public String toString() { // 353 - 419
+    final StringBuilder sb = new StringBuilder(100);
     sb.append(LogUtil.fromLevel(level, 8));
     sb.append(" ");
-    sb.append(formatTimestamp(new Date(millis)));
+    sb.append(formatTimestamp(new Date(timestamp)));
     sb.append(" ");
     sb.append("bid#");
     // Reserve 8 chars for the bundle id, pad with spaces if needed
@@ -134,11 +127,11 @@ public final class LogEntryImpl implements LogEntry {
       sb.setLength(bidEndPos);
     }
     sb.append(" - ");
-    if (sr != null) {
+    if (serviceReference != null) {
       sb.append("[");
-      sb.append(sr.getProperty(Constants.SERVICE_ID).toString());
+      sb.append(serviceReference.getProperty(Constants.SERVICE_ID).toString());
       sb.append(";");
-      String[] clazzes = (String[]) sr.getProperty(Constants.OBJECTCLASS);
+      String[] clazzes = (String[]) serviceReference.getProperty(Constants.OBJECTCLASS);
       for (int i = 0; i < clazzes.length; i++) {
         if (i > 0)
           sb.append(",");
@@ -146,10 +139,10 @@ public final class LogEntryImpl implements LogEntry {
       }
       sb.append("] ");
     }
-    sb.append(msg);
-    if (e != null) {
+    sb.append(message);
+    if (throwable != null) {
       sb.append(" (");
-      sb.append(e.toString());
+      sb.append(throwable.toString());
       sb.append(")");
     }
 
@@ -161,7 +154,7 @@ public final class LogEntryImpl implements LogEntry {
   }
 
   public ServiceReference<?> getServiceReference() {
-    return sr;
+    return serviceReference;
   }
 
   public int getLevel() {
@@ -169,14 +162,14 @@ public final class LogEntryImpl implements LogEntry {
   }
 
   public String getMessage() {
-    return msg;
+    return message;
   }
 
   public Throwable getException() {
-    return e;
+    return throwable;
   }
 
   public long getTime() {
-    return millis;
+    return timestamp;
   }
 }

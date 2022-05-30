@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, KNOPFLERFISH project
+ * Copyright (c) 2012-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -212,7 +212,7 @@ class BundleMetaTypeInformationSnapshot
   @Override
   public String toString()
   {
-    final StringBuffer sb = new StringBuffer(200);
+    final StringBuilder sb = new StringBuilder(200);
     sb.append("Bundle: #");
     sb.append(bundle.getBundleId());
     sb.append('\n');

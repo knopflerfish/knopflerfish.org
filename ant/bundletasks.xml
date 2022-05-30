@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   ** Copyright (c) 2003-2015, KNOPFLERFISH project
+   ** Copyright (c) 2003-2018, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -44,17 +44,22 @@
 
 
   <!-- ASM bytecode manipulation and analysis framework -->
-  <property name="asm.version" value="3.2"/>
-  <property name="asm.jar"
-	    location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
-  <path id="asm.path">
-    <pathelement location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
-  </path>
-  
+
+  <!-- ASM 4 is used by the bundle_util tasks -->
+  <!-- pegdown depends on this ASM version -->
   <property name="asm-all.version"	value="4.0"/>
-  <property name="asm-all.jar"		value="asm-all-${asm-all.version}.jar" />
+  <property name="asm-all.jar"		value="asm-all-${asm-all.version}.jar"/>
+  <property name="asm-all.jar.location"	location="${ant.lib}/${asm-all.jar}" />
   <path id="asm-all.path">
     <pathelement location="${ant.lib}/${asm-all.jar}" />
+  </path>
+  
+  <!-- ASM 7 is used by the bundle_build tasks -->
+  <property name="asm.version"		value="9.3"/>
+  <property name="asm.jar"		value="asm-${asm.version}.jar" />
+  <property name="asm.jar.location"	location="${ant.lib}/${asm.jar}" />
+  <path id="asm.path">
+    <pathelement location="${ant.lib}/${asm.jar}" />
   </path>
 
   <!-- Download and install repoindex -->
@@ -71,6 +76,10 @@
             value="org.osgi.impl.bundle.repoindex.ant-0.0.1.jar"/>
   <property name="org.osgi.impl.bundle.repoindex.ant.download.url"
             value="${bndtools.download.url}/org.osgi.impl.bundle.repoindex.ant/" />
+
+  <target name="setup">
+    <mkdir dir="${ant.lib}" />
+  </target>
 
   <target name="install_repoindex">
     <get src="${org.osgi.impl.bundle.repoindex.cli.download.url}/${org.osgi.impl.bundle.repoindex.cli.jar}"
@@ -163,7 +172,7 @@
             value="proguard-anttask-${proguard.version}.jar"/>
   <property name="proguard-base.jar"
             value="proguard-base-${proguard.version}.jar"/>
-  <property name="maven.url" value="http://repo1.maven.org/maven2"/>
+  <property name="maven.url" value="https://repo1.maven.org/maven2"/>
   <property name="proguard.url" value="${maven.url}/net/sf/proguard"/>
   <property name="proguard-anttask.url"
             value="${proguard.url}/proguard-anttask/${proguard.version}/${proguard-anttask.jar}"/>
@@ -189,16 +198,17 @@
 
   <property name="pegdown.version"	value="1.6.0"/>
   <property name="pegdown.jar"		value="pegdown-${pegdown.version}.jar" />
-  <property name="pegdown.url"		value="http://repo1.maven.org/maven2/org/pegdown/pegdown/${pegdown.version}/${pegdown.jar}" />
+  <property name="pegdown.url"		value="${maven.url}/org/pegdown/pegdown/${pegdown.version}/${pegdown.jar}" />
 
   <property name="parboiled-core.version"	value="1.1.7"/>
   <property name="parboiled-core.jar"		value="parboiled-core-${parboiled-core.version}.jar" />
-  <property name="parboiled-core.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-core/${parboiled-core.version}/${parboiled-core.jar}" />
+  <property name="parboiled-core.url"		value="${maven.url}/org/parboiled/parboiled-core/${parboiled-core.version}/${parboiled-core.jar}" />
   <property name="parboiled-java.version"	value="1.1.7"/>
   <property name="parboiled-java.jar"		value="parboiled-java-${parboiled-java.version}.jar" />
-  <property name="parboiled-java.url"		value="http://repo1.maven.org/maven2/org/parboiled/parboiled-java/${parboiled-java.version}/${parboiled-java.jar}" />
+  <property name="parboiled-java.url"		value="${maven.url}/org/parboiled/parboiled-java/${parboiled-java.version}/${parboiled-java.jar}" />
 
-  <property name="asm-all.url"		value="http://central.maven.org/maven2/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" />
+  <property name="asm.url"		value="${maven.url}/org/ow2/asm/asm/${asm.version}/${asm.jar}" />
+  <property name="asm-all.url"		value="${maven.url}/org/ow2/asm/asm-all/${asm-all.version}/${asm-all.jar}" />
 
   <target name="install_pegdown">
     <get src="${pegdown.url}"
@@ -214,7 +224,15 @@
 	 verbose="true"
 	 skipexisting="true" />
     <get src="${asm-all.url}"
-	 dest="${ant.lib}/${asm-all.jar}"
+	 dest="${asm-all.jar.location}"
+	 verbose="true"
+	 skipexisting="true" />
+
+  </target>
+
+  <target name="install_asm">
+    <get src="${asm.url}"
+	 dest="${asm.jar.location}"
 	 verbose="true"
 	 skipexisting="true" />
   </target>
@@ -234,11 +252,9 @@
 
   <path id="util_tasks.path">
     <pathelement location="${antclasses}"/>
-    <path refid="asm-all.path"/>
     <pathelement location="${ant.lib}/pegdown-1.6.0.jar"/>
     <pathelement location="${ant.lib}/parboiled-core-1.1.7.jar"/>
     <pathelement location="${ant.lib}/parboiled-java-1.1.7.jar"/>
-    <path refid="asm-all.path"/>
   </path>
 
   <target name="chkBundleTaskSrc">
@@ -247,7 +263,7 @@
         <and>
           <available type="dir"  file="${ant.dir}/src"/>
           <available type="dir"  file="${framework.dir}/src"/>
-          <available type="file" file="${asm.jar}"/>
+          <available type="file" file="${asm.jar.location}"/>
         </and>
       </not>
     </condition>
@@ -270,7 +286,7 @@
   </target>
 
   <target name="build_util_tasks"
-	  depends="install_pegdown">
+	  depends="setup, install_pegdown">
     <mkdir dir="${antclasses}"/>
     <javac destdir="${antclasses}"
            classpathref="util_tasks.path"
@@ -300,7 +316,7 @@
   </target>
 
   <target name="build_bundle_tasks"
-          depends="chkBundleTaskSrc,chkBundleTasksBuild"
+          depends="setup,install_asm,chkBundleTaskSrc,chkBundleTasksBuild"
           unless="bundleTasksBuild.notRequired">
     <mkdir dir="${antclasses}"/>
     <javac destdir="${antclasses}"
@@ -330,7 +346,7 @@
       <zipfileset dir="${ant.dir}/src"
                   includes="**/antlib.xml"/>
       <zipfileset dir="${antclasses}"/>
-      <zipfileset src="${asm.jar}" includes="org/**"/> 
+      <zipfileset src="${asm.jar.location}" includes="org/**"/> 
     </jar>
   </target>
 
@@ -354,7 +370,7 @@
 	<pathelement location="${ant.lib}/pegdown-1.6.0.jar"/>
 	<pathelement location="${ant.lib}/parboiled-core-1.1.7.jar"/>
 	<pathelement location="${ant.lib}/parboiled-java-1.1.7.jar"/>
-	<pathelement location="${ant.lib}/asm-all-4.0.jar"/>
+        <path refid="asm-all.path"/>
       </classpath>
     </taskdef>
   </target>

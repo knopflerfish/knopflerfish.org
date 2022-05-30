@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -231,7 +231,7 @@ public class LDAPQuery {
     }
 
     private String getValue() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int len = tail.length();
         int ix = 0;
         label: for (; ix < len; ix++) {
@@ -394,7 +394,7 @@ public class LDAPQuery {
     }
 
     static String fixupString(String s) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int len = s.length();
         boolean isStart = true;
         boolean isWhite = false;

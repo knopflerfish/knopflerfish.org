@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,13 +50,13 @@ public interface JHTMLBundleLinkHandler {
    * Append the HTML representing the given URL to the string buffer.
    *
    * @param url URL specifying what to render.
-   * @param sb  string buffer to append the rendering result to.
+   * @param sb  StringBuilder to append the rendering result to.
    *
    * @return <code>true</code> if this URL shall be added to the navigation
    *         history, <code>false</code> otherwise. URL's causing state changes
    *         should return <code>false</code> to avoid re-running the state
    *         change when traversing the history.
    */
-  boolean renderUrl(final URL url, final StringBuffer sb);
+  boolean renderUrl(final URL url, final StringBuilder sb);
 
 }

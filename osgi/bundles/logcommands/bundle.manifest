@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: LogCommands
 Bundle-SymbolicName: org.knopflerfish.bundle.logcommands
-Bundle-Version: 5.0.0
+Bundle-Version: 5.1.0
 Bundle-Description: Provides log commands for the Knopflerfish console
 Bundle-Vendor: Knopflerfish
 Bundle-ContactAddress: https://www.knopflerfish.org

@@ -165,7 +165,7 @@ public class ParameterFormatter {
      * potentially unsafe special characters
      */
     public static void formatValue(
-            final StringBuffer buffer, final String value, boolean alwaysUseQuotes) {
+            final StringBuilder buffer, final String value, boolean alwaysUseQuotes) {
         if (buffer == null) {
             throw new IllegalArgumentException("String buffer may not be null");
         }
@@ -209,7 +209,7 @@ public class ParameterFormatter {
      * @param buffer output buffer 
      * @param param the parameter to be formatted
      */
-    public void format(final StringBuffer buffer, final NameValuePair param) {
+    public void format(final StringBuilder buffer, final NameValuePair param) {
         if (buffer == null) {
             throw new IllegalArgumentException("String buffer may not be null");
         }
@@ -234,7 +234,7 @@ public class ParameterFormatter {
      * attribute/value pair
      */
     public String format(final NameValuePair param) {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         format(buffer, param);
         return buffer.toString();
     }

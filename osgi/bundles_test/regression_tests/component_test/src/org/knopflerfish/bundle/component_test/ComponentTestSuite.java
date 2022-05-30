@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,11 +55,14 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.dto.BundleDTO;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
+import org.osgi.service.component.runtime.ServiceComponentRuntime;
+import org.osgi.service.component.runtime.dto.ComponentDescriptionDTO;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
@@ -92,6 +95,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new Test11());
     addTest(new Test12());
     addTest(new Test13());
+    addTest(new Test14());
   }
 
   public void bump(int count) {
@@ -226,6 +230,13 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
         c1.start();
 
+        Thread.sleep(SLEEP_TIME);
+        sr = bc.getServiceReference(ServiceComponentRuntime.class.getName());
+        ServiceComponentRuntime scr = (ServiceComponentRuntime)bc.getService(sr);
+        ComponentDescriptionDTO cdd = new ComponentDescriptionDTO();
+        cdd.name = "componentD.test";
+        cdd.bundle = c1.adapt(BundleDTO.class);
+        scr.enableComponent(cdd);
         Thread.sleep(SLEEP_TIME);
 
         assertNull("Should be null (1)", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA"));
@@ -449,7 +460,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     }
 
     void printArray(String caption, Object a) throws IOException {
-      StringBuffer sb = new StringBuffer(80);
+      StringBuilder sb = new StringBuilder(80);
 
       sb.append(caption);
       sb.append(" [");
@@ -805,7 +816,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         Thread.sleep(SLEEP_TIME);
         assertNull("Should not get B", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
         assertNull("Should not get C", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
-        assertEquals("Should have been deactivate/unbind C bumped", 3322, counter);
+        assertEquals("Should have been deactivate/unbind C bumped", 2222, counter);
 
         counter = 0;
       } catch (Exception e) {
@@ -941,7 +952,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         x = (org.knopflerfish.service.componentX_test.ComponentX)bc.getService(ref);
         assertNotNull("Should get service X", x);
 
-        assertEquals("new X should not have been bind(Y) bumped", 0, x.getBindStatus().intValue());
+        assertEquals("X should have been unbind(Y) bumped", 101, x.getBindStatus().intValue());
 
       } catch (Exception e) {
         e.printStackTrace();
@@ -1200,6 +1211,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertNotNull("Should get serviceRef Z", zref);
         org.knopflerfish.service.componentF_test.ComponentZ z =
             (org.knopflerfish.service.componentF_test.ComponentZ)bc.getService(zref);
+        assertNotNull("Should get service Z", z);
 
         assertEquals("No test calls", 0, z.getXStatus());
 
@@ -1307,7 +1319,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         ref = bc.getServiceReference("org.knopflerfish.service.componentC_test.ComponentZ");
         assertNull("Should not get serviceRef Z", ref);
 
-        StringBuffer targetedPid = new StringBuffer("componentC_test.factory");
+        StringBuilder targetedPid = new StringBuilder("componentC_test.factory");
         ConfigurationAdmin ca = cmt.getService();
         Configuration c = ca.getConfiguration(targetedPid.toString(), b1loc);
         Dictionary<String, Object> props = new Hashtable<String, Object>();
@@ -1895,6 +1907,57 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       }
     }
   }
+
+  private class Test14 extends FWTestCase implements LogListener {
+
+    private boolean gotCircularError;
+
+    public void logged(LogEntry le) {
+      if (le.getLevel() == LogService.LOG_ERROR &&
+          le.getMessage().indexOf("circular") >= 0) {
+        gotCircularError = true;
+      }
+    }
+
+
+    public void runTest() {
+      Bundle c1 = null;
+      ServiceReference<?> sr = null;
+      LogReaderService lrs = null;
+
+      try {
+        gotCircularError = false;
+        sr = bc.getServiceReference(LogReaderService.class.getName());
+        lrs = (LogReaderService)bc.getService(sr);
+        lrs.addLogListener(this);
+
+        c1 = Util.installBundle(bc, "componentFilter_test-1.0.0.jar");
+        c1.start();
+
+        Thread.sleep(SLEEP_TIME);
+
+        ServiceReference<?>[] ref = bc.getServiceReferences("org.knopflerfish.service.componentFilter_test.GeneralComponent", null);
+        assertNull("Shouldn't get serviceRef GeneralComponent", ref);
+        assertFalse("Shouldn't get circular message", gotCircularError);
+      } catch (Exception e ) {
+        fail("Got exception: Test1: " + e);
+      } finally {
+        if (lrs != null) {
+          lrs.removeLogListener(this);
+        }
+        if (c1 != null) {
+          try {
+            c1.uninstall();
+          } catch (Exception be) {
+            be.printStackTrace();
+            fail("Test14: got uninstall exception " + be);
+          }
+        }
+      }
+    }
+  }
+  
+
 
   public void deleteConfig(ConfigurationAdmin ca, String location) throws IOException, InvalidSyntaxException {
     Configuration [] cs = ca.listConfigurations("(" + ConfigurationAdmin.SERVICE_BUNDLELOCATION + "=" + location + ")");

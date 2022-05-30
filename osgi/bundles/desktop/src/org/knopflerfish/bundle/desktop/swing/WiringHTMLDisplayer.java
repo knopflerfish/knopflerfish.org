@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, KNOPFLERFISH project All rights reserved.
+ * Copyright (c) 2013-2022, KNOPFLERFISH project All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following
@@ -127,7 +127,7 @@ public class WiringHTMLDisplayer
   }
 
   @Override
-  public boolean renderUrl(URL url, StringBuffer sb)
+  public boolean renderUrl(URL url, StringBuilder sb)
   {
     final WiringUrl wiringUrl = new WiringUrl(url);
     // URLs with a command must not be added to the history.
@@ -159,7 +159,7 @@ public class WiringHTMLDisplayer
   }
 
 
-  public void appendRefreshMessage(final StringBuffer sb,
+  public void appendRefreshMessage(final StringBuilder sb,
                                    final WiringUrl wiringUrl) {
     final Bundle systemBundle = Activator.getTargetBC_getBundle(0);
     final FrameworkWiring frameworkWiring =
@@ -328,7 +328,7 @@ public class WiringHTMLDisplayer
       return isCmd && doResolve;
     }
 
-    private void appendBaseURL(final StringBuffer sb) {
+    private void appendBaseURL(final StringBuilder sb) {
       sb.append("http://");
       sb.append(URL_WIRING_HOST);
       sb.append(URL_WIRING_PREFIX_PATH);
@@ -349,7 +349,7 @@ public class WiringHTMLDisplayer
       return params;
     }
 
-    public void refreshLink(final StringBuffer sb, final String label) {
+    public void refreshLink(final StringBuilder sb, final String label) {
       doAskRefresh = true;
       doRefresh = false;
       doResolve = false;
@@ -372,7 +372,7 @@ public class WiringHTMLDisplayer
      *          A singleton set of bundles to initialize the refresh operation
      *          from.
      */
-    public void refreshForm(final StringBuffer sb, Collection<Bundle> bundles)
+    public void refreshForm(final StringBuilder sb, Collection<Bundle> bundles)
     {
       doAskRefresh = false;
       doRefresh = true;
@@ -402,7 +402,7 @@ public class WiringHTMLDisplayer
       sb.append("</form>");
     }
 
-    public void resolveForm(final StringBuffer sb) {
+    public void resolveForm(final StringBuilder sb) {
       doAskRefresh = false;
       doRefresh = false;
       doResolve = true;
@@ -437,9 +437,9 @@ public class WiringHTMLDisplayer
     }
 
     @Override
-    public StringBuffer bundleInfo(Bundle b)
+    public StringBuilder bundleInfo(Bundle b)
     {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       final boolean useParagraph = true;
 
 
@@ -545,7 +545,7 @@ public class WiringHTMLDisplayer
      * @param nameSpace The name space that we present capabilities for.
      * @param wiring The wiring that we present capabilities for.
      */
-    private void appendProvidedCapabilities(final StringBuffer sb,
+    private void appendProvidedCapabilities(final StringBuilder sb,
                                             final String nameSpace,
                                             final BundleWiring wiring)
     {
@@ -579,7 +579,7 @@ public class WiringHTMLDisplayer
      * @param nameSpace The name-space that we present requirements for.
      * @param wiring The wiring that we present requirements for.
      */
-    private void appendRequiredCapabilities(final StringBuffer sb,
+    private void appendRequiredCapabilities(final StringBuilder sb,
                                             final String nameSpace,
                                             final BundleWiring wiring)
     {
@@ -612,7 +612,7 @@ public class WiringHTMLDisplayer
      * @param sb The output buffer.
      * @param capInfos Map with the pre-formated capability information to output.
      */
-    private void appendCapabilityInfo(StringBuffer sb,
+    private void appendCapabilityInfo(StringBuilder sb,
                                       final Map<String, List<String>> capInfos)
     {
       for (final Entry<String,List<String>> capInfo : capInfos.entrySet()) {
@@ -685,7 +685,7 @@ public class WiringHTMLDisplayer
       this.nameSpace = nameSpace;
     }
 
-    static void appendPendingRemovalOnRefresh(final StringBuffer sb,
+    static void appendPendingRemovalOnRefresh(final StringBuilder sb,
                                               final BundleWiring wiring)
     {
       if (wiring!=null && !wiring.isCurrent()) {
@@ -703,7 +703,7 @@ public class WiringHTMLDisplayer
      */
     String getCapName(final BundleCapability capability)
     {
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       sb.append(capability.getAttributes());
 
       final BundleWiring capWiring = capability.getRevision().getWiring();
@@ -720,7 +720,7 @@ public class WiringHTMLDisplayer
      */
     String getReqName(BundleRequirement requirement)
     {
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
 
       final String filter = requirement.getDirectives().get("filter");
       if (filter != null) {
@@ -763,7 +763,7 @@ public class WiringHTMLDisplayer
       final BundleRevision br = bw.getRevision();
       final Bundle b = br.getBundle();
       if (link) {
-        final StringBuffer sb = new StringBuffer(50);
+        final StringBuilder sb = new StringBuilder(50);
         Util.bundleLink(sb, b);
         return sb.toString();
       }
@@ -836,7 +836,7 @@ public class WiringHTMLDisplayer
       }
 
       // Populate cap2requesters
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       for (int i = 0; i < caps.size(); i++) {
         final BundleCapability cap = caps.get(i);
         final List<BundleRequirement> requesterReqs = reqs.get(i);
@@ -908,7 +908,7 @@ public class WiringHTMLDisplayer
       }
 
       // Populate cap2providers
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       for (int i = 0; i < reqs.size(); i++) {
         final BundleRequirement req = reqs.get(i);
         final List<BundleCapability> providerCaps = caps.get(i);
@@ -952,7 +952,7 @@ public class WiringHTMLDisplayer
       super(nameSpace, wiring);
     }
 
-    private void appendVersion(final StringBuffer sb,
+    private void appendVersion(final StringBuilder sb,
                                final BundleRequirement requirement)
     {
       final String filter =
@@ -975,7 +975,7 @@ public class WiringHTMLDisplayer
       final Map<String, Object> attrs
         = new HashMap<String, Object>(capability.getAttributes());
 
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       sb.append(attrs.remove(ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE));
 
       @SuppressWarnings("unchecked")
@@ -1000,7 +1000,7 @@ public class WiringHTMLDisplayer
     @Override
     String getReqName(final BundleRequirement requirement)
     {
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       final String filter = requirement.getDirectives().get("filter");
       final String eeName = getFilterValue(filter, ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE);
 
@@ -1034,7 +1034,7 @@ public class WiringHTMLDisplayer
       super(nameSpace, wiring);
     }
 
-    private void appendVersion(final StringBuffer sb,
+    private void appendVersion(final StringBuilder sb,
                                final BundleRequirement requirement)
     {
       final String filter =
@@ -1057,7 +1057,7 @@ public class WiringHTMLDisplayer
       final Map<String, Object> attrs
         = new HashMap<String, Object>(capability.getAttributes());
 
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       sb.append(attrs.remove(BundleRevision.HOST_NAMESPACE));
 
       final Version version =
@@ -1081,7 +1081,7 @@ public class WiringHTMLDisplayer
     @Override
     String getReqName(final BundleRequirement requirement)
     {
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       final String filter = requirement.getDirectives().get("filter");
       final String hostName = getFilterValue(filter, BundleRevision.HOST_NAMESPACE);
       if (hostName != null) {
@@ -1115,7 +1115,7 @@ public class WiringHTMLDisplayer
       super(nameSpace, wiring);
     }
 
-    private void appendVersionAndType(final StringBuffer sb,
+    private void appendVersionAndType(final StringBuilder sb,
                                       final BundleRequirement requirement)
     {
       final String filter =
@@ -1143,7 +1143,7 @@ public class WiringHTMLDisplayer
       final Map<String, Object> attrs
         = new TreeMap<String, Object>(capability.getAttributes());
 
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       sb.append(attrs.remove(IdentityNamespace.IDENTITY_NAMESPACE));
 
       final Version version =
@@ -1188,7 +1188,7 @@ public class WiringHTMLDisplayer
     @Override
     String getReqName(final BundleRequirement requirement)
     {
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       final String filter = requirement.getDirectives().get("filter");
       final String idName = getFilterValue(filter, IdentityNamespace.IDENTITY_NAMESPACE);
       if (idName != null) {
@@ -1223,7 +1223,7 @@ public class WiringHTMLDisplayer
       super(nameSpace, wiring);
     }
 
-    private void appendVersion(final StringBuffer sb,
+    private void appendVersion(final StringBuilder sb,
                                final BundleRequirement requirement)
     {
       final String filter =
@@ -1246,7 +1246,7 @@ public class WiringHTMLDisplayer
       final Map<String, Object> attrs =
         new HashMap<String, Object>(capability.getAttributes());
 
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       sb.append(attrs.remove(BundleRevision.BUNDLE_NAMESPACE));
 
       final Version version =
@@ -1270,7 +1270,7 @@ public class WiringHTMLDisplayer
     @Override
     String getReqName(final BundleRequirement requirement)
     {
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       final String filter = requirement.getDirectives().get("filter");
       final String bundleName =
         getFilterValue(filter, BundleRevision.BUNDLE_NAMESPACE);
@@ -1305,7 +1305,7 @@ public class WiringHTMLDisplayer
       super(nameSpace, wiring);
     }
 
-    private void appendVersionAndResolutionDirective(final StringBuffer sb,
+    private void appendVersionAndResolutionDirective(final StringBuilder sb,
                                                      final BundleRequirement requirement)
     {
       final String filter =
@@ -1335,7 +1335,7 @@ public class WiringHTMLDisplayer
     @Override
     String getCapName(final BundleCapability capability)
     {
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
 
       // Make a modifiable clone of the capability attributes.
       final Map<String, Object> attrs
@@ -1366,7 +1366,7 @@ public class WiringHTMLDisplayer
     @Override
     String getReqName(final BundleRequirement requirement)
     {
-      final StringBuffer sb = new StringBuffer(50);
+      final StringBuilder sb = new StringBuilder(50);
       final String filter = requirement.getDirectives().get("filter");
       final String pkgName =
         getFilterValue(filter, BundleRevision.PACKAGE_NAMESPACE);

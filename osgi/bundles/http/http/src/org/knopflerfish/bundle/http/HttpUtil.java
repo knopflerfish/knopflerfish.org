@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2017, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -258,7 +258,7 @@ public class HttpUtil
       return null;
     }
 
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < s.length(); i++) {
       final char c = s.charAt(i);
       if (c == ' ') {
@@ -282,7 +282,7 @@ public class HttpUtil
       return null;
     }
 
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < s.length(); i++) {
       final char c = s.charAt(i);
       switch (c) {
@@ -334,7 +334,7 @@ public class HttpUtil
   /**
    * Extract the <tt>charset</tt> specification from the given content type
    * string and save the content type without charset parameter to the given
-   * StringBuffer. The <tt>charset</tt> value is returned.
+   * StringBuilder. The <tt>charset</tt> value is returned.
    *
    * @param contentType
    *          The content type string to parse.
@@ -344,7 +344,7 @@ public class HttpUtil
    * @return the embedded character encoding or <tt>null</tt>.
    */
   public static String parseContentType(String contentType,
-                                        StringBuffer contentTypeBare)
+                                        StringBuilder contentTypeBare)
   {
     final int initialSbLength = contentTypeBare.length();
     String res = null;
@@ -398,8 +398,8 @@ public class HttpUtil
   public static String buildContentType(String contentTypeBare,
                                         String characterEncoding)
   {
-    final StringBuffer sb =
-      new StringBuffer(contentTypeBare.length() + characterEncoding.length());
+    final StringBuilder sb =
+      new StringBuilder(contentTypeBare.length() + characterEncoding.length());
     final StringTokenizer st = new StringTokenizer(contentTypeBare, ";");
     int count = 0;
     while (st.hasMoreTokens()) {

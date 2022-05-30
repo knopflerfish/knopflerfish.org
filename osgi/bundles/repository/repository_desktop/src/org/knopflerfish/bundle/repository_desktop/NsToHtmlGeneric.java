@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ public class NsToHtmlGeneric
   @Override
   public String toHTML(Capability capability)
   {
-    final StringBuffer sb = new StringBuffer(100);
+    final StringBuilder sb = new StringBuilder(100);
     sb.append("<table border='0'>\n");
     // Generic HTML presentation
     for (final Entry<String, Object> attr : capability.getAttributes()
@@ -73,7 +73,7 @@ public class NsToHtmlGeneric
   @Override
   public String toHTML(Requirement requirement)
   {
-    final StringBuffer sb = new StringBuffer(100);
+    final StringBuilder sb = new StringBuilder(100);
     sb.append("<table border='0'>\n");
     for (final Entry<String, String> dir : requirement.getDirectives()
         .entrySet()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -184,7 +184,7 @@ public class ManifestHTMLDisplayer
       return isScr;
     }
 
-    private void appendBaseURL(final StringBuffer sb)
+    private void appendBaseURL(final StringBuilder sb)
     {
       sb.append("http://");
       sb.append(URL_RESOURCE_HOST);
@@ -195,18 +195,18 @@ public class ManifestHTMLDisplayer
 
     private Map<String, String> getParams()
     {
-      final HashMap<String, String> params = new HashMap<String, String>();
+      final HashMap<String, String> params = new HashMap<>();
       params.put(URL_RESOURCE_KEY_BID, String.valueOf(bid));
       params.put(URL_RESOURCE_KEY_SCR, String.valueOf(isScr));
       return params;
     }
 
-    public void resourceLink(final StringBuffer sb)
+    public void resourceLink(final StringBuilder sb)
     {
       resourceLink(sb, path);
     }
 
-    public void resourceLink(final StringBuffer sb, final String label)
+    public void resourceLink(final StringBuilder sb, final String label)
     {
       sb.append("<a href=\"");
       appendBaseURL(sb);
@@ -235,7 +235,7 @@ public class ManifestHTMLDisplayer
     }
   }
 
-  class JHTML
+  static class JHTML
     extends JHTMLBundle
   {
     private static final String BUNDLE_LICENSE = "Bundle-License";
@@ -247,9 +247,9 @@ public class ManifestHTMLDisplayer
     }
 
     @Override
-    public StringBuffer bundleInfo(Bundle b)
+    public StringBuilder bundleInfo(Bundle b)
     {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
 
       final Dictionary<String, String> headers = b.getHeaders();
 
@@ -274,13 +274,11 @@ public class ManifestHTMLDisplayer
                 null,
                 null,
                 "Last modified",
-                ""
-                    + new SimpleDateFormat().format(new Date(b
-                        .getLastModified())));
+                new SimpleDateFormat().format(new Date(b.getLastModified())));
 
       final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
       if (bsl != null) {
-        String level = "";
+        String level;
         try {
           level = Integer.toString(bsl.getStartLevel());
           if (bsl.isPersistentlyStarted()) {
@@ -297,8 +295,7 @@ public class ManifestHTMLDisplayer
                 "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
                 "");
 
-      final ArrayList<String> headerKeys =
-        new ArrayList<String>(headers.size());
+      final ArrayList<String> headerKeys = new ArrayList<>(headers.size());
       for (final Enumeration<String> e = headers.keys(); e.hasMoreElements();) {
         headerKeys.add(e.nextElement());
       }
@@ -313,7 +310,7 @@ public class ManifestHTMLDisplayer
             value = Strings.replace(value, ">", "&gt;");
             value = Strings.replaceWordSep(value, ",", "<br>", '"');
           } else if (ComponentConstants.SERVICE_COMPONENT.equals(key)) {
-            final StringBuffer sb2 = new StringBuffer(60);
+            final StringBuilder sb2 = new StringBuilder(60);
             // Re-uses the manifest entry parser from the KF-framework
             for (final HeaderEntry he : org.knopflerfish.framework.Util
                 .parseManifestHeader(ComponentConstants.SERVICE_COMPONENT,
@@ -327,7 +324,7 @@ public class ManifestHTMLDisplayer
             value = sb2.toString();
           } else if (BUNDLE_LICENSE.equals(key)) {
             // Re-uses the manifest entry parser from the KF-framework
-            final StringBuffer sb2 = new StringBuffer(200);
+            final StringBuilder sb2 = new StringBuilder(200);
             for (final HeaderEntry he : org.knopflerfish.framework.Util
                 .parseManifestHeader(BUNDLE_LICENSE, value, true, true, false)) {
               if (sb2.length() > 0) {
@@ -387,7 +384,7 @@ public class ManifestHTMLDisplayer
   }
 
   @Override
-  public boolean renderUrl(final URL url, final StringBuffer sb)
+  public boolean renderUrl(final URL url, final StringBuilder sb)
   {
     final ResourceUrl resUrl = new ResourceUrl(url);
 
@@ -395,7 +392,7 @@ public class ManifestHTMLDisplayer
     return true; // Always OK to add ResourceUrls to history.
   }
 
-  void appendResourceHTML(final StringBuffer sb, final ResourceUrl resUrl)
+  void appendResourceHTML(final StringBuilder sb, final ResourceUrl resUrl)
   {
     final Bundle bundle = Activator.getTargetBC_getBundle(resUrl.getBid());
     sb.append("<html>");
@@ -408,7 +405,7 @@ public class ManifestHTMLDisplayer
 
       sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
       JHTMLBundle.startFont(sb, "-1");
-      sb.append("#" + bundle.getBundleId() + " " + url.getPath());
+      sb.append("#").append(bundle.getBundleId()).append(" ").append(url.getPath());
       JHTMLBundle.stopFont(sb);
       sb.append("</td>\n");
       sb.append("</tr>\n");
@@ -436,7 +433,7 @@ public class ManifestHTMLDisplayer
           final Matcher m = p.matcher(value);
           final StringBuffer sb2 = new StringBuffer();
           while (m.find()) {
-            final StringBuffer sb3 = new StringBuffer();
+            final StringBuilder sb3 = new StringBuilder();
             sb3.setLength(0);
             sb3.append("$1");
             new SCRHTMLDisplayer.ScrUrl(m.group(3)).scrLink(sb3, m.group(3));

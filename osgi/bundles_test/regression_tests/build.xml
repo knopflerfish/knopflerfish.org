@@ -18,6 +18,7 @@
     <ant dir="extension_test"		target="all"/>
     <ant dir="condpermadmin_test"	target="all"/>
     <ant dir="preferences_test"         target="all"/>
+    <ant dir="datastorage_test"         target="all"/>
     <ant dir="startlevel_test"          target="all"/>
   </target>
 

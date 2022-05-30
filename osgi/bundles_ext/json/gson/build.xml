@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="gson" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.gson}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+  
+  <property name="base_uri" value="https://repo1.maven.org/maven2/com/google/code/gson"/>
+  <property name="artifact.name" value="gson"/>
+  <property name="artifact.version" value="2.9.0"/>
+
+  <property name="bundle.name" value="${artifact.jar}" />
+  
+  <!-- 
+  <target name="all"
+	  depends="install"/>
+  
+  <target name="install">
+    <mkdir dir="${osgi.jars.ext.dir}/${artifact.name}"/>
+    <get src="${base_uri}/${artifact.name}/${artifact.version}/${artifact.jar}"
+         dest="${osgi.jars.ext.dir}/${artifact.name}"
+         verbose="false"
+         skipexisting="true"/>
+    <get src="${base_uri}/${artifact.name}/${artifact.version}/${artifact.src}"
+         dest="${tmp.dir}"
+         verbose="false"
+         skipexisting="true"/>
+  </target>
+  -->
+  
+  <import file="${topdir}/../ant/extbundles.xml"/>
+
+</project>

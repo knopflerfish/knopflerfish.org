@@ -305,7 +305,7 @@ public class DigestScheme extends RFC2617Scheme {
                     + credentials.getClass().getName());
         }
         getParameters().put("methodname", method.getName());
-        StringBuffer buffer = new StringBuffer(method.getPath());
+        StringBuilder buffer = new StringBuilder(method.getPath());
         String query = method.getQueryString();
         if (query != null) {
             if (query.indexOf("?") != 0) {
@@ -376,7 +376,7 @@ public class DigestScheme extends RFC2617Scheme {
         }
 
         // 3.2.2.2: Calculating digest
-        StringBuffer tmp = new StringBuffer(uname.length() + realm.length() + pwd.length() + 2);
+        StringBuilder tmp = new StringBuilder(uname.length() + realm.length() + pwd.length() + 2);
         tmp.append(uname);
         tmp.append(':');
         tmp.append(realm);
@@ -391,7 +391,7 @@ public class DigestScheme extends RFC2617Scheme {
             //      ":" unq(cnonce-value)
 
             String tmp2=encode(md5Helper.digest(EncodingUtil.getBytes(a1, charset)));
-            StringBuffer tmp3 = new StringBuffer(tmp2.length() + nonce.length() + cnonce.length() + 2);
+            StringBuilder tmp3 = new StringBuilder(tmp2.length() + nonce.length() + cnonce.length() + 2);
             tmp3.append(tmp2);
             tmp3.append(':');
             tmp3.append(nonce);
@@ -417,7 +417,7 @@ public class DigestScheme extends RFC2617Scheme {
         String serverDigestValue;
         if (qopVariant == QOP_MISSING) {
             LOG.debug("Using null qop method");
-            StringBuffer tmp2 = new StringBuffer(md5a1.length() + nonce.length() + md5a2.length());
+            StringBuilder tmp2 = new StringBuilder(md5a1.length() + nonce.length() + md5a2.length());
             tmp2.append(md5a1);
             tmp2.append(':');
             tmp2.append(nonce);
@@ -429,7 +429,7 @@ public class DigestScheme extends RFC2617Scheme {
                 LOG.debug("Using qop method " + qop);
             }
             String qopOption = getQopVariantString();
-            StringBuffer tmp2 = new StringBuffer(md5a1.length() + nonce.length()
+            StringBuilder tmp2 = new StringBuilder(md5a1.length() + nonce.length()
                 + NC.length() + cnonce.length() + qopOption.length() + md5a2.length() + 5);
             tmp2.append(md5a1);
             tmp2.append(':');
@@ -491,7 +491,7 @@ public class DigestScheme extends RFC2617Scheme {
             params.add(new NameValuePair("opaque", opaque));
         }
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         for (int i = 0; i < params.size(); i++) {
             NameValuePair param = (NameValuePair) params.get(i);
             if (i > 0) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import javax.swing.UIManager;
 
 public class LFManager {
 
-  public Map<String, LookAndFeel> customLF = new HashMap<String, LookAndFeel>();
+  public Map<String, LookAndFeel> customLF = new HashMap<>();
 
   boolean bUseSystemLF = true;
 
@@ -83,7 +83,7 @@ public class LFManager {
       } else {
         if(origLF.getClass().getName().startsWith("com.l2fprod.gui.plaf.skin")) {
           Activator.log.debug("Skipping Knopflerfish L&F since SkinLF seems to be active");
-        } else if(-1 != origLF.getClass().getName().indexOf("apple.")) {
+        } else if(origLF.getClass().getName().contains("apple.")) {
           Activator.log.debug("Skipping Knopflerfish L&F since Apple LF seems to be active");
         } else {
           Activator.log.debug("Overriding LF " + origLF.getClass().getName() +

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012,2015 KNOPFLERFISH project
+ * Copyright (c) 2003-2022 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ package org.knopflerfish.bundle.http;
 import java.net.Socket;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.ListIterator;
 
 import org.knopflerfish.service.log.LogRef;
 
@@ -250,7 +249,11 @@ public class TransactionManager
     }
   }
 
-  
+  public int getActiveTransactionCount() {
+    return num_workers + transQueue.size();
+  }
+
+
   // Internal helper class for workers. A worker 
   // is assigned a job (transaction), completes it and then 
   // looks for a new job, or if no one is present, turn idle
@@ -383,6 +386,5 @@ public class TransactionManager
       this.interrupt();
     }
   }
-  
- 
+
 } // TransactionManager

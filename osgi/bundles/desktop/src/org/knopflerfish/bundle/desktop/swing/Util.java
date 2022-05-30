@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,7 +113,7 @@ public class Util
     return null; // Should not happen!
   }
 
-  public static void bundleLink(StringBuffer sb, Bundle b)
+  public static void bundleLink(StringBuilder sb, Bundle b)
   {
     sb.append("<a href=\"");
     sb.append(bundleURL(b.getBundleId()).toString());
@@ -154,7 +154,7 @@ public class Util
     return res;
   }
 
-  public static void appendParams(final StringBuffer sb, final Map<?, ?> params)
+  public static void appendParams(final StringBuilder sb, final Map<?, ?> params)
   {
     if (!params.isEmpty()) {
       char sep = '?';
@@ -230,8 +230,7 @@ public class Util
                                        String key,
                                        boolean def)
   {
-    return ((Boolean) getProp(sr, key, def ? Boolean.TRUE : Boolean.FALSE))
-        .booleanValue();
+    return (Boolean) getProp(sr, key, def ? Boolean.TRUE : Boolean.FALSE);
   }
 
   public static String stateName(int state)
@@ -261,7 +260,7 @@ public class Util
 
   public static String getHeader(Bundle b, String name, String def)
   {
-    final String s = b != null ? (String) b.getHeaders().get(name) : def;
+    final String s = b != null ? b.getHeaders().get(name) : def;
 
     return s;
   }
@@ -335,7 +334,7 @@ public class Util
 
   static public String bundleInfo(Bundle b)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     final BundleRevision br = b.adapt(BundleRevision.class);
     final boolean isFragment = br != null &&
       ((br.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0);
@@ -377,7 +376,7 @@ public class Util
   /**
    * Mapping from bundle to its icon.
    */
-  static Map<Bundle, Icon> iconMap = new HashMap<Bundle, Icon>();
+  private static final Map<Bundle, Icon> iconMap = new HashMap<>();
 
   // Get the bundle icon for a bundle. Icons are cached.
   public static Icon getBundleIcon(Bundle b)
@@ -417,8 +416,7 @@ public class Util
     }
   }
 
-  // StringBuffer (red.green.blue) -> Color
-  static Hashtable<Integer, Color> colors = new Hashtable<Integer, Color>();
+  static Hashtable<Integer, Color> colors = new Hashtable<>();
 
   static int maxK = 256;
 
@@ -448,7 +446,7 @@ public class Util
     final int g = (int) (g1 + (double) K * (g2 - g1) / maxK);
     final int b = (int) (b1 + (double) K * (b2 - b1) / maxK);
 
-    final Integer key = new Integer((r << 16) | (g << 8) | g);
+    final Integer key = (r << 16) | (g << 8) | g;
 
     Color c = colors.get(key);
     if (c == null) {
@@ -483,8 +481,7 @@ public class Util
     final int g = (int) (g1 + (double) (g2 - g1));
     final int b = (int) (b1 + (double) (b2 - b1));
 
-    final Color c = new Color(r, g, b);
-    return c;
+    return new Color(r, g, b);
   }
 
   public static byte[] readStream(InputStream is)
@@ -522,10 +519,10 @@ public class Util
   static public Set<Bundle> getClosure(final Bundle target, Set<Bundle> handled)
   {
     if (handled == null) {
-      handled = new HashSet<Bundle>();
+      handled = new HashSet<>();
     }
 
-    final Set<Bundle> closure = new TreeSet<Bundle>(Util.bundleIdComparator);
+    final Set<Bundle> closure = new TreeSet<>(Util.bundleIdComparator);
     if (target.getState() == Bundle.UNINSTALLED) {
       return closure;
     }
@@ -569,11 +566,11 @@ public class Util
      "org.knopflerfish.startlevel.use=true", "org.knopflerfish.log.out=false",
      "org.knopflerfish.log.level=info", };
 
-  public static StringBuffer getXARGS(Bundle target,
+  public static StringBuilder getXARGS(Bundle target,
                                       Set<Bundle> all)
   {
 
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     final String jarBase = Util.getProperty("org.knopflerfish.gosg.jars", "");
 
@@ -589,8 +586,11 @@ public class Util
       }
       final String val = Util.getProperty(w[0], null);
       if (null != val && !val.equals(def)) {
-        sb.append("-D" + w[0] + "=" + val);
-        sb.append("\n");
+        sb.append("-D")
+            .append(w[0])
+            .append("=")
+            .append(val)
+            .append("\n");
       }
     }
 
@@ -607,11 +607,15 @@ public class Util
 
       levelMax = Math.max(level, levelMax);
       if (level != -1 && level != lastLevel) {
-        sb.append("-initlevel " + level + "\n");
+        sb.append("-initlevel ")
+            .append(level)
+            .append("\n");
 
         lastLevel = level;
       }
-      sb.append("-install " + Text.replace(b.getLocation(), jarBase, "") + "\n");
+      sb.append("-install ")
+          .append(Text.replace(b.getLocation(), jarBase, ""))
+          .append("\n");
 
       n++;
     }
@@ -622,12 +626,15 @@ public class Util
     for (final Bundle b : all) {
       n++;
       if (b.getState() == Bundle.ACTIVE) {
-        sb.append("-start " + n + "\n");
+        sb.append("-start ")
+            .append(n)
+            .append("\n");
       }
     }
 
     if (levelMax != -1) {
-      sb.append("-startlevel " + levelMax);
+      sb.append("-startlevel ")
+          .append(levelMax);
     }
 
     return sb;
@@ -656,11 +663,11 @@ public class Util
 
   static public String getSystemInfo()
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     try {
       final TreeMap<String, String> props =
-        new TreeMap<String, String>(Activator.getSystemProperties());
+          new TreeMap<>(Activator.getSystemProperties());
 
       sb.append("<table>\n");
 
@@ -706,8 +713,9 @@ public class Util
       }
 
     } catch (final Exception e) {
-      sb.append("<tr><td colspan=2>"
-                + fontify("Failed to get system props: " + e) + "</td></tr>");
+      sb.append("<tr><td colspan=2>")
+          .append(fontify("Failed to get system props: " + e))
+          .append("</td></tr>");
 
     }
     sb.append("</table>");
@@ -855,7 +863,7 @@ public class Util
   {
     final String os = Util.getProperty("os.name", null);
     if (os != null) {
-      return -1 != os.toLowerCase().indexOf("win");
+      return os.toLowerCase().contains("win");
     }
     return false;
   }
@@ -881,7 +889,7 @@ public class Util
         while (null != line) {
           line = br.readLine();
         }
-      } catch (final IOException _ioe) {
+      } catch (final IOException ignored) {
       }
     }
   }
@@ -907,7 +915,7 @@ public class Util
     if (null != sValue && 0 < sValue.length()) {
       try {
         return Integer.parseInt(sValue);
-      } catch (final Exception _e) {
+      } catch (final Exception ignored) {
       }
     }
     return def;
@@ -936,7 +944,7 @@ public class Util
       // getBundleContext() is an R4.1 method, but try to grab it
       // using reflection and punch a hole in the method modifiers.
       // Should work on recent KF and recent Felix.
-      final Method m = clazz.getMethod("getBundleContext", new Class[] {});
+      final Method m = clazz.getMethod("getBundleContext");
 
       m.setAccessible(true);
       return (BundleContext) m.invoke(b, new Object[] {});
@@ -969,19 +977,19 @@ public class Util
 
   public static String getServiceInfo(ServiceReference<?> sr)
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
-    sb.append(sr.getProperty("service.id") + ": " + getClassNames(sr));
+    sb.append(sr.getProperty("service.id")).append(": ").append(getClassNames(sr));
     sb.append("\n");
-    sb.append("from #" + sr.getBundle().getBundleId());
-    sb.append(" " + Util.getBundleName(sr.getBundle()));
+    sb.append("from #").append(sr.getBundle().getBundleId());
+    sb.append(" ").append(Util.getBundleName(sr.getBundle()));
 
     final Bundle[] bl = sr.getUsingBundles();
     if (bl != null) {
       sb.append("\nto ");
       for (int i = 0; i < bl.length; i++) {
-        sb.append("#" + bl[i].getBundleId());
-        sb.append(" " + Util.getBundleName(bl[i]));
+        sb.append("#").append(bl[i].getBundleId());
+        sb.append(" ").append(Util.getBundleName(bl[i]));
         if (i < bl.length - 1) {
           sb.append("\n");
         }
@@ -998,8 +1006,8 @@ public class Util
   public static String getClassNames(ServiceReference<?> sr, String sep)
   {
 
-    final StringBuffer sb = new StringBuffer();
-    final String sa[] = (String[]) sr.getProperty("objectClass");
+    final StringBuilder sb = new StringBuilder();
+    final String[] sa = (String[]) sr.getProperty("objectClass");
     for (int j = 0; j < sa.length; j++) {
       sb.append(sa[j]);
       if (j < sa.length - 1) {

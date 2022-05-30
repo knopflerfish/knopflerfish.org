@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,7 @@ public class FileFilterImpl extends FileFilter implements java.io.FileFilter {
   public String getDescription()
   {
     if (fullDescription == null) {
-      final StringBuffer sb = new StringBuffer();
+      final StringBuilder sb = new StringBuilder();
       if (description == null || isExtensionListInDescription()) {
         if (description != null) {
           sb.append(description).append(" ");
