@@ -14,7 +14,7 @@ specifications.
 
 The Knopflerfish website has the full documentation and Knopflerfish
 OSGi Service Platform SDK's available for download.
-s://www.knopflerfish.org
+https://www.knopflerfish.org
 
 Building Knopflerfish OSGi
 ------------------------------
