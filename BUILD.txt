@@ -23,4 +23,4 @@ Type "ant all" in this directory to build all bundles and test bundles.
 
 
 See htdocs/html_src/building.html for more details, or visit 
-http://www.knopflerfish.org/releases/current/docs/building.html
+https://www.knopflerfish.org/releases/current/docs/building.html

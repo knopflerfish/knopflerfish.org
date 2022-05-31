@@ -4,8 +4,8 @@ Bundle-SymbolicName: org.knopflerfish.bundle.bar.bundleSL2
 Bundle-Version: 1.0.0
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-Description: Test bundle for SF Bugs-tracker issue 2833557.
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bar.Activator
 Bundle-Category: testing
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"

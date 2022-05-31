@@ -8,11 +8,11 @@ Bundle-Description: Knopflerfish desktop plugin visualizing OSGi Repository cont
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
 Bundle-Copyright: Copyright (c) 2003-2013, KNOPFLERFISH project. All rights reserved.
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  description="BSD 3-clause";
- link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
-Bundle-DocURL: http://www.knopflerfish.org/
+ link="https://www.knopflerfish.org/licenses/knopflerfish-1.txt"
+Bundle-DocURL: https://www.knopflerfish.org/
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/repository/repository_desktop
 Bundle-Classpath: .

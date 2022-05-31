@@ -561,7 +561,7 @@ public class Desktop
   // Assumes that the current Knopflerfish version can be found
   // directly after the text "Knopflerfish " on the first line of the
   // release note at
-  // http://www.knopflerfish.org/releases/current/release_notes.hmtl
+  // https://www.knopflerfish.org/releases/current/release_notes.hmtl
   void checkUpdate(final boolean bForce)
   {
     // Run in threads, to avoid startup delay caused by network problems.
@@ -607,7 +607,7 @@ public class Desktop
 
           final String versionURL =
             Util.getProperty("org.knopflerfish.desktop.releasenotesurl",
-                             "http://www.knopflerfish.org/releases/current/release_notes.html");
+                             "https://www.knopflerfish.org/releases/current/release_notes.html");
 
           String notes;
           try {

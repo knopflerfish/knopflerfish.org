@@ -49,4 +49,4 @@
  For extended help and list of all available system properties, see online
  documentation or visit:
 
- http://www.knopflerfish.org/releases/current/docs/bundledoc/framework/index.html
+ https://www.knopflerfish.org/releases/current/docs/bundledoc/framework/index.html

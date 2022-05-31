@@ -4,8 +4,8 @@ Bundle-SymbolicName: registeryperformance_test
 Bundle-Version: 1.1.0
 Bundle-Description: Performance test bundle for framework registry
 Bundle-Vendor: Knopflerfish
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.perf.servicereg
 Import-Package: junit.framework,org.knopflerfish.service.perf.servicer

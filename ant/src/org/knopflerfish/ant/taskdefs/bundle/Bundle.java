@@ -60,7 +60,7 @@ import org.osgi.framework.Version;
 
 /**
  * <p>
- * An extension of the <a href="http://ant.apache.org/manual/CoreTasks/jar.html"
+ * An extension of the <a href="https://ant.apache.org/manual/Tasks/jar.html"
  * target="_top">Jar</a> task that builds an OSGi bundle. It can generate the
  * Bundle-Activator, Bundle-ClassPath and Import-Package manifest headers based
  * on the content specified in the task.
@@ -114,7 +114,7 @@ import org.osgi.framework.Version;
  * <h4>classes</h4>
  * <p>
  * The nested <tt>classes</tt> element specifies a <a
- * href="http://ant.apache.org/manual/CoreTypes/zipfileset.html"
+ * href="https://ant.apache.org/manual/Types/zipfileset.html"
  * target="_top">ZipFileSet</a>. The <tt>prefix</tt> attribute will be added to
  * the Bundle-ClassPath manifest header. The classes specified by the file set
  * will be included in the class analysis.
@@ -123,7 +123,7 @@ import org.osgi.framework.Version;
  * <h4>lib</h4>
  * <p>
  * The nested <tt>lib</tt> element specifies a <a
- * href="http://ant.apache.org/manual/CoreTypes/zipfileset.html"
+ * href="https://ant.apache.org/manual/Types/zipfileset.html"
  * target="_top">ZipFileSet</a>. The locations of all files in the file set will
  * be added to the Bundle-ClassPath manifest header. All files of this file set
  * must be either zip or jar files. The classes available in the zip or jar

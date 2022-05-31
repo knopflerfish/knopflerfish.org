@@ -7,7 +7,7 @@ Bundle-Category: lib
 Bundle-Description: Packing of kXML 2 as a bundle
 Bundle-Vendor: kXML.org  http://kxml.sourceforge.net/
 Bundle-ContactAddress: http://kxml.sourceforge.net/
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+Bundle-DocURL: https://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=kmxl/index.html
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/xml/kxml/

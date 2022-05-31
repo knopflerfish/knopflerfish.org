@@ -272,7 +272,7 @@
   </tstamp>
 
   <!-- The URL that this release will be available on after installation. -->
-  <property name="base.url" value="http://www.knopflerfish.org/releases"/>
+  <property name="base.url" value="https://www.knopflerfish.org/releases"/>
 
   <property name="jarunpacker.dir" location="tools/jarunpacker"/>
 
@@ -1113,7 +1113,7 @@
 
   <!--|
       | The program used to check for broken links is the W3C checklink program:
-      | http://validator.w3.org/docs/checklink.html
+      | https://validator.w3.org/checklink/docs/checklink.html
       |
       | It must be locally installed as it checks the generated docs on the local
       | file system. Only tested on OS X so far.

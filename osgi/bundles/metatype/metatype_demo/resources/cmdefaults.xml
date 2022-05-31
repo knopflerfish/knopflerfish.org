@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <metatype:values
-        xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype">
+        xmlns:metatype = "https://www.knopflerfish.org/XMLMetatype">
 
   <factory1>
    <string1>apa</string1>

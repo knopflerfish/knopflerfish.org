@@ -6,7 +6,7 @@ Bundle-Version: 4.0.0
 Bundle-Category: service
 Bundle-Description: SSL Provider using the Java 2 security architecture.
 Bundle-Vendor: Knopflerfish/Oscar
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-DocURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/sslj2sp/readme.txt
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master

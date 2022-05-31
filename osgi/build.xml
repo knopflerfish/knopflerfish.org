@@ -11,7 +11,7 @@
   <property name="gosg.jars"       value="file:jars/;file:jars_ext/"/>
 
   <property name="repository.current.release"
-      value="http://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
+      value="https://www.knopflerfish.org/releases/current/osgi/jars/index.xml"/>
   <property name="repository.local"
       value="file:jars/index.xml"/>
   <property name="repository.xml.urls"
@@ -26,7 +26,7 @@
 
   <!-- The initial part of the URL to use for the default jars -->
   <!-- location in the remote xargs files.  -->
-  <property name="base.url" value="http://www.knopflerfish.org/releases"/>
+  <property name="base.url" value="https://www.knopflerfish.org/releases"/>
 
   <!-- Test target related properties. -->
   <property name="run.test.dir"   location="."/>

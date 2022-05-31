@@ -6,7 +6,7 @@ respective copyright owners.
 More information about Knopflerfish 
 can be found at
 
-  http://www.knopflerfish.org
+  https://www.knopflerfish.org
 
 
 ------------ Knopflerfish license -------------
@@ -61,7 +61,7 @@ http://www.gnu.org/licenses/gpl.txt
 ------------------------
 
 --------- ASM library licence ----------------
-http://asm.ow2.org/
+https://asm.ow2.io/
 
 Copyright (c) 2000-2005 INRIA, France Telecom
 All rights reserved.

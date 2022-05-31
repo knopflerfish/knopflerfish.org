@@ -171,7 +171,7 @@ public class Main
     bootText =
       "Knopflerfish OSGi framework launcher, version " + version + "\n" +
       "Copyright 2003-" +tstampYear +" Knopflerfish. All Rights Reserved.\n" +
-      "See http://www.knopflerfish.org for more information.\n";
+      "See https://www.knopflerfish.org for more information.\n";
   }
 
 

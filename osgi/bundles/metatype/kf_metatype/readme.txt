@@ -10,4 +10,4 @@ bundles.
 
 For XML specification, see package.html or
 
-  http://www.knopflerfish.org/XMLMetatype/
+  https://www.knopflerfish.org/XMLMetatype/

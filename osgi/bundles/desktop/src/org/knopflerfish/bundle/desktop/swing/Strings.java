@@ -167,7 +167,7 @@ public class Strings {
               "Knopflerfish OSGi desktop, version $(1)\n" +
               "Framework: $(2) $(3)\n\n" +
               "$(4)\n\n" +
-              "See http://www.knopflerfish.org for more information.\n\n" +
+              "See https://www.knopflerfish.org for more information.\n\n" +
               "This release uses icons from Tango Desktop\n" +
               "Project released to the public domain, see\n" +
               "http://tango.freedesktop.org/Tango_Desktop_Project"

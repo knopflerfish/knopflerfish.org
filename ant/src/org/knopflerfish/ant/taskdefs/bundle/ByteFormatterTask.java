@@ -43,7 +43,7 @@ import org.apache.tools.ant.Task;
  *
  * Here <tt>ki</tt> is short for <tt>kibi</tt>, (a contraction of kilo
  * binary) see <a
- * href="http://en.wikipedia.org/wiki/Kibibyte">http://en.wikipedia.org/wiki/Kibibyte</a>
+ * href="https://en.wikipedia.org/wiki/Kibibyte">https://en.wikipedia.org/wiki/Kibibyte</a>
  * for a detailed explanation.  <p>
  *
  * <h3>Parameters</h3>
@@ -65,7 +65,7 @@ import org.apache.tools.ant.Task;
  *    <td valign="top">An URL pointing to a page explaining the binary
  *                     unit suffixes.</td>
  *    <td valign="top" align="center">
- *      http://en.wikipedia.org/wiki/Binary_prefix#IEC_standard_prefixes
+ *      https://en.wikipedia.org/wiki/Binary_prefix#IEC_standard_prefixes
  *    </td>
  *  </tr>
  *  <tr>
@@ -153,7 +153,7 @@ public class ByteFormatterTask extends Task {
 
 
   private String binaryPrefixURL
-    = "http://en.wikipedia.org/wiki/Binary_prefix#IEC_standard_prefixes";
+    = "https://en.wikipedia.org/wiki/Binary_prefix#IEC_standard_prefixes";
   /**
    * The URL that explains binary prefixes.
    *

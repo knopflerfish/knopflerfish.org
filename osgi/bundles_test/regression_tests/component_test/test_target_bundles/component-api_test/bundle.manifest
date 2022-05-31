@@ -4,8 +4,8 @@ Bundle-SymbolicName: component-api_test
 Bundle-Version: 1.0.0
 Bundle-Description: Test bundle for component, component-api_test
 Bundle-Vendor: Knopflerfish/Makewave AB
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.component_test
 Import-Package: org.knopflerfish.service.component_test
