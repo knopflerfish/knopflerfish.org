@@ -156,10 +156,10 @@
   </condition>
 
   <!-- The released version this build is is based on -->
-  <property name="version.base"       value="6.1.1.snapshot"/>
+  <property name="version.base"       value="6.2.0.snapshot"/>
 
   <!-- The previous official release version for this build -->
-  <property name="version.previous"   value="6.1.1"/>
+  <property name="version.previous"   value="6.1.5"/>
 
   
   <!-- Set the version as follows:
@@ -199,7 +199,7 @@
   <property name="bundle.version.suffix" value="${version.suffix}" />
 
 
-  <property name="kf.groupversion"	value="kf6" />
+  <property name="kf.groupversion"	value="kf6-jdk8" />
 
   <!-- The release date of this release -->
   <!-- *** Un-comment and set here on release branch. *** -->

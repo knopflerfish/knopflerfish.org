@@ -20,7 +20,7 @@ Building Knopflerfish OSGi
 ------------------------------
 
 ###  Prerequisites
-- JDK 6 or later, available from Open JDK, Oracle or elsewhere.
+- JDK 8, available from Open JDK, Oracle or elsewhere.
 - Ant 1.9.1 or later, available from ant.apache.org.
 - openssl, to create and manipulate certificates when using
   security and the Conditional Permission Admin (CPA) service. Test
@@ -28,14 +28,16 @@ Building Knopflerfish OSGi
 - ProGuard 4.10 or later, tested with 5.2. This is only need if you want
   to build the compact version of the framework. You need ProGuard 5
    or later if you want to build with Java 8.
+- Knopflerfish can be built with JDK 11 or JDK 17, but there are some limitations. 
+  Please see the release notes for more info
 
 ### Java compatibility
 
-Knopflerfish, release 6, is designed to run on Java 1.6 and upwards.
+With the release of Knopflerfish 6.2 Java 8 is the baseline for building and running Knopflerfish. 
 
-The Knopflerfish 6 SDK releases are always compiled with JDK6.
+The Knopflerfish 6.1 releases remain as an alternative for building and running Knopflerfish on Java 6 or Java 7.
 
-The Knopflerfish SDK can however be rebuilt for another JDK versions
+The Knopflerfish SDK can be rebuilt for other JDK versions
 if preferred.
 For a comprehensive explanation of running and building Knopflerfish
 with different JDK versions please consult:
@@ -94,7 +96,7 @@ Insert the following in the .bnd file of your project.
 ```
 -plugin.org.knopflerfish.kf6: \
 	aQute.bnd.repository.osgi.OSGiRepository; \
-		locations=https://www.knopflerfish.org/releases/6.1.0/osgi/jars/index.xml; \
+		locations=https://www.knopflerfish.org/releases/6.2.0/osgi/jars/index.xml; \
 		name=kf6
 ```
 and replace the location with a file URL pointing to your local

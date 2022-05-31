@@ -1,8 +1,11 @@
 Release Notes Knopflerfish $(VERSION) (OSGi R6)
 ======================================================================
 
-Maintenance release of Knopflerfish 6 available from
+Minor release of Knopflerfish 6 available from
 $(BASE_URL)/$(VERSION). Released $(RELEASE_DATE).
+
+In this release a switch to Java 8 as baseline for building and 
+running Knopflerfish has been made. 
 
 Knopflerfish 6 is an implementation of the "OSGi Service Platform
 Release 6". It contains all services specified in the "Core
@@ -24,9 +27,6 @@ Knopflerfish Framework - OSGi Core Specification
 * Added bundle names to BundleException messages in BundleImpl.
 
 ### Framework 8.0.11
-
-* Return null from WovenClass.bundleWiring() for uninstalled bundles.
-
 ### Framework 8.0.10
 
 * Fixed issue #49. Use systemUrlStreamHandlerFactory if it was
@@ -247,31 +247,39 @@ Test bundles
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
 
-### Overhaul of links
+### Java 8 as a baseline
 
-* Changed from http to https in many places in documentation, readmes and bundle manifests.
-* Updated some outdated links.
+* Starting with Knopflerfish 6.2 Java 8 will be the baseline for building Knopflerfish. 
+  For older JDK versions KF 6.1.* can be used. 
+  
+### New maven group id - kf6-jdk8
 
-### Build with Java 11 / JDK11
+* In order to distinguish bundles included in the Knopflerfish 6.2 release, and built with JDK 8, from earlier released Knopflerfish 6.1 bundles, a new group id is used: kf6-jdk8
 
-* Updated the build system to support building with JDK11 with the following
+### Removed deprecated third party libraries / tools
+
+* Crimson does not support Java 8 and beyond and has therefore been removed.
+
+### Build with Java 11 or Java 17
+
+* Updated the build system to support building with JDK11 and JDK 17, with the following
   remarks / limitations:
+  
+    - Extension bundles are not fully functional
     - Compact version of framework is not built since the proguard compactor
       does not support Java > 8
-      - Updated asm to version 7.0. Older versions does not support
-        Java 10 or 11
-      - Crimson does not support Java 8 and beyond and has been
-        removed.
-* Building with JDK9 and JDK10 should work, but is not supported since
-  they are  both declared as no longer supported. 
-  
-### asm 7.0
+  		
+* Building with JDK12 to JDK16 should work, but is not supported since they are not JDK LTS versions.
 
-* asm has been updated to version 7.0, with support for Java 11
+* Building with JDK9 and JDK10 should also work, but is not supported since they are also not JDK LTS versions. 
+  
+### asm 9.3
+
+* asm has been updated to version 9.3, with support for Java 11 and Java 17
 
 ### Knopflerfish installer - jarunpacker
 
-* Updated to support building with > JDK8
+* Updated to support building with JDK8 and later.
 
 ### Maven snapshot bundles / artifacts
 
@@ -290,3 +298,7 @@ Misc, start scripts, build system etc
 
 * Corrected broken links, causing 404 Not Found error
 
+### Overhaul of links
+
+* Changed from http to https in many places in documentation, readmes and bundle manifests.
+* Updated some outdated links.
