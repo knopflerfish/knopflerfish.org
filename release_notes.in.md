@@ -247,6 +247,11 @@ Test bundles
 Misc, start scripts, build system etc 
 ----------------------------------------------------------------------
 
+### Overhaul of links
+
+* Changed from http to https in many places in documentation, readmes and bundle manifests.
+* Updated some outdated links.
+
 ### Build with Java 11 / JDK11
 
 * Updated the build system to support building with JDK11 with the following
