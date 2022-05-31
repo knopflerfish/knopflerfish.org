@@ -6,7 +6,7 @@ need to:
 
 2) Edit the workspace configuration file named:
 
-   worksapce/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.jdt.core.prefs
+   workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.jdt.core.prefs
 
    Change the targetPlatform, compliance and source lines to:
 

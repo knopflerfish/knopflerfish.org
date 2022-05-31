@@ -540,7 +540,7 @@ public class HttpState {
      * @see java.lang.Object#toString()
      */
     public synchronized String toString() {
-        StringBuffer sbResult = new StringBuffer();
+        StringBuilder sbResult = new StringBuilder();
 
         sbResult.append("[");
         sbResult.append(getCredentialsStringRepresentation(proxyCred));
@@ -550,9 +550,7 @@ public class HttpState {
         sbResult.append(getCookiesStringRepresentation(cookies));
         sbResult.append("]");
 
-        String strResult = sbResult.toString();
-
-        return strResult;
+        return sbResult.toString();
     }
     
     /**
@@ -561,7 +559,7 @@ public class HttpState {
      * @return The string representation.
      */
     private static String getCredentialsStringRepresentation(final Map credMap) {
-        StringBuffer sbResult = new StringBuffer();
+        StringBuilder sbResult = new StringBuilder();
         Iterator iter = credMap.keySet().iterator();
         while (iter.hasNext()) {
             Object key = iter.next();
@@ -582,7 +580,7 @@ public class HttpState {
      * @return The string representation.
      */
     private static String getCookiesStringRepresentation(final List cookies) {
-        StringBuffer sbResult = new StringBuffer();
+        StringBuilder sbResult = new StringBuilder();
         Iterator iter = cookies.iterator();
         while (iter.hasNext()) {
             Cookie ck = (Cookie) iter.next();

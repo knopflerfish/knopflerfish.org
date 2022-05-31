@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KF-AWT-Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.desktop_awt
-Bundle-Version: 4.0.1
+Bundle-Version: 4.1.0
 Bundle-Category: management
 Bundle-Description: AWT framework desktop
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles_opt/desktop_awt/
 Bundle-Activator: org.knopflerfish.bundle.desktopawt.Activator

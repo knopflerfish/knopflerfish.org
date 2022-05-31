@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -354,11 +354,11 @@ public class OCD
   @Override
   public String toString()
   {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
-    sb.append("OCD[id=" + id);
-    sb.append("\nname=" + name);
-    sb.append("\ndesc=" + desc);
+    sb.append("OCD[id=").append(id);
+    sb.append("\nname=").append(name);
+    sb.append("\ndesc=").append(desc);
     sb.append("\nregAttrs=");
     for (final Iterator<AD> it = reqAttrs.iterator(); it.hasNext();) {
       final AttributeDefinition attr = it.next();

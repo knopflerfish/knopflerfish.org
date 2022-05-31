@@ -27,6 +27,7 @@
     <pathelement location="component_api-N.N.N.jar"/>
     <pathelement location="log_api-N.N.N.jar"/>
     <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="promise-N.N.N.jar"/>
     <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
     <pathelement location="${resources.dir}/component-api_test-1.0.0.jar"/>
     <pathelement location="${resources.dir}/componentX_test-1.0.0.jar"/>
@@ -34,6 +35,7 @@
     <pathelement location="${resources.dir}/componentF_test-1.0.0.jar"/>
     <pathelement location="${resources.dir}/componentC_test-1.0.0.jar"/>
     <pathelement location="${resources.dir}/componentM_test-1.0.0.jar"/>
+    <pathelement location="${resources.dir}/componentFilter_test-1.0.0.jar"/>
   </path>
 
   <target name="bundle.custom.pre">
@@ -47,6 +49,7 @@
     <antcall target="componentF_test"/>
     <antcall target="componentC_test"/>
     <antcall target="componentM_test"/>
+    <antcall target="componentFilter_test"/>
   </target>
 
   <target name="component-api_test">
@@ -105,13 +108,20 @@
       <property name="outdir"  location="${ttb.outdir}/componentC_test"/>
     </ant>
   </target>
-	  <target name="componentM_test">
-	    <ant dir="test_target_bundles/componentM_test" target="all"
-		 inheritAll="false">
-	      <property name="jardir"  location="${resources.dir}"/>
-	      <property name="outdir"  location="${ttb.outdir}/componentM_test"/>
-	    </ant>
-	  </target>
+  <target name="componentM_test">
+    <ant dir="test_target_bundles/componentM_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/componentM_test"/>
+    </ant>
+  </target>
+  <target name="componentFilter_test">
+    <ant dir="test_target_bundles/componentFilter_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/componentFilter_test"/>
+    </ant>
+  </target>
 
   <import file="${ant.dir}/bundlebuild.xml"/>
 

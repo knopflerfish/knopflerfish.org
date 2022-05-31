@@ -75,7 +75,7 @@ public class Zystem
 	{
 		/* 
 		The rxtxZystem library uses Python code and is not
-		included with RXTX.  A seperate library will be released
+		included with RXTX.  A separate library will be released
 		to avoid potential license conflicts.
 
 		Trent Jarvi taj@www.linux.org.uk
@@ -180,7 +180,7 @@ public class Zystem
 		if ( nativeInit( ) )
 		{
 			throw new UnSupportedLoggerException(
-				"Port initializion failed" );
+				"Port initialization failed" );
 		}
 	*/
 		return;

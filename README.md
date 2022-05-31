@@ -14,13 +14,13 @@ specifications.
 
 The Knopflerfish website has the full documentation and Knopflerfish
 OSGi Service Platform SDK's available for download.
-http://www.knopflerfish.org
+https://www.knopflerfish.org
 
 Building Knopflerfish OSGi
 ------------------------------
 
 ###  Prerequisites
-- JDK 6 or later, available from Open JDK, Oracle or elsewhere.
+- JDK 8, available from Open JDK, Oracle or elsewhere.
 - Ant 1.9.1 or later, available from ant.apache.org.
 - openssl, to create and manipulate certificates when using
   security and the Conditional Permission Admin (CPA) service. Test
@@ -28,18 +28,20 @@ Building Knopflerfish OSGi
 - ProGuard 4.10 or later, tested with 5.2. This is only need if you want
   to build the compact version of the framework. You need ProGuard 5
    or later if you want to build with Java 8.
+- Knopflerfish can be built with JDK 11 or JDK 17, but there are some limitations. 
+  Please see the release notes for more info
 
 ### Java compatibility
 
-Knopflerfish, release 6, is designed to run on Java 1.6 and upwards.
+With the release of Knopflerfish 6.2 Java 8 is the baseline for building and running Knopflerfish. 
 
-The Knopflerfish 6 SDK releases are always compiled with JDK6.
+The Knopflerfish 6.1 releases remain as an alternative for building and running Knopflerfish on Java 6 or Java 7.
 
-The Knopflerfish SDK can however be rebuilt for another JDK versions
+The Knopflerfish SDK can be rebuilt for other JDK versions
 if preferred.
 For a comprehensive explanation of running and building Knopflerfish
 with different JDK versions please consult:
-http://www.knopflerfish.org/osgi_java_compatibility_guide.html
+https://www.knopflerfish.org/osgi_java_compatibility_guide.html
 
 ### How to build
 
@@ -94,7 +96,7 @@ Insert the following in the .bnd file of your project.
 ```
 -plugin.org.knopflerfish.kf6: \
 	aQute.bnd.repository.osgi.OSGiRepository; \
-		locations=http://www.knopflerfish.org/releases/6.1.0/osgi/jars/index.xml; \
+		locations=https://www.knopflerfish.org/releases/6.2.0/osgi/jars/index.xml; \
 		name=kf6
 ```
 and replace the location with a file URL pointing to your local
@@ -106,17 +108,17 @@ During the distribution build a maven2 repository is built which can
 be used as a local maven repository.
 
 More information on user maven can be found here:
-http://www.knopflerfish.org/maven.html
+https://www.knopflerfish.org/maven.html
 
 
 About Knopflerfish
 ----------------------------------------
 Knopflerfish is a leading universal open source OSGi Service
 Platform.
-http://www.knopflerfish.org
+https://www.knopflerfish.org
 
 The development is led and maintained by Makewave
-http://www.makewave.com
+https://www.makewave.com
 
 As a complement to the freely available Knopflerfish, Makewave offers
 Knopflerfish Pro, the certified and fully supported edition of

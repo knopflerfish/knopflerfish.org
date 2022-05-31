@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2013, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@ public class FrameworkTrayIcon
 
   public FrameworkTrayIcon() throws UnsupportedOperationException
   {
-    final StringBuffer toolTipText = new StringBuffer("Knopflerfish OSGi");
+    final StringBuilder toolTipText = new StringBuilder("Knopflerfish OSGi");
     final String servicePlatformId =
       Activator.bc.getProperty("org.osgi.provisioning.spid");
     if (null != servicePlatformId && 0 < servicePlatformId.length()) {

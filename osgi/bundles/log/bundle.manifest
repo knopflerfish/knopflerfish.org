@@ -1,16 +1,16 @@
 Manifest-Version: 1.0
 Bundle-Name: Log Service
 Bundle-SymbolicName: org.knopflerfish.bundle.log
-Bundle-Version: 6.0.0
+Bundle-Version: 6.1.0
 Bundle-Category: osgi
 Bundle-Description: The Knopflerfish OSGi log service
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi/Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  description="BSD 3-clause";
- link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ link="https://www.knopflerfish.org/licenses/knopflerfish-1.txt"
+Bundle-DocURL: https://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=log/index.html
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/log/

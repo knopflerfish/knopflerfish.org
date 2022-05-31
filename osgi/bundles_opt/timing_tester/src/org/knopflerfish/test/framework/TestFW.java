@@ -118,23 +118,23 @@ public class TestFW  {
 
     long now = System.currentTimeMillis();
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
-    sb.append("" + now);   // date
+    sb.append(now);        // date
     sb.append(logId);
 
     sb.append(", ");       // id
-    sb.append("" + logId);
+    sb.append(logId);
 
     sb.append(", ");       // prefix
     sb.append(System.getProperty("test.log.prefix", "test"));
 
     sb.append(", ");       // module
-    sb.append("\"" + module + "\"");
+    sb.append("\"").append(module).append("\"");
 
 
     sb.append(", ");       // message
-    sb.append("\"" + msg + "\"");
+    sb.append("\"").append(msg).append("\"");
 
     sb.append(", ");       // time
     sb.append(time);

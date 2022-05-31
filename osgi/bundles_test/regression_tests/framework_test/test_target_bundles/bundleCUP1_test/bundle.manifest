@@ -4,7 +4,7 @@ Bundle-SymbolicName: bundleCUP_test
 Bundle-Version: 1.0.0
 Bundle-Description: Test bundle for framework, bundleCU_test
 Bundle-Vendor: Knopflerfish/Makewave AB
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Category: testing
 Bundle-UUID: org.knopflerfish:bundleCUP_test:1.0.0:all

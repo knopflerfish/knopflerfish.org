@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2016, KNOPFLERFISH project
+ * Copyright (c) 2009-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -359,7 +359,7 @@ public class FWProps {
 
 
   protected String makeKeys() {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
     for (final String string : props.keySet()) {
       if (sb.length() > 0) {
         sb.append(',');
@@ -386,7 +386,7 @@ public class FWProps {
     setPropertyIfNotSet(Constants.FRAMEWORK_EXECPERMISSION, "");
 
     if (!props.containsKey(FRAMEWORK_EXECUTIONENVIRONMENT)) {
-      final StringBuffer ee = new StringBuffer();
+      final StringBuilder ee = new StringBuilder();
       // Always allow ee minimum
       ee.append("OSGi/Minimum-1.0");
       ee.append(",OSGi/Minimum-1.1");
@@ -513,7 +513,7 @@ public class FWProps {
     setPropertyDefault(SERVICE_PERMISSIONADMIN_PROP, TRUE);
     setPropertyDefault(SYSTEM_PACKAGES_BASE_PROP, "");
     setPropertyDefault(SYSTEM_PACKAGES_FILE_PROP, "");
-    StringBuffer pver = new StringBuffer();
+    StringBuilder pver = new StringBuilder();
     if (javaVersionMajor >= 0) {
       pver.append(javaVersionMajor);
       if (javaVersionMinor >= 0) {

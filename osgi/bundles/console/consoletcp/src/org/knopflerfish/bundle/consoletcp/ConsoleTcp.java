@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003,2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,6 @@ import org.knopflerfish.service.um.useradmin.ContextualAuthorization;
 import org.knopflerfish.service.um.useradmin.PasswdAuthenticator;
 import org.knopflerfish.service.um.useradmin.PasswdSession;
 
-// ******************** ConsoleTcp ********************
 /**
  * TCP based console user interface implementation.
  *
@@ -72,27 +71,18 @@ import org.knopflerfish.service.um.useradmin.PasswdSession;
 public class ConsoleTcp
   implements BundleActivator, ManagedService
 {
-  ServiceReference<ConsoleService> srefConsole;
 
   private static final String PORT_PROPERTY = "port";
-
   private static final String ADDRESS_PROPERTY = "address";
-
   private static final String LOGIN_PROPERTY = "login";
-
   private static final String UM_PROPERTY = "um";
-
   private static final String EXIT_ON_LOGOUT_PROPERTY = "exitOnLogout";
-
   private static final String REQUIRED_GROUP_PROPERTY = "requiredGroup";
-
   private static final String FORBIDDEN_GROUP_PROPERTY = "forbiddenGroup";
-
   private static final String USE_TIMEOUT_PROPERTY = "useTimeout";
 
   private static final String DEFAULT_USER_NAME = "admin";
   private static final String DEFAULT_USER_PROPERTY = "defaultUser";
-
   private static final String DEFAULT_PASSWORD = "admin";
   private static final String DEFAULT_PASSWORD_PROPERTY = "defaultPassword";
 
@@ -142,7 +132,7 @@ public class ConsoleTcp
     this.bc = bc;
 
     // Get config
-    final Dictionary<String,Object> p = new Hashtable<String,Object>();
+    final Dictionary<String, Object> p = new Hashtable<>();
     p.put(Constants.SERVICE_PID, getClass().getName());
     bc.registerService(ManagedService.class.getName(), this, p);
   }
@@ -164,109 +154,58 @@ public class ConsoleTcp
    *			  ManagedService implementation
    *---------------------------------------------------------------------------*/
 
+  private <T> T getConfig(Dictionary<String,?> config, String property) {
+    try {
+      //noinspection unchecked
+      return (T) config.get(property);
+    } catch (final ClassCastException e) {
+      throw new IllegalArgumentException("Wrong type for " + property);
+    }
+  }
+
   // ==================== updated ====================
   /**
-   * * Called by CM when it got this bundles configuration. * *
-   *
-   * @param bc
-   *          Bundle context.
+   * Called by CM when it got this bundles configuration.
    */
   @Override
-  public synchronized void updated(Dictionary<String,?> cfg)
+  public synchronized void updated(Dictionary<String,?> config)
       throws ConfigurationException, IllegalArgumentException
   {
-    if (cfg == null) {
+    if (config == null) {
       stopAccept();
-      cfg = new Hashtable<String, Object>();
+      config = new Hashtable<>();
     }
     final Short oldport = port;
     final InetAddress oldAddress = address;
     final Boolean oldUseTimeout = useTimeout;
-    try {
-      port = (Short) cfg.get(PORT_PROPERTY);
-    } catch (final ClassCastException e) {
-      throw new IllegalArgumentException("Wrong type for " + PORT_PROPERTY);
-    }
-    String addressStr = null;
-    try {
-      addressStr = (String) cfg.get(ADDRESS_PROPERTY);
-      if (addressStr != null) {
-        addressStr = addressStr.trim();
-        if ("".equals(addressStr)) {
-          address = null;
-        } else {
-          address = InetAddress.getByName(addressStr);
-        }
-      } else {
-        address = null;
-      }
-    } catch (final ClassCastException e) {
-      throw new IllegalArgumentException("Wrong type for " + ADDRESS_PROPERTY);
-    } catch (final UnknownHostException e) {
-      throw new IllegalArgumentException("Cannot resolve " + ADDRESS_PROPERTY
-                                         + ": " + addressStr);
-    }
-    try {
-      login = (Boolean) cfg.get(LOGIN_PROPERTY);
-    } catch (final ClassCastException e) {
-      throw new IllegalArgumentException("Wrong type for " + LOGIN_PROPERTY);
-    }
-    try {
-      requireUM = (Boolean) cfg.get(UM_PROPERTY);
-    } catch (final ClassCastException e) {
-      throw new IllegalArgumentException("Wrong type for " + UM_PROPERTY);
-    }
-    try {
-      exitOnLogout = (Boolean) cfg.get(EXIT_ON_LOGOUT_PROPERTY);
-    } catch (final ClassCastException e) {
-      throw new IllegalArgumentException("Wrong type for "
-                                         + EXIT_ON_LOGOUT_PROPERTY);
-    }
-    try {
-      defaultUser = (String) cfg.get(DEFAULT_USER_PROPERTY);
-    } catch (final ClassCastException e) {
-      throw new IllegalArgumentException("Wrong type for "
-                                         + DEFAULT_USER_PROPERTY);
-    }
-    try {
-      defaultPassword = (String) cfg.get(DEFAULT_PASSWORD_PROPERTY);
-    } catch (final ClassCastException e) {
-      throw new IllegalArgumentException("Wrong type for "
-                                         + DEFAULT_PASSWORD_PROPERTY);
-    }
-    try {
-      requiredGroup = (String) cfg.get(REQUIRED_GROUP_PROPERTY);
-    } catch (final ClassCastException e) {
-      throw new IllegalArgumentException("Wrong type for "
-                                         + REQUIRED_GROUP_PROPERTY);
-    }
-    try {
-      forbiddenGroup = (String) cfg.get(FORBIDDEN_GROUP_PROPERTY);
-    } catch (final ClassCastException e) {
-      throw new IllegalArgumentException("Wrong type for "
-                                         + FORBIDDEN_GROUP_PROPERTY);
-    }
-    try {
-      useTimeout = (Boolean) cfg.get(USE_TIMEOUT_PROPERTY);
-    } catch (final ClassCastException e) {
-      throw new IllegalArgumentException("Wrong type for "
-                                         + USE_TIMEOUT_PROPERTY);
-    }
+    port = getConfig(config, PORT_PROPERTY);
+
+    setAdress(getConfig(config, ADDRESS_PROPERTY));
+
+    login = getConfig(config, LOGIN_PROPERTY);
+    requireUM = getConfig(config, UM_PROPERTY);
+    exitOnLogout = getConfig(config, EXIT_ON_LOGOUT_PROPERTY);
+    defaultUser = getConfig(config, DEFAULT_USER_PROPERTY);
+    defaultPassword = getConfig(config, DEFAULT_PASSWORD_PROPERTY);
+    requiredGroup = getConfig(config, REQUIRED_GROUP_PROPERTY);
+    forbiddenGroup = getConfig(config, FORBIDDEN_GROUP_PROPERTY);
+    useTimeout = getConfig(config, USE_TIMEOUT_PROPERTY);
+
     if (port == null) {
-      port = new Short((short) 8999);
+      port = (short) 8999;
     }
-    if (port.shortValue() < 0 || port.shortValue() > 65535) {
+    if (port < 0) {
       log(LogService.LOG_ERROR, "Illegal port number");
       throw new IllegalArgumentException("Illegal port number");
     }
     if (login == null) {
-      login = new Boolean(true);
+      login = Boolean.TRUE;
     }
     if (requireUM == null) {
-      requireUM = new Boolean(false);
+      requireUM = Boolean.FALSE;
     }
     if (exitOnLogout == null) {
-      exitOnLogout = new Boolean(false);
+      exitOnLogout = Boolean.FALSE;
     }
     if (defaultUser == null || defaultUser.length() == 0) {
       defaultUser = DEFAULT_USER_NAME;
@@ -281,16 +220,16 @@ public class ConsoleTcp
       forbiddenGroup = null;
     }
     if (useTimeout == null) {
-      useTimeout = new Boolean(true);
+      useTimeout = Boolean.TRUE;
     }
 
     final boolean addressChanged =
-      (oldAddress == null && address != null)
-          || (oldAddress != null && !oldAddress.equals(address));
+        (oldAddress == null && address != null)
+            || (oldAddress != null && !oldAddress.equals(address));
 
     final boolean useTimeoutChanged =
-      (oldUseTimeout == null && !useTimeout.booleanValue())
-          || (oldUseTimeout != null && !oldUseTimeout.equals(useTimeout));
+        (oldUseTimeout == null && !useTimeout)
+            || (oldUseTimeout != null && !oldUseTimeout.equals(useTimeout));
 
     if (tAccept != null) {
       if (port.equals(oldport) && !addressChanged && !useTimeoutChanged) {
@@ -300,7 +239,7 @@ public class ConsoleTcp
       stopAccept();
     } else {
       // Get console service
-      srefConsole = bc.getServiceReference(ConsoleService.class);
+      ServiceReference<ConsoleService> srefConsole = bc.getServiceReference(ConsoleService.class);
       sConsole = bc.getService(srefConsole);
       if (sConsole == null) {
         log(LogService.LOG_ERROR, "Failed to get ConsoleService");
@@ -311,6 +250,24 @@ public class ConsoleTcp
     tAccept.setDaemon(false);
     quit = false;
     tAccept.start();
+  }
+
+  private void setAdress(String addressStr) {
+    try {
+      if (addressStr != null) {
+        addressStr = addressStr.trim();
+        if ("".equals(addressStr)) {
+          address = null;
+        } else {
+          address = InetAddress.getByName(addressStr);
+        }
+      } else {
+        address = null;
+      }
+    } catch (final UnknownHostException e) {
+      throw new IllegalArgumentException("Cannot resolve " + ADDRESS_PROPERTY
+                                         + ": " + addressStr);
+    }
   }
 
   /**
@@ -341,8 +298,7 @@ public class ConsoleTcp
   void log(int level, String msg)
   {
     try {
-      final ServiceReference<LogService> srLog =
-        bc.getServiceReference(LogService.class);
+      final ServiceReference<LogService> srLog = bc.getServiceReference(LogService.class);
       if (srLog != null) {
         final LogService sLog = bc.getService(srLog);
         if (sLog != null) {
@@ -351,8 +307,8 @@ public class ConsoleTcp
         bc.ungetService(srLog);
       }
     } catch (final IllegalStateException exp) {
-      // if the thread has survied the stop of the bundle we get this
-      // which we unfortunately has to ignore
+      // if the thread has survived the stop of the bundle we get this
+      // which we unfortunately have to ignore
     }
   }
 
@@ -364,7 +320,7 @@ public class ConsoleTcp
     extends Thread
     implements SessionListener
   {
-    Hashtable<Session,Socket> sessions = new Hashtable<Session, Socket>();
+    Hashtable<Session,Socket> sessions = new Hashtable<>();
 
     ConsoleService cs;
 
@@ -422,78 +378,74 @@ public class ConsoleTcp
 
           // Create new Thread to be able to handle simultaneous
           // logins:
-          final Thread startSessionThread = new Thread() {
-            @Override
-            public void run()
-            {
-              final String session =
-                "console session " + client.getInetAddress().getHostName();
-              PrintWriter out = null;
-              try {
-                out = new PrintWriter(client.getOutputStream(), true);
-                final InputStream is = client.getInputStream();
-                final InputStreamReader isr = new InputStreamReader(is);
-                final BufferedReader in = new BufferedReader(isr);
+          final Thread startSessionThread = new Thread(() -> {
+            final String sessionName =
+              "console session " + client.getInetAddress().getHostName();
+            PrintWriter out = null;
+            try {
+              out = new PrintWriter(client.getOutputStream(), true);
+              final InputStream is = client.getInputStream();
+              final InputStreamReader isr = new InputStreamReader(is);
+              final BufferedReader in = new BufferedReader(isr);
 
-                Authorization authorization = null;
-                if (login.booleanValue()) {
-                  final LoginResult loginResult = doLogin(client);
-                  if (loginResult.loginOK) {
-                    authorization = loginResult.authorization;
-                  } else {
-                    return;
-                  }
-                }
-
-                // To avoid bug with hanging sockets we set
-                // SO_TIMEOUT
-                // addition: to avoid a bug in j9 it is now
-                // possible to
-                // configure the console to not use the timeout
-                if (useTimeout.booleanValue()) {
-                  client.setSoTimeout(3000);
-                }
-                final Session s = cs.runSession(session, in, out);
-                final Dictionary<String, Object> props = s.getProperties();
-                if (authorization != null) {
-                  props.put(Session.PROPERTY_AUTHORIZATION, authorization);
-                }
-                props.put(Session.PROPERTY_TCP, new Boolean(true));
-                if (exitOnLogout.booleanValue()) {
-                  props.put(Session.PROPERTY_EXIT_ON_LOGOUT, new Boolean(true));
-                  /*
-                   * Add properties to session to be able to exit on login? if
-                   * (requiredGroup != null) {
-                   * props.put(Session.PROPERTY_REQUIRED_GROUP, requiredGroup);
-                   * } if (forbiddenGroup != null) {
-                   * props.put(Session.PROPERTY_FORBIDDEN_GROUP,
-                   * forbiddenGroup); }
-                   */
-                }
-
-                sessions.put(s, client);
-                s.addSessionListener(thisSessionListener);
-                s.setInterruptString(TELNET_INTERRUPT);
-                log(LogService.LOG_INFO, "Started " + session);
-              } catch (final IOException e) {
-                log(LogService.LOG_ERROR,
-                    "Failed to get input or output from socket to console session: "
-                        + e);
-                try {
-                  if (out != null && client.getSoTimeout() > 0) {
-                    out.println("\nSession timed out (" + client.getSoTimeout()
-                                + " ms).");
-                  }
-                } catch (final SocketException ignore) {
-                }
-                try {
-                  client.close();
-                } catch (final IOException e2) {
-                  log(LogService.LOG_ERROR, "Failed to close socket: " + e);
+              Authorization authorization = null;
+              if (login) {
+                final LoginResult loginResult = doLogin(client);
+                if (loginResult.loginOK) {
+                  authorization = loginResult.authorization;
+                } else {
+                  return;
                 }
               }
+
+              // To avoid bug with hanging sockets we set
+              // SO_TIMEOUT
+              // addition: to avoid a bug in j9 it is now
+              // possible to
+              // configure the console to not use the timeout
+              if (useTimeout) {
+                client.setSoTimeout(3000);
+              }
+              final Session session = cs.runSession(sessionName, in, out);
+              final Dictionary<String, Object> props = session.getProperties();
+              if (authorization != null) {
+                props.put(Session.PROPERTY_AUTHORIZATION, authorization);
+              }
+              props.put(Session.PROPERTY_TCP, Boolean.TRUE);
+              if (exitOnLogout) {
+                props.put(Session.PROPERTY_EXIT_ON_LOGOUT, Boolean.TRUE);
+                /*
+                 * Add properties to session to be able to exit on login? if
+                 * (requiredGroup != null) {
+                 * props.put(Session.PROPERTY_REQUIRED_GROUP, requiredGroup);
+                 * } if (forbiddenGroup != null) {
+                 * props.put(Session.PROPERTY_FORBIDDEN_GROUP,
+                 * forbiddenGroup); }
+                 */
+              }
+
+              sessions.put(session, client);
+              session.addSessionListener(thisSessionListener);
+              session.setInterruptString(TELNET_INTERRUPT);
+              log(LogService.LOG_INFO, "Started " + sessionName);
+            } catch (final IOException e) {
+              log(LogService.LOG_ERROR,
+                  "Failed to get input or output from socket to console session: "
+                      + e);
+              try {
+                if (out != null && client.getSoTimeout() > 0) {
+                  out.println("\nSession timed out (" + client.getSoTimeout()
+                              + " ms).");
+                }
+              } catch (final SocketException ignore) {
+              }
+              try {
+                client.close();
+              } catch (final IOException e2) {
+                log(LogService.LOG_ERROR, "Failed to close socket: " + e);
+              }
             }
-          };
+          });
           startSessionThread.start();
 
         } // while (!quit)
@@ -533,7 +485,7 @@ public class ConsoleTcp
       // 60 secs to login
       // addition: to avoid a bug in j9 it is now possible to configure
       // the console to not use the timeout
-      if (useTimeout.booleanValue()) {
+      if (useTimeout) {
         client.setSoTimeout(60000);
       }
 
@@ -566,12 +518,12 @@ public class ConsoleTcp
       in.read(); // Read answer.
       out.println();
 
-      Authorization authorization = null;
+      ContextualAuthorization authorization = null;
       boolean loginOK = false;
       final ServiceReference<PasswdAuthenticator> sr =
         bc.getServiceReference(PasswdAuthenticator.class);
       if (sr == null) {
-        if (requireUM.booleanValue()) {
+        if (requireUM) {
           log(LogService.LOG_WARNING,
               "Failed to get PasswdAuthenticator reference. UM required but not present.");
         } else {
@@ -623,21 +575,16 @@ public class ConsoleTcp
       }
 
       // Set context:
-      if (authorization instanceof ContextualAuthorization) {
+      if (authorization != null) {
         final String authMethod = "passwd"; // TBD
         final String inputPath = "tcp"; // TBD
-        ((ContextualAuthorization) authorization).setIPAMContext(inputPath,
-                                                                 authMethod);
-        final Dictionary<?, ?> context =
-          ((ContextualAuthorization) authorization).getContext();
+        authorization.setIPAMContext(inputPath, authMethod);
+        final Dictionary<?, ?> context = authorization.getContext();
         log(LogService.LOG_INFO, "User " + authorization.getName()
                                  + " logged in, authentication context is "
                                  + context + ".");
-      } else if (authorization == null) {
-        log(LogService.LOG_INFO, "Default user " + defaultUser + " logged in.");
       } else {
-        log(LogService.LOG_INFO, "User " + authorization.getName()
-                                 + " logged in.");
+        log(LogService.LOG_INFO, "Default user " + defaultUser + " logged in.");
       }
       return new LoginResult(authorization);
     }

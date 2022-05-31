@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ import org.osgi.framework.Version;
 
 /**
  * <p>
- * An extension of the <a href="http://ant.apache.org/manual/CoreTasks/jar.html"
+ * An extension of the <a href="https://ant.apache.org/manual/Tasks/jar.html"
  * target="_top">Jar</a> task that builds an OSGi bundle. It can generate the
  * Bundle-Activator, Bundle-ClassPath and Import-Package manifest headers based
  * on the content specified in the task.
@@ -114,7 +114,7 @@ import org.osgi.framework.Version;
  * <h4>classes</h4>
  * <p>
  * The nested <tt>classes</tt> element specifies a <a
- * href="http://ant.apache.org/manual/CoreTypes/zipfileset.html"
+ * href="https://ant.apache.org/manual/Types/zipfileset.html"
  * target="_top">ZipFileSet</a>. The <tt>prefix</tt> attribute will be added to
  * the Bundle-ClassPath manifest header. The classes specified by the file set
  * will be included in the class analysis.
@@ -123,7 +123,7 @@ import org.osgi.framework.Version;
  * <h4>lib</h4>
  * <p>
  * The nested <tt>lib</tt> element specifies a <a
- * href="http://ant.apache.org/manual/CoreTypes/zipfileset.html"
+ * href="https://ant.apache.org/manual/Types/zipfileset.html"
  * target="_top">ZipFileSet</a>. The locations of all files in the file set will
  * be added to the Bundle-ClassPath manifest header. All files of this file set
  * must be either zip or jar files. The classes available in the zip or jar
@@ -490,7 +490,7 @@ public class Bundle
   private void handleClassPath()
       throws ManifestException
   {
-    final StringBuffer value = new StringBuffer();
+    final StringBuilder value = new StringBuilder();
 
     boolean rootIncluded = false;
     if (baseDir != null || classes.size() == 0) {
@@ -553,7 +553,7 @@ public class Bundle
   {
     final Iterator<Entry<String,String>> i = packageMap.entrySet().iterator();
     if (i.hasNext()) {
-      final StringBuffer valueBuffer = new StringBuffer();
+      final StringBuilder valueBuffer = new StringBuilder();
       while (i.hasNext()) {
         final Entry<String, String> entry = i.next();
         final String name = entry.getKey();

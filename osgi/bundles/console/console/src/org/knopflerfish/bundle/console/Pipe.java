@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,15 +46,15 @@ import java.io.Writer;
  */
 class Pipe extends PrintWriter {
 
-    PipeBuffer pipe;
+    private PipeBuffer pipe;
 
     public Pipe() {
         this(new PipeBuffer());
     }
 
-    Pipe(PipeBuffer p) {
-        super(p);
-        pipe = p;
+    Pipe(PipeBuffer pipe) {
+        super(pipe);
+        this.pipe = pipe;
     }
 
     public Reader getReader() {
@@ -75,14 +75,14 @@ class PipeBuffer extends Writer {
 
     private PipeReader pr;
 
-    boolean open = true;
+    private boolean open = true;
 
     PipeBuffer() {
-        super();
         pr = new PipeReader(this);
     }
 
-    public void write(char cbuf[], int off, int len) throws IOException {
+    public void write(char[] cbuf, int off, int len) throws IOException {
+        //noinspection SynchronizeOnNonFinalField
         synchronized (lock) {
             while (len > 0) {
                 while (SIZE == size) {
@@ -115,6 +115,7 @@ class PipeBuffer extends Writer {
     }
 
     public int read(char[] cbuf, int off, int len) throws IOException {
+        //noinspection SynchronizeOnNonFinalField
         synchronized (lock) {
             while (open && size < len) {
                 try {
@@ -148,6 +149,7 @@ class PipeBuffer extends Writer {
     }
 
     public void close() {
+        //noinspection SynchronizeOnNonFinalField
         synchronized (lock) {
             open = false;
             lock.notify();
@@ -164,7 +166,6 @@ class PipeReader extends Reader {
     private PipeBuffer pb;
 
     public PipeReader(PipeBuffer pb) {
-        super();
         this.pb = pb;
     }
 
@@ -181,7 +182,7 @@ class PipeReader extends Reader {
      * @exception IOException
      *                If an I/O error occurs
      */
-    public int read(char buf[], int off, int len) throws IOException {
+    public int read(char[] buf, int off, int len) throws IOException {
         return pb.read(buf, off, len);
     }
 

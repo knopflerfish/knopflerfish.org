@@ -19,16 +19,47 @@
   <repositories>
     <repository>
       <!-- <id>Knopflerfish 6 Repository</id> -->
-      <id>kf6</id>
+      <id>kf6.kf.org</id> 
       <name>Knopflerfish 6 Releases Repository</name>
-      <url>http://resources.knopflerfish.org/repo/maven2/release/</url> 
+      <url>http://resources.knopflerfish.org/repo/maven2/release</url> 
       <layout>default</layout>
+
       <releases>
         <enabled>true</enabled>
         <updatePolicy>daily</updatePolicy>
         <checksumPolicy>fail</checksumPolicy>
       </releases>
+
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
     </repository>
+
+    <repository>
+      <!-- <id>Knopflerfish 6 Repository</id> -->
+      <!--<id>kf6.kf.org</id> -->
+      <id>kf6-6.1.1</id>
+      <name>Knopflerfish 6 SDK Local Repository</name>
+      <!-- <url>http://resources.knopflerfish.org/repo/maven2/release</url> -->
+      <!-- <url>file:///Users/cl/rkf/knopflerfish.org/out/tmp/maven_cl/</url> -->
+      <url>file:///Users/cl/rkf/knopflerfish.org/out/distrib_6.1.1.develop-1-20170901-111836/maven2</url>
+      <layout>default</layout>
+
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </releases>
+
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+    </repository>
+    
   </repositories>
 
   <properties>
@@ -46,17 +77,18 @@
     </dependency>
 
     <dependency>
-      <groupId>${kf.groupid}</groupId>
+      <!-- <groupId>${kf.groupid}</groupId> -->
+      <groupId>org.knopflerfish.kf6</groupId>
       <artifactId>framework</artifactId>
-      <version>8.0.0</version>
+      <version>8.0.5</version>
     </dependency>
     <dependency>
-      <groupId>${kf.groupid.bundle}</groupId>
+      <groupId>org.knopflerfish.kf6.bundle</groupId>
       <artifactId>log</artifactId>
       <version>6.0.0</version>
     </dependency>
     <dependency>
-      <groupId>${kf.groupid.bundle}</groupId>
+      <groupId>org.knopflerfish.kf6.bundle</groupId>
       <artifactId>cm</artifactId>
       <version>5.1.0</version>
     </dependency>

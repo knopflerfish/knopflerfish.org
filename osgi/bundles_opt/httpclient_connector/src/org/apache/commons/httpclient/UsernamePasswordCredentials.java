@@ -167,11 +167,7 @@ public class UsernamePasswordCredentials implements Credentials {
      * @return the username:password formed string
      */
     public String toString() {
-        StringBuffer result = new StringBuffer();
-        result.append(this.userName);
-        result.append(":");
-        result.append((this.password == null) ? "null" : this.password);
-        return result.toString();
+        return userName + ":" + password;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,15 @@ package org.knopflerfish.bundle.console;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Enumeration;
+import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Properties;
-import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 // ******************** BundleDependentsCommand ********************
 /**
@@ -50,92 +52,64 @@ import java.util.StringTokenizer;
  * 
  * @author Jan Stein
  */
-class Alias extends Hashtable<String,String[]> {
+class Alias extends Hashtable<String, String[]> {
 
     private static final long serialVersionUID = 1L;
 
     public String getString(String key) {
-        String[] a = (String[]) get(key);
-        if (a != null) {
-            StringBuffer sb = new StringBuffer();
-            sb.append(a[0]);
-            for (int i = 1; i < a.length; i++) {
-                sb.append(" ");
-                sb.append(a[i]);
-            }
-            return sb.toString();
+        String[] aliasArray = get(key);
+        if (aliasArray != null) {
+            return String.join(" ", aliasArray);
         }
         return null;
     }
 
-    void save(OutputStream out) {
-        try {
+    void save(File file) throws IOException {
+        try (OutputStream out = new FileOutputStream(file)) {
             Properties props = new Properties();
-            for (Enumeration<String> e = keys(); e.hasMoreElements();) {
-                String k = e.nextElement();
-                String[] a = (String[]) get(k);
-
-                StringBuffer sb = new StringBuffer();
-
-                for (int i = 0; i < a.length; i++) {
-                    sb.append(a[i].trim());
-                    if (i < a.length - 1) {
-                        sb.append(" ");
-                    }
-                }
-                props.put(k.trim(), sb.toString());
+            for (Map.Entry<String, String[]> entry : entrySet()) {
+                String aliasName = entry.getKey();
+                String[] aliasArray = entry.getValue();
+                String aliasString = Arrays.stream(aliasArray)
+                    .map(String::trim)
+                    .collect(Collectors.joining(" "));
+                props.put(aliasName.trim(), aliasString);
             }
-            props.save(out, "aliases");
-        } finally {
-            try {
-                out.close();
-            } catch (Exception ignored) {
-            }
+            props.store(out, "aliases");
         }
     }
 
-    void restore(InputStream in) throws IOException {
-        try {
+    void restore(File file) throws IOException {
+        try (InputStream in = new FileInputStream(file)) {
             Properties props = new Properties();
             props.load(in);
-            for (Enumeration<?> e = props.keys(); e.hasMoreElements();) {
-                String k = (String) e.nextElement();
-                String args = (String) props.get(k);
-
-                StringTokenizer st = new StringTokenizer(args, " ");
-                String[] a = new String[st.countTokens()];
-                for (int i = 0; i < a.length; i++) {
-                    a[i] = st.nextToken();
-                }
-                put(k, a);
-            }
-        } finally {
-            try {
-                in.close();
-            } catch (Exception ignored) {
+            for (Map.Entry<Object, Object> entry : props.entrySet()) {
+                String aliasName = entry.getKey().toString();
+                String aliasString = entry.getValue().toString();
+                String[] aliasArray = aliasString.split(" ");
+                put(aliasName, aliasArray);
             }
         }
     }
 
-    void cgalias(String group, String[] cmds) {
-        for (int i = 0; i < cmds.length; i++) {
-            put(cmds[i], new String[] { group, cmds[i] });
+    void createGroupAliases(String group, String[] commands) {
+        for (String command : commands) {
+            put(command, new String[] { group, command });
         }
     }
 
     void setDefault() {
         clear();
 
-        cgalias("/session", new String[] { "alias", "echo", "enter", "leave",
+        createGroupAliases("/session", new String[] { "alias", "echo", "enter", "leave",
                 "help", "quit", "source", "unalias" });
 
-        String aliasFile = System
-                .getProperty("org.knopflerfish.console.alias.file");
+        String aliasFile = System .getProperty("org.knopflerfish.console.alias.file");
         if (aliasFile != null && !"".equals(aliasFile)) {
             File file = new File(aliasFile);
             if (file.exists()) {
                 try {
-                    restore(new FileInputStream(aliasFile));
+                    restore(file);
                 } catch (Exception e) {
                     System.err.println("Failed to restore aliases from "
                             + aliasFile);
@@ -146,7 +120,7 @@ class Alias extends Hashtable<String,String[]> {
                     + " does not exists, using internal defaults");
         }
 
-        cgalias("/framework", new String[] { "bundles", "install", "start",
+        createGroupAliases("/framework", new String[] { "bundles", "install", "start",
                 "stop", "update", "refresh", "services", "startlevel",
                 "shutdown", });
         // shortcuts

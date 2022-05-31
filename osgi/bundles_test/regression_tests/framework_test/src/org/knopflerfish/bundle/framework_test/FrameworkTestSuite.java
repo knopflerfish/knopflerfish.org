@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2017, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -225,7 +225,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       String k =  "Bundle-ContactAddress";
       String info = (String) ai.get(k);
-      assertEquals("bad Bundle-ContactAddress", "http://www.knopflerfish.org", info);
+      assertEquals("bad Bundle-ContactAddress", "https://www.knopflerfish.org", info);
 
       k =  "Bundle-Description";
       info = (String) ai.get(k);
@@ -233,7 +233,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       k =  "Bundle-DocURL";
       info = (String) ai.get(k);
-      assertEquals("bad Bundle-DocURL", "http://www.knopflerfish.org", info);
+      assertEquals("bad Bundle-DocURL", "https://www.knopflerfish.org", info);
 
       k =  "Bundle-Name";
       info = (String) ai.get(k);
@@ -245,7 +245,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       k =  "Bundle-Version";
       info = (String) ai.get(k);
-      assertEquals("bad Bundle-Version", "1.0.3", info);
+      assertEquals("bad Bundle-Version", "1.1.0", info);
 
       k =  "Bundle-ManifestVersion";
       info = (String) ai.get(k);
@@ -4970,7 +4970,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // General status check functions
   // prevent control characters to be printed
   private String xlateData(byte [] b1) {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     for (int i = 0; i < b1.length ; i++) {
       if (-128 <= b1[i] && b1[i] < 0) {
         sb.append(new String(b1, i, 1));

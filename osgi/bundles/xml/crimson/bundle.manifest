@@ -6,8 +6,8 @@ Bundle-Version: 2.1.0.kf4-001
 Bundle-Category: lib
 Bundle-Description: The Crimson XML parser
 Bundle-Vendor: Apache/Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+Bundle-ContactAddress: https://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=crimson/index.html
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/xml/crimson/

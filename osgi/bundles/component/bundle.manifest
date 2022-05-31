@@ -2,16 +2,16 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: SCR
 Bundle-SymbolicName: org.knopflerfish.bundle.component
-Bundle-Version: 6.0.7
+Bundle-Version: 6.1.0
 Bundle-Category: osgi
 Bundle-Description: Declarative Services SCR
 Bundle-Vendor: Knopflerfish
 Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
  description="BSD 3-clause";
- link="http://www.knopflerfish.org/licenses/knopflerfish-1.txt"
+ link="https://www.knopflerfish.org/licenses/knopflerfish-1.txt"
 Bundle-APIVendor: OSGi
-Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+Bundle-ContactAddress: https://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/component

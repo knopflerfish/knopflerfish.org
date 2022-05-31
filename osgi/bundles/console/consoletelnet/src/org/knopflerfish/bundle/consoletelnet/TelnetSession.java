@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,9 +45,11 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.useradmin.Authorization;
 import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import org.knopflerfish.service.console.ConsoleService;
 import org.knopflerfish.service.console.Session;
+import org.knopflerfish.service.console.SessionListener;
 import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.service.um.useradmin.ContextualAuthorization;
 import org.knopflerfish.service.um.useradmin.PasswdAuthenticator;
@@ -59,64 +61,46 @@ import org.knopflerfish.service.um.useradmin.PasswdSession;
  * they affect the ConsoleService session.
  */
 public class TelnetSession
-  implements
-  Runnable,
-  org.knopflerfish.service.console.SessionListener,
-  org.osgi.util.tracker.ServiceTrackerCustomizer<ConsoleService, ConsoleService>
-{
+  implements Runnable,
+    SessionListener,
+    ServiceTrackerCustomizer<ConsoleService, ConsoleService> {
+
+  private static final char MASK = '\177'; // Normal 7 bit mask
 
   private final Socket socket;
-
   private final TelnetConfig telnetConfig;
-
   private final ServiceTracker<?, ?> consoleTracker;
-
   private ConsoleService consoleService;
-
-  private Session s;
-
-  private final TelnetServer tserv;
-
+  private Session session;
+  private final TelnetServer telnetServer;
   private final TelnetCommand[] telnetCommands = new TelnetCommand[256];
-
   private InputStream is;
-
   private OutputStream os;
-
   private final TelnetInputStream telnetInputStream;
-
   private final TelnetOutputStream telnetOutputStream;
-
   private final TelnetReader reader;
-
   private TelnetLogin telnetLogin = null;
-
   private final PrintWriter printWriter;
-
-  private final char mask = '\177'; // Normal 7 bit mask
-
   private boolean enableEcho = true;
-
   private final LogRef log;
-
   private final BundleContext bc;
 
   public TelnetSession(Socket socket, TelnetConfig telnetConfig, LogRef log,
-                       BundleContext bc, TelnetServer tserv)
+                       BundleContext bc, TelnetServer telnetServer)
   {
     this.telnetConfig = telnetConfig;
     this.socket = socket;
     this.log = log;
     this.bc = bc;
-    this.tserv = tserv;
+    this.telnetServer = telnetServer;
 
     log.info("Connection request from " + socket.getInetAddress());
 
     // Set up service tracker for the console service.
     consoleTracker =
-      new ServiceTracker<ConsoleService, ConsoleService>(bc,
-                                                         ConsoleService.class,
-                                                         this);
+        new ServiceTracker<>(bc,
+            ConsoleService.class,
+            this);
     consoleTracker.open();
 
     try {
@@ -146,11 +130,12 @@ public class TelnetSession
 
   }
 
+  @Override
   public void run()
   {
     try {
       // Telnet initial option negotiation
-      initialNegotiation(reader, printWriter, telnetOutputStream);
+      initialNegotiation(telnetOutputStream);
 
       // Platform login processing
 
@@ -158,10 +143,7 @@ public class TelnetSession
 
       telnetLogin = login(reader, printWriter, telnetOutputStream);
 
-      // System.out.println("telnetLogin state: " +
-      // telnetLogin.isPermitted());
-
-      if (telnetLogin.isPermitted() == true) {
+      if (telnetLogin.isPermitted()) {
         if (null == consoleService) {
           printWriter.println("Console service not available, "
                               + "closing telnet session.");
@@ -173,8 +155,8 @@ public class TelnetSession
         } else {
           log.info("User " + telnetLogin.getUser() + " logged in");
           final Authorization authorization = telnetLogin.getAuthorization();
-          s = consoleService.runSession("telnet session", reader, printWriter);
-          final Dictionary<String, Object> props = s.getProperties();
+          session = consoleService.runSession("telnet session", reader, printWriter);
+          final Dictionary<String, Object> props = session.getProperties();
 
           if (authorization != null) {
             props.put(Session.PROPERTY_AUTHORIZATION, authorization);
@@ -182,7 +164,7 @@ public class TelnetSession
 
           printWriter.println("'quit' to end session");
 
-          s.addSessionListener(this);
+          session.addSessionListener(this);
         }
       } else {
         printWriter.println("Login incorrect");
@@ -194,7 +176,7 @@ public class TelnetSession
     } catch (final IOException ioe) {
       log.error("Session exception " + ioe.toString(), ioe);
       ioe.printStackTrace();
-      tserv.removeSession(this);
+      telnetServer.removeSession(this);
     }
   }
 
@@ -202,6 +184,7 @@ public class TelnetSession
   // 1) Called from the console session when it is closed.
   // 2) Called directly (s==null) to release resources in
   // cases where a session is never started.
+  @Override
   public void sessionEnd(Session s)
   {
     try {
@@ -215,8 +198,8 @@ public class TelnetSession
       if (s != null) {
         log.info("User " + telnetLogin.getUser() + " logged out");
       }
-      tserv.removeSession(this);
-      this.s = null;
+      telnetServer.removeSession(this);
+      this.session = null;
     } catch (final Exception iox) {
       log.error("Session end exception " + iox.toString(), iox);
     }
@@ -225,10 +208,10 @@ public class TelnetSession
 
   public void close()
   {
-    if (s == null) {
+    if (session == null) {
       log.warn("Console session already closed.");
     } else {
-      s.close(); // This will trigger a call to sessionEnd(s).
+      session.close(); // This will trigger a call to sessionEnd(s).
     }
   }
 
@@ -236,16 +219,14 @@ public class TelnetSession
    * Get the character mask This is to support binary mode, that is 7 or 8 bit
    * data in the output data stream
    */
-
   public char getMask()
   {
-    return mask;
+    return MASK;
   }
 
   /**
    * Get all instantiated commands in this session
    */
-
   public TelnetCommand[] getCommands()
   {
     return telnetCommands;
@@ -254,7 +235,6 @@ public class TelnetSession
   /**
    * Get the TelnetOutputStream
    */
-
   public TelnetOutputStream getTelnetOutputStream()
   {
     return telnetOutputStream;
@@ -268,7 +248,6 @@ public class TelnetSession
   {
     final TelnetCommand tc = telnetCommands[TCC.ECHO];
 
-    // System.out.println("echo=" + character + ", enable=" + enableEcho);
     if (tc != null) {
       if (tc.getDoStatus() && enableEcho) {
         printWriter.print((char) character);
@@ -306,17 +285,17 @@ public class TelnetSession
 
   public void execAO()
   {
-    s.abortCommand();
+    session.abortCommand();
   }
 
   public void execIP()
   {
-    s.abortCommand();
+    session.abortCommand();
   }
 
   public void execBRK()
   {
-    s.abortCommand();
+    session.abortCommand();
   }
 
   public void execDM()
@@ -327,7 +306,7 @@ public class TelnetSession
   {
   }
 
-  /**
+  /*
    * Execution of standard telnet negotiation commmands DO, DONT, WILL and WONT
    * and also the execution of the command via SB code .... SE option command
    * structure.
@@ -336,7 +315,7 @@ public class TelnetSession
   /**
    * DONT
    *
-   * @parameter code, the optional command code
+   * @param code, the optional command code
    */
 
   public void execDONT(int code)
@@ -352,7 +331,7 @@ public class TelnetSession
   /**
    * DO
    *
-   * @parameter code, the optional command code
+   * @param code, the optional command code
    */
 
   public void execDO(int code)
@@ -368,7 +347,7 @@ public class TelnetSession
   /**
    * WONT
    *
-   * @parameter code, the optional command code
+   * @param code, the optional command code
    */
 
   public void execWONT(int code)
@@ -384,7 +363,7 @@ public class TelnetSession
   /**
    * WILL
    *
-   * @parameter code, the optional command code
+   * @param code, the optional command code
    */
 
   public void execWILL(int code)
@@ -400,8 +379,8 @@ public class TelnetSession
   /**
    * On SE command, execute optional sub negotiated command.
    *
-   * @parameter code, the optional command code.
-   * @parameter param, the optional parameters.
+   * @param code, the optional command code.
+   * @param param, the optional parameters.
    */
 
   public void execSE(int code, byte[] param)
@@ -421,11 +400,10 @@ public class TelnetSession
    * option, the WILL and DO will be responded with DONT and WONT respectively,
    * to inform the requestor that the option is not supported.
    *
-   * @parameter action, the negotiation code
-   * @parameter code, the optional command code
-   * @parameter params, the optional parameters
+   * @param action, the negotiation code
+   * @param code, the optional command code
+   * @param params, the optional parameters
    */
-
   private String execCommand(int action, int code, byte[] params)
   {
     String response = null;
@@ -436,12 +414,12 @@ public class TelnetSession
     } else { // Refuse unknown options
       if (action == TCC.WILL) {
         response =
-          TCC.IAC_string + TCC.DONT_string + String.valueOf((char) code);
+          TCC.IAC_string + TCC.DONT_string + (char) code;
       }
 
       if (action == TCC.DO) {
         response =
-          TCC.IAC_string + TCC.WONT_string + String.valueOf((char) code);
+          TCC.IAC_string + TCC.WONT_string + (char) code;
       }
     }
     return response;
@@ -450,23 +428,17 @@ public class TelnetSession
   /**
    * A login procedure (primitive and ugly).
    *
-   * @parameter in Telnetreader
-   * @parameter out Printwriter
+   * @param in Telnetreader
+   * @param out Printwriter
    * @return a TelnetLogin object with the result of the login process.
    */
-
   private TelnetLogin login(TelnetReader in,
                             PrintWriter out,
                             TelnetOutputStream tos)
   {
-    String userName = null;
-    String password = null;
     final TelnetCommand echo = telnetCommands[TCC.ECHO];
 
     try {
-
-      // System.out.println("TelnetLogin.login()");
-
       out.print("login: ");
       out.flush();
 
@@ -476,13 +448,13 @@ public class TelnetSession
       tos.writeCommand(echo.getWILL());
       tos.writeCommand(echo.getDO());
 
-      if (echo.getDoStatus() == false) {
+      if (!echo.getDoStatus()) {
         echo.setDoStatus(true);
       }
 
       enableEcho = true;
 
-      userName = in.readLine();
+      String userName = in.readLine();
 
       out.print("password: ");
       out.flush();
@@ -492,9 +464,7 @@ public class TelnetSession
 
       enableEcho = false;
 
-      // out.println();
-
-      password = in.readLine();
+      String password = in.readLine();
 
       out.println();
 
@@ -524,21 +494,20 @@ public class TelnetSession
       // 1. um required in configuration and exists in the system
 
       if (requireUM && sr != null) {
-        // System.out.println("require UM = true, sr != null");
-        final PasswdAuthenticator pa = (PasswdAuthenticator) bc.getService(sr);
-        if (pa == null) {
+        final PasswdAuthenticator passwdAuthenticator = (PasswdAuthenticator) bc.getService(sr);
+        if (passwdAuthenticator == null) {
           log.warn("Failed to get PasswdAuthenticator service.");
           telnetLogin = new TelnetLogin(false, null, userName);
         } else {
-          final PasswdSession ps = pa.createSession();
-          ps.setUsername(userName);
-          ps.setPassword(password);
+          final PasswdSession passwdSession = passwdAuthenticator.createSession();
+          passwdSession.setUsername(userName);
+          passwdSession.setPassword(password);
           ContextualAuthorization ca = null;
 
           try {
-            ca = ps.getAuthorization();
-          } catch (final IllegalStateException ex) {
-            log.warn("Failed to get UserAdmin service.", ex);
+            ca = passwdSession.getAuthorization();
+          } catch (final IllegalStateException e) {
+            log.warn("Failed to get UserAdmin service.", e);
           }
 
           if (ca != null) {
@@ -593,7 +562,7 @@ public class TelnetSession
       // 3. um is not required in configuration =>
       // use default user and password
 
-      if (requireUM == false) {
+      if (!requireUM) {
         if (telnetConfig.getDefaultUser().equals(userName)
             && telnetConfig.getDefaultPassword().equals(password)) {
           telnetLogin = new TelnetLogin(true, null, userName);
@@ -613,27 +582,22 @@ public class TelnetSession
   /**
    * Initial option setup
    *
-   * @parameter in,
-   * @parameter out,
    */
-  private void initialNegotiation(TelnetReader in,
-                                  PrintWriter out,
-                                  TelnetOutputStream tos)
+  private void initialNegotiation(TelnetOutputStream telnetOutputStream)
   {
     try {
       Thread.sleep(20);
-    } catch (final Exception ex) {
-      log.error("Fail during Thread sleep" + ex.toString(), ex);
+    } catch (final Exception e) {
+      log.error("Fail during Thread sleep" + e.toString(), e);
     }
 
     // Offer all telnet options that should be shown.
-    for (final TelnetCommand tc : telnetCommands) {
-      if (tc != null && tc.getShow()) {
+    for (final TelnetCommand telnetCommand : telnetCommands) {
+      if (telnetCommand != null && telnetCommand.getShow()) {
         try {
-          tos.writeCommand(tc.getWILL());
-        } catch (final IOException ex) {
-          log.error("Fail during initial option negotiation" + ex.toString(),
-                    ex);
+          telnetOutputStream.writeCommand(telnetCommand.getWILL());
+        } catch (final IOException e) {
+          log.error("Fail during initial option negotiation" + e.toString(), e);
         }
       }
     }
@@ -643,27 +607,29 @@ public class TelnetSession
    *			  ServiceTrackerCustomizer implementation
    *------------------------------------------------------------------------*/
 
+  @Override
   public ConsoleService addingService(ServiceReference<ConsoleService> reference)
   {
     if (null == consoleService) {
       consoleService = bc.getService(reference);
-      // log.info("New console service selected.");
       return consoleService;
     } else {
       return null;
     }
   }
 
+  @Override
   public void modifiedService(ServiceReference<ConsoleService> reference,
                               ConsoleService service)
   {
   }
 
+  @Override
   public void removedService(ServiceReference<ConsoleService> reference,
                              ConsoleService service)
   {
     if (consoleService == service) {
-      if (null != s) {
+      if (null != session) {
         log.info("Console service closed.");
         printWriter.println("Console service closed,"
                             + " terminating telnet session.");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003,2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -60,7 +59,6 @@ import javax.swing.JTextPane;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 
 import org.knopflerfish.util.Text;
 
@@ -71,7 +69,7 @@ public class JTips extends JPanel {
   JFrame frame = null;
   String title = "Knopflerfish OSGi: tips";
 
-  List<Tip> tips = new ArrayList<Tip>(); // String
+  List<Tip> tips = new ArrayList<>(); // String
 
   static final String sep = "<p>----</p>";
 
@@ -92,18 +90,18 @@ public class JTips extends JPanel {
       URL url = getClass().getResource(tipFile);
       if(url != null) {
         in = new BufferedReader(new InputStreamReader(url.openStream()));
-        String       line = null;
-        StringBuffer sb   = new StringBuffer();
+        String line;
+        StringBuilder sb = new StringBuilder();
         while(null != (line = in.readLine())) {
           if(sep.equals(line)) {
             addTip(sb.toString());
-            sb = new StringBuffer();
+            sb = new StringBuilder();
           } else {
             sb.append(line);
             sb.append("\n");
           }
         }
-        if(sb != null && sb.length() > 1) {
+        if(sb.length() > 1) {
           addTip(sb.toString());
         }
       } else {
@@ -112,7 +110,11 @@ public class JTips extends JPanel {
     } catch (Exception e) {
       Activator.log.error("Failed to load tips from " + tipFile, e);
     } finally {
-      try { in.close(); } catch (Exception ignored) { }
+      try {
+        if (in != null) {
+          in.close();
+        }
+      } catch (Exception ignored) { }
     }
 
     if(tips.size() == 0) {
@@ -126,19 +128,16 @@ public class JTips extends JPanel {
     html.setContentType("text/html");
     html.setEditable(false);
 
-    html.addHyperlinkListener(new HyperlinkListener()
-      {
-        public void hyperlinkUpdate(HyperlinkEvent ev) {
-          if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-            URL url = ev.getURL();
-            try {
-              Util.openExternalURL(url);
-            } catch (Exception e) {
-              Activator.log.warn("Failed to open external url=" + url, e);
-            }
-          }
+    html.addHyperlinkListener(ev -> {
+      if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        URL url = ev.getURL();
+        try {
+          Util.openExternalURL(url);
+        } catch (Exception e) {
+          Activator.log.warn("Failed to open external url=" + url, e);
         }
-      });
+      }
+    });
 
     scroll = new JScrollPane(html);
     scroll.setPreferredSize(new Dimension(350, 200));
@@ -149,30 +148,20 @@ public class JTips extends JPanel {
                                            BorderFactory
                                            .createLoweredBevelBorder()));
 
-    final ActionListener nextAction = new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          setTip((tipIx + 1) % tips.size());
-        }
-      };
+    final ActionListener nextAction = ev -> setTip((tipIx + 1) % tips.size());
 
     JButton closeButton = new JButton(Strings.get("close"));
-    closeButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          if(frame != null) {
-            frame.setVisible(false);
-          }
-        }
-      });
+    closeButton.addActionListener(ev -> {
+      if(frame != null) {
+        frame.setVisible(false);
+      }
+    });
 
     nextButton = new JButton(Strings.get("next_tip"));
     nextButton.addActionListener(nextAction);
 
     prevButton = new JButton(Strings.get("prev_tip"));
-    prevButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          setTip((tipIx + tips.size() - 1) % tips.size());
-        }
-      });
+    prevButton.addActionListener(ev -> setTip((tipIx + tips.size() - 1) % tips.size()));
 
     JPanel bottomPanel = new JPanel(new BorderLayout());
     JPanel topPanel    = new JPanel(new BorderLayout());
@@ -225,15 +214,13 @@ public class JTips extends JPanel {
 
   void setHTML(final String s) {
     html.setText(s);
-    SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          JViewport vp = scroll.getViewport();
-          if(vp != null) {
-            vp.setViewPosition(new Point(0,0));
-            scroll.setViewport(vp);
-          }
-        }
-      });
+    SwingUtilities.invokeLater(() -> {
+      JViewport vp = scroll.getViewport();
+      if(vp != null) {
+        vp.setViewPosition(new Point(0,0));
+        scroll.setViewport(vp);
+      }
+    });
   }
 
   void setTitle(String s) {
@@ -313,7 +300,7 @@ class Tip {
 
 
   public boolean equals(Object other) {
-    if(other == null || !(other instanceof Tip)) {
+    if(!(other instanceof Tip)) {
       return false;
     }
 

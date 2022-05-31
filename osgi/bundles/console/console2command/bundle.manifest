@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Console2Command
 Bundle-SymbolicName: org.knopflerfish.bundle.console2command
-Bundle-Version: 2.0.0
+Bundle-Version: 2.1.0
 Bundle-Description: Wrapper for KF console commands to RFC147 commands
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+Bundle-ContactAddress: https://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/console/console2command/

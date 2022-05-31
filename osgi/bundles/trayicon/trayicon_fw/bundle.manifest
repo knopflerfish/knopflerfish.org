@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: FW-Tray
 Bundle-SymbolicName: org.knopflerfish.bundle.trayicon_fw
-Bundle-Version: 4.0.0
+Bundle-Version: 4.1.0
 Bundle-Category: management
 Bundle-Description: Framework tray icon. Allows basic control of the f
  ramework using the windows system tray.
 Bundle-Vendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-DocURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/trayicon/trayicon_fw/readme.txt
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master

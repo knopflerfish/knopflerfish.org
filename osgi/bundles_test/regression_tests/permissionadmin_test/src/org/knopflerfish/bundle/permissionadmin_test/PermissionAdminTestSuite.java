@@ -1189,22 +1189,22 @@ public class PermissionAdminTestSuite extends TestSuite  {
   // General printout of PermissionInfo
 
   private void printPermission(Object _out, PermissionInfo pi) {
-    StringBuffer sb1 = new StringBuffer();
+    StringBuilder sb1 = new StringBuilder();
 
     sb1.append("ENCODED: ");
-    if (pi.getEncoded() != null) { sb1.append(pi.getEncoded() + lineseparator); } else { sb1.append("null" + lineseparator); }
+    sb1.append(pi.getEncoded()).append(lineseparator);
 
     sb1.append("ACTIONS: ");
-    if (pi.getActions() != null) { sb1.append(pi.getActions() + lineseparator); } else { sb1.append("null" + lineseparator); }
+    sb1.append(pi.getActions()).append(lineseparator);
 
     sb1.append("NAME: ");
-    if (pi.getName() != null) { sb1.append(pi.getName() + lineseparator); } else { sb1.append("null" + lineseparator); }
+    sb1.append(pi.getName()).append(lineseparator);
 
     sb1.append("TYPE: ");
-    if (pi.getType() != null) { sb1.append(pi.getType() + lineseparator); } else { sb1.append("null" + lineseparator); }
+    sb1.append(pi.getType()).append(lineseparator);
 
     sb1.append("STRING: ");
-    if (pi.toString() != null) { sb1.append(pi.toString() + lineseparator); } else { sb1.append("null" + lineseparator); }
+    sb1.append(pi.toString()).append(lineseparator);
 
     out.println(sb1.toString());
   }
@@ -1212,12 +1212,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
   // Condensed printout of PermissionInfo
 
   private void printPermissionShort (Object _out, PermissionInfo pi) {
-    StringBuffer sb1 = new StringBuffer();
-
-    sb1.append("  ENCODED: ");
-    if (pi.getEncoded() != null) { sb1.append(pi.getEncoded()); } else { sb1.append("null"); }
-
-    out.println(sb1.toString());
+    out.println("  ENCODED: " + pi.getEncoded());
   }
 
   // Check that the expected implications occur 

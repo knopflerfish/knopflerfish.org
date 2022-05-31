@@ -127,7 +127,7 @@ public class HostConfiguration implements Cloneable {
     public synchronized String toString() {
         
         boolean appendComma = false;
-        StringBuffer b = new StringBuffer(50);        
+        StringBuilder b = new StringBuilder(50);
         b.append("HostConfiguration[");
         
         if (this.host != null) {
@@ -145,15 +145,9 @@ public class HostConfiguration implements Cloneable {
         if (this.localAddress != null) {
             if (appendComma) {
                 b.append(", ");
-            } else {
-                appendComma = true;
             }
             b.append("localAddress=").append(this.localAddress);
-            if (appendComma) {
-                b.append(", ");
-            } else {
-                appendComma = true;
-            }
+            b.append(", ");
             b.append("params=").append(this.params);
         }
         b.append("]");

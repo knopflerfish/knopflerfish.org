@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,43 +34,29 @@
 
 package org.knopflerfish.bundle.httpconsole;
 	
-import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
 
 import org.osgi.framework.*;
 
 public class StatusCommand implements Command {
-  public StringBuffer run(HttpServletRequest request) {
-    StringBuffer sb = new StringBuffer();
-   
-    return sb;
+  public StringBuilder run(HttpServletRequest request) {
+    return new StringBuilder();
   }
 
   public int getDisplayFlags() {
     return 0;
   }
 
-  public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    Bundle[] bl = new Bundle[0];
-
+  public void toHTML(HttpServletRequest request, PrintWriter out) {
     try {
       Activator.bc.getBundles();
     } catch (IllegalStateException e) {
-      out.println("HTTP console updated itself, please " + 
-		  "<a href=\"" + Activator.SERVLET_ALIAS + "\">reload</a>");
+      out.println("HTTP console updated itself, please " +
+          "<a href=\"" + Activator.SERVLET_ALIAS + "\">reload</a>");
       return;
     }
-    int nActive = 0;
-    int nTotal  = bl.length;
-    
-    for(int i = 0; i < bl.length; i++) {
-      Bundle b = bl[i];
-      if(b.getState() == Bundle.ACTIVE) {
-	nActive++;
-      }
-    }
-    
+
     out.print(" <nobr style=\"vertical-align:top;\">");
     out.print(Activator.bc.getProperty(Constants.FRAMEWORK_VENDOR));
     out.print(" on ");
@@ -82,11 +68,11 @@ public class StatusCommand implements Command {
     out.print("</nobr>");
   }
   
-  public String       getId() {
+  public String getId() {
     return "cmd_status";
   }
 
-  public String       getName() {
+  public String getName() {
     return "Status";
   }
 
@@ -95,7 +81,7 @@ public class StatusCommand implements Command {
   }
 
   public String getDescription() {
-    return "Fframework status";
+    return "Framework status";
   }
 
   public boolean isTrigger(HttpServletRequest request) {

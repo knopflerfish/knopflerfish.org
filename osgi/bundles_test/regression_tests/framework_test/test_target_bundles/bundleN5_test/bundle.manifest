@@ -3,8 +3,8 @@ Bundle-SymbolicName: bundleN5_test
 Bundle-Version: 1.0.0
 Bundle-Description: Test bundle matched native code fragment
 Bundle-Vendor: Knopflerfish/Makewave AB
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Category: testing
 Fragment-Host: bundleN3_test-LIB
 Bundle-NativeCode: bar ; osname = Linux ; osname = MacOSX ;

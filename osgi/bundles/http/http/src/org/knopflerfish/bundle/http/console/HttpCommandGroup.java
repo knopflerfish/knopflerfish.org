@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, KNOPFLERFISH project
+ * Copyright (c) 2012-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,6 +148,7 @@ public class HttpCommandGroup
         final TransactionManager transManager = httpServer.getTransactionManager();
         out.println("    " + "Thread Group: " + transManager.getName());
         out.println("    " + "Active Threads: " + transManager.activeCount());
+        out.println("    " + "Active Transactions: " + transManager.getActiveTransactionCount());
         out.println("    " + "Transactions Handled: " + transManager.getTransactionCount());
         out.println("    " + "Requests Handled    : " + transManager.getRequestCount());
       }
@@ -157,7 +158,7 @@ public class HttpCommandGroup
 
   private static void printDictionary(PrintWriter out, Dictionary<?, ?> d, int level)
   {
-    final StringBuffer blanklead = new StringBuffer();
+    final StringBuilder blanklead = new StringBuilder();
     for (int i = 0; i < level; i++) {
       blanklead.append("  ");
     }
@@ -177,7 +178,7 @@ public class HttpCommandGroup
 
   private static void printVectorArray(PrintWriter out, Vector<?> v, int level)
   {
-    final StringBuffer blanklead = new StringBuffer();
+    final StringBuilder blanklead = new StringBuilder();
     for (int i = 0; i < level; i++) {
       blanklead.append("  ");
     }

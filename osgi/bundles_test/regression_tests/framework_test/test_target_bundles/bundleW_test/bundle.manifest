@@ -3,8 +3,8 @@ Bundle-SymbolicName: bundleW_test
 Bundle-Version: 1.0.0
 Bundle-Description: Test bundle for framework, bundleW_test
 Bundle-Vendor: Knopflerfish/Makewave AB
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleW_test.BundleActivator
 Bundle-Category: testing
 Export-Package: org.knopflerfish.service.bundleW_test

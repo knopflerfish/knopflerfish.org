@@ -19,7 +19,7 @@
   <property name="frameworkdoc_template"
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.base.version"   value="8.0.11"/>
+  <property name="fw.base.version"   value="8.0.12"/>
   <property name="version.suffix"    value=""/>
   <condition property="fw.impl.version"
              value="${fw.base.version}"
@@ -52,7 +52,7 @@
   <path id="compile.path">
     <pathelement location="${topdir}/framework/resources"/>
     <pathelement location="${osgi.annotation.jar}"/>
-    <pathelement location="libs/asm-3.2.jar"/>
+    <pathelement location="libs/asm-6.0.jar"/>
   </path>
 
   <path id="android.system.path">
@@ -66,6 +66,34 @@
             value="org/knopflerfish/framework/bundlestorage/dex/*.java"/>
   <property name="android.class.path.name" value="android.system.path"/>
 
+  <!-- Fix for JDK 12 which require at least 1.7 for source and target
+       Keeping 1.6 as the default for all other versions for now
+       this handling can and should be improved -->
+  <loadresource property="version.java.major">
+    <propertyresource name="java.version" />
+    <filterchain>
+      <tokenfilter>
+	<replaceregex pattern="(^[0-9]+)(.*)"
+		      flags="gs"
+		      replace="\1"/>
+      </tokenfilter>
+    </filterchain>
+  </loadresource>
+
+  <condition property = "android_srcs_java_version"
+	     value="1.7"
+	     else="1.6">
+    <!-- Use javaversion condition from Ant 1.10.2? -->
+    <or>
+      <equals arg1="12" arg2="${version.java.major}" />
+      <equals arg1="13" arg2="${version.java.major}" />
+      <equals arg1="14" arg2="${version.java.major}" />
+      <equals arg1="15" arg2="${version.java.major}" />
+      <equals arg1="16" arg2="${version.java.major}" />
+      <equals arg1="17" arg2="${version.java.major}" />
+    </or>
+  </condition>
+
   <!-- targets -->
   <target name="all"
           depends="jar, source.jar, save_javadoc_data, javadoc.jar">
@@ -75,6 +103,8 @@
     <antcall target="compile_full"/>
     <antcall target="compile_compact"/>
   </target>
+
+  
 
   <target name        = "compile_full"
           unless      = "compact"
@@ -92,19 +122,20 @@
       <compilerarg value="-Xlint:-options"/>
     </javac>
     <!-- Android parts (uses dalvik.*) -->
+    <!-- bootclasspathref  = "${android.class.path.name}" -->
     <javac destdir           = "${classout}"
            srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-           includejavaruntime = "true"
+           includejavaruntime = "false"
            includes          = "${androidSrcs}"
            excludes          = "**/package-info.java"
-           source            = "1.6"
-           target            = "1.6"
-           bootclasspathref  = "${android.class.path.name}"
+           source            = "${android_srcs_java_version}"
+           target            = "${android_srcs_java_version}"
            classpathref      = "compile.path"
            >
       <compilerarg value="-Xlint:-options"/>
+      <compilerarg value="-Xbootclasspath/p:${osgi.dir}/ee/android.jar"/>
     </javac>
   </target>
 
@@ -177,9 +208,9 @@
         <attribute name="Bundle-Name"            value="frameworkbundle"/>
         <attribute name="Bundle-Description"     value="Knopflerfish OSGi framework system bundle"/>
         <attribute name="Bundle-License"
-                   value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
+                   value="&quot;https://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;https://www.knopflerfish.org/license.html&quot;"/>
         <attribute name="Export-Package"         value="${fw.export-package}"/>
-        <attribute name="Bundle-DocURL"          value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html"/>
+        <attribute name="Bundle-DocURL"          value="https://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html"/>
         <attribute name="Bundle-GitURL"          value="https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/framework/"/>
         <attribute name="Build-Date"             value="${framework.tstamp}"/>
         <attribute name="SplashScreen-Image"     value="kfsplash.gif"/>
@@ -214,9 +245,9 @@
         <attribute name="Bundle-Name"            value="frameworkbundle"/>
         <attribute name="Bundle-Description"     value="Knopflerfish OSGi framework system bundle"/>
         <attribute name="Bundle-License"
-                   value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
+                   value="&quot;https://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;https://www.knopflerfish.org/license.html&quot;"/>
         <attribute name="Export-Package"         value="${fw.export-package}"/>
-        <attribute name="Bundle-DocURL"          value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html"/>
+        <attribute name="Bundle-DocURL"          value="https://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html"/>
         <attribute name="Bundle-GitURL"          value="https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/framework/"/>
         <attribute name="Build-Date"             value="${framework.tstamp}"/>
       </manifest>

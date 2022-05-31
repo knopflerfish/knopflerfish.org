@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,10 +61,10 @@ public class Data {
 
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.append("[namespace=" + namespace + "]\n");
-    sb.append("[directives=" + directives + "]\n");
-    sb.append("[attributes=" + attributes + "]\n");
+    StringBuilder sb = new StringBuilder();
+    sb.append("[namespace=").append(namespace).append("]\n");
+    sb.append("[directives=").append(directives).append("]\n");
+    sb.append("[attributes=").append(attributes).append("]\n");
     return sb.toString();  
   }
 

@@ -2,11 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ScrCommands
 Bundle-SymbolicName: org.knopflerfish.bundle.scrcommands
-Bundle-Version: 4.0.1
+Bundle-Version: 4.1.0
 Bundle-Description: Provides SCR admin commands for the Knopflerfish console
 Bundle-Vendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+Bundle-ContactAddress: https://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=scrcommands/index.html
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/scrcommands/

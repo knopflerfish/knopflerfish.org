@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -362,8 +362,7 @@ public class BundleJavadocHelperTask extends Task {
         sourcepath = "";
       }
 
-      final StringBuffer sb
-        = new StringBuffer(sourcepath.length() +50*srcRoots.size());
+      final StringBuilder sb = new StringBuilder(sourcepath.length() + 50 * srcRoots.size());
       sb.append(sourcepath);
 
       for (final Object element : srcRoots) {
@@ -427,8 +426,7 @@ public class BundleJavadocHelperTask extends Task {
         packagenames = "";
       }
 
-      final StringBuffer sb
-        = new StringBuffer(packagenames.length() +50*ePkgs.size());
+      final StringBuilder sb = new StringBuilder(packagenames.length() + 50 * ePkgs.size());
       sb.append(packagenames);
 
       for (final Object element : ePkgs) {
@@ -506,8 +504,7 @@ public class BundleJavadocHelperTask extends Task {
     }
 
     if (pkgWithSourcePropertyName != null) {
-      final StringBuffer sb
-        = new StringBuffer(50*pkgNamesWithSource.size());
+      final StringBuilder sb = new StringBuilder(50 * pkgNamesWithSource.size());
 
       for (final Object element : pkgNamesWithSource) {
         if (sb.length()>0) {

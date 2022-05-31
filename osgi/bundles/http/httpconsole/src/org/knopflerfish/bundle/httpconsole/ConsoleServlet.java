@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -143,7 +143,7 @@ public class ConsoleServlet extends HttpServlet {
     PrintWriter out = response.getWriter();
 
 
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     int displayFlags = 0;
 
@@ -233,26 +233,17 @@ public class ConsoleServlet extends HttpServlet {
 
     Util.formStop(out);
     printFooter(out);
-
-    try {
-    } catch (Exception e) {
-      out.println("<pre>");
-      e.printStackTrace(out);
-      out.println("</pre>");
-    }
-
   }
 
   IconView iconView;
 
   int handleCommands(HttpServletRequest request,
-                      StringBuffer       sb) throws Exception {
+                      StringBuilder sb) throws Exception {
     int displayFlags = 0;
-    for(int i = 0; i < commands.length; i++) {
-      if(commands[i].isTrigger(request)) {
-        StringBuffer s = commands[i].run(request);
-        sb.append(s.toString());
-        displayFlags |= commands[i].getDisplayFlags();
+    for (Command command : commands) {
+      if (command.isTrigger(request)) {
+        sb.append(command.run(request));
+        displayFlags |= command.getDisplayFlags();
       }
     }
     return displayFlags;

@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Telnet-Console
 Bundle-SymbolicName: org.knopflerfish.bundle.consoletelnet
-Bundle-Version: 4.0.1
+Bundle-Version: 4.1.0
 Bundle-Description: Console service server accepting telnet connections.
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+Bundle-ContactAddress: https://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=consoletelnet/index.html
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles/console/consoletelnet/

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2016, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -191,7 +191,7 @@ class RequireBundle
 
   private Filter toFilter()
   {
-    final StringBuffer sb = new StringBuffer(80);
+    final StringBuilder sb = new StringBuilder(80);
     boolean multipleConditions = false;
 
     sb.append('(');

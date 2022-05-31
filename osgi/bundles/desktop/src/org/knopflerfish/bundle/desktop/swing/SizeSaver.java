@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,15 +41,13 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.util.prefs.Preferences;
 
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JSplitPane;
 
 public class SizeSaver extends ComponentAdapter {
-  String id;
+  public static final String NODE_NAME    = "sizes";
 
   public static final String KEY_X        = "x";
   public static final String KEY_Y        = "y";
@@ -58,146 +56,133 @@ public class SizeSaver extends ComponentAdapter {
   public static final String KEY_STATE    = "state";
   public static final String KEY_SPLITPOS = "splitpos";
 
-  public static final String NODE_NAME    = "sizes";
+  private final String id;
 
-  Component comp;
-  Dimension defSize;
-  Dimension savedSize;
-  int defSplit;
-  int errCount = 0;
-  int maxErr = 10;
+  private Component comp;
+  private Dimension defSize;
+  private Dimension savedSize;
+  private int defSplit;
+  private int errCount = 0;
+  private int maxErr = 10;
 
-  ComponentListener splitListener;
-
-  public SizeSaver(String id, Dimension defSize, int defSplit) {
-    if(id.length() == 0 || id.indexOf("/") != -1) {
-      throw new
-        IllegalArgumentException("Bad id string '" + id + "'" +
-                                 ", must be non-zero lenght and no '/'");
+  private SizeSaver(String id, Component newComponent) {
+    if (id.length() == 0 || id.contains("/")) {
+      throw new IllegalArgumentException("Bad id string '" + id + "', must be non-zero length and no '/'");
     }
-    this.id      = id;
-    this.defSplit = defSplit;
-    this.defSize = defSize != null ? new Dimension(defSize.width, defSize.height) : null;
-    this.savedSize = defSize;
+    this.id = id;
+
+    comp = newComponent;
+    comp.addComponentListener(this);
   }
 
-  public void attach(Component _comp) {
-    if(this.comp != null) {
-      throw new IllegalStateException("SizeSaver can only be attach to one compoent. current component is " + this.comp);
-    }
-    this.comp = _comp;
+  public SizeSaver(String id, int defSplit, JSplitPane splitPane) {
+    this(id, splitPane);
+    this.defSplit = defSplit;
+    initDividerLocation(splitPane);
+    splitPane.getLeftComponent().addComponentListener(this);
+  }
 
+  public SizeSaver(String id, int defWidth, int defHeight, JFrame frame) {
+    this(id, frame);
+    defSize = new Dimension(defWidth, defHeight);
+    savedSize = defSize;
+    initComponentSize();
+    initFrameStateAndLocation(frame);
+  }
+
+  private void initComponentSize() {
     Dimension size = getSize();
 
-    if(size != null) {
-      // System.out.println("attach " + id + " size=" + size);
+    if (size != null) {
       comp.setSize(size);
-      if(comp instanceof JComponent) {
-        ((JComponent)comp).setPreferredSize(size);
-      }
+      comp.setPreferredSize(size);
     }
+  }
 
+  private void initDividerLocation(JSplitPane split) {
     Preferences prefs = getPrefs();
-
-    if(comp instanceof JFrame) {
-      Toolkit tk = comp.getToolkit();
-      if(tk.isFrameStateSupported(Frame.MAXIMIZED_VERT) ||
-         tk.isFrameStateSupported(Frame.MAXIMIZED_HORIZ) ||
-         tk.isFrameStateSupported(Frame.MAXIMIZED_BOTH)) {
-        int state = prefs.getInt(KEY_STATE, Frame.NORMAL);
-        ((Frame)comp).setExtendedState(state);
-      }
-      int x = prefs.getInt(KEY_X, 0);
-      int y = prefs.getInt(KEY_Y, 0);
-      // System.out.println("attach " + id + " pos=" + x + ", " + y);
-      comp.setLocation(x, y);
+    int pos = prefs.getInt(KEY_SPLITPOS, defSplit);
+    if (pos != -1) {
+      split.setDividerLocation(pos);
+      invalidate(split);
     }
+  }
 
-    if(comp instanceof JSplitPane) {
-      JSplitPane split = (JSplitPane)comp;
-      int pos = prefs.getInt(KEY_SPLITPOS, defSplit);
-      if(pos != -1) {
-        // System.out.println("attach " + id + " split=" + pos);
-        split.setDividerLocation(pos);
-        // Tell components that they may want to redo its layout
-        Component parent = split.getParent();
-        if (null!=parent) {
-          parent.invalidate();
-        } else {
-          split.invalidate();
-        }
-      }
-
-      splitListener = new ComponentAdapter() {
-          public void 	componentResized(ComponentEvent e) {
-            store();
-          }
-          public void 	componentMoved(ComponentEvent e) {
-            store();
-          }
-        };
-
-      split.getLeftComponent().addComponentListener(splitListener);
+  private void initFrameStateAndLocation(Frame frame) {
+    Preferences prefs = getPrefs();
+    Toolkit toolkit = frame.getToolkit();
+    if (toolkit.isFrameStateSupported(Frame.MAXIMIZED_VERT) ||
+       toolkit.isFrameStateSupported(Frame.MAXIMIZED_HORIZ) ||
+       toolkit.isFrameStateSupported(Frame.MAXIMIZED_BOTH)) {
+      int state = prefs.getInt(KEY_STATE, Frame.NORMAL);
+      frame.setExtendedState(state);
     }
+    int x = prefs.getInt(KEY_X, 0);
+    int y = prefs.getInt(KEY_Y, 0);
+    frame.setLocation(x, y);
+  }
 
-    this.comp.addComponentListener(this);
+  private void invalidate(JSplitPane splitPane) {
+    // Tell components that they may want to redo its layout
+    Component parent = splitPane.getParent();
+    if (parent != null) {
+      parent.invalidate();
+    } else {
+      splitPane.invalidate();
+    }
   }
 
   public void detach() {
-
     if(comp != null) {
-      if(comp instanceof JSplitPane) {
-        JSplitPane split = (JSplitPane)comp;
-        if(splitListener != null) {
-          split.getLeftComponent().removeComponentListener(splitListener);
-          splitListener = null;
-        }
+      if (comp instanceof JSplitPane) {
+        JSplitPane splitPane = (JSplitPane) comp;
+        splitPane.getLeftComponent().removeComponentListener(this);
       }
       comp.removeComponentListener(this);
       comp = null;
     }
   }
 
-  public void 	componentMoved(ComponentEvent e) {
+  @Override
+  public void componentMoved(ComponentEvent e) {
     handleCompChange();
   }
 
-  public void 	componentResized(ComponentEvent e) {
+  @Override
+  public void componentResized(ComponentEvent e) {
     handleCompChange();
   }
 
-  void handleCompChange() {
-    if(this.comp == null) {
-      return;
+  private void handleCompChange() {
+    if (comp != null && comp.isVisible()) {
+      store();
     }
-    if(!this.comp.isVisible()) {
-      return;
-    }
-
-    store();
   }
 
-  Preferences getPrefs() {
+  private Preferences getPrefs() {
     Preferences prefsBase = Preferences.userNodeForPackage(getClass());
+    Preferences prefs     = prefsBase.node(NODE_NAME + "/" + getSpid() + "/" + id);
+    getLatestVersionOfNode(prefs);
+    return prefs;
+  }
 
+  private String getSpid() {
     String spid  = Activator.getBC().getProperty("org.osgi.provisioning.spid");
-    if(spid == null) {
-      spid = "default";
-    }
+    return spid == null ? "default" : spid;
+  }
 
-    Preferences prefs     = prefsBase.node(NODE_NAME + "/" + spid + "/" + id);
+  private void getLatestVersionOfNode(Preferences prefs) {
     try {
-      prefs.sync(); // Get the latest version of the node.
+      prefs.sync();
     } catch (Exception e) {
       errCount++;
       if(errCount < maxErr) {
         Activator.log.warn("Failed to get id=" + id, e);
       }
     }
-    return prefs;
   }
 
-  public void store() {
+  private void store() {
     Dimension size = comp.getSize();
     try {
       savedSize = new Dimension(size.width, size.height);
@@ -205,29 +190,25 @@ public class SizeSaver extends ComponentAdapter {
 
 
       if(comp instanceof JFrame) {
-        Point p =  ((JFrame)comp).getLocationOnScreen();
-        // System.out.println(id + ": store pos " + p);
+        Point p = comp.getLocationOnScreen();
         prefs.put(KEY_X, Integer.toString((int)p.getX()));
         prefs.put(KEY_Y, Integer.toString((int)p.getY()));
 
-        Toolkit tk = Toolkit.getDefaultToolkit();
-        if(tk.isFrameStateSupported(Frame.MAXIMIZED_VERT) ||
-           tk.isFrameStateSupported(Frame.MAXIMIZED_HORIZ) ||
-           tk.isFrameStateSupported(Frame.MAXIMIZED_BOTH)) {
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        if (toolkit.isFrameStateSupported(Frame.MAXIMIZED_VERT) ||
+            toolkit.isFrameStateSupported(Frame.MAXIMIZED_HORIZ) ||
+            toolkit.isFrameStateSupported(Frame.MAXIMIZED_BOTH)) {
           int state = ((Frame)comp).getExtendedState();
           prefs.put(KEY_STATE, Integer.toString(state));
         }
-
       }
 
-      // System.out.println(id + ": store " + size);
       prefs.put(KEY_WIDTH, Integer.toString(size.width));
       prefs.put(KEY_HEIGHT, Integer.toString(size.height));
 
-      if(comp instanceof JSplitPane) {
-        JSplitPane split = (JSplitPane)comp;
-        prefs.put(KEY_SPLITPOS, Integer.toString(split.getDividerLocation()));
-        // System.out.println(id + ": store split=" + split.getDividerLocation());
+      if (comp instanceof JSplitPane) {
+        JSplitPane splitPane = (JSplitPane) comp;
+        prefs.put(KEY_SPLITPOS, Integer.toString(splitPane.getDividerLocation()));
       }
 
       prefs.flush();
@@ -239,8 +220,8 @@ public class SizeSaver extends ComponentAdapter {
     }
   }
 
-  public Dimension getSize() {
-    if(defSize == null) {
+  private Dimension getSize() {
+    if (defSize == null) {
       return null;
     }
     try {
@@ -249,8 +230,7 @@ public class SizeSaver extends ComponentAdapter {
       int w = prefs.getInt(KEY_WIDTH, defSize.width);
       int h = prefs.getInt(KEY_HEIGHT, defSize.height);
 
-      Dimension size = new Dimension(w, h);
-      return size;
+      return new Dimension(w, h);
     } catch (Exception e) {
       errCount++;
       if(errCount < maxErr) {

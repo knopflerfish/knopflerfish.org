@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -167,7 +167,7 @@ public class Strings {
               "Knopflerfish OSGi desktop, version $(1)\n" +
               "Framework: $(2) $(3)\n\n" +
               "$(4)\n\n" +
-              "See http://www.knopflerfish.org for more information.\n\n" +
+              "See https://www.knopflerfish.org for more information.\n\n" +
               "This release uses icons from Tango Desktop\n" +
               "Project released to the public domain, see\n" +
               "http://tango.freedesktop.org/Tango_Desktop_Project"
@@ -354,7 +354,7 @@ public class Strings {
   {
     boolean bCit = false; // true when inside citation chars.
     boolean bSep = false; // true when inside separator chars.
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
     int i = 0;
 
     while (i < s.length()) {
@@ -407,7 +407,7 @@ public class Strings {
                                           final char citChar)
   {
     final ArrayList<String> res = new ArrayList<String>();
-    final StringBuffer buf = new StringBuffer(s.length());
+    final StringBuilder buf = new StringBuilder(s.length());
     boolean bCit = false; // true when inside citation chars.
     boolean bSep = false; // true when inside separator chars.
     int i = 0;

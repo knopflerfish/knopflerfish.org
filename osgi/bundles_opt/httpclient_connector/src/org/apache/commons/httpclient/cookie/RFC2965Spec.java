@@ -396,7 +396,7 @@ public class RFC2965Spec extends CookieSpecBase implements CookieVersionSupport 
         }
     }
 
-    private void doFormatCookie2(final Cookie2 cookie, final StringBuffer buffer) {
+    private void doFormatCookie2(final Cookie2 cookie, final StringBuilder buffer) {
         String name = cookie.getName();
         String value = cookie.getValue();
         if (value == null) {
@@ -439,7 +439,7 @@ public class RFC2965Spec extends CookieSpecBase implements CookieVersionSupport 
         if (cookie instanceof Cookie2) {
             Cookie2 cookie2 = (Cookie2) cookie;
             int version = cookie2.getVersion();
-            final StringBuffer buffer = new StringBuffer();
+            final StringBuilder buffer = new StringBuilder();
             this.formatter.format(buffer, new NameValuePair("$Version", Integer.toString(version)));
             buffer.append("; ");
             doFormatCookie2(cookie2, buffer);
@@ -486,7 +486,7 @@ public class RFC2965Spec extends CookieSpecBase implements CookieVersionSupport 
         // Arrange cookies by path
         Arrays.sort(cookies, PATH_COMPOARATOR);
         
-        final StringBuffer buffer = new StringBuffer();
+        final StringBuilder buffer = new StringBuilder();
         // format cookie version
         this.formatter.format(buffer, new NameValuePair("$Version", Integer.toString(version)));
         for (int i = 0; i < cookies.length; i++) {
@@ -505,7 +505,7 @@ public class RFC2965Spec extends CookieSpecBase implements CookieVersionSupport 
      * @param ports int array of ports
      */
     private String createPortAttribute(int[] ports) {
-        StringBuffer portValue = new StringBuffer();
+        StringBuilder portValue = new StringBuilder();
         for (int i = 0, len = ports.length; i < len; i++) {
             if (i > 0) {
                 portValue.append(",");
@@ -1108,7 +1108,7 @@ public class RFC2965Spec extends CookieSpecBase implements CookieVersionSupport 
 
     public Header getVersionHeader() {
         ParameterFormatter formatter = new ParameterFormatter();
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         formatter.format(buffer, new NameValuePair("$Version",
                 Integer.toString(getVersion())));
         return new Header("Cookie2", buffer.toString(), true);

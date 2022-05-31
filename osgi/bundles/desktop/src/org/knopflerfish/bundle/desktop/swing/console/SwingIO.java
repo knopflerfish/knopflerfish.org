@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,10 @@ package org.knopflerfish.bundle.desktop.swing.console;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
-import java.awt.Label;
-import java.awt.Panel;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.InputStream;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.util.Vector;
 
@@ -65,28 +62,19 @@ public class SwingIO extends JPanel {
   JTextArea  text;
   JTextField tfCmd;
 
-  int p0 = -1;
-  int p1 = 0;
-
-  String last = "";
-
   InputStream origIn;
   PrintStream origOut;
   PrintStream origErr;
-
-  PipedOutputStream textSource;
 
   TextReader       in;
   PrintStream      out;
 
   JPanel panel;
   JScrollPane scroll;
-  Label  cmdLabel;
+  JTextArea  cmdLabel;
 
-  Vector<String> history    = new Vector<String>();
+  Vector<String> history    = new Vector<>();
   int    historyPos = 0;
-
-  StringBuffer lineBuff = new StringBuffer();
 
   boolean bGrabbed = false;
 
@@ -245,10 +233,10 @@ public class SwingIO extends JPanel {
       // in key press
       text.addKeyListener(new  KeyAdapter() {
           public void keyPressed(KeyEvent ev) {
-            int modifiers = ev.getModifiers();
+            int modifiers = ev.getModifiersEx();
 
             // Don't steal special key events like CTRL-C
-            if(modifiers == 0) {
+            if (modifiers == 0) {
               tfCmd.requestFocus();
             }
           }
@@ -257,16 +245,18 @@ public class SwingIO extends JPanel {
 
       out = new PrintStream(new TextAreaOutputStream(this, text));
 
-      panel.add(scroll,         BorderLayout.CENTER);
+      panel.add(scroll, BorderLayout.CENTER);
 
-      Panel cmdPanel = new Panel(new BorderLayout());
+      JPanel cmdPanel = new JPanel(new BorderLayout());
 
-      cmdLabel = new Label("> ");
-      cmdPanel.add(cmdLabel,        BorderLayout.WEST);
-      cmdPanel.add(tfCmd,           BorderLayout.CENTER);
+      cmdLabel = new JTextArea("> ");
+      cmdLabel.setEditable(false);
+      cmdLabel.setFocusable(false);
 
-      panel.add(cmdPanel,        BorderLayout.SOUTH);
+      cmdPanel.add(cmdLabel, BorderLayout.WEST);
+      cmdPanel.add(tfCmd, BorderLayout.CENTER);
 
+      panel.add(cmdPanel, BorderLayout.SOUTH);
 
       reinit();
     } catch (Exception e) {
@@ -280,32 +270,28 @@ public class SwingIO extends JPanel {
   }
 
   void showLastLine() {
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        if (maxLines > 0) {
-          int linesToRemove = text.getLineCount() - maxLines;
-          int index = 0;
-          if (linesToRemove > 0) {
-            for (int i=0; i<linesToRemove; i++) {
-              index = text.getText().indexOf('\n', index) + 1;
-            }
-            text.setText(text.getText().substring(index));
+    SwingUtilities.invokeLater(() -> {
+      if (maxLines > 0) {
+        int linesToRemove = text.getLineCount() - maxLines;
+        int index = 0;
+        if (linesToRemove > 0) {
+          for (int i=0; i<linesToRemove; i++) {
+            index = text.getText().indexOf('\n', index) + 1;
           }
+          text.setText(text.getText().substring(index));
         }
+      }
 
-        JScrollBar bar = scroll.getVerticalScrollBar();
-        if(bar != null) {
-          int v = bar.getMaximum();
-          bar.setValue(v*2);
-        }
+      JScrollBar bar = scroll.getVerticalScrollBar();
+      if(bar != null) {
+        int v = bar.getMaximum();
+        bar.setValue(v*2);
       }
     });
   }
 
-  Font font;
-
   synchronized void reinit() {
-    font = new Font(ConsoleSwing.config.fontName, Font.PLAIN, ConsoleSwing.config.fontSize);
+    Font font = new Font(ConsoleSwing.config.fontName, Font.PLAIN, ConsoleSwing.config.fontSize);
 
     text.setBackground(Config.parseColor(ConsoleSwing.config.bgColor));
     text.setForeground(Config.parseColor(ConsoleSwing.config.textColor));
@@ -331,6 +317,7 @@ public class SwingIO extends JPanel {
     }
   }
 
+  @SuppressWarnings("SameParameterValue")
   void disableInput(String reason) {
     if(ConsoleSwing.config.grabSystemIO) {
       restoreSystemIO();

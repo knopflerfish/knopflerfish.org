@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2016, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -495,7 +495,7 @@ public class MakeHTMLTask
 
   private String links() {
     final Project proj = getProject();
-    final StringBuffer buf = new StringBuffer();
+    final StringBuilder buf = new StringBuilder();
 
     for (int i = 0; ; i++) {
       final String id   = proj.getProperty(LINK_ID + i);
@@ -641,7 +641,7 @@ public class MakeHTMLTask
    * @return HTML string with all exported packages.
    */
   private String getExportPkgs(final BundleArchives bas, final String pathToJavadocDir) {
-    final StringBuffer res = new StringBuffer();
+    final StringBuilder res = new StringBuilder();
 
     if (null != bas) {
       final boolean javadocPresent = pathToJavadocDir != null && 0<pathToJavadocDir.length();
@@ -688,7 +688,7 @@ public class MakeHTMLTask
   }
 
   private String basToString(final BundleArchives bas) {
-    final StringBuffer res = new StringBuffer();
+    final StringBuilder res = new StringBuilder();
 
     if (null != bas) {
       for (final Object element : bas.allBundleArchives) {
@@ -704,7 +704,7 @@ public class MakeHTMLTask
   }
 
   private String providersToString(final Set<BundleArchive> providers) {
-    final StringBuffer res = new StringBuffer();
+    final StringBuilder res = new StringBuilder();
 
     for (final BundleArchive ba : providers) {
       if (0 < res.length()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -326,11 +326,11 @@ public class BundleArchives {
    * Format the OSGi version as Maven 2 does in versioned file names.
    */
   static private String toMavenVersion(final Version version) {
-    final StringBuffer sb = new StringBuffer(40);
+    final StringBuilder sb = new StringBuilder(40);
 
-    sb.append(String.valueOf(version.getMajor())).append(".");
-    sb.append(String.valueOf(version.getMinor())).append(".");
-    sb.append(String.valueOf(version.getMicro()));
+    sb.append(version.getMajor()).append(".");
+    sb.append(version.getMinor()).append(".");
+    sb.append(version.getMicro());
 
     final String qualifier = version.getQualifier();
     if (0 < qualifier.length()) {

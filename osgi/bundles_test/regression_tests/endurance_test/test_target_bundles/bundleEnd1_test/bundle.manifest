@@ -3,8 +3,8 @@ Bundle-Name: bundleEnd1_test
 Bundle-SymbolicName: org.knopflerfish.bundle.bundleEnd1_test
 Bundle-Version: 1.0.0
 Bundle-Vendor: Knopflerfish/Makewave AB
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.bundleEnd1_test.Activator
 Bundle-Category: testing
 Import-Package: org.osgi.framework

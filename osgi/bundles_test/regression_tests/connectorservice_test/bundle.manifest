@@ -3,8 +3,8 @@ Bundle-SymbolicName: io_test
 Bundle-Version: 1.0.0
 Bundle-Description: Test bundle for the io service
 Bundle-Vendor: Knopflerfish/Makewave AB
-Bundle-DocURL: http://www.knopflerfish.org
-Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org
+Bundle-ContactAddress: https://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.io_test.Activator
 Bundle-Category: testing
 Import-Package: javax.microedition.io,junit.framework,org.osgi.framework,org.osgi.service.io

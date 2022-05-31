@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,25 +108,24 @@ public class Util {
 
 
   public static String toHTML(ExtLogEntry e) {
-    final StringBuffer sb = new StringBuffer();
+    final StringBuilder sb = new StringBuilder();
 
     sb.append("<html>");
 
     sb.append("<table border=0 width=\"100%\">");
     sb.append("<tr bgcolor=\"#eeeeee\">");
 
-    sb.append("<td width=50 valign=top align=left bgcolor=\"#eeeeee\">" +
-              fontify(e.getId() +
-                      ", "+ shortName(e.getBundle())) + "</td>")
-      ;
+    sb.append("<td width=50 valign=top align=left bgcolor=\"#eeeeee\">")
+        .append(fontify(e.getId() + ", " + shortName(e.getBundle())))
+        .append("</td>");
 
-    sb.append("<td  valign=top  align=left bgcolor=\"#eeeeee\">" +
-              fontify(tf.format(new Date(e.getTime()))) + "</td>")
-;
+    sb.append("<td  valign=top  align=left bgcolor=\"#eeeeee\">")
+        .append(fontify(tf.format(new Date(e.getTime()))))
+        .append("</td>");
 
-    sb.append("<td valign=top align=right bgcolor=\"#eeeeee\">" +
-              fontify(levelString(e.getLevel())) + "</td>");
-
+    sb.append("<td valign=top align=right bgcolor=\"#eeeeee\">")
+        .append(fontify(levelString(e.getLevel())))
+        .append("</td>");
 
     sb.append("</tr>");
 
@@ -156,10 +155,12 @@ public class Util {
         }
 
         sb.append("<tr>");
-        sb.append("<td valign=top align=left>" +fontify(propKey) +"</td>");
-        sb.append("<td valign=top align=left colspan=\"2\">"
-                  +fontify(sw.toString())
-                  +"</td>");
+        sb.append("<td valign=top align=left>")
+            .append(fontify(propKey))
+            .append("</td>");
+        sb.append("<td valign=top align=left colspan=\"2\">")
+            .append(fontify(sw.toString()))
+            .append("</td>");
         sb.append("</tr>");
       }
     }
@@ -168,8 +169,8 @@ public class Util {
     if(t != null) {
       sb.append("<tr bgcolor=\"#eeeeee\">");
 
-      sb.append("<td colspan=3 align=left bgcolor=\"#eeeeee\">" +
-                fontify("Exception"));
+      sb.append("<td colspan=3 align=left bgcolor=\"#eeeeee\">")
+          .append(fontify("Exception"));
       sb.append("</td>");
       sb.append("</tr>");
 
@@ -241,8 +242,8 @@ public class Util {
     }
   }
 
-  public static StringBuffer pad(StringBuffer sb, int n) {
-    while(sb.length() < n) {
+  public static StringBuilder pad(StringBuilder sb, int n) {
+    while (sb.length() < n) {
       sb.append(" ");
     }
     return sb;

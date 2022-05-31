@@ -110,7 +110,7 @@ public class KFLegacyMetaTypeParser {
   private static final String ATTR_ARRAY = "array";
 
   private static final String XSD_NS = "http://www.w3.org/2001/XMLSchema";
-  private static final String METATYPE_NS = "http://www.knopflerfish.org/XMLMetatype";
+  private static final String METATYPE_NS = "https://www.knopflerfish.org/XMLMetatype";
 
   private static final String TAG_ANNOTATION = "annotation";
   private static final String TAG_SIMPLETYPE = "simpleType";
@@ -978,7 +978,7 @@ public class KFLegacyMetaTypeParser {
 
     if (bMetatypeTag) {
       out.println("<metatype:metatype\n"
-          + "  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\"\n"
+          + "  xmlns:metatype=\"https://www.knopflerfish.org/XMLMetatype\"\n"
           + "  xmlns:xsd     = \"http://www.w3.org/2001/XMLSchema\">");
     }
     out.println("");
@@ -1114,7 +1114,7 @@ public class KFLegacyMetaTypeParser {
     }
 
     out.println(" <metatype:values\n"
-        + "  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\">");
+        + "  xmlns:metatype=\"https://www.knopflerfish.org/XMLMetatype\">");
     out.println("");
 
     for (final Object name : propList) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,74 +61,73 @@ import java.io.InputStream;
 public class TelnetInputStream
   extends FilterInputStream
 {
-    private TelnetStateMachine tsm;
-
+    private TelnetStateMachine telnetStateMachine;
     private int prevChar;
-
     private int thisChar;
 
-    /*
-     * public TelnetInputStream (InputStream is) { super(is); }
-     */
-
-    public TelnetInputStream(InputStream is, TelnetSession tels) {
+    public TelnetInputStream(InputStream is, TelnetSession telnetSession) {
         super(is);
-        tsm = new TelnetStateMachine(tels);
+        telnetStateMachine = new TelnetStateMachine(telnetSession);
         prevChar = -1;
     }
 
+    @Override
     public int available() throws IOException {
         return in.available();
     }
 
+    @Override
     public void close() throws IOException {
         in.close();
     }
 
-    public void mark(int readlimit) {
-        in.mark(readlimit);
+    @Override
+    public void mark(int readLimit) {
+        in.mark(readLimit);
     }
 
+    @Override
     public boolean markSupported() {
         return in.markSupported();
     }
 
+    @Override
     public int read() throws IOException {
-        scanStream: while (true) {
+        while (true) {
             prevChar = thisChar;
             thisChar = in.read();
 
-            // System.out.println("TelnetIS char=" + thisChar);
-
             if (thisChar == -1) {
-                break scanStream;
+                break;
             }
             if (prevChar == TCC.IAC && thisChar == TCC.IAC) {
                 // Strip one double written IAC from input stream
-                continue scanStream;
+                continue;
             }
-            if (tsm.getState() == 0 && thisChar == TCC.IAC) {
+            if (telnetStateMachine.getState() == 0 && thisChar == TCC.IAC) {
                 // Detect command start
-                tsm.nextState(tsm.getState(), thisChar);
-                continue scanStream;
+                telnetStateMachine.nextState(telnetStateMachine.getState(), thisChar);
+                continue;
             }
-            if (tsm.getState() != 0) {
-                // Continue commad extraction
-                tsm.nextState(tsm.getState(), thisChar);
-                continue scanStream;
+            if (telnetStateMachine.getState() != 0) {
+                // Continue command extraction
+                telnetStateMachine.nextState(telnetStateMachine.getState(), thisChar);
+                continue;
             }
-            break scanStream;
+            break;
         }
         return thisChar;
     }
 
+    @Override
     public int read(byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
 
+    @Override
     public int read(byte[] b, int off, int len) throws IOException {
         int count = 0;
-        int character = 0;
+        int character;
         while (count < (len - off) && in.available() > 0) {
             character = read();
             if (character == -1) {
@@ -143,10 +142,12 @@ public class TelnetInputStream
         return count;
     }
 
+    @Override
     public void reset() throws IOException {
         in.reset();
     }
 
+    @Override
     public long skip(long n) throws IOException {
         return in.skip(n);
     }
