@@ -135,7 +135,7 @@
                          file="${out.dir}/@{projDirName}/@{artifactId}-pom.xml"/>
 
       <artifact:deploy file="@{artifactBundle}">
-        <remoteRepository url="file://localhost${mvn2.repo.dir}"/>
+        <remoteRepository url="file://localhost/${mvn2.repo.dir}"/>
         <pom file="${out.dir}/@{projDirName}/@{artifactId}-pom.xml"
              settingsFile="@{settingsFile}">
           <profile id="release-profile" active="true"/>
