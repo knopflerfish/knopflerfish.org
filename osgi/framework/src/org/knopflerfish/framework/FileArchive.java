@@ -58,7 +58,7 @@ public interface FileArchive {
   /**
    * Load class bytes into specified class loader for named file from a bundle archive.
    *
-   * @param component File to get.
+   * @param path File to get.
    * @param classloader Class loader to use for component.
    * @return Class for loaded bytes or null if no fil doesn't exist.
    * @exception IOException if failed to read jar entry.
@@ -70,8 +70,6 @@ public interface FileArchive {
    * stripped.
    *
    * @param component Entry to get reference to.
-   * @param ix index of sub archives. A postive number is the classpath entry
-   *          index. 0 means look in the main bundle.
    * @return BundleResourceStream to entry or null if it doesn't exist.
    */
   BundleResourceStream getBundleResourceStream(String component);
@@ -82,7 +80,7 @@ public interface FileArchive {
    * entries within the bundle whose longest sub-path matches the supplied path
    * argument.
    *
-   * @param name
+   * @param path
    * @return
    */
   Enumeration<String> findResourcesPath(String path);

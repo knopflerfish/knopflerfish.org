@@ -189,8 +189,8 @@ class Services {
    * Service ranking changed, reorder registered services
    * according to ranking.
    *
-   * @param serviceRegistration The serviceRegistration object.
-   * @param rank New rank of object.
+   * @param sr The serviceRegistration object.
+   * @param classes Service classes.
    */
   synchronized void updateServiceRegistrationOrder(ServiceRegistrationImpl<?> sr,
                                                    String[] classes)

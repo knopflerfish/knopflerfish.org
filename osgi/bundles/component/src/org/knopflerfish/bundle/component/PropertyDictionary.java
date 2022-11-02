@@ -290,7 +290,7 @@ class PropertyDictionary extends Dictionary<String, Object>
   /**
    * Add all properties in the given dictionary to the props dictionary.
    *
-   * @param properties The dictionary to insert the contents of.
+   * @param d The dictionary to insert the contents of.
    * @param service If the component is a service skip non-public properties.
    *                I.e., those with a key starting with '.'.
    */

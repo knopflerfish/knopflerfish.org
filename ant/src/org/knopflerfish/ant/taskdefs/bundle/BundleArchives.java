@@ -609,7 +609,7 @@ public class BundleArchives {
      * Sort on bundle symbolic name then on the bundle version. Compares bundle
      * symbolic name and then bundle version.
      *
-     * @param o
+     * @param other
      *          the object to compare this bundle archive to.
      * @return a negative integer, zero, or a positive integer as this object is
      *         less than, equal to, or greater than the specified object.

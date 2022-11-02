@@ -186,9 +186,9 @@ class ConditionalPermissionInfoStorage {
 
 
   /**
-   * Remove any specified conditional permission with the specified name.
+   * Remove any specified conditional permission.
    *
-   * @param name The name of the Conditional Permission Info to be changed.
+   * @param obj The Conditional Permission Info to be changed.
    */
   synchronized void remove(ConditionalPermissionInfoImpl obj) {
     final int pos = cpiTable.indexOf(obj);

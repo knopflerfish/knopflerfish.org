@@ -92,7 +92,7 @@ public class PermissionAdminImpl implements PermissionAdmin {
    *
    * @param location The location of the bundle that will be assigned the
    *        permissions.
-   * @param permissions The permissions to be assigned, or <code>null</code> if
+   * @param perms The permissions to be assigned, or <code>null</code> if
    *        the specified location is to be removed from the permission table.
    * @throws SecurityException If the caller does not have
    *            <code>AllPermission</code>.
@@ -145,7 +145,7 @@ public class PermissionAdminImpl implements PermissionAdmin {
    * These are the permissions granted to any bundle that does not have
    * permissions assigned to its location.
    *
-   * @param permissions The default permissions, or <code>null</code> if the
+   * @param perms The default permissions, or <code>null</code> if the
    *        default permissions are to be removed from the permission table.
    * @throws SecurityException If the caller does not have
    *            <code>AllPermission</code>.

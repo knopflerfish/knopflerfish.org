@@ -254,7 +254,6 @@ class ExportPkg
   /**
    * Get active importers of a package.
    *
-   * @param pkg Package.
    * @return List of bundles importing, null export is not active.
    */
   List<ImportPkg> getPackageImporters() {

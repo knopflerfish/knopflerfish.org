@@ -168,7 +168,6 @@ class CMConfig
    * Register Component as a subscriber of CM events which have
    * component name as CM pid.
    *
-   * @param comp Component which config needs to be tracked
    * @return true if all pids are available, otherwise false
    */
   boolean subscribe() {
@@ -201,8 +200,6 @@ class CMConfig
 
   /**
    * Unregister subscription of CM events for component.
-   *
-   * @param comp Component which config doesn't need to be tracked
    */
   void unsubscribe() {
     if (ComponentDescription.POLICY_IGNORE != policy) {
@@ -416,8 +413,7 @@ class CMConfig
      * Get configuration, but if there is a more targeted version available
      * ignore it and return <code>null</code>.
      * 
-     * @param compp 
-     * @param name 
+     * @param factoryPid
      * @param pid 
      *
      */

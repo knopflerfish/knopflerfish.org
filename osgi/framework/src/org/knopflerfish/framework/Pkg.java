@@ -66,7 +66,7 @@ class Pkg {
   /**
    * Add an exporter entry from this package.
    *
-   * @param pe ExportPkg to add.
+   * @param ep ExportPkg to add.
    */
   synchronized void addExporter(ExportPkg ep) {
     final int i = Math.abs(Util.binarySearch(exporters, epComp, ep) + 1);
@@ -92,7 +92,7 @@ class Pkg {
   /**
    * Add an importer entry to this package.
    *
-   * @param pe ImportPkg to add.
+   * @param ip ImportPkg to add.
    */
   synchronized void addImporter(ImportPkg ip) {
     final int i = Math.abs(Util.binarySearch(importers, ipComp, ip) + 1);
@@ -104,7 +104,7 @@ class Pkg {
   /**
    * Remove an importer entry from this package.
    *
-   * @param p ImportPkg to remove.
+   * @param ip ImportPkg to remove.
    */
   synchronized void removeImporter(ImportPkg ip) {
     importers.remove(ip);
@@ -116,7 +116,7 @@ class Pkg {
    * Add an exporter entry as a provider for this package.
    * If exporter already is provider don't add duplicate.
    *
-   * @param pe ExportPkg to add.
+   * @param ep ExportPkg to add.
    */
   synchronized void addProvider(ExportPkg ep) {
     final int i = Util.binarySearch(providers, epComp, ep);

@@ -69,7 +69,7 @@ public class ServiceObjectsImpl<S> implements ServiceObjects<S>
    * Releases a service object for the {@link #getServiceReference()
    * associated} service.
    *
-   * @see org.osgi.framework.ServiceObjects#ungetService()
+   * @see org.osgi.framework.ServiceObjects#ungetService(Object)
    */
   public void ungetService(S service) {
     bc.checkValid(); 

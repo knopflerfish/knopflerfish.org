@@ -54,21 +54,21 @@ public interface BundleArchive {
   /**
    * Autostart setting stopped.
    *
-   * @see BundleArchive#setAutostartSetting(String)
+   * @see BundleArchive#setAutostartSetting(int)
    */
   public String AUTOSTART_SETTING_STOPPED = "stopped";
 
   /**
    * Autostart setting eager.
    *
-   * @see BundleArchive#setAutostartSetting(String)
+   * @see BundleArchive#setAutostartSetting(int)
    */
   public String AUTOSTART_SETTING_EAGER = "eager";
 
   /**
    * Autostart setting declared activation policy.
    *
-   * @see BundleArchive#setAutostartSetting(String)
+   * @see BundleArchive#setAutostartSetting(int)
    */
   public String AUTOSTART_SETTING_ACTIVATION_POLICY = "activation_policy";
 
@@ -121,7 +121,7 @@ public interface BundleArchive {
   /**
    * Set bundle generation associated with this bundle archive.
    *
-   * @param BundleGeneration object.
+   * @param bg BundleGeneration object.
    */
   void setBundleGeneration(BundleGeneration bg);
 
@@ -159,7 +159,7 @@ public interface BundleArchive {
    * entries within the bundle whose longest sub-path matches the supplied path
    * argument.
    *
-   * @param name
+   * @param path
    * @return
    */
   Enumeration<String> findResourcesPath(String path);

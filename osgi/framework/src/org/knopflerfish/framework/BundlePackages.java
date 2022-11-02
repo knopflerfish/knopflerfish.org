@@ -990,7 +990,9 @@ class BundlePackages {
    * If this bundle packages is resolved, do nothing since in that case must not
    * change the set of imports and exports.
    *
-   * @param fb The fragment bundle to detach.
+   * @param fbg The fragment bundle to detach.
+   * @param unregister Unregister the imports and exports of the specified
+   *          fragment.
    */
   void detachFragmentSynchronized(BundleGeneration fbg, boolean unregister) {
     if (fragments != null) {
@@ -1093,7 +1095,7 @@ class BundlePackages {
    *
    * Note! Must be called with fragments locked.
    *
-   * @param fb The fragment bundle to detach.
+   * @param fbg The fragment bundle to detach.
    * @param unregisterPkg Unregister the imports and exports of the specified
    *          fragment.
    */

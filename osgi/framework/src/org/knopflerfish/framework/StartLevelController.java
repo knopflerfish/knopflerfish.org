@@ -129,7 +129,7 @@ public class StartLevelController
    * try to set the target start level from the beginning start level
    * framework property.
    *
-   * <p>Note that {@link open()} needs to be called for any work to
+   * <p>Note that {@link #open()} needs to be called for any work to
    * be done.</p>
    */
   private void restoreState() {

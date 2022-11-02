@@ -182,7 +182,7 @@ public class BundleStorageImpl implements BundleStorage {
   /**
    * Remove bundle archive from archives list.
    *
-   * @param id Bundle archive id to find.
+   * @param ba Bundle archive id to find.
    * @return true if element was removed.
    */
   boolean removeArchive(BundleArchive ba) {

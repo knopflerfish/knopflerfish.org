@@ -1023,8 +1023,6 @@ abstract class Component implements org.apache.felix.scr.Component {
    * Get all activate, deactivate, modify, bind and unbind
    * methods specified for this component. This is done
    * the first time this method is called.
-   *
-   * @param clazz Implementation class to look for methods on.
    */
   private void getMethods() {
     final HashMap<String, ComponentMethod[]> lookFor = new HashMap<String, ComponentMethod[]>();

@@ -158,7 +158,7 @@ class Archive implements FileArchive {
   /**
    * Get a byte array containing the contents of named file from the archive.
    *
-   * @param component File to get.
+   * @param classFile File to get.
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */

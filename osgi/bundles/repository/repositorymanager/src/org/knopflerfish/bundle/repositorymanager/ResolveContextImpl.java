@@ -58,7 +58,7 @@ public class ResolveContextImpl extends ResolveContext {
 		Bundle[] bs = bc.getBundles();
 		for(Bundle b : bs) {
 			BundleRevision br = b.adapt(BundleRevision.class);
-	        addToProvidersIfMatching(br, providers, r);
+			addToProvidersIfMatching(br, providers, r);
 		}
 		for(Resource m : mandatory) {
 			addToProvidersIfMatching(m, providers, r);

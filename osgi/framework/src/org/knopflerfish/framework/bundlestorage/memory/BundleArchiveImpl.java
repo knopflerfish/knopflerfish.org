@@ -183,7 +183,7 @@ class BundleArchiveImpl implements BundleArchive {
   /**
    * Set bundle generation associated with this bundle archive.
    *
-   * @param BundleGeneration object.
+   * @param bg BundleGeneration object.
    */
   public void setBundleGeneration(BundleGeneration bg) {
     bundleGeneration = bg;

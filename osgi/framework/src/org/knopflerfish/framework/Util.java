@@ -351,10 +351,10 @@ public class Util {
    * Convert an attribute value from string to the requested type.
    *
    * The types supported are described in
-   * {@link #parseEntries(String, String, boolean, boolean, boolean)}.
+   * {@link #parseManifestHeader(String, String, boolean, boolean, boolean)}.
    *
    * @param a Name of attribute being parsed, for error messages.
-   * @param p Name of parameter to assign the value to, for error messages.
+   * @param param Name of parameter to assign the value to, for error messages.
    * @param type the type to convert to.
    * @param value the value to convert.
    * @return
@@ -463,7 +463,7 @@ public class Util {
   /**
    * Read a resource into a String.
    *
-   * @param name resource name to read
+   * @param file resource name to read
    * @param defaultValue if no resource is available
    * @param encoding resource encoding
    * @return String with contents of resource or supplied default value.
@@ -1266,7 +1266,7 @@ public class Util {
   /**
    * A class that holds the parse result for one entry of a manifest header
    * following the general OSGi manifest header syntax. See
-   * {@link Util#parseManifestHeader()} for
+   * {@link Util#parseManifestHeader(String, String, boolean, boolean, boolean)} for
    * details on the syntax.
    */
   public static class HeaderEntry

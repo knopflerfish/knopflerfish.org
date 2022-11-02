@@ -814,7 +814,7 @@ public class Main
    * Returns a bundle id from a string. The string is either a number
    * or the location used for the bundle in the
    * "-install bundleLocation" or "-istart" command.
-   * @param base Base URL to complete locations with.
+   * @param fw The framework instance.
    * @param idLocation bundle id or location of the bundle to lookup
    */
   private long getBundleID(Framework fw, String idLocation) {
@@ -1068,7 +1068,7 @@ public class Main
    * not defined) is created by scanning the "jars" directory for
    * subdirs.</p>
    *
-   * @see defaultSysProps
+   * @see #defaultFwProps
    */
   protected void addDefaultProps() {
     for (final Entry<String, String> entry : defaultFwProps.entrySet()) {

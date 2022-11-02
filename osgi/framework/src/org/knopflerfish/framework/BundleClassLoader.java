@@ -567,7 +567,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * Searches for and loads classes and resources according to OSGi search
    * order. When lazy activation of bundles are used this method will detect and
    * perform the activation. The actual searching and loading is done in
-   * {@link #searchFor0()}
+   * {@link #searchFor0(String, String, String, SearchAction, int, BundleClassLoader, HashSet)}
    * 
    * @param name
    *          Name of class or pattern we are looking for, null if we look for a
@@ -681,8 +681,8 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    *          File path to item searched ("/" separated)
    * @param action
    *          Action to be taken when item is found
-   * @param onlyFirst
-   *          Stop search when first matching item is found.
+   * @param options
+   *          Options controlling what should be included in search result.
    * 
    * @return Object returned from action class.
    */

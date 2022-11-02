@@ -166,7 +166,7 @@ class Listeners {
   /**
    * Add a bundle listener to the current framework.
    *
-   * @param bundle Who wants to add listener.
+   * @param bc Who wants to add listener.
    * @param listener Object to add.
    */
   void addBundleListener(BundleContextImpl bc, BundleListener listener) {
@@ -190,7 +190,7 @@ class Listeners {
    * if listener doesn't exist. If listener is registered more than
    * once remove one instances.
    *
-   * @param bundle Who wants to remove listener.
+   * @param bc Who wants to remove listener.
    * @param listener Object to remove.
    */
   void removeBundleListener(BundleContextImpl bc, BundleListener listener) {
@@ -241,7 +241,7 @@ class Listeners {
    * Add a service listener with filter to current framework.
    * If no filter is wanted, call with filter param set to null.
    *
-   * @param bundle Who wants to add listener.
+   * @param bc Who wants to add listener.
    * @param listener Object to add.
    * @param filter LDAP String used for filtering event before calling listener.
    */
@@ -256,7 +256,7 @@ class Listeners {
    * if listener doesn't exist. If listener is registered more than
    * once remove all instances.
    *
-   * @param bundle Who wants to remove listener.
+   * @param bc Who wants to remove listener.
    * @param listener Object to remove.
    */
   void removeServiceListener(BundleContextImpl bc, ServiceListener listener) {
@@ -267,7 +267,7 @@ class Listeners {
   /**
    * Remove all listener registered by a bundle in the current framework.
    *
-   * @param bi Bundle which listeners we want to remove.
+   * @param bc Bundle which listeners we want to remove.
    */
   void removeAllListeners(BundleContextImpl bc) {
     removeAllListeners(syncBundleListeners, bc);

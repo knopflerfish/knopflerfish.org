@@ -303,7 +303,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
   /**
    * Get the service object.
    *
-   * @param bundle requester of service.
+   * @param b requester of service.
    * @return Service requested or null in case of failure.
    */
   S getService(Bundle b, boolean multiple) {

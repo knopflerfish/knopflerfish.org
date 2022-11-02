@@ -589,11 +589,6 @@ class SCR implements SynchronousBundleListener
    * </p>
    *
    * @param s          String to split.
-   * @param separators Character to use for splitting. Any of the
-   *                   characters in the separator string are considered
-   *                   to be separator between words and will be removed
-   *                   from the result. If no words are found, return an
-   *                   array of length zero.
    */
   private static ArrayList<String> splitwords(String s) {
     boolean bCit = false;            // true when inside citation chars.

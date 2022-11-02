@@ -203,7 +203,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
 
   /**
    *
-   * @see org.osgi.service.condpermadmin.ConditionalPermissionAdmin#newConditionalPermissionInfo()
+   * @see org.osgi.service.condpermadmin.ConditionalPermissionAdmin#newConditionalPermissionInfo(String, ConditionInfo[], PermissionInfo[], String)
    */
   public ConditionalPermissionInfo newConditionalPermissionInfo(String name,
                                                                 ConditionInfo conditions[],
@@ -230,7 +230,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
 
   /**
    *
-   * @see org.osgi.service.condpermadmin.ConditionalPermissionAdmin#newConditionalPermissionInfo()
+   * @see org.osgi.service.condpermadmin.ConditionalPermissionAdmin#newConditionalPermissionInfo(String)
    */
   public ConditionalPermissionInfo newConditionalPermissionInfo(String encoded)  {
     return new ConditionalPermissionInfoImpl(cpis, encoded, framework);

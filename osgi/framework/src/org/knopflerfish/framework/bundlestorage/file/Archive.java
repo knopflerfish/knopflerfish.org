@@ -200,7 +200,7 @@ public class Archive implements FileArchive {
    * as local copy in the specified directory.
    *
    * @param is Jar file data in an InputStream.
-   * @param url URL to use to CodeSource.
+   * @param source URL to use to CodeSource.
    */
   protected void downloadArchive(InputStream is, URL source)
       throws IOException {
@@ -544,7 +544,7 @@ public class Archive implements FileArchive {
    * Get a byte array containg the contents of named class file from the
    * archive.
    *
-   * @param Class File to get.
+   * @param classFile File to get.
    * @return Byte array with contents of class file or null if file doesn't
    *         exist.
    * @exception IOException if failed to read jar entry.
@@ -741,10 +741,10 @@ public class Archive implements FileArchive {
 
 
   /**
-   * Get a BundleResourceStream to named entry inside an Archive.
+   * List contents of a directory.
    *
-   * @param component Entry to get reference to.
-   * @return BundleResourceStream to entry or null if it doesn't exist.
+   * @param path Path to the directory.
+   * @return Contents of the directory as a Set of Strings.
    */
   public Set<String> listDir(String path) {
     if (bClosed) {
@@ -830,10 +830,10 @@ public class Archive implements FileArchive {
 
 
   /**
-   * Get a BundleResourceStream to named entry inside an Archive.
+   * Check if a file exists.
    *
-   * @param component Entry to get reference to.
-   * @return BundleResourceStream to entry or null if it doesn't exist.
+   * @param path Path to file.
+   * @param onlyDirs If true, only dirs are considered.
    */
   public boolean exists(String path, boolean onlyDirs) {
     if (bClosed) {

@@ -213,7 +213,7 @@ class Resolver {
   /**
    * Dynamically check and register a dynamic package import.
    *
-   * @param pe ImportPkg import to add.
+   * @param ip ImportPkg import to add.
    * @return ExportPkg for package provider.
    * @throws BundleException Resolver hook complaint.
    */
@@ -365,8 +365,8 @@ class Resolver {
   /**
    * Try to resolve all packages for a bundle.
    *
-   * @param bundle Bundle owning packages.
-   * @param pkgs List of packages to be resolved.
+   * @param bg Bundle owning packages.
+   * @param importBpkgs List of packages to be resolved.
    * @return String with reason for failure or null if all were resolved.
    * @throws BundleException Resolver hook complaint.
    */
@@ -697,7 +697,8 @@ class Resolver {
   /**
    * Mark list of exporters as zombie packages.
    *
-   * @param exporters List of ExportPkg.
+   * @param e1 List of ExportPkg.
+   * @param e2 Iterator of ExportPkg.
    */
   private void markAsZombies(List<ExportPkg> e1, Iterator<ExportPkg> e2) {
     for (final ExportPkg exportPkg : e1) {
@@ -895,7 +896,7 @@ class Resolver {
   /**
    * Find a provider for specified package.
    *
-   * @param pkg Package to find provider for.
+   * @param ip Package to find provider for.
    * @return Package entry that can provide.
    * @throws BundleException Resolver hook throw an exception.
    */
@@ -1144,7 +1145,7 @@ class Resolver {
    * previous selections. If a bundle doesn't have a uses directive we check all
    * currently imported packages. This is then applied recursively.
    *
-   * @param pkg Exported package to check
+   * @param bpkgs Exported package to check
    * @return True if we checked all packages without collision.
    */
   private boolean checkUses(Set<String> uses, BundleCapability bc, BundlePackages bpkgs) {
@@ -1205,7 +1206,7 @@ class Resolver {
    * Check that the bundle specified can be resolved without violating any
    * singleton requirements.
    *
-   * @param b Bundle to check, must be in INSTALLED state
+   * @param bg Bundle to check, must be in INSTALLED state
    * @return Bundle blocking resolve, otherwise null.
    * @throws BundleException Resolver hook throw an exception.
    */
@@ -1279,7 +1280,7 @@ class Resolver {
    * Check that the bundle specified can resolve all its Require-Capability
    * constraints.
    * 
-   * @param b Bundle to check, must be in INSTALLED state
+   * @param bg Bundle to check, must be in INSTALLED state
    * @return Capability not full name of bundle blocking resolve, otherwise null.
    * @throws BundleException Resolver hook throw an exception.
    */
@@ -1366,7 +1367,7 @@ class Resolver {
    * Check that the bundle specified can resolve all its Require-Bundle
    * constraints.
    *
-   * @param b Bundle to check, must be in INSTALLED state
+   * @param bg Bundle to check, must be in INSTALLED state
    * @return Symbolic name of bundle blocking resolve, otherwise null.
    * @throws BundleException Resolver hook throw an exception.
    */

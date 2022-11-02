@@ -210,7 +210,6 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
   /**
    * Get the service object for system bundle.
    *
-   * @param bundle requester of service.
    * @return Service requested or null in case of failure.
    */
   S getService() {
@@ -247,7 +246,7 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
    * Clone object. Handles all service property types
    * and does this recursively.
    *
-   * @param bundle Object to clone.
+   * @param val Object to clone.
    * @return Cloned object.
    */
   Object cloneObject(Object val) {

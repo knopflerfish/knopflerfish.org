@@ -184,7 +184,7 @@ class ServiceListenerState {
   /**
    * Remove all service listeners registered by the specified bundle.
    *
-   * @param bundle The bundle to remove listeners for.
+   * @param bc The bundle to remove listeners for.
    */
   synchronized void hooksBundleStopped(BundleContextImpl bc) {
     final List<ServiceListenerEntry> entries = new ArrayList<ServiceListenerEntry>();

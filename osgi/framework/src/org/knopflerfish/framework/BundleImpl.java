@@ -1018,7 +1018,7 @@ public class BundleImpl implements Bundle {
   /**
    * Get bundle identifier.
    *
-   * @see org.osgi.fwCtx.Bundle#getBundleId
+   * @see org.osgi.framework.Bundle#getBundleId
    */
   public long getBundleId() {
     return id;
@@ -1154,7 +1154,7 @@ public class BundleImpl implements Bundle {
 
   /**
    *
-   * @see org.osgi.framework.Bundle#getSignerCertificates()
+   * @see org.osgi.framework.Bundle#getSignerCertificates(int)
    */
   @SuppressWarnings("unchecked")
   public Map<X509Certificate, List<X509Certificate>> getSignerCertificates(int signersType) {
@@ -1728,7 +1728,7 @@ public class BundleImpl implements Bundle {
 
   /**
    *
-   * @see org.osgi.framework.Bundle#loadClass()
+   * @see org.osgi.framework.Bundle#loadClass(String)
    */
   public Class<?> loadClass(final String name) throws ClassNotFoundException {
     if (secure.okClassAdminPerm(this)) {

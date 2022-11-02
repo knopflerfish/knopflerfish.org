@@ -166,7 +166,7 @@ class PermissionInfoStorage {
    *
    * @param location The location of the bundle that will be assigned the
    *        permissions.
-   * @param permissions The permissions to be assigned, or {@code null} if
+   * @param perms The permissions to be assigned, or {@code null} if
    *        the specified location is to be removed from the permission table.
    */
   synchronized void put(String location, PermissionInfo[] perms)
