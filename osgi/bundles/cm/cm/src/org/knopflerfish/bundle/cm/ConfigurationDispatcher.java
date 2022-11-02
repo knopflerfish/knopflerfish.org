@@ -68,11 +68,10 @@ final class ConfigurationDispatcher {
       = new Hashtable<Object, UpdateQueue>();
 
     /**
-     * * Construct a ConfigurationDispatcher given a *
-     * ConfigurationServicesTracker. * *
+     * Construct a ConfigurationDispatcher given a PluginManager.
      *
-     * @param tracker
-     *            The ConfigurationServicesTracker to use.
+     * @param pm
+     *            The PluginManager to use.
      */
 
     ConfigurationDispatcher(PluginManager pm) {

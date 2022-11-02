@@ -266,12 +266,10 @@ public class SimpleLog implements Log {
     /**
      * <p> Set logging level. </p>
      *
-     * @param level new logging level
+     * @param currentLogLevel new logging level
      */
     public void setLevel(int currentLogLevel) {
-
         this.currentLogLevel = currentLogLevel;
-
     }
 
 

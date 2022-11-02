@@ -482,18 +482,16 @@ public class BundleManifestTask extends Task {
   }
 
   /**
-   * If set to true the bundle activator, export package and import package list
-   * in the written manifest will be printed on the console.
+   * Version suffix, used as qualifier in the version string.
    */
   private String versionSuffix = "";
 
   /**
-   * Set the verbosity of this task. If set to true the bundle activator, export
-   * package and import package list in the written manifest will be printed on
-   * the console.
+   * Set the version suffix of this task. Used as qualifier in the version
+   * string.
    * 
-   * @param b
-   *          verbose or not.
+   * @param s
+   *          version suffix.
    */
   public void setVersionSuffix(String s) {
     versionSuffix = s;

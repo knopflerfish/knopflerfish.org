@@ -127,7 +127,7 @@ public class JCMService
    * @param ocd
    *          The metatype Object Class Definition describing the configuration
    *          data.
-   * @see #setFactoryOCD(String, ObjectClassDefinition)
+   * @see #setFactoryOCD(String, Bundle, ObjectClassDefinition)
    */
   void setServiceOCD(String pid, Bundle bundle, ObjectClassDefinition ocd)
   {
@@ -147,7 +147,7 @@ public class JCMService
    * @param ocd
    *          The metatype Object Class Definition describing the configuration
    *          data.
-   * @see #setServiceOCD(String, ObjectClassDefinition)
+   * @see #setServiceOCD(String, Bundle, ObjectClassDefinition)
    */
   void setFactoryOCD(String pid, Bundle bundle, ObjectClassDefinition ocd)
   {

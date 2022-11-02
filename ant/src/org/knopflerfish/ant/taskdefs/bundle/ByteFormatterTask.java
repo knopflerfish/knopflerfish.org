@@ -201,8 +201,6 @@ public class ByteFormatterTask extends Task {
 
   /**
    * Performs the requested formatting.
-   *
-   * @throws BuildException if the manifest cannot be written.
    */
   public void execute() {
     String formatedValue = "";

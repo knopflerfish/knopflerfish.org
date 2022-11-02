@@ -652,10 +652,10 @@ public class BundleHTMLExtractorTask
    * @param relPathUp
    *          relative path up from the directory where the file with the return
    *          string will be written to the specified out directory.
-   * @param map
-   *          Mapping from package name to package version.
-   * @param linkSuffix
-   *          Suffix to add to the java doc link for the package.
+   * @param pkg
+   *          The java package to present.
+   * @param version
+   *          The version of the java package to present.
    * @return String representation of the packages in the map.
    */
   private String getPackageJavadocString(final BundleArchive ba,
@@ -1166,7 +1166,7 @@ public class BundleHTMLExtractorTask
   }
 
   /**
-   * A variant of {@link Util.replace(String,String,String)} that uses the empty
+   * A variant of {@link Util#replace(String,String,String)} that uses the empty
    * string as replacement for null values.
    *
    * @param src

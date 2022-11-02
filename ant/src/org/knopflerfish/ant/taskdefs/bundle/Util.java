@@ -222,10 +222,10 @@ public class Util {
    * Convert an attribute value from string to the requested type.
    *
    * The types supported are described in
-   * {@link #parseEntries(String, String, boolean, boolean, boolean)}.
+   * {@link #parseManifestHeader(String, String, boolean, boolean, boolean)}.
    *
    * @param a Name of attribute being parsed, for error messages.
-   * @param p Name of parameter to assign the value to, for error messages.
+   * @param param Name of parameter to assign the value to, for error messages.
    * @param type the type to convert to.
    * @param value the value to convert.
    * @return attribute value converted to the desired type.

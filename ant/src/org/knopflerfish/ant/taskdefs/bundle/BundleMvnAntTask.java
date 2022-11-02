@@ -657,7 +657,7 @@ public class BundleMvnAntTask extends Task {
    * Set the value of the named ant property. The property must exist and be
    * a child of the specified element.
    *
-   * @param elem
+   * @param el
    *          The element owning the property element to update
    * @param name
    *          The name of the property to set location of.
@@ -687,7 +687,7 @@ public class BundleMvnAntTask extends Task {
    * Set the location of the named ant property. The property must exist and be
    * a child of the specified element.
    *
-   * @param elem
+   * @param el
    *          The element owning the property element to update
    * @param name
    *          The name of the property to set location of.
@@ -964,12 +964,10 @@ public class BundleMvnAntTask extends Task {
   /**
    * Add dependencies element for the given bundle to the string buffer.
    *
-   * @param el
-   *          element to add the dependencies to.
+   * @param fw
+   *          Writer to write the dependencies element to.
    * @param ba
    *          The bundle archive to defining the coordinates.
-   * @param prefix
-   *          Whitespace to add before the new element.
    */
   private void addGradleDependencies(FileWriter fw, BundleArchive ba) throws IOException
   {

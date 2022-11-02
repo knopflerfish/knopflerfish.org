@@ -211,7 +211,7 @@ public class BasicDriverLocator
    *
    * @param drivers
    *          String (driver ID) -> DriverInfo
-   * @param props
+   * @param dict
    *          Device properties to match
    * @return String array of driver IDs
    */
