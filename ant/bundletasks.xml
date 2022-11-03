@@ -198,8 +198,9 @@
   <property name="asm.url"		value="${maven.url}/org/ow2/asm/asm/${asm.version}/${asm.jar}" />
 
   <target name="install_asm">
+    <mkdir dir="${ant.lib}"/>
     <get src="${asm.url}"
-         dest="${ant.lib}/"
+         dest="${asm.jar.location}"
          verbose="true"
          skipexisting="true" />
   </target>
