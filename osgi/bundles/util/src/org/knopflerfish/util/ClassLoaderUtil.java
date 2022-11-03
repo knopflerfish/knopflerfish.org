@@ -88,8 +88,7 @@ public class ClassLoaderUtil {
 
         try {
             Thread.currentThread().setContextClassLoader(classloader);
-            Object obj = action.run();
-            return obj;
+            return action.run();
         } finally {
             Thread.currentThread().setContextClassLoader(oldLoader);
         }
@@ -123,8 +122,7 @@ public class ClassLoaderUtil {
 
         try {
             Thread.currentThread().setContextClassLoader(classloader);
-            Object obj = action.run();
-            return obj;
+            return action.run();
         } finally {
             Thread.currentThread().setContextClassLoader(oldLoader);
         }

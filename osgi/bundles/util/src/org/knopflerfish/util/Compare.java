@@ -51,13 +51,10 @@ public class Compare {
      * @return <code>true</code> if the two arrays are equal.
      */
     public static boolean compareByteArrays(byte[] a, byte[] a2) {
-        boolean equal = false;
+        boolean equal;
 
         if (a == a2) {
-            // If the array references are equal, the arrays are equal
-            equal = true;
-        } else if (a == null && a2 == null) {
-            // Two array references are considered equal if both are null
+            // If the array references are equal, including both null, the arrays are equal
             equal = true;
         } else if (a == null || a2 == null) {
             // If one reference is null and the other isn't, the arrays

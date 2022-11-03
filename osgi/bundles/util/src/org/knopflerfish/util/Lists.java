@@ -60,7 +60,7 @@ public class Lists {
         }
 
         public Object[] toArray() {
-            return (Object[]) a.clone();
+            return a.clone();
         }
 
         public Object get(int index) {

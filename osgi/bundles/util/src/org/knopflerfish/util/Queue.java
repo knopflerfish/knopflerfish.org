@@ -46,7 +46,7 @@ public class Queue extends Vector<Object> {
 
   private static final long serialVersionUID = 1L;
 
-  private int m_nMaxSize = -1;
+  private int m_nMaxSize;
 
   private boolean queueClosed = false;
 
@@ -113,7 +113,7 @@ public class Queue extends Vector<Object> {
           wait(Math.round(timeout * 1000.0f));
         } else
           wait();
-      } catch (InterruptedException e) {
+      } catch (InterruptedException ignore) {
       }
     }
 
@@ -124,7 +124,7 @@ public class Queue extends Vector<Object> {
     try {
       obj = firstElement();
       removeElementAt(0);
-    } catch (Exception e) {
+    } catch (Exception ignore) {
     }
 
     return obj;

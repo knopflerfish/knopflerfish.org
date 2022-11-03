@@ -133,14 +133,14 @@ public class ExecutableBundleActivator implements BundleActivator {
     this.bc = bc;
     debug("start " + this);
 
-    String stopS = (String) bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE_EXIT_MEANS_BUNDLESTOP);
+    String stopS = bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE_EXIT_MEANS_BUNDLESTOP);
     bProcessExitMeansStopBundle = stopS == null || "true".equals(stopS);
 
     try {
       initFiles();
 
       if(startFile != null) {
-        String args = (String)bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE_ARGS);
+        String args = bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE_ARGS);
         runProcess = runFile(startFile, args, false,
                              isProcessExitMeansStopBundle());
       }
@@ -160,7 +160,7 @@ public class ExecutableBundleActivator implements BundleActivator {
       }
 
       if(stopFile != null) {
-        String args = (String)bc.getBundle().getHeaders().get(BUNDLE_STOP_EXECUTABLE_ARGS);
+        String args = bc.getBundle().getHeaders().get(BUNDLE_STOP_EXECUTABLE_ARGS);
         runFile(stopFile, args, true, false);
       }
     } catch (Exception e) {
@@ -264,13 +264,12 @@ public class ExecutableBundleActivator implements BundleActivator {
       File     runDir   = f.getParentFile();
       String   filePath = f.getAbsolutePath();
       String   dirPath  = f.getParentFile().getAbsolutePath();
-      String[] argv     = null;
       String[] cmd      = new String[1];
 
-      if(args != null) {
-        argv = Text.splitwords(args, " ");
+      if (args != null) {
+        String[] argv = Text.splitwords(args, " ");
         cmd  = new String[argv.length + 1];
-        for(int i = 0; i < argv.length; i++) {
+        for (int i = 0; i < argv.length; i++) {
           String s = argv[i];
           s = Text.replace(s, "${absfile}",  filePath);
           s = Text.replace(s, "${absdir}",   dirPath);
@@ -281,8 +280,8 @@ public class ExecutableBundleActivator implements BundleActivator {
       }
       cmd[0] = f.getAbsolutePath();
 
-      if(isDebug()) {
-        for(int i = 0; i < cmd.length; i++) {
+      if (isDebug()) {
+        for (int i = 0; i < cmd.length; i++) {
           debug("cmd[" + i + "]=" + cmd[i]);
         }
       }
@@ -307,9 +306,9 @@ public class ExecutableBundleActivator implements BundleActivator {
   }
 
   void initFiles() throws IOException {
-    initFiles((String)bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE),
-              (String)bc.getBundle().getHeaders().get(BUNDLE_STOP_EXECUTABLE),
-              (String)bc.getBundle().getHeaders().get(BUNDLE_EXTRACT_FILES)
+    initFiles(bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE),
+              bc.getBundle().getHeaders().get(BUNDLE_STOP_EXECUTABLE),
+              bc.getBundle().getHeaders().get(BUNDLE_EXTRACT_FILES)
               );
   }
 
@@ -346,8 +345,8 @@ public class ExecutableBundleActivator implements BundleActivator {
       String[] names = Text.splitwords(extractNames, ",", '\"');
 
       debug(extractNames + "->" + names.length);
-      for(int i = 0; i < names.length; i++) {
-        extractResource(names[i]);
+      for (String name : names) {
+        extractResource(name);
       }
     }
 
@@ -373,7 +372,7 @@ public class ExecutableBundleActivator implements BundleActivator {
 	  "a+rx",
 	  f.getAbsolutePath(),
     };
-    Process p = null;
+    Process p;
     try {
 	  p = Runtime.getRuntime().exec(cmd, null, null);
 	  p.waitFor();
@@ -385,17 +384,17 @@ public class ExecutableBundleActivator implements BundleActivator {
   }
 
   File findOSCommand(String cmd) {
-	String[] paths = new String[] {
-      "/bin", "/usr/bin", "/bin/local", "/usr/bin/local",
-	};
+    String[] paths = new String[] {
+        "/bin", "/usr/bin", "/bin/local", "/usr/bin/local",
+    };
 
-	for(int i = 0; i <paths.length; i++) {
-	    File f = new File(new File(paths[i]), cmd);
-	    if(f.exists()) {
-		return f;
-	    }
-	}
-	return null;
+    for (String path : paths) {
+      File f = new File(new File(path), cmd);
+      if (f.exists()) {
+        return f;
+      }
+    }
+    return null;
   }
 
 
@@ -406,32 +405,27 @@ public class ExecutableBundleActivator implements BundleActivator {
   File extractResource(String name) throws IOException {
     debug("extractResource " + name);
     URL    url   = bc.getBundle().getResource(name);
-    String fname = name;
     File baseDir = getBaseDir();
-    File f       = new File(baseDir, fname);
+    File f       = new File(baseDir, name);
     File dir     = f.getParentFile();
 
     // debug("mkdir " + dir.getAbsolutePath());
     dir.mkdirs();
 
-    BufferedInputStream bin = null;
-    BufferedOutputStream bout = null;
 
     debug("extract " + name + " to " + f.getAbsolutePath());
 
-    try {
-      bin  = new BufferedInputStream(url.openStream());
-      bout = new BufferedOutputStream(new FileOutputStream(f));
+    try (
+        BufferedInputStream bin = new BufferedInputStream(url.openStream());
+        BufferedOutputStream bout = new BufferedOutputStream(new FileOutputStream(f))
+    ) {
       byte[] buf = new byte[1024 * 10];
       int n;
-      while(-1 != (n = bin.read(buf))) {
+      while (-1 != (n = bin.read(buf))) {
         bout.write(buf, 0, n);
       }
       bout.flush();
       return f;
-    } finally {
-      try { bin.close(); } catch (Exception ignored) { }
-      try { bout.close(); } catch (Exception ignored) { }
     }
   }
 
@@ -452,7 +446,7 @@ public class ExecutableBundleActivator implements BundleActivator {
   // It should rather be moved to the Util class
   private Collection<String> getNativeCode(String bnc)   {
     if (bnc != null) {
-      Hashtable<String, String> fwprops = new Hashtable<String, String>();
+      Hashtable<String, String> fwprops = new Hashtable<>();
       fwprops.put(Constants.FRAMEWORK_PROCESSOR,
                 bc.getProperty(Constants.FRAMEWORK_PROCESSOR));
       fwprops.put(Constants.FRAMEWORK_OS_NAME,
@@ -506,12 +500,12 @@ public class ExecutableBundleActivator implements BundleActivator {
         }
 
         @SuppressWarnings("unchecked")
-        List<String> ver = (List<String>)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
-        if (ver != null) {
+        List<String> versions = (List<String>)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
+        if (versions != null) {
           boolean okVer = false;
-          for (Iterator<String> v = ver.iterator(); v.hasNext(); ) {
+          for (String ver : versions) {
             // NYI! Handle format Exception
-            matchVer = new VersionRange(v.next());
+            matchVer = new VersionRange(ver);
             if (matchVer.withinRange(osVer)) {
               okVer = true;
               break;
@@ -523,10 +517,10 @@ public class ExecutableBundleActivator implements BundleActivator {
         }
 
         @SuppressWarnings("unchecked")
-        List<String> lang = (List<String>)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
-        if (lang != null) {
-          for (Iterator<String> l = lang.iterator(); l.hasNext(); ) {
-            if (osLang.equalsIgnoreCase(l.next())) {
+        List<String> langs = (List<String>)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
+        if (langs != null) {
+          for (String lang : langs) {
+            if (osLang.equalsIgnoreCase(lang)) {
               // Found specfied language version, search no more
               matchLang = true;
               break;
@@ -541,9 +535,9 @@ public class ExecutableBundleActivator implements BundleActivator {
         List<String> sf = (List<String>)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
         if (sf != null) {
           if (sf.size() == 1) {
-            Filter filter = null;
+            Filter filter;
             try {
-              filter = bc.createFilter((String)sf.get(0));
+              filter = bc.createFilter(sf.get(0));
             } catch (InvalidSyntaxException e) {
               // I really hate checked exceptions
               throw new RuntimeException("wtf", e);
@@ -552,7 +546,7 @@ public class ExecutableBundleActivator implements BundleActivator {
               continue;
             }
           } else {
-            //NYI! complain about faulty selection
+            //TODO: NYI! complain about faulty selection
           }
         }
 
@@ -592,8 +586,8 @@ public class ExecutableBundleActivator implements BundleActivator {
     Process p;
     int     exitCode;
     boolean bDone = false;
-    boolean bWait = false;
-    boolean bStopBundle = false;
+    boolean bWait;
+    boolean bStopBundle;
     Thread  stdoutThread;
     Thread  stderrThread;
 

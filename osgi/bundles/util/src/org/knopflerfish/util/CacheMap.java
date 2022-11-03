@@ -62,8 +62,7 @@ public class CacheMap<K, V>
   implements Map<K, V>, Serializable
 {
     private static final long serialVersionUID = 1L;
-    private final HashMap<K,CachedObject<V>> map
-      = new HashMap<K, CachedObject<V>>();
+    private final HashMap<K, CachedObject<V>> map = new HashMap<>();
 
     // Timeout period in milliseconds for stored objects
     protected long timeout;
@@ -141,7 +140,7 @@ public class CacheMap<K, V>
         CachedObject<V> cache = map.get(key);
 
         if (cache == null) {
-            map.put(key, new CachedObject<V>(value, timeout));
+            map.put(key, new CachedObject<>(value, timeout));
             return null;
         }
         V old = cache.get();
@@ -200,8 +199,7 @@ public class CacheMap<K, V>
       if (cache == null) {
           return null;
       }
-      V obj = cache.get();
-      return obj;
+      return cache.get();
     }
 
     public void putAll(Map<? extends K, ? extends V> m)
@@ -218,12 +216,12 @@ public class CacheMap<K, V>
 
     public Set<K> keySet()
     {
-      return new HashSet<K>(map.keySet());
+      return new HashSet<>(map.keySet());
     }
 
     public Collection<V> values()
     {
-      List<V> res = new ArrayList<V>();
+      List<V> res = new ArrayList<>();
       for (K key : map.keySet()) {
         V val = get(key);
         if (null!=val) res.add(val);

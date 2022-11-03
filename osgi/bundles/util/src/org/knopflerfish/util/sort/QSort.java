@@ -54,7 +54,7 @@ public class QSort {
      * @param cf
      *            comparison function
      */
-    static public <A> void sort(Vector<Object> a, CompareFunc cf) {
+    static public void sort(Vector<Object> a, CompareFunc cf) {
         sort(a, 0, a.size() - 1, cf);
     }
 
@@ -66,7 +66,7 @@ public class QSort {
      * @param cf
      *            comparison function
      */
-    static public void sort(Object a[], CompareFunc cf) {
+    static public void sort(Object[] a, CompareFunc cf) {
         sort(a, 0, a.length - 1, cf);
     }
 
@@ -84,7 +84,7 @@ public class QSort {
      * @param cf
      *            comparison function
      */
-    static void sort(Object a[], int lo0, int hi0, CompareFunc cf) {
+    static void sort(Object[] a, int lo0, int hi0, CompareFunc cf) {
         int lo = lo0;
         int hi = hi0;
         Object mid;
@@ -179,7 +179,7 @@ public class QSort {
         }
     }
 
-    private static void swap(Object a[], int i, int j) {
+    private static void swap(Object[] a, int i, int j) {
         Object tmp = a[i];
         a[i] = a[j];
         a[j] = tmp;

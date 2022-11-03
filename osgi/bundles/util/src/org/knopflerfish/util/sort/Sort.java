@@ -121,7 +121,7 @@ public class Sort {
         // Copy back next-greatest element at each time
         // until i and j cross
         while (i <= j) {
-            if (b[i].intValue() <= b[j].intValue())
+            if (b[i] <= b[j])
                 a[k++] = b[i++];
             else
                 a[k++] = b[j--];
@@ -373,7 +373,7 @@ public class Sort {
         // Copy back next-greatest element at each time
         // until i and j cross
         while (i <= j) {
-            if (b[i].floatValue() <= b[j].floatValue())
+            if (b[i] <= b[j])
                 a[k++] = b[i++];
             else
                 a[k++] = b[j--];

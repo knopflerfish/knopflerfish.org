@@ -336,6 +336,9 @@ public class VersionRange implements Comparable<VersionRange>
    */
   @Override
   public boolean equals(Object obj) throws ClassCastException {
+    if (!(obj instanceof VersionRange)) {
+      return false;
+    }
     final VersionRange o = (VersionRange)obj;
     if (low.equals(o.low)) {
       if (high != null) {

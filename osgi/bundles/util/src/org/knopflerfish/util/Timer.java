@@ -34,7 +34,6 @@
 
 package org.knopflerfish.util;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -61,11 +60,9 @@ public class Timer {
    * Get method from class
    */
   public static Method getMethod(Class<?> c, String name, Class<?> [] args) {
-    Method m = null;
     while (true) {
       try {
-        m = c.getDeclaredMethod(name, args);
-        break;
+        return c.getDeclaredMethod(name, args);
       } catch (NoSuchMethodException e) {
         c = c.getSuperclass();
         if (c == null) {
@@ -73,7 +70,6 @@ public class Timer {
         }
       }
     }
-    return m;
   }
 
   /**
@@ -84,12 +80,12 @@ public class Timer {
   public static long timeMillis() {
     if (nanoTimeMethod != null) {
       try  {
-        Object res = nanoTimeMethod.invoke(null, new Object[] { });
+        Object res = nanoTimeMethod.invoke(null);
         if (res != null) {
-          return ((Long)res).longValue() / 1000000L;
+          return (Long) res / 1000000L;
         }
-      } catch (IllegalAccessException _ignore) {
-      } catch (InvocationTargetException _ignore) { }
+      } catch (ReflectiveOperationException ignore) {
+      }
     }
     return System.currentTimeMillis();
   }

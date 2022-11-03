@@ -96,13 +96,13 @@ public class Alias {
    * @return The unified name.
    */
   static public ArrayList<String> unifyProcessor(String name) {
-    ArrayList<String> res = new ArrayList<String>(2);
-    for (int i = 0; i < processorAliases.length; i++) {
-      for (int j = 1; j < processorAliases[i].length; j++) {
-	if (name.equalsIgnoreCase(processorAliases[i][j])) {
-	  res.add(processorAliases[i][0]);
+    ArrayList<String> res = new ArrayList<>(2);
+    for (String[] processorAlias : processorAliases) {
+      for (int j = 1; j < processorAlias.length; j++) {
+        if (name.equalsIgnoreCase(processorAlias[j])) {
+          res.add(processorAlias[0]);
           break;
-	}
+        }
       }
     }
     res.add(name);
@@ -117,19 +117,19 @@ public class Alias {
      * @return The unified name.
      */
   static public ArrayList<String> unifyOsName(String name) {
-    ArrayList<String> res = new ArrayList<String>(3);
+    ArrayList<String> res = new ArrayList<>(3);
     String lname = name.toLowerCase();
-    for (int i = 0; i < osNameAliases.length; i++) {
-      for (int j = 1; j < osNameAliases[i].length; j++) {
-        int last = osNameAliases[i][j].length() - 1;
-	if (lname.equals(osNameAliases[i][j]) ||
-            osNameAliases[i][j].charAt(last) == '*' &&
-            lname.startsWith(osNameAliases[i][j].substring(0, last))) {
-          if (!lname.equals(osNameAliases[i][0])) {
-            res.add(osNameAliases[i][0]);
+    for (String[] osNameAlias : osNameAliases) {
+      for (int j = 1; j < osNameAlias.length; j++) {
+        int last = osNameAlias[j].length() - 1;
+        if (lname.equals(osNameAlias[j]) ||
+            osNameAlias[j].charAt(last) == '*' &&
+                lname.startsWith(osNameAlias[j].substring(0, last))) {
+          if (!lname.equals(osNameAlias[0])) {
+            res.add(osNameAlias[0]);
           }
           break;
-	}
+        }
       }
     }
     res.add(name);

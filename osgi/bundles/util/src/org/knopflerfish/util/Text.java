@@ -222,9 +222,9 @@ public class Text {
      * @return Nice-to-read string.
      */
     public static String formatJavaType(String s, String[] prefixIgnore) {
-        for (int i = 0; i < prefixIgnore.length; i++) {
-            if (s.startsWith(prefixIgnore[i])) {
-                return s.substring(prefixIgnore[i].length());
+        for (String value : prefixIgnore) {
+            if (s.startsWith(value)) {
+                return s.substring(value.length());
             }
         }
 
@@ -245,7 +245,7 @@ public class Text {
      *         the empty string, return <tt>s</tt>.
      */
     public static String capitalize(String s) {
-        return (s.equals("") || s == null) ? s : s.substring(0, 1)
+        return (s == null || s.equals("")) ? s : s.substring(0, 1)
                 .toUpperCase()
                 + s.substring(1).toLowerCase();
     }
@@ -301,7 +301,7 @@ public class Text {
      */
     public static String[] splitwords(String s, String whiteSpace, char citChar) {
         boolean bCit = false; // true when inside citation chars.
-        Vector<String> v = new Vector<String>(); //individual words after splitting
+        Vector<String> v = new Vector<>(); //individual words after splitting
         StringBuilder buf = null;
         int i = 0;
 
@@ -433,7 +433,7 @@ public class Text {
    * @exception IllegalArgumentException If syntax error in input string.
    */
   public static ArrayList<String> parseEnumeration(String d, String s) {
-    ArrayList<String> result = new ArrayList<String>();
+    ArrayList<String> result = new ArrayList<>();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
@@ -511,12 +511,12 @@ public class Text {
                                                            boolean unique,
                                                            boolean single_entry)
   {
-    ArrayList<Map<String,Object>> result = new ArrayList<Map<String, Object>>();
+    ArrayList<Map<String,Object>> result = new ArrayList<>();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-        ArrayList<String> keys = new ArrayList<String>();
-        HashMap<String, Object> params = new HashMap<String, Object>();
+        ArrayList<String> keys = new ArrayList<>();
+        HashMap<String, Object> params = new HashMap<>();
         String key = at.getKey();
         if (key == null) {
           throw new IllegalArgumentException("Definition, " + a 
@@ -547,14 +547,14 @@ public class Text {
                 + at.getRest());
           }
           if (is_directive) {
-            // NYI Handle directives and check them
-            // This method has become very ugly, please rewrite.
+            // TODO: NYI Handle directives and check them
+            // TODO: This method has become very ugly, please rewrite.
           }
           if (unique) {
             params.put(param, value);
           } else {
             if (old == null) {
-              old = new ArrayList<String>();
+              old = new ArrayList<>();
               params.put(param, old);
             }
             old.add(value);

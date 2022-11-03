@@ -46,7 +46,7 @@ public class Dict {
   public static String getStringValue(Dictionary<String, ?> dict, String key)
   {
     Object o = dict.get(key);
-    return (o != null && o instanceof String) ? (String) o : null;
+    return (o instanceof String) ? (String) o : null;
   }
 
   public static String getStringValue(Dictionary<String, ?> dict,
@@ -54,7 +54,7 @@ public class Dict {
                                       String def)
   {
     Object o = dict.get(key);
-    return (o != null && o instanceof String) ? (String) o : def;
+    return (o instanceof String) ? (String) o : def;
   }
 
 } // Dict

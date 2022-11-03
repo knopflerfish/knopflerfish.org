@@ -69,8 +69,8 @@ public class Semaphore {
 
   /**
    * Sets the value of this Semaphore. This will cause all blocked
-   * calls to {@link #get(long)} to return the value. If {@link
-   * #set(Object)} is called several times with a short or no delay
+   * calls to {@link #get(long)} to return the value. If this
+   * method is called several times with a short or no delay
    * between the calls, the exact value returned by a given blocked
    * call to {@link #get(long)} is not deterministic.
    *
