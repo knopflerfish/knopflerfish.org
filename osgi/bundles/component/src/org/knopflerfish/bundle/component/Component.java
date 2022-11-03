@@ -106,7 +106,7 @@ abstract class Component implements org.apache.felix.scr.Component {
   // Felix Component interface impl.
 
   /**
-   * @see org.apache.felix.scr.Component.getId
+   * @see org.apache.felix.scr.Component#getId
    */
   public long getId() {
     return id.longValue();
@@ -114,7 +114,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getName
+   * @see org.apache.felix.scr.Component#getName
    */
   public String getName() {
     return compDesc.getName();
@@ -122,7 +122,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getState
+   * @see org.apache.felix.scr.Component#getState
    */
   public int getState() {
     switch (state) {
@@ -174,7 +174,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getBundle
+   * @see org.apache.felix.scr.Component#getBundle
    */
   public Bundle getBundle() {
     return compDesc.bundle;
@@ -182,7 +182,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getFactory
+   * @see org.apache.felix.scr.Component#getFactory
    */
   public String getFactory() {
     return compDesc.getFactory();
@@ -190,7 +190,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.isServiceFactory
+   * @see org.apache.felix.scr.Component#isServiceFactory
    */
   public boolean isServiceFactory() {
     return compDesc.isServiceFactory();
@@ -198,7 +198,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getClassName
+   * @see org.apache.felix.scr.Component#getClassName
    */
   public String getClassName() {
     return compDesc.getImplementation();
@@ -206,7 +206,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.isDefaultEnabled
+   * @see org.apache.felix.scr.Component#isDefaultEnabled
    */
   public boolean isDefaultEnabled() {
     return compDesc.isEnabled();
@@ -214,7 +214,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.isImmediate
+   * @see org.apache.felix.scr.Component#isImmediate
    */
   public boolean isImmediate() {
     return compDesc.isImmediate();
@@ -222,7 +222,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getServices
+   * @see org.apache.felix.scr.Component#getServices
    */
   public String[] getServices() {
     final String[] res = compDesc.getServices();
@@ -231,7 +231,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getProperties
+   * @see org.apache.felix.scr.Component#getProperties
    */
   public Dictionary<String, Object> getProperties() {
     final ComponentConfiguration cc = getFirstComponentConfiguration();
@@ -246,7 +246,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getReferences
+   * @see org.apache.felix.scr.Component#getReferences
    */
   public org.apache.felix.scr.Reference [] getReferences() {
     if (refs != null) {
@@ -257,7 +257,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getComponentInstance
+   * @see org.apache.felix.scr.Component#getComponentInstance
    */
   public ComponentInstance getComponentInstance() {
     final ComponentConfiguration cc = getFirstComponentConfiguration();
@@ -273,7 +273,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getActivate
+   * @see org.apache.felix.scr.Component#getActivate
    */
   public String getActivate() {
     return compDesc.getActivateMethod();
@@ -281,7 +281,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.isActivateDeclared
+   * @see org.apache.felix.scr.Component#isActivateDeclared
    */
   public boolean isActivateDeclared() {
     return compDesc.isActivateMethodSet();
@@ -289,7 +289,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getDeactivate
+   * @see org.apache.felix.scr.Component#getDeactivate
    */
   public String getDeactivate() {
     return compDesc.getDeactivateMethod();
@@ -297,7 +297,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.isDeactivateDeclared
+   * @see org.apache.felix.scr.Component#isDeactivateDeclared
    */
   public boolean isDeactivateDeclared() {
     return compDesc.isDeactivateMethodSet();
@@ -305,7 +305,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getModified
+   * @see org.apache.felix.scr.Component#getModified
    */
   public String getModified() {
     return compDesc.getModifiedMethod();
@@ -313,7 +313,7 @@ abstract class Component implements org.apache.felix.scr.Component {
 
 
   /**
-   * @see org.apache.felix.scr.Component.getConfigurationPolicy
+   * @see org.apache.felix.scr.Component#getConfigurationPolicy
    */
   public String getConfigurationPolicy() {
     return compDesc.getConfigPolicyString();
@@ -325,7 +325,7 @@ abstract class Component implements org.apache.felix.scr.Component {
    * so that we can activate this component when it becomes
    * satisfied.
    *
-   * @see org.apache.felix.scr.Component.enable
+   * @see org.apache.felix.scr.Component#enable
    */
   public void enable() {
     Deferred<Void> d = new Deferred<Void>();
@@ -342,7 +342,7 @@ abstract class Component implements org.apache.felix.scr.Component {
    * Disable component. Dispose of all ComponentConfigurations and
    * stop listening for constraint changes.
    *
-   * @see org.apache.felix.scr.Component.disable
+   * @see org.apache.felix.scr.Component#disable
    */
   public void disable() {
     Deferred<Void> d = new Deferred<Void>();

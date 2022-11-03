@@ -330,8 +330,7 @@ public class DigestScheme extends RFC2617Scheme {
      * 
      * @param uname Username
      * @param pwd Password
-     * @param charset The credential charset
-     * 
+     *
      * @return The created digest as string. This will be the response tag's
      *         value in the Authentication HTTP header.
      * @throws AuthenticationException when MD5 is an unsupported algorithm

@@ -941,7 +941,7 @@ public class RFC2965Spec extends CookieSpecBase implements CookieVersionSupport 
       }
 
       /**
-       * @see CookieAttributeHandler#match(org.apache.commons.httpclient.Cookie, String)
+       * @see CookieAttributeHandler#match(Cookie, CookieOrigin)
        */
       public boolean match(final Cookie cookie, final CookieOrigin origin) {
           return true;

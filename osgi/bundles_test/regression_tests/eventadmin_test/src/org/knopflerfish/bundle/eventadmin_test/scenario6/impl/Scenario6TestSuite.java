@@ -480,8 +480,6 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
      * Constructor for the EventConsumer class this class will listen for
      * events and notify the Monitor class if changes have been made.
      *
-     * @param owner
-     *            the monitor class,i.e, the class creating this instance
      * @param bundleContext
      *            the bundle context
      * @param topics

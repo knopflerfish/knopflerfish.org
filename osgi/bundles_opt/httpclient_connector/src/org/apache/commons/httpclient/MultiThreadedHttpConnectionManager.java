@@ -146,7 +146,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
      * manager.
      * 
      * <p>A static reference to the connection manager will also be stored.  To ensure that
-     * the connection manager can be GCed {@link #removeReferenceToConnection(HttpConnection)}
+     * the connection manager can be GCed {@link #removeReferenceToConnection(HttpConnectionWithReference)}
      * should be called for all connections that the connection manager is storing a reference
      * to.</p>
      * 
@@ -154,7 +154,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
      * @param hostConfiguration the connection's host config
      * @param connectionPool the connection pool that created the connection
      * 
-     * @see #removeReferenceToConnection(HttpConnection)
+     * @see #removeReferenceToConnection(HttpConnectionWithReference)
      */
     private static void storeReferenceToConnection(
         HttpConnectionWithReference connection,
@@ -225,7 +225,7 @@ public class MultiThreadedHttpConnectionManager implements HttpConnectionManager
      * 
      * @param connection the connection to remove the reference for
      * 
-     * @see #storeReferenceToConnection(HttpConnection, HostConfiguration, ConnectionPool)
+     * @see #storeReferenceToConnection(HttpConnectionWithReference, HostConfiguration, ConnectionPool)
      */
     private static void removeReferenceToConnection(HttpConnectionWithReference connection) {
         

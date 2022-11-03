@@ -91,7 +91,7 @@ class ComponentServiceObjectsImpl<S>
    * Releases a service object for the {@link #getServiceReference()
    * associated} service.
    *
-   * @see org.osgi.framework.ServiceObjects#ungetService()
+   * @see org.osgi.framework.ServiceObjects#ungetService
    */
   public void ungetService(S service) {
     synchronized (rls) {

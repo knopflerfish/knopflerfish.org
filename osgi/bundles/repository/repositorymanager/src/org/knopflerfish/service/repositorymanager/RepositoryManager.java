@@ -92,7 +92,7 @@ public interface RepositoryManager
   /**
    * Find providers for a requirement.
    * 
-   * @see org.osgi.service.resolve.ResolverContext.findProviders
+   * @see org.osgi.service.resolver.ResolveContext#findProviders
    * @param requirement {@link Requirement} to find providers for.
    * @return
    */

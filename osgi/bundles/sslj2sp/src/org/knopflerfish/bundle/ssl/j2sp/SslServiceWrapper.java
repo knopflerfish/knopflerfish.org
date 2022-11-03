@@ -78,8 +78,8 @@ public class SslServiceWrapper
   private ServiceRegistration<SSLServerSocketFactory> m_reg;
 
   /**
-   * @param m_bc
-   * @param m_log
+   * @param bc
+   * @param log
    */
   protected SslServiceWrapper(BundleContext bc, LogRef log)
   {

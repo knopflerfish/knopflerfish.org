@@ -593,8 +593,8 @@ public class HttpUtil
    * Use the request header 'Accept-Encoding' to determine which encoding of
    * "gzip" and "identity" to prefer for the response.
    *
-   * @param acceptEncoding
-   *          The accept-encoding header to parse.
+   * @param request
+   *          The request containing the accept-encoding header to parse.
    * @return <code>true</code> if "gzip" is the preferred content encoding.
    */
   public static boolean useGZIPEncoding(HttpServletRequest request)

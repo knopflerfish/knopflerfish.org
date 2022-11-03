@@ -42,7 +42,7 @@ import javax.servlet.ServletOutputStream;
 
 /**
  * An output stream wrapper that will produce gzip:ed output to the underlying
- * stream. Note that the {@link flush()}-method must only be called once since
+ * stream. Note that the {@link #flush()}-method must only be called once since
  * it will finish the gzip processing.
  */
 public class GZIPServletOutputStreamImpl

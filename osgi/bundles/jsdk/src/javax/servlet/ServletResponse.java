@@ -156,7 +156,7 @@ public interface ServletResponse {
      * @return 		a <code>PrintWriter</code> object that 
      *			can return character data to the client 
      *
-     * @exception UnsupportedEncodingException
+     * @exception java.io.UnsupportedEncodingException
      *			if the character encoding returned
      *			by <code>getCharacterEncoding</code> cannot be used
      *

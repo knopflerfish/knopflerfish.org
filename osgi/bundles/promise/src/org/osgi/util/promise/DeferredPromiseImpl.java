@@ -60,7 +60,7 @@ final class DeferredPromiseImpl<T> extends PromiseImpl<T> {
 	/**
 	 * The value of this Promise if successfully resolved.
 	 * 
-	 * @see resolved
+	 * @see #resolved
 	 */
 	// @GuardedBy("resolved")
 	private T						value;
@@ -69,7 +69,7 @@ final class DeferredPromiseImpl<T> extends PromiseImpl<T> {
 	 * The failure of this Promise if resolved with a failure or {@code null} if
 	 * successfully resolved.
 	 * 
-	 * @see resolved
+	 * @see #resolved
 	 */
 	// @GuardedBy("resolved")
 	private Throwable				fail;

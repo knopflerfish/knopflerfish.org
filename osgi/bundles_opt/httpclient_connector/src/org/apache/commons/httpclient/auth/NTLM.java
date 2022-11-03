@@ -87,7 +87,7 @@ final class NTLM {
      * @param host The host.
      * @param domain the NT domain to authenticate in.
      * @return The response.
-     * @throws HttpException If the messages cannot be retrieved.
+     * @throws AuthenticationException If the messages cannot be retrieved.
      */
     public final String getResponseFor(String message,
             String username, String password, String host, String domain)
@@ -158,7 +158,7 @@ final class NTLM {
      * @param key The key.
      * @param bytes The data
      * @return byte[] The encrypted data
-     * @throws HttpException If {@link Cipher.doFinal(byte[])} fails
+     * @throws AuthenticationException If {@link Cipher#doFinal(byte[])} fails
      */
     private byte[] encrypt(byte[] key, byte[] bytes)
         throws AuthenticationException {
@@ -425,7 +425,7 @@ final class NTLM {
      * @param password the password to create a hash for.
      * @param nonce the nonce sent by the server.
      * @return The response.
-     * @throws HttpException If {@link #encrypt(byte[],byte[])} fails.
+     * @throws AuthenticationException If {@link #encrypt(byte[],byte[])} fails.
      */
     private byte[] hashPassword(String password, byte[] nonce)
         throws AuthenticationException {

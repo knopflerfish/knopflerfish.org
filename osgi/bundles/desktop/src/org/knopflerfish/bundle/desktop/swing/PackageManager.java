@@ -379,7 +379,7 @@ public class PackageManager
    *
    * @param rbl
    *          List of required bundles as returend by package admin.
-   * @param bundle
+   * @param b
    *          The bundle to get requiring bundles for.
    * @return The RequiredBundle object for the given bundle or <tt>null</tt> if
    *         the bundle is not required.

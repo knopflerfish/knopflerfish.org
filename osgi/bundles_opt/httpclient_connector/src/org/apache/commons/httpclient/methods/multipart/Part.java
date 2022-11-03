@@ -67,7 +67,7 @@ public abstract class Part {
     protected static final byte[] BOUNDARY_BYTES = EncodingUtil.getAsciiBytes(BOUNDARY);
 
     /**
-     * The default boundary to be used if {@link #setBoundaryBytes(byte[])) has not
+     * The default boundary to be used if {@link #setPartBoundary(byte[])} ) has not
      * been called.
      */
     private static final byte[] DEFAULT_BOUNDARY_BYTES = BOUNDARY_BYTES;    

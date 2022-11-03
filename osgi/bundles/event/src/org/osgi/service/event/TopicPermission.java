@@ -121,7 +121,6 @@ public final class TopicPermission extends Permission {
 	/**
 	 * Called by constructors and when deserialized.
 	 * 
-	 * @param name topic name
 	 * @param mask action mask
 	 */
 	private synchronized void setTransients(final int mask) {

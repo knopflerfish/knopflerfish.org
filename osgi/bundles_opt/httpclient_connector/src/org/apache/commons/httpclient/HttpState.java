@@ -364,7 +364,7 @@ public class HttpState {
      * Find matching {@link Credentials credentials} for the given authentication scope.
      *
      * @param map the credentials hash map
-     * @param token the {@link AuthScope authentication scope}
+     * @param authscope the {@link AuthScope authentication scope}
      * @return the credentials 
      * 
      */

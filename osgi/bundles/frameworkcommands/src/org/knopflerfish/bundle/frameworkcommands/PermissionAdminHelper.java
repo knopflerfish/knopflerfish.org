@@ -41,9 +41,9 @@ import java.util.Dictionary;
 import org.knopflerfish.service.console.Session;
 
 /**
- * Interface hiding the dependency to the {@link PermissionAdmin}
+ * Interface hiding the dependency to the {@link org.osgi.service.permissionadmin.PermissionAdmin}
  * service for framework console commands interacting with the
- * deprecated, optional {@link PermissionAdmin} service.
+ * deprecated, optional {@link org.osgi.service.permissionadmin.PermissionAdmin} service.
  *
  * @author Makewave AB
  */

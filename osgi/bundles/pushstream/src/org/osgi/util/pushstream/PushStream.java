@@ -180,7 +180,7 @@ public interface PushStream<T> extends AutoCloseable {
 	/**
 	 * Automatically fail the channel if no events are received for the
 	 * indicated length of time. If the timeout is reached then a failure event
-	 * containing a {@link TimeoutException} will be sent.
+	 * containing a {@link java.util.concurrent.TimeoutException} will be sent.
 	 * 
 	 * @param idleTime The length of time that the stream should remain open
 	 *            when no events are being received.

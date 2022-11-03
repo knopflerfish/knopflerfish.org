@@ -233,9 +233,7 @@ public class ChunkedInputStream extends InputStream {
      * comment\r\n" Positions the stream at the start of the next line.
      *
      * @param in The new input stream.
-     * @param required <tt>true<tt/> if a valid chunk must be present,
-     *                 <tt>false<tt/> otherwise.
-     * 
+     *
      * @return the chunk size as integer
      * 
      * @throws IOException when the chunk size could not be parsed

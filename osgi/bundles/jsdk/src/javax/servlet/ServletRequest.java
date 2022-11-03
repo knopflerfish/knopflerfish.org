@@ -343,7 +343,7 @@ public interface ServletRequest {
      * @return					a <code>BufferedReader</code>
      *						containing the body of the request	
      *
-     * @exception UnsupportedEncodingException 	if the character set encoding
+     * @exception java.io.UnsupportedEncodingException 	if the character set encoding
      * 						used is not supported and the 
      *						text cannot be decoded
      *

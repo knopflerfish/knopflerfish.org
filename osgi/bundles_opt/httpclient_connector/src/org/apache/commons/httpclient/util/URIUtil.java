@@ -534,7 +534,7 @@ public class URIUtil {
      * 
      * @throws URIException if the charset is not supported
      * 
-     * @see Coder#decode
+     * @see Coder#decode(char[], String)
      */
     public static String decode(String escaped, String charset)
         throws URIException {

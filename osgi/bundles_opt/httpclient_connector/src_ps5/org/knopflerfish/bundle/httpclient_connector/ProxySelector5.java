@@ -56,7 +56,6 @@ public class ProxySelector5
    * Set proxy properties for connecting to the given uri on the given
    * client-object.
    *
-   * @param bc bundle context to use to fetch property values.
    * @param client the http-client to configure.
    * @param url the URL to configure connection for. The url string
    *            is assumed to be in non-escaped form, that is not RFC

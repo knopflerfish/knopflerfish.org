@@ -71,7 +71,7 @@ class WireLogOutputStream extends FilterOutputStream {
 
     /**
      * 
-     * @see java.io.OutputStream#write()
+     * @see java.io.OutputStream#write(int)
      */
     public void write(int b) throws IOException {
         this.out.write(b);

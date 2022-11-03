@@ -185,7 +185,10 @@ final public class RXTXPort extends SerialPort
 		return in;
 	}
 
-	/** 
+	private native int nativeGetParity( int fd );
+	private native int nativeGetFlowControlMode( int fd );
+
+	/**
 	*  Set the SerialPort parameters
 	*  1.5 stop bits requires 5 databits
 	*  @param  b baudrate
@@ -198,8 +201,6 @@ final public class RXTXPort extends SerialPort
 	*  If speed is not a predifined speed it is assumed to be
 	*  the actual speed desired.
 	*/
-	private native int nativeGetParity( int fd );
-	private native int nativeGetFlowControlMode( int fd );
 	public synchronized void setSerialPortParams( int b, int d, int s,
 		int p )
 		throws UnsupportedCommOperationException
@@ -893,11 +894,13 @@ final public class RXTXPort extends SerialPort
 			} catch( Exception e ) {}
 		}
 	}
+
+	private native void nativeSetEventFlag( int fd, int event,
+																					boolean flag );
+
 	/**
 	*  @param enable
 	*/
-	private native void nativeSetEventFlag( int fd, int event,
-						boolean flag );
 	public void notifyOnDataAvailable( boolean enable )
 	{
 		if (debug)
@@ -1148,7 +1151,7 @@ final public class RXTXPort extends SerialPort
 			}
 		}
 	/**
-	*  @param b[]
+	*  @param b
 	*  @throws IOException
 	*/
 		public void write( byte b[] ) throws IOException
@@ -1179,7 +1182,7 @@ final public class RXTXPort extends SerialPort
 			
 		}
 	/**
-	*  @param b[]
+	*  @param b
 	*  @param off
 	*  @param len
 	*  @throws IOException
@@ -1309,7 +1312,7 @@ final public class RXTXPort extends SerialPort
 			}
 		}
 	/**
-	*  @param b[]
+	*  @param b
 	*  @return int  number of bytes read
 	*  @throws IOException
 *
@@ -1353,7 +1356,7 @@ read(byte b[], int, int)
 Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputStream.html#read(byte[], int, int)
 */
 	/**
-	*  @param b[]
+	*  @param b
 	*  @param off
 	*  @param len
 	*  @return int  number of bytes read
@@ -1465,10 +1468,10 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 		}
 
 	/**
-	*  @param b[]
+	*  @param b
 	*  @param off
 	*  @param len
-	*  @param t[]
+	*  @param t
 	*  @return int  number of bytes read
 	*  @throws IOException
 

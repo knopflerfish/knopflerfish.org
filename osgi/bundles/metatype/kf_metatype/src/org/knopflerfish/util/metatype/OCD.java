@@ -163,7 +163,7 @@ public class OCD
    *          definition to add
    * @param filter
    *          either OPTIONAL or REQUIRED
-   * @throws Illegalargumentexception
+   * @throws IllegalArgumentException
    *           if filter is not OPTIONAL or REQUIRED
    */
   public void add(AD attr, int filter)

@@ -89,7 +89,7 @@ class Reference implements org.apache.felix.scr.Reference
   //
 
   /**
-   * @see org.apache.felix.scr.Reference.getName
+   * @see org.apache.felix.scr.Reference#getName
    */
   public String getName() {
     return refDesc.name;
@@ -97,7 +97,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
-   * @see org.apache.felix.scr.Reference.getServiceName
+   * @see org.apache.felix.scr.Reference#getServiceName
    */
   public String getServiceName() {
     return refDesc.interfaceName;
@@ -105,7 +105,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
-   * @see org.apache.felix.scr.Reference.getServiceReferences
+   * @see org.apache.felix.scr.Reference#getServiceReferences
    */
   public ServiceReference<?>[] getServiceReferences() {
     final ReferenceListener l = listener;
@@ -118,7 +118,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
-   * @see org.apache.felix.scr.Reference.isSatisfied
+   * @see org.apache.felix.scr.Reference#isSatisfied
    */
   public boolean isSatisfied() {
     return available >= minCardinality;
@@ -126,7 +126,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
-   * @see org.apache.felix.scr.Reference.isOptional
+   * @see org.apache.felix.scr.Reference#isOptional
    */
   public boolean isOptional() {
     return refDesc.optional;
@@ -134,7 +134,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
-   * @see org.apache.felix.scr.Reference.isMultiple
+   * @see org.apache.felix.scr.Reference#isMultiple
    */
   public boolean isMultiple() {
     return refDesc.multiple;
@@ -142,7 +142,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
-   * @see org.apache.felix.scr.Reference.isStatic
+   * @see org.apache.felix.scr.Reference#isStatic
    */
   public boolean isStatic() {
     return !refDesc.dynamic;
@@ -150,7 +150,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
-   * @see org.apache.felix.scr.Reference.getTarget
+   * @see org.apache.felix.scr.Reference#getTarget
    */
   public String getTarget() {
     final Filter target = getCurrentTarget();
@@ -159,7 +159,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
-   * @see org.apache.felix.scr.Reference.getBindMethodName
+   * @see org.apache.felix.scr.Reference#getBindMethodName
    */
   public String getBindMethodName() {
     return refDesc.bind;
@@ -167,7 +167,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
-   * @see org.apache.felix.scr.Reference.getUnbindMethodName
+   * @see org.apache.felix.scr.Reference#getUnbindMethodName
    */
   public String getUnbindMethodName() {
     return refDesc.unbind;
@@ -175,7 +175,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   /**
-   * @see org.apache.felix.scr.Reference.getUpdatedMethodName
+   * @see org.apache.felix.scr.Reference#getUpdatedMethodName
    */
   public String getUpdatedMethodName() {
     return null;
