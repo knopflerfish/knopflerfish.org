@@ -507,7 +507,7 @@
   <target name="distrib_resources">
     <delete dir="${distrib.osgi.dir}/resources"/>
     <mkdir dir="${distrib.osgi.dir}/resources"/>
-    <copy file="${osgi.dir}/lib/${asm.jar}" todir="${distrib.osgi.dir}/resources"/>
+    <copy file="${ant.dir}/lib/${asm.jar}" todir="${distrib.osgi.dir}/resources"/>
   </target>
 
   <target name="distrib_xargs">
