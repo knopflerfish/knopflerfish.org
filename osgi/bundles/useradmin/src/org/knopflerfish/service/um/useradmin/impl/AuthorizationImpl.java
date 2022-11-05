@@ -61,20 +61,20 @@ public class AuthorizationImpl implements ContextualAuthorization {
 
     protected RoleImpl user;
 
-    protected Dictionary context;
+    protected Dictionary<Object, Object> context;
 
     AuthorizationImpl(RoleImpl user) {
         this.user = user;
 
         // Default context:
-        context = new Hashtable();
+        context = new Hashtable<>();
         long now = System.currentTimeMillis();
         SimpleDateFormat format = new SimpleDateFormat(CONTEXT_DATE_FORMAT);
-        context.put(CONTEXT_AUTH_DATE, format.format(new Long(now)).toString());
+        context.put(CONTEXT_AUTH_DATE, format.format(now));
         format = new SimpleDateFormat(CONTEXT_TIME_FORMAT);
-        context.put(CONTEXT_AUTH_TIME, format.format(new Long(now)).toString());
+        context.put(CONTEXT_AUTH_TIME, format.format(now));
         format = new SimpleDateFormat(CONTEXT_DAY_FORMAT);
-        context.put(CONTEXT_AUTH_DAY, format.format(new Long(now)).toString());
+        context.put(CONTEXT_AUTH_DAY, format.format(now));
     }
 
     // - interface org.osgi.service.useradmin.Authorization
@@ -87,21 +87,21 @@ public class AuthorizationImpl implements ContextualAuthorization {
     }
 
     public boolean hasRole(String roleName) {
-        return user.hasRole(roleName, user.getName(), context, new Vector());
+        return user.hasRole(roleName, user.getName(), context, new Vector<>());
     }
 
     public String[] getRoles() {
         // This is probably not the best implementation...
-        Vector result = new Vector();
+        Vector<String> result = new Vector<>();
         try {
             Role[] roles = Activator.uai.getRoles(null);
-            for (int i = 0; i < roles.length; i++) {
-                String roleName = roles[i].getName();
+            for (Role role : roles) {
+                String roleName = role.getName();
                 if (hasRole(roleName) && !Role.USER_ANYONE.equals(roleName)) {
                     result.addElement(roleName);
                 }
             }
-        } catch (InvalidSyntaxException ex) {
+        } catch (InvalidSyntaxException ignore) {
         }
 
         if (result.size() == 0)
@@ -118,7 +118,7 @@ public class AuthorizationImpl implements ContextualAuthorization {
         int authLevel = Levels.LOWEST;
         int confLevel = Levels.LOWEST;
         int integrLevel = Levels.LOWEST;
-        ServiceReference ipamsr = Activator.bc
+        ServiceReference<?> ipamsr = Activator.bc
                 .getServiceReference(IPAMValuationService.class.getName());
         if (ipamsr != null) {
             IPAMValuationService ipam = (IPAMValuationService) Activator.bc
@@ -139,12 +139,12 @@ public class AuthorizationImpl implements ContextualAuthorization {
                 Activator.log.warn("IPAM service is not available. "
                         + "Using fallback IPAM context");
         }
-        context.put(CONTEXT_AUTH_LEVEL, new Integer(authLevel));
-        context.put(CONTEXT_CONF_LEVEL, new Integer(confLevel));
-        context.put(CONTEXT_INTEGR_LEVEL, new Integer(integrLevel));
+        context.put(CONTEXT_AUTH_LEVEL, authLevel);
+        context.put(CONTEXT_CONF_LEVEL, confLevel);
+        context.put(CONTEXT_INTEGR_LEVEL, integrLevel);
     }
 
-    public Dictionary getContext() {
+    public Dictionary<?, ?> getContext() {
         return context;
     }
 

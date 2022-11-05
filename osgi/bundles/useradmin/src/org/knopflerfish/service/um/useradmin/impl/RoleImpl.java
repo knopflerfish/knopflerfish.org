@@ -39,6 +39,7 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import org.osgi.service.useradmin.Group;
 import org.osgi.service.useradmin.Role;
 
 /**
@@ -49,9 +50,9 @@ import org.osgi.service.useradmin.Role;
  */
 class RoleImpl implements Role, Serializable {
 
-    Vector /* RoleImpl */basicMemberOf = new Vector();
+    Vector<RoleImpl> basicMemberOf = new Vector<>();
 
-    Vector /* RoleImpl */reqMemberOf = new Vector();
+    Vector<RoleImpl> reqMemberOf = new Vector<>();
 
     protected String name;
 
@@ -76,8 +77,8 @@ class RoleImpl implements Role, Serializable {
      * 
      * @return true if this role implies the specified role.
      */
-    boolean hasRole(String roleName, String user, Dictionary context,
-            Vector visited) {
+    boolean hasRole(String roleName, String user, Dictionary<Object, Object> context,
+            Vector<Group> visited) {
         // System.out.print( name + "-Role.hasRole roleName: " + roleName );
         // System.out.print( " user: " + user );
         // System.out.println( " visited: " + visited );
@@ -88,8 +89,8 @@ class RoleImpl implements Role, Serializable {
         }
 
         // check if any basic parent has the role
-        for (Enumeration en = basicMemberOf.elements(); en.hasMoreElements();) {
-            RoleImpl parentGroup = (RoleImpl) en.nextElement();
+        for (Enumeration<RoleImpl> en = basicMemberOf.elements(); en.hasMoreElements();) {
+            RoleImpl parentGroup = en.nextElement();
             if (parentGroup.hasRole(roleName, user, context, visited)) {
                 return true;
             }
@@ -115,15 +116,11 @@ class RoleImpl implements Role, Serializable {
      * 
      * @return true if the specified role is a valid member of this role.
      */
-    boolean hasMember(String user, Dictionary context, Vector visited) {
+    boolean hasMember(String user, Dictionary<Object, Object> context, Vector<Group> visited) {
         // System.out.print( name + "-Role.hasMember user: " + user );
         // System.out.println( " visited: " + visited );
 
-        if (name.equals(user) || name.equals(Role.USER_ANYONE)) {
-            return true;
-        }
-
-        return false;
+        return name.equals(user) || name.equals(Role.USER_ANYONE);
     }
 
     /**
@@ -131,11 +128,11 @@ class RoleImpl implements Role, Serializable {
      * as a member of any basic or required parent group.
      */
     void remove() {
-        for (Enumeration en = basicMemberOf.elements(); en.hasMoreElements();) {
+        for (Enumeration<RoleImpl> en = basicMemberOf.elements(); en.hasMoreElements();) {
             GroupImpl parentGroup = (GroupImpl) en.nextElement();
             parentGroup.removeMember(this);
         }
-        for (Enumeration en = reqMemberOf.elements(); en.hasMoreElements();) {
+        for (Enumeration<RoleImpl> en = reqMemberOf.elements(); en.hasMoreElements();) {
             GroupImpl parentGroup = (GroupImpl) en.nextElement();
             parentGroup.removeMember(this);
         }
@@ -155,6 +152,7 @@ class RoleImpl implements Role, Serializable {
         return Role.ROLE;
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public Dictionary getProperties() {
         return props;
     }

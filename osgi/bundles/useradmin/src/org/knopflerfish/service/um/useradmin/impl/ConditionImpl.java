@@ -34,7 +34,6 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import java.security.AccessController;
 import java.text.SimpleDateFormat;
 import java.util.Dictionary;
 import java.util.Vector;
@@ -42,6 +41,7 @@ import java.util.Vector;
 import org.knopflerfish.service.um.useradmin.Condition;
 import org.knopflerfish.service.um.useradmin.ContextualAuthorization;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.service.useradmin.Group;
 
 /**
  * Condition implementation.
@@ -65,7 +65,7 @@ public class ConditionImpl extends RoleImpl implements Condition {
         super(name);
     }
 
-    boolean hasMember(String user, Dictionary context, Vector v) {
+    boolean hasMember(String user, Dictionary<Object, Object> context, Vector<Group> v) {
         // System.out.print( name + "-Condition.hasMember user: " + user );
         // System.out.print( " filter: " + filter );
         // System.out.print( " context: " + context );
@@ -78,11 +78,11 @@ public class ConditionImpl extends RoleImpl implements Condition {
             // add current time to context
             long now = System.currentTimeMillis();
             context.put(ContextualAuthorization.CONTEXT_DATE, date_format
-                    .format(new Long(now)).toString());
+                    .format(now));
             context.put(ContextualAuthorization.CONTEXT_TIME, time_format
-                    .format(new Long(now)).toString());
-            context.put(ContextualAuthorization.CONTEXT_DAY, day_format.format(
-                    new Long(now)).toString());
+                    .format(now));
+            context.put(ContextualAuthorization.CONTEXT_DAY, day_format
+                    .format(now));
             try {
                 return LDAPQuery.query(filter, context);
             } catch (InvalidSyntaxException e) {

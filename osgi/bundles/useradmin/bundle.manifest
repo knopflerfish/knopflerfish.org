@@ -26,6 +26,7 @@ Import-Package: org.osgi.framework; version="[1.9,2)",
  java.lang,
  java.lang.reflect,
  java.math,
+ java.nio.charset,
  java.security,
  java.text,
  java.util

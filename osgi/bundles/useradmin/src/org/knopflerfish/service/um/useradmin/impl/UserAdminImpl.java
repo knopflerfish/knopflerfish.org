@@ -69,31 +69,31 @@ import org.osgi.util.tracker.ServiceTracker;
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
-public class UserAdminImpl implements ServiceFactory, UserAdmin,
+public class UserAdminImpl implements ServiceFactory<UserAdmin>, UserAdmin,
         ServiceListener {
     private static UserAdminPermission adminPermission;
 
-    protected ServiceReference uasr; // our service ref
+    protected ServiceReference<UserAdmin> uasr; // our service ref
 
-    protected Hashtable /* String -> RoleImpl */roles; // role db
+    protected Hashtable<String, RoleImpl> roles; // role db
 
-    protected Vector /* ServiceReferences */listeners; // UserAdminListener:s
+    protected Vector<ServiceReference<UserAdminListener>> listeners;
 
     RoleImpl anyone; // predefined role
 
     EventQueue eventQueue;
 
-    ServiceTracker eventAdminTracker;
+    ServiceTracker<EventAdmin, EventAdmin> eventAdminTracker;
 
     UserAdminImpl() {
         revert(); // Read saved roles
         if (roles == null) {
           zap(); // Create "empty" roles table
         }
-        listeners = new Vector();
+        listeners = new Vector<>();
 
         eventAdminTracker
-          = new ServiceTracker(Activator.bc, EventAdmin.class.getName(), null );
+          = new ServiceTracker<>(Activator.bc, EventAdmin.class.getName(), null );
         eventQueue = new EventQueue();
     }
 
@@ -104,21 +104,22 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
      * @param sr
      *            service reference for UserAdmin.
      */
-    private void init(ServiceReference sr) {
+    private void init(ServiceReference<UserAdmin> sr) {
         this.uasr = sr;
         // Listen for UserAdminListeners, collect those already registered
         try {
             String clazz = UserAdminListener.class.getName();
             Activator.bc.addServiceListener(this, "(objectClass=" + clazz + ")");
-            ServiceReference[] srs = Activator.bc.getServiceReferences(clazz, null);
+            ServiceReference<?>[] srs = Activator.bc.getServiceReferences(clazz, null);
             if (srs != null) {
-                for (int i = 0; i < srs.length; i++) {
-                    listeners.addElement(srs[i]);
-                    if (Activator.log.doDebug())
-                        Activator.log.debug("UserAdminListener found: " + srs[i]);
-                }
+              for (ServiceReference<?> serviceReference : srs) {
+                //noinspection unchecked
+                listeners.addElement((ServiceReference<UserAdminListener>) serviceReference);
+                if (Activator.log.doDebug())
+                  Activator.log.debug("UserAdminListener found: " + serviceReference);
+              }
             }
-        } catch (InvalidSyntaxException ex) {
+        } catch (InvalidSyntaxException ignored) {
         }
         eventAdminTracker.open();
 
@@ -164,8 +165,8 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     // - interface org.osgi.framework.ServiceFactory
     // ----------------------------
-    public synchronized Object getService(Bundle bundle,
-            ServiceRegistration registration) {
+    public synchronized UserAdmin getService(Bundle bundle,
+            ServiceRegistration<UserAdmin> registration) {
         // Factory is only used to be able to register and then later
         // get hold of our own ServiceReference before any bundle have
         // a chance to use the service.
@@ -178,8 +179,8 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         return this;
     }
 
-    public void ungetService(Bundle bundle, ServiceRegistration registration,
-            java.lang.Object service) {
+    public void ungetService(Bundle bundle,
+            ServiceRegistration<UserAdmin> registration, UserAdmin service) {
     }
 
     // - interface org.osgi.service.useradmin.UserAdmin
@@ -194,7 +195,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
             return null;
         }
 
-        Role role;
+        RoleImpl role;
         switch (type) {
         case Role.USER:
             role = new UserImpl(name);
@@ -227,7 +228,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
             return false;
         }
 
-        RoleImpl role = (RoleImpl) roles.remove(name);
+        RoleImpl role = roles.remove(name);
         if (role != null) {
             role.remove();
             sendEvent(UserAdminEvent.ROLE_REMOVED, role);
@@ -239,13 +240,13 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     }
 
     public Role getRole(String name) {
-        return (Role) roles.get(name);
+        return roles.get(name);
     }
 
     public Role[] getRoles(String filter) throws InvalidSyntaxException {
-        Vector v = new Vector();
-        for (Enumeration en = roles.elements(); en.hasMoreElements();) {
-            RoleImpl role = (RoleImpl) en.nextElement();
+        Vector<RoleImpl> v = new Vector<>();
+        for (Enumeration<RoleImpl> en = roles.elements(); en.hasMoreElements();) {
+            RoleImpl role = en.nextElement();
             if (filter == null || LDAPQuery.query(filter, role.getProperties())) {
                 v.addElement(role);
             }
@@ -264,11 +265,11 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
     }
 
     private User[] getUsers(String key, String value) {
-        Vector found = new Vector();
-        for (Enumeration en = roles.elements(); en.hasMoreElements();) {
-            Object o = en.nextElement();
-            if (o instanceof UserImpl) {
-                UserImpl user = (UserImpl) o;
+        Vector<UserImpl> found = new Vector<>();
+        for (Enumeration<RoleImpl> en = roles.elements(); en.hasMoreElements();) {
+            RoleImpl role = en.nextElement();
+            if (role instanceof UserImpl) {
+                UserImpl user = (UserImpl) role;
                 Object val = user.getProperties().get(key);
                 if (val instanceof String && value.equals(val)) {
                     found.addElement(user);
@@ -290,10 +291,11 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     // - interface org.osgi.framework.ServiceListener --------------------------
     public void serviceChanged(ServiceEvent event) {
-        ServiceReference sr = event.getServiceReference();
+        ServiceReference<?> sr = event.getServiceReference();
         switch (event.getType()) {
         case ServiceEvent.REGISTERED:
-            listeners.addElement(sr);
+          //noinspection unchecked
+          listeners.addElement((ServiceReference<UserAdminListener>) sr);
             if (Activator.log.doDebug())
                 Activator.log.debug("UserAdminListener found: " + sr);
             break;
@@ -306,7 +308,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
     // remove contents of roles
     protected void zap() {
-        roles = new Hashtable();
+        roles = new Hashtable<>();
         // create the special roles (no events for these)
         roles.put(Role.USER_ANYONE,
                   anyone = new RoleImpl(Role.USER_ANYONE));
@@ -327,7 +329,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
         file = Activator.bc.getDataFile("ua_store");
       } else {
         file = new File(path);
-        if (file == null || !file.exists()) {
+        if (!file.exists()) {
           file = new File(oldPath);
         }
       }
@@ -337,13 +339,12 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
           Object obj = ois.readObject();
           ois.close();
           if (obj instanceof Hashtable) {
-            roles = (Hashtable) obj;
-            if (null!=roles) {
-              anyone = (RoleImpl) roles.get(Role.USER_ANYONE);
-              if (null==anyone) {
-                roles.put(Role.USER_ANYONE,
-                          anyone = new RoleImpl(Role.USER_ANYONE));
-              }
+            //noinspection unchecked
+            roles = (Hashtable<String, RoleImpl>) obj;
+            anyone = roles.get(Role.USER_ANYONE);
+            if (null == anyone) {
+              roles.put(Role.USER_ANYONE,
+                        anyone = new RoleImpl(Role.USER_ANYONE));
             }
             if (Activator.log.doDebug()) Activator.log.debug("roles reverted");
           } else {

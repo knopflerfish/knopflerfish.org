@@ -83,9 +83,9 @@ public class LDAPQuery {
     // private static final Class[] classArg=new Class[] { String.class };
     // private static final Class[] objectArg=new Class[] { Object.class };
 
-    private static Class classBigDecimal;
+    private static Class<?> classBigDecimal;
 
-    private static Constructor consBigDecimal;
+    private static Constructor<?> consBigDecimal;
 
     private static Method compBigDecimal;
 
@@ -93,9 +93,9 @@ public class LDAPQuery {
         try {
             classBigDecimal = Class.forName("java.math.BigDecimal");
             consBigDecimal = classBigDecimal
-                    .getConstructor(new Class[] { String.class });
+                    .getConstructor(String.class);
             compBigDecimal = classBigDecimal.getMethod("compareTo",
-                    new Class[] { classBigDecimal });
+                classBigDecimal);
         } catch (Exception ignore) {
             classBigDecimal = null;
         }
@@ -105,13 +105,13 @@ public class LDAPQuery {
 
     String tail;
 
-    Dictionary prop;
+    Dictionary<?, ?> prop;
 
     public static void check(String q) throws InvalidSyntaxException {
         query(q, null);
     }
 
-    public static boolean query(String q, Dictionary p)
+    public static boolean query(String q, Dictionary<?, ?> p)
             throws InvalidSyntaxException {
         LDAPQuery lq = new LDAPQuery(q, p);
         lq.doQuery();
@@ -120,7 +120,7 @@ public class LDAPQuery {
         return lq.val;
     }
 
-    LDAPQuery(String q, Dictionary p) throws InvalidSyntaxException {
+    LDAPQuery(String q, Dictionary<?, ?> p) throws InvalidSyntaxException {
         if (q == null || q.length() == 0)
             error(NULL);
         tail = q;
@@ -185,7 +185,7 @@ public class LDAPQuery {
     }
 
     private void doSimple() throws InvalidSyntaxException {
-        int op = 0;
+        int op = -1;
         Object attr = getAttr();
 
         if (prefix("="))
@@ -274,67 +274,59 @@ public class LDAPQuery {
             } else if (obj instanceof Boolean) {
                 if (op == LE || op == GE)
                     return false;
-                return ((Boolean) obj).equals(new Boolean(s));
+                return obj.equals(Boolean.valueOf(s));
             } else if (obj instanceof Number) {
                 if (obj instanceof Byte) {
                     switch (op) {
                     case LE:
-                        return ((Byte) obj).byteValue() <= Byte.parseByte(s);
+                        return (Byte) obj <= Byte.parseByte(s);
                     case GE:
-                        return ((Byte) obj).byteValue() >= Byte.parseByte(s);
+                        return (Byte) obj >= Byte.parseByte(s);
                     default: /* APPROX and EQ */
                         return (new Byte(s)).equals(obj);
                     }
                 } else if (obj instanceof Integer) {
                     switch (op) {
                     case LE:
-                        return ((Integer) obj).intValue() <= Integer
-                                .parseInt(s);
+                        return (Integer) obj <= Integer.parseInt(s);
                     case GE:
-                        return ((Integer) obj).intValue() >= Integer
-                                .parseInt(s);
+                        return (Integer) obj >= Integer.parseInt(s);
                     default: /* APPROX and EQ */
                         return (new Integer(s)).equals(obj);
                     }
                 } else if (obj instanceof Short) {
                     switch (op) {
                     case LE:
-                        return ((Short) obj).shortValue() <= Short
-                                .parseShort(s);
+                        return (Short) obj <= Short.parseShort(s);
                     case GE:
-                        return ((Short) obj).shortValue() >= Short
-                                .parseShort(s);
+                        return (Short) obj >= Short.parseShort(s);
                     default: /* APPROX and EQ */
                         return (new Short(s)).equals(obj);
                     }
                 } else if (obj instanceof Long) {
                     switch (op) {
                     case LE:
-                        return ((Long) obj).longValue() <= Long.parseLong(s);
+                        return (Long) obj <= Long.parseLong(s);
                     case GE:
-                        return ((Long) obj).longValue() >= Long.parseLong(s);
+                        return (Long) obj >= Long.parseLong(s);
                     default: /* APPROX and EQ */
                         return (new Long(s)).equals(obj);
                     }
                 } else if (obj instanceof Float) {
                     switch (op) {
                     case LE:
-                        return ((Float) obj).floatValue() <= (new Float(s))
-                                .floatValue();
+                        return (Float) obj <= Float.parseFloat(s);
                     case GE:
-                        return ((Float) obj).floatValue() >= (new Float(s))
-                                .floatValue();
+                        return (Float) obj >= Float.parseFloat(s);
                     default: /* APPROX and EQ */
                         return (new Float(s)).equals(obj);
                     }
                 } else if (obj instanceof Double) {
                     switch (op) {
                     case LE:
-                        return ((Double) obj).doubleValue() <= (new Double(s))
-                                .doubleValue();
+                        return (Double) obj <= Double.parseDouble(s);
                     case GE:
-                        return ((Double) obj).doubleValue() >= (new Double(s))
-                                .doubleValue();
+                        return (Double) obj >= Double.parseDouble(s);
                     default: /* APPROX and EQ */
                         return (new Double(s)).equals(obj);
                     }
@@ -350,9 +342,8 @@ public class LDAPQuery {
                     }
                 } else if (classBigDecimal != null
                         && classBigDecimal.isInstance(obj)) {
-                    Object n = consBigDecimal.newInstance(new Object[] { s });
-                    int c = ((Integer) compBigDecimal.invoke(obj,
-                            new Object[] { n })).intValue();
+                    Object n = consBigDecimal.newInstance(s);
+                    int c = (Integer) compBigDecimal.invoke(obj, n);
                     switch (op) {
                     case LE:
                         return c <= 0;
@@ -363,8 +354,8 @@ public class LDAPQuery {
                     }
                 }
             } else if (obj instanceof Vector) {
-                for (Enumeration e = ((Vector) obj).elements(); e
-                        .hasMoreElements();)
+                for (Enumeration<?> e = ((Vector<?>) obj).elements();
+                        e.hasMoreElements();)
                     if (compare(e.nextElement(), op, s))
                         return true;
             } else if (obj.getClass().isArray()) {
@@ -373,7 +364,7 @@ public class LDAPQuery {
                     if (compare(Array.get(obj, i), op, s))
                         return true;
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return false;
     }

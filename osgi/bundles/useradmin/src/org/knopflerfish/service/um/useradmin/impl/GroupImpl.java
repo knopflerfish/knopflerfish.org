@@ -34,7 +34,6 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import java.security.AccessController;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -49,32 +48,32 @@ import org.osgi.service.useradmin.Role;
  * @version $Revision: 1.1.1.1 $
  */
 public class GroupImpl extends UserImpl implements Group {
-    protected Vector basicMembers = new Vector();
+    protected Vector<RoleImpl> basicMembers = new Vector<>();
 
-    protected Vector reqMembers = new Vector();
+    protected Vector<RoleImpl> reqMembers = new Vector<>();
 
     GroupImpl(String name) {
         super(name);
     }
 
-    boolean hasRole(String roleName, String user, Dictionary context,
-            Vector visited) {
+    boolean hasRole(String roleName, String user, Dictionary<Object, Object> context,
+            Vector<Group> visited) {
 
         // System.out.print( name + "-Group.hasRole roleName: " + roleName );
         // System.out.print( " user: " + user );
         // System.out.println( " visited: " + visited );
 
         if (visited.contains(this)) {
-            // with Role.USER_ANYONE, we get loops as sone as
+            // with Role.USER_ANYONE, we get loops as soon as
             // Role.USER_ANYONE is added to a group stop and return
             // false
             return false;
         }
         visited.addElement(this);
 
-        for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
-            RoleImpl member = (RoleImpl) en.nextElement();
-            if (!member.hasMember(user, context, new Vector())) {
+        for (Enumeration<RoleImpl> en = reqMembers.elements(); en.hasMoreElements();) {
+            RoleImpl member = en.nextElement();
+            if (!member.hasMember(user, context, new Vector<>())) {
                 return false;
             }
         }
@@ -82,7 +81,7 @@ public class GroupImpl extends UserImpl implements Group {
         return super.hasRole(roleName, user, context, visited);
     }
 
-    boolean hasMember(String user, Dictionary context, Vector visited) {
+    boolean hasMember(String user, Dictionary<Object, Object> context, Vector<Group> visited) {
 
         // System.out.print( name + "-Group.hasMember user: " + user );
         // System.out.println( " visited: " + visited );
@@ -99,15 +98,15 @@ public class GroupImpl extends UserImpl implements Group {
         }
         visited.addElement(this);
 
-        for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
-            RoleImpl member = (RoleImpl) en.nextElement();
+        for (Enumeration<RoleImpl> en = reqMembers.elements(); en.hasMoreElements();) {
+            RoleImpl member = en.nextElement();
             if (!member.hasMember(user, context, visited)) {
                 return false;
             }
         }
 
-        for (Enumeration en = basicMembers.elements(); en.hasMoreElements();) {
-            RoleImpl member = (RoleImpl) en.nextElement();
+        for (Enumeration<RoleImpl> en = basicMembers.elements(); en.hasMoreElements();) {
+            RoleImpl member = en.nextElement();
             if (member.hasMember(user, context, visited)) {
                 return true;
             }
@@ -118,12 +117,12 @@ public class GroupImpl extends UserImpl implements Group {
 
     void remove() {
         super.remove();
-        for (Enumeration en = basicMembers.elements(); en.hasMoreElements();) {
-            RoleImpl role = (RoleImpl) en.nextElement();
+        for (Enumeration<RoleImpl> en = basicMembers.elements(); en.hasMoreElements();) {
+            RoleImpl role = en.nextElement();
             role.basicMemberOf.removeElement(this);
         }
-        for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
-            RoleImpl role = (RoleImpl) en.nextElement();
+        for (Enumeration<RoleImpl> en = reqMembers.elements(); en.hasMoreElements();) {
+            RoleImpl role = en.nextElement();
             role.reqMemberOf.removeElement(this);
         }
 
@@ -137,46 +136,52 @@ public class GroupImpl extends UserImpl implements Group {
     // -----------------------------
     public boolean addMember(Role role) {
         SecurityManager sm = System.getSecurityManager();
-        if(null!=sm){
-          sm.checkPermission(UserAdminImpl.getAdminPermission());
+        if (null != sm) {
+            sm.checkPermission(UserAdminImpl.getAdminPermission());
         }
-        if (basicMembers.contains(role)) {
+
+        RoleImpl roleImpl = (RoleImpl) role;
+        if (basicMembers.contains(roleImpl)) {
             return false;
         }
 
-        basicMembers.addElement(role);
-        ((RoleImpl) role).basicMemberOf.addElement(this);
+        basicMembers.addElement(roleImpl);
+        roleImpl.basicMemberOf.addElement(this);
 
         return true;
     }
 
     public boolean addRequiredMember(Role role) {
         SecurityManager sm = System.getSecurityManager();
-        if(null!=sm){
-          sm.checkPermission(UserAdminImpl.getAdminPermission());
+        if (null != sm) {
+            sm.checkPermission(UserAdminImpl.getAdminPermission());
         }
-        if (reqMembers.contains(role)) {
+
+        RoleImpl roleImpl = (RoleImpl) role;
+        if (reqMembers.contains(roleImpl)) {
             return false;
         }
 
-        reqMembers.addElement(role);
-        ((RoleImpl) role).reqMemberOf.addElement(this);
+        reqMembers.addElement(roleImpl);
+        roleImpl.reqMemberOf.addElement(this);
 
         return true;
     }
 
     public boolean removeMember(Role role) {
         SecurityManager sm = System.getSecurityManager();
-        if(null!=sm){
-          sm.checkPermission(UserAdminImpl.getAdminPermission());
+        if (null != sm) {
+            sm.checkPermission(UserAdminImpl.getAdminPermission());
         }
-        if (basicMembers.removeElement(role)) {
-            ((RoleImpl) role).basicMemberOf.removeElement(this);
+
+        RoleImpl roleImpl = (RoleImpl) role;
+        if (basicMembers.removeElement(roleImpl)) {
+            roleImpl.basicMemberOf.removeElement(this);
 
             return true;
         }
-        if (reqMembers.removeElement(role)) {
-            ((RoleImpl) role).reqMemberOf.removeElement(this);
+        if (reqMembers.removeElement(roleImpl)) {
+            roleImpl.reqMemberOf.removeElement(this);
 
             return true;
         }
@@ -185,13 +190,14 @@ public class GroupImpl extends UserImpl implements Group {
     }
 
     public Role[] getMembers() {
-        Vector v = new Vector();
-        for (Enumeration en = basicMembers.elements(); en.hasMoreElements();) {
+        Vector<RoleImpl> v = new Vector<>();
+        for (Enumeration<RoleImpl> en = basicMembers.elements(); en.hasMoreElements();) {
             v.addElement(en.nextElement());
         }
 
-        if (v.size() == 0)
+        if (v.size() == 0) {
             return null;
+        }
 
         Role[] result = new Role[v.size()];
         v.copyInto(result);
@@ -199,13 +205,14 @@ public class GroupImpl extends UserImpl implements Group {
     }
 
     public Role[] getRequiredMembers() {
-        Vector v = new Vector();
-        for (Enumeration en = reqMembers.elements(); en.hasMoreElements();) {
+        Vector<Role> v = new Vector<>();
+        for (Enumeration<RoleImpl> en = reqMembers.elements(); en.hasMoreElements();) {
             v.addElement(en.nextElement());
         }
 
-        if (v.size() == 0)
+        if (v.size() == 0) {
             return null;
+        }
 
         Role[] result = new Role[v.size()];
         v.copyInto(result);

@@ -34,6 +34,7 @@
 
 package org.knopflerfish.service.um.useradmin;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -48,7 +49,7 @@ public class PasswdUtil {
     static {
         try {
             md = MessageDigest.getInstance("SHA");
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (NoSuchAlgorithmException ignored) {
         }
     }
 
@@ -66,11 +67,11 @@ public class PasswdUtil {
             byte[] digest) {
         byte[] salt = Long.toString(System.currentTimeMillis()).getBytes();
         try {
-            byte[] msg = message.getBytes("UTF-8");
+            byte[] msg = message.getBytes(StandardCharsets.UTF_8);
             md.update(salt);
             md.update(msg);
             md.digest(digest, 0, 20);
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
         }
 
         return salt;
@@ -87,10 +88,10 @@ public class PasswdUtil {
      */
     public static synchronized byte[] digest(String message, byte[] salt) {
         try {
-            byte[] msg = message.getBytes("UTF-8");
+            byte[] msg = message.getBytes(StandardCharsets.UTF_8);
             md.update(salt);
             md.update(msg);
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
         }
         return md.digest();
     }

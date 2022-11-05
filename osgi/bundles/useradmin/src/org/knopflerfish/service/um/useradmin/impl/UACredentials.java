@@ -34,8 +34,6 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import java.security.AccessController;
-
 import org.osgi.service.useradmin.UserAdminPermission;
 
 /**

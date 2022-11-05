@@ -35,7 +35,6 @@
 package org.knopflerfish.service.um.useradmin.impl;
 
 import java.io.Serializable;
-import java.security.AccessController;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -50,18 +49,18 @@ import org.osgi.service.useradmin.UserAdminPermission;
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
-public class UAProperties extends Dictionary implements Serializable {
+public class UAProperties extends Dictionary<Object, Object> implements Serializable {
     protected RoleImpl role;
 
-    protected Hashtable /* String -> byte[] or String */ht = new Hashtable();
+    protected Hashtable<String, Object> ht = new Hashtable<>(); //String -> byte[] or String
 
     public UAProperties(RoleImpl role) {
         this.role = role;
     }
 
-    public Enumeration elements() {
-        Vector v = new Vector();
-        for (Enumeration en = ht.keys(); en.hasMoreElements();) {
+    public Enumeration<Object> elements() {
+        Vector<Object> v = new Vector<>();
+        for (Enumeration<String> en = ht.keys(); en.hasMoreElements();) {
             try {
                 v.addElement(get(en.nextElement()));
             } catch (SecurityException e) {
@@ -73,6 +72,7 @@ public class UAProperties extends Dictionary implements Serializable {
 
     public Object get(Object key) {
         // No security check for properties
+        @SuppressWarnings("SuspiciousMethodCalls")
         Object value = ht.get(key);
         if (value instanceof byte[]) {
             return ((byte[]) value).clone();
@@ -85,8 +85,9 @@ public class UAProperties extends Dictionary implements Serializable {
         return ht.isEmpty();
     }
 
-    public Enumeration keys() {
-        return ht.keys();
+    public Enumeration<Object> keys() {
+        //noinspection unchecked,rawtypes
+        return (Enumeration) ht.keys();
     }
 
     public int size() {
@@ -111,13 +112,14 @@ public class UAProperties extends Dictionary implements Serializable {
         // }
     }
 
-    public Object put(Object key, Object value) {
+    public Object put(Object keyObject, Object value) {
         // synchronized (role) {
-        if (key instanceof String) {
+        if (keyObject instanceof String) {
+            String key = (String) keyObject;
             SecurityManager sm = System.getSecurityManager();
             if(null!=sm){
                 sm.checkPermission
-                  (new UserAdminPermission( (String) key, getChangeAction()));
+                  (new UserAdminPermission(key, getChangeAction()));
             }
             Object res;
             // value of type byte[] or String is ok
@@ -135,8 +137,7 @@ public class UAProperties extends Dictionary implements Serializable {
             return res;
         }
         throw new IllegalArgumentException("The key must be a String, got "
-                + key.getClass());
-        // }
+            + keyObject.getClass());
     }
 
     public String toString() {
@@ -148,11 +149,11 @@ public class UAProperties extends Dictionary implements Serializable {
         return UserAdminPermission.CHANGE_PROPERTY;
     }
 
-    protected Dictionary getUnderlyingDictionary() {
+    protected Dictionary<String, Object> getUnderlyingDictionary() {
         return ht;
     }
 
-    protected void setUnderlyingDictionary(Hashtable ht) {
+    protected void setUnderlyingDictionary(Hashtable<String, Object> ht) {
         this.ht = ht;
     }
 

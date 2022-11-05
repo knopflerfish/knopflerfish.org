@@ -53,25 +53,25 @@ import org.osgi.util.tracker.ServiceTracker;
  * An object that sends a given UserAdminEvent to all registered listeners.
  *
  * @author Gunnar Ekolin
- * @version
+ * @version $Revision: 1.1.1.1 $
  */
 final public class SendUserAdminEventJob implements Runnable {
 
   BundleContext  bc;
-  ServiceTracker eventAdminTracker;
+  ServiceTracker<EventAdmin, EventAdmin> eventAdminTracker;
   UserAdminEvent event;
-  Vector         listeners;
+  Vector<ServiceReference<UserAdminListener>> listeners = new Vector<>();
 
   SendUserAdminEventJob( BundleContext bc,
-                         ServiceTracker eventAdminTracker,
+                         ServiceTracker<EventAdmin, EventAdmin> eventAdminTracker,
                          UserAdminEvent event,
-                         Vector listeners )
+                         Vector<ServiceReference<UserAdminListener>> listeners)
   {
     this.bc = bc;
     this.eventAdminTracker = eventAdminTracker;
     this.event = event;
     // Call only listeners that are present when the event happened.
-    this.listeners = (Vector) listeners.clone();
+    this.listeners.addAll(listeners);
   }
 
 
@@ -105,10 +105,10 @@ final public class SendUserAdminEventJob implements Runnable {
    * @param key  The key to put.
    * @param val  The value to put.
    */
-  void put( Hashtable dict, String key, Object val)
-  {
-    if (null!=val)
-      dict.put( key, val );
+  void put(Hashtable<String, Object> dict, String key, Object val) {
+    if (null != val) {
+      dict.put(key, val);
+    }
   }
 
   /**
@@ -116,37 +116,36 @@ final public class SendUserAdminEventJob implements Runnable {
    * this job.
    */
   Event getEvent() {
-    String    path = getEventAdminPath();
-    Hashtable dict = new Hashtable();
+    String path = getEventAdminPath();
+    Hashtable<String, Object> dict = new Hashtable<>();
 
-    put( dict, EventConstants.EVENT_TOPIC, path );
-    put( dict, EventConstants.EVENT, event );
-    put( dict, EventConstants.TIMESTAMP,
-         new Long(System.currentTimeMillis()) );
-    put( dict, "role", event.getRole() );
-    put( dict, "role.name", event.getRole().getName() );
-    put( dict, "role.type", new Integer(event.getRole().getType()) );
-    put( dict, EventConstants.SERVICE, event.getServiceReference() );
-    put( dict, EventConstants.SERVICE_ID,
-         event.getServiceReference().getProperty(Constants.SERVICE_ID) );
-    put( dict, EventConstants.SERVICE_OBJECTCLASS,
-         event.getServiceReference().getProperty(Constants.OBJECTCLASS) );
-    put( dict, EventConstants.SERVICE_PID,
-         event.getServiceReference().getProperty(Constants.SERVICE_PID) );
+    put(dict, EventConstants.EVENT_TOPIC, path);
+    put(dict, EventConstants.EVENT, event);
+    put(dict, EventConstants.TIMESTAMP, System.currentTimeMillis());
+    put(dict, "role", event.getRole());
+    put(dict, "role.name", event.getRole().getName());
+    put(dict, "role.type", event.getRole().getType());
+    put(dict, EventConstants.SERVICE, event.getServiceReference());
+    put(dict, EventConstants.SERVICE_ID,
+         event.getServiceReference().getProperty(Constants.SERVICE_ID));
+    put(dict, EventConstants.SERVICE_OBJECTCLASS,
+         event.getServiceReference().getProperty(Constants.OBJECTCLASS));
+    put(dict, EventConstants.SERVICE_PID,
+         event.getServiceReference().getProperty(Constants.SERVICE_PID));
 
-    return new Event( path, (Dictionary) dict );
+    return new Event(path, (Dictionary<String, ?>) dict);
   }
 
   public void run()
   {
-    EventAdmin ea = (EventAdmin) eventAdminTracker.getService();
-    if (null!=ea) {
+    EventAdmin ea = eventAdminTracker.getService();
+    if (null != ea) {
       ea.postEvent( getEvent() );
     }
 
-    for (Enumeration en = listeners.elements(); en.hasMoreElements();) {
-      ServiceReference sr = (ServiceReference) en.nextElement();
-      UserAdminListener ual = (UserAdminListener) bc.getService(sr);
+    for (Enumeration<ServiceReference<UserAdminListener>> en = listeners.elements(); en.hasMoreElements();) {
+      ServiceReference<UserAdminListener> sr = en.nextElement();
+      UserAdminListener ual = bc.getService(sr);
       if (ual != null) {
         try {
           ual.roleChanged(event);

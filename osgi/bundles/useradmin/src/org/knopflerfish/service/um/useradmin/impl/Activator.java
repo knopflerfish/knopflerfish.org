@@ -53,14 +53,14 @@ public class Activator implements BundleActivator {
     static UserAdminImpl uai;
     static BundleContext bc;
     static LogRef log;
-    ServiceRegistration umsr;
+    ServiceRegistration<?> umsr;
 
     public void start(BundleContext bc) {
         Activator.bc = bc;
         log = new LogRef(bc);
         uai = new UserAdminImpl();
         umsr = bc.registerService(UserAdmin.class.getName(), uai,
-                new Hashtable());
+                new Hashtable<>());
     }
 
     public void stop(BundleContext bc) {

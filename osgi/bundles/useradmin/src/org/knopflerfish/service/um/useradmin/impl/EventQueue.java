@@ -36,7 +36,6 @@ package org.knopflerfish.service.um.useradmin.impl;
 
 import java.util.Vector;
 
-
 /**
  * This class is responsible for dispatching user admin event jobs.
  * The dispatch thread will only live as long as there is some work
@@ -53,18 +52,14 @@ final class EventQueue implements Runnable {
    */
   private Thread thread;
   
-
   private final Object threadLock = new Object();
 
   /**
    * The queue of events to dispatch.
    */
-  private Vector queue = new Vector();
+  private Vector<Runnable> queue = new Vector<>();
 
-
-  /**
-   * Overide of Thread.run().
-   */
+  @Override
   public void run() {
     while (true) {
       Runnable job = dequeue();
@@ -91,7 +86,7 @@ final class EventQueue implements Runnable {
       throw new IllegalArgumentException("null job");
     }
     queue.addElement(job);
-    attachNewThreadIfNeccesary();
+    attachNewThreadIfNecessary();
     notifyAll();
   }
 
@@ -112,13 +107,13 @@ final class EventQueue implements Runnable {
       detachCurrentThread();
       return null;
     }
-    Runnable job = (Runnable) queue.elementAt(0);
+    Runnable job = queue.elementAt(0);
     queue.removeElementAt(0);
     return job;
   }
 
 
-  void attachNewThreadIfNeccesary() {
+  void attachNewThreadIfNecessary() {
     synchronized (threadLock) {
       if (thread == null) {
         thread = new Thread(this,"UserAdminEventDispatchThread");

@@ -34,7 +34,6 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import java.security.AccessController;
 import java.util.Dictionary;
 
 import org.osgi.service.useradmin.Role;
@@ -61,6 +60,7 @@ public class UserImpl extends RoleImpl implements User {
 
     // - interface org.osgi.service.useradmin.User
     // ------------------------------
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public Dictionary getCredentials() {
         return creds;
     }
@@ -85,7 +85,7 @@ public class UserImpl extends RoleImpl implements User {
 
     // - private helper methods
     // -------------------------------------------------
-    // pJava1.2 compliant substitue for Arrays.equals
+    // pJava1.2 compliant substitute for Arrays.equals
     private boolean arraysEquals(byte[] a, byte[] b) {
         if (a.length == b.length) {
             for (int i = 0; i < a.length; i++) {
