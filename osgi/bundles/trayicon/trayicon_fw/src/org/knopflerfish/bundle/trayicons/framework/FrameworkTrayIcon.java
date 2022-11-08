@@ -40,19 +40,12 @@ import java.awt.Menu;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkEvent;
-import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
-
-// import java.awt.TrayIcon;
 
 public class FrameworkTrayIcon
 {
@@ -76,33 +69,25 @@ public class FrameworkTrayIcon
     try {
       trayIconClass = Class.forName("java.awt.TrayIcon");
       final Constructor<?> con =
-        trayIconClass.getDeclaredConstructor(new Class[] { Image.class,
-                                                          String.class });
+        trayIconClass.getDeclaredConstructor(Image.class, String.class);
       trayIcon =
-        con.newInstance(new Object[] {
-                                      Toolkit
-                                          .getDefaultToolkit()
-                                          .getImage(FrameworkTrayIcon.class
-                                                        .getResource(getIconForOS())),
-                                      toolTipText.toString() });
+        con.newInstance(Toolkit.getDefaultToolkit()
+                .getImage(FrameworkTrayIcon.class.getResource(getIconForOS())),
+            toolTipText.toString());
 
       final Method m =
-        trayIconClass.getDeclaredMethod("setPopupMenu",
-                                        new Class[] { PopupMenu.class });
-      m.invoke(trayIcon, new Object[] { makeMenu() });
+        trayIconClass.getDeclaredMethod("setPopupMenu", PopupMenu.class);
+      m.invoke(trayIcon, makeMenu());
 
       frameworkStartLevel =
         Activator.bc.getBundle(0L).adapt(FrameworkStartLevel.class);
 
       updateStartLevelItems();
 
-      Activator.bc.addFrameworkListener(new FrameworkListener() {
-        public void frameworkEvent(FrameworkEvent ev)
-        {
-          if (FrameworkEvent.STARTLEVEL_CHANGED == ev.getType()
-              || FrameworkEvent.STARTED == ev.getType()) {
-            updateStartLevelItems();
-          }
+      Activator.bc.addFrameworkListener(ev -> {
+        if (FrameworkEvent.STARTLEVEL_CHANGED == ev.getType()
+            || FrameworkEvent.STARTED == ev.getType()) {
+          updateStartLevelItems();
         }
       });
     } catch (final Exception e) {
@@ -122,13 +107,13 @@ public class FrameworkTrayIcon
       if (systemTray == null) {
         systemTrayClass = Class.forName("java.awt.SystemTray");
         Method m =
-          systemTrayClass.getDeclaredMethod("isSupported", (Class[]) null);
+          systemTrayClass.getDeclaredMethod("isSupported");
         final Boolean is_supported = (Boolean) m.invoke(null, (Object[]) null);
-        if (!is_supported.booleanValue()) {
+        if (!is_supported) {
           throw new UnsupportedOperationException("System Tray not supported");
         }
 
-        m = systemTrayClass.getDeclaredMethod("getSystemTray", (Class[]) null);
+        m = systemTrayClass.getDeclaredMethod("getSystemTray");
         systemTray = m.invoke(null, (Object[]) null);
         frameworkTrayIcon = new FrameworkTrayIcon();
         return frameworkTrayIcon;
@@ -136,7 +121,7 @@ public class FrameworkTrayIcon
     } catch (final UnsupportedOperationException e) {
       throw e;
     } catch (final Exception e) {
-      Activator.log.error("Error in SystemTray invokation: " + e);
+      Activator.log.error("Error in SystemTray invocation: " + e);
       throw new UnsupportedOperationException(e.getMessage());
     }
     return null; // dummy
@@ -147,8 +132,8 @@ public class FrameworkTrayIcon
     Activator.log.info("Showing tray icon");
     try {
       final Method m =
-        systemTrayClass.getMethod("add", new Class[] { trayIconClass });
-      m.invoke(systemTray, new Object[] { trayIcon });
+        systemTrayClass.getMethod("add", trayIconClass);
+      m.invoke(systemTray, trayIcon);
     } catch (final Exception e) {
       Activator.log.error("Failed to add TrayIcon to SystemTray", e);
     }
@@ -159,8 +144,8 @@ public class FrameworkTrayIcon
     try {
       Activator.log.info("Removing tray icon");
       final Method m =
-        systemTrayClass.getMethod("remove", new Class[] { trayIconClass });
-      m.invoke(systemTray, new Object[] { trayIcon });
+        systemTrayClass.getMethod("remove", trayIconClass);
+      m.invoke(systemTray, trayIcon);
     } catch (final Exception e) {
       Activator.log.error("Failed to remove TrayIcon from SystemTray", e);
     }
@@ -179,12 +164,7 @@ public class FrameworkTrayIcon
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e)
-          {
-            shutdown();
-          }
-        });
+        addActionListener(e -> shutdown());
       }
     });
 
@@ -198,12 +178,7 @@ public class FrameworkTrayIcon
         private static final long serialVersionUID = 1L;
 
         {
-          addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e)
-            {
-              setStartLevel(level);
-            }
-          });
+          addItemListener(e -> setStartLevel(level));
         }
       };
 
@@ -247,6 +222,7 @@ public class FrameworkTrayIcon
     }
   }
 
+  @SuppressWarnings("unused")
   static String getProperty(String key, String def)
   {
     final String sValue = Activator.bc.getProperty(key);

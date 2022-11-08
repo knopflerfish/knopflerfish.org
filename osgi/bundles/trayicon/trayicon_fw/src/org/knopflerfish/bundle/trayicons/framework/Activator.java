@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2010, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,15 +54,13 @@ public class Activator
     Activator.bc = _bc;
     Activator.log = new LogRef(bc);
 
-    EventQueue.invokeLater(new Runnable() {
-      public void run()
-      {
-        try {
-          tray_icon = FrameworkTrayIcon.getFrameworkTrayIcon();
-          tray_icon.show();
-        } catch (final Throwable t) {
-          log.error("SystemTray is not supported on this platform", t);
-        }
+    EventQueue.invokeLater(() -> {
+      try {
+        tray_icon = FrameworkTrayIcon.getFrameworkTrayIcon();
+        //noinspection ConstantConditions
+        tray_icon.show();
+      } catch (final Throwable t) {
+        log.error("SystemTray is not supported on this platform", t);
       }
     });
   }
@@ -72,12 +70,9 @@ public class Activator
     if (tray_icon != null) {
       // Must not terminate until the tray icon has been removed!
       try {
-        EventQueue.invokeAndWait(new Runnable() {
-          public void run()
-          {
-            tray_icon.close();
-            tray_icon = null;
-          }
+        EventQueue.invokeAndWait(() -> {
+          tray_icon.close();
+          tray_icon = null;
         });
       } catch (final Exception e) {
         log.error("Failed to close the tray icon: " + e, e);
