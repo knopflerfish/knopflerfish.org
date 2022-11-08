@@ -45,6 +45,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
 
 import org.knopflerfish.util.Text;
+import org.osgi.service.log.LogLevel;
 
 
 public class Util {
@@ -94,16 +95,10 @@ public class Util {
     return s;
   }
 
-  public static String getHeader(Bundle b, String name) {
-    return getHeader(b, name, null);
-  }
-
   public static String getHeader(Bundle b, String name, String def) {
-    final String s = b != null
-      ? (String)b.getHeaders().get(name)
+    return b != null
+      ? b.getHeaders().get(name)
       : def;
-
-    return s;
   }
 
 
@@ -124,7 +119,7 @@ public class Util {
         .append("</td>");
 
     sb.append("<td valign=top align=right bgcolor=\"#eeeeee\">")
-        .append(fontify(levelString(e.getLevel())))
+        .append(fontify(levelString(e.getLogLevel())))
         .append("</td>");
 
     sb.append("</tr>");
@@ -151,7 +146,7 @@ public class Util {
         try {
           org.knopflerfish.bundle.desktop.swing.Util
             .printObject(pr, sr.getProperty(propKey));
-        } catch (final IOException ioe) {
+        } catch (final IOException ignored) {
         }
 
         sb.append("<tr>");
@@ -212,7 +207,7 @@ public class Util {
   public static String toString(LogEntry e) {
     String s =
       "Time: "      + tf.format(new Date(e.getTime())) + "\n" +
-      "Level: "     + levelString(e.getLevel()) + "\n" +
+      "Level: "     + e.getLogLevel() + "\n" +
       "Message: "   + e.getMessage() + "\n";
     final Throwable t = e.getException();
     if(t != null) {
@@ -227,26 +222,8 @@ public class Util {
 
   static SimpleDateFormat tf = new SimpleDateFormat("MMM dd HH:mm:ss ");
 
-  static String[] levels = {
-    "error",
-    "warning",
-    "info",
-    "debug",
-  };
-
-  public static String levelString(int n) {
-    try {
-      return levels[n-1];
-    } catch (final Exception e) {
-      return "Unknown:" + n;
-    }
-  }
-
-  public static StringBuilder pad(StringBuilder sb, int n) {
-    while (sb.length() < n) {
-      sb.append(" ");
-    }
-    return sb;
+  public static String levelString(LogLevel logLevel) {
+    return logLevel.name().toLowerCase();
   }
 
 }

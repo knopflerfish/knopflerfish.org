@@ -72,12 +72,12 @@ public class StatusBar extends JComponent
   boolean    bIsBroken = false; // Set to true if user clicks in progress bar
   boolean    bRun      = false; // run() will only loop while this is set
 
-  Color bgColor  = Color.lightGray;
+  Color bgColor;
   Color fgColor  = Color.black;
   Color txtColor = Color.black;
 
   Color lowColor  = Color.black;
-  Color highColor = Color.blue;
+  Color highColor;
 
   String name;
 
@@ -85,7 +85,6 @@ public class StatusBar extends JComponent
 
   public StatusBar(String name) {
     this.name = name;
-    msg = "";
     Dimension d = new Dimension(400, 17);
 
     setMinimumSize(d);
@@ -118,24 +117,19 @@ public class StatusBar extends JComponent
     while(bRun && !isBroken()) {
       updateProgress(-1);
       try {
-	Thread.sleep(delay);
-      } catch (Exception e) { }
+        Thread.sleep(delay);
+      } catch (Exception ignored) { }
     }
     bIsAlive = false;
     runner = null;
   }
 
-  Object lock = new Object();
-
   private void stopRunner() {
-    //    synchronized(lock)
-    {
-      bRun = false;
-      if(runner != null) {
-	try {
-	  runner.join(20 * 1000);
-	} catch (Exception ignored) { }
-      }
+    bRun = false;
+    if (runner != null) {
+      try {
+        runner.join(20 * 1000);
+      } catch (Exception ignored) { }
     }
   }
 
@@ -160,10 +154,9 @@ public class StatusBar extends JComponent
       mode = MODE_PERCENTAGE;
     }
     Graphics g = getGraphics();
-    if(g != null) {
+    if (g != null) {
       paint(g);
       g.dispose();
-    } else {
     }
   }
 
@@ -224,7 +217,7 @@ public class StatusBar extends JComponent
   public void showStatus(String msg) {
     this.msg = msg;
     Graphics g = getGraphics();
-    if(g != null) {
+    if (g != null) {
       paint(g);
       g.dispose();
     } else {
@@ -240,7 +233,7 @@ public class StatusBar extends JComponent
 
   public void paint(Graphics g) {
     highColor = UIManager.getColor("ScrollBar.thumb");
-    if(highColor == null && highColor.equals(getBackground())) {
+    if(highColor == null || highColor.equals(getBackground())) {
       highColor = UIManager.getColor("controlShadow");
     }
     // Canvas size

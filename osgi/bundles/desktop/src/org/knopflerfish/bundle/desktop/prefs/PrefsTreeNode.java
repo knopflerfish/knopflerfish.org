@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,8 +88,8 @@ public class PrefsTreeNode extends DefaultMutableTreeNode {
     try {
       if(prefs != null) {
         String[] children = prefs.childrenNames();
-        for(int i = 0; i < children.length; i++) {
-          Preferences child = prefs.node(children[i]);
+        for (String s : children) {
+          Preferences child = prefs.node(s);
           add(new PrefsTreeNode(child));
         }
       }
@@ -128,15 +128,11 @@ public class PrefsTreeNode extends DefaultMutableTreeNode {
     return prefs.equals(p.prefs);
   }
 
-  public boolean hasBeenExpanded() {
-    return bHasBeenExpanded;
-  }
-
   public void setHasBeenExpanded(boolean b) {
     this.bHasBeenExpanded = b;
   }
   
-  class DummyNode extends DefaultMutableTreeNode {
+  static class DummyNode extends DefaultMutableTreeNode {
     private static final long serialVersionUID = 1L;
 
     public DummyNode() {

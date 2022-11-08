@@ -136,7 +136,7 @@ public class WiringHTMLDisplayer
     if (wiringUrl.doResolve()) {
       final long bid = wiringUrl.getBid();
       final Collection<Bundle> bundles = wiringUrl.getBundles();
-      final Bundle systemBundle = Activator.getTargetBC_getBundle(0);
+      final Bundle systemBundle = Activator.getSystemBundle();
       final FrameworkWiring frameworkWiring =
         systemBundle.adapt(FrameworkWiring.class);
       frameworkWiring.resolveBundles(bundles);
@@ -148,7 +148,7 @@ public class WiringHTMLDisplayer
       sb.append("  Refreshing...  ");
       final Collection<Bundle> bundles = wiringUrl.getBundles();
 
-      final Bundle systemBundle = Activator.getTargetBC_getBundle(0);
+      final Bundle systemBundle = Activator.getSystemBundle();
       final FrameworkWiring frameworkWiring =
         systemBundle.adapt(FrameworkWiring.class);
 
@@ -161,7 +161,7 @@ public class WiringHTMLDisplayer
 
   public void appendRefreshMessage(final StringBuilder sb,
                                    final WiringUrl wiringUrl) {
-    final Bundle systemBundle = Activator.getTargetBC_getBundle(0);
+    final Bundle systemBundle = Activator.getSystemBundle();
     final FrameworkWiring frameworkWiring =
       systemBundle.adapt(FrameworkWiring.class);
 
@@ -234,7 +234,7 @@ public class WiringHTMLDisplayer
     public static final String URL_WIRING_CMD_RESOLVE = "Resolve";
 
     /** Bundle id of the bundle the URL is about. */
-    private long bid = -1;
+    private long bid;
     /** True if the URL contains a command. */
     private boolean isCmd = false;
     /** True if the URL is a command to resolve the bundle.*/
@@ -248,8 +248,7 @@ public class WiringHTMLDisplayer
      * Mapping from bundle id to bundle object to be able to handle links for
      * uninstalled bundles.
      */
-    private static final Map<Long, Bundle> bidToBundle =
-      new HashMap<Long, Bundle>();
+    private static final Map<Long, Bundle> bidToBundle = new HashMap<>();
 
     public static boolean isWiringLink(URL url) {
       return URL_WIRING_HOST.equals(url.getHost())
@@ -308,8 +307,7 @@ public class WiringHTMLDisplayer
       } else {
         bundle = Activator.getTargetBC_getBundle(bid);
       }
-      final Collection<Bundle> bundles = Collections.singleton(bundle);
-      return bundles;
+      return Collections.singleton(bundle);
     }
 
     public boolean isCommand() {
@@ -335,7 +333,7 @@ public class WiringHTMLDisplayer
     }
 
     private Map<String, String> getParams() {
-      final Map<String, String> params = new HashMap<String, String>();
+      final Map<String, String> params = new HashMap<>();
       if (bid>-1) {
         params.put(URL_WIRING_KEY_BID, String.valueOf(bid));
       }
@@ -428,8 +426,9 @@ public class WiringHTMLDisplayer
   }
 
 
-  class JHTML extends JHTMLBundle {
+  static class JHTML extends JHTMLBundle {
     private static final long serialVersionUID = 1L;
+    final boolean useParagraph = true;
 
     JHTML(DefaultSwingBundleDisplayer displayer)
     {
@@ -440,8 +439,6 @@ public class WiringHTMLDisplayer
     public StringBuilder bundleInfo(Bundle b)
     {
       final StringBuilder sb = new StringBuilder();
-      final boolean useParagraph = true;
-
 
       startFont(sb);
 
@@ -504,7 +501,7 @@ public class WiringHTMLDisplayer
 
     private Set<String> getNameSapcesOfProvidedCaps(BundleWiring bw)
     {
-      final Set<String> res = new TreeSet<String>();
+      final Set<String> res = new TreeSet<>();
 
       for (final BundleCapability cap : bw.getRevision().getDeclaredCapabilities(null)) {
         res.add(cap.getNamespace());
@@ -522,7 +519,7 @@ public class WiringHTMLDisplayer
 
     private Set<String> getNameSapcesOfRequiredCaps(BundleWiring bw)
     {
-      final Set<String> res = new TreeSet<String>();
+      final Set<String> res = new TreeSet<>();
 
       for (final BundleRequirement req : bw.getRevision().getDeclaredRequirements(null)) {
         res.add(req.getNamespace());
@@ -566,8 +563,7 @@ public class WiringHTMLDisplayer
       }
 
       // Mapping from capability title to (string) to requesters (strings)
-      final Map<String,List<String>> cap2requesters
-        = new TreeMap<String, List<String>>();
+      final Map<String,List<String>> cap2requesters = new TreeMap<>();
       wf.providedCapabilitiesView(cap2requesters);
       appendCapabilityInfo(sb, cap2requesters);
     }
@@ -600,8 +596,7 @@ public class WiringHTMLDisplayer
       }
 
       // Mapping from capability title to (string) to provider (strings)
-      final Map<String,List<String>> cap2providers
-        = new TreeMap<String, List<String>>();
+      final Map<String,List<String>> cap2providers = new TreeMap<>();
       wf.requiredCapabilitiesView(cap2providers);
       appendCapabilityInfo(sb, cap2providers);
     }
@@ -669,7 +664,7 @@ public class WiringHTMLDisplayer
 
       start = filter.indexOf(attribute, end);
 
-      return start == -1 ? value : (String) null;
+      return start == -1 ? value : null;
     }
 
 
@@ -699,7 +694,6 @@ public class WiringHTMLDisplayer
      * Get a HTML-formated presentation string for the capability described by
      * the given {@code capability}.
      * @param capability capability to be named.
-     * @return
      */
     String getCapName(final BundleCapability capability)
     {
@@ -780,12 +774,10 @@ public class WiringHTMLDisplayer
     final void providedCapabilitiesView(Map<String, List<String>> cap2requesters)
     {
       // The capabilities provided by the wiring we are handling.
-      final List<BundleCapability> caps = new ArrayList<BundleCapability>();
-
       // All declared capabilities
-      for (final BundleCapability cap : wiring.getRevision().getDeclaredCapabilities(nameSpace)) {
-        caps.add(cap);
-      }
+      final List<BundleCapability> caps = new ArrayList<>(
+          wiring.getRevision().getDeclaredCapabilities(nameSpace)
+      );
 
       // All active capabilities (additional caps may come from attached fragments)
       for (final BundleCapability cap : wiring.getCapabilities(nameSpace)) {
@@ -796,10 +788,9 @@ public class WiringHTMLDisplayer
       }
 
       // reqs[i] holds a list with the wired requirer, if any, for caps[i].
-      final List<List<BundleRequirement>> reqs =
-        new ArrayList<List<BundleRequirement>>(caps.size());
+      final List<List<BundleRequirement>> reqs = new ArrayList<>(caps.size());
       for (int i = 0; i < caps.size(); i++) {
-        reqs.add(new ArrayList<BundleRequirement>());
+        reqs.add(new ArrayList<>());
       }
 
       // Add requirer for wired capabilities.
@@ -844,7 +835,7 @@ public class WiringHTMLDisplayer
         final String capName = getCapName(cap);
         List<String> requesters = cap2requesters.get(capName);
         if (requesters == null) {
-          requesters = new ArrayList<String>();
+          requesters = new ArrayList<>();
           cap2requesters.put(capName, requesters);
         }
         if (requesterReqs.isEmpty()) {
@@ -871,13 +862,10 @@ public class WiringHTMLDisplayer
     final void requiredCapabilitiesView(Map<String, List<String>> cap2providers)
     {
       // The requirements of the wiring we are handling.
-      final List<BundleRequirement> reqs = new ArrayList<BundleRequirement>();
-
       // All declared requirements
-      for (final BundleRequirement req : wiring.getRevision()
-          .getDeclaredRequirements(nameSpace)) {
-        reqs.add(req);
-      }
+      final List<BundleRequirement> reqs = new ArrayList<>(
+          wiring.getRevision().getDeclaredRequirements(nameSpace)
+      );
 
       // All active requirements
       for (final BundleRequirement req : wiring.getRequirements(nameSpace)) {
@@ -888,10 +876,9 @@ public class WiringHTMLDisplayer
       }
 
       // caps[i] holds a list with the wired capabilities, if any, for reqs[i].
-      final List<List<BundleCapability>> caps =
-        new ArrayList<List<BundleCapability>>(reqs.size());
+      final List<List<BundleCapability>> caps = new ArrayList<>(reqs.size());
       for (int i = 0; i < reqs.size(); i++) {
-        caps.add(new ArrayList<BundleCapability>());
+        caps.add(new ArrayList<>());
       }
 
       // Add provider for wired requirements.
@@ -916,7 +903,7 @@ public class WiringHTMLDisplayer
         final String capName = getReqName(req);
         List<String> providers = cap2providers.get(capName);
         if (providers == null) {
-          providers = new ArrayList<String>();
+          providers = new ArrayList<>();
           cap2providers.put(capName, providers);
         }
         if (providerCaps.isEmpty()) {
@@ -973,7 +960,7 @@ public class WiringHTMLDisplayer
     {
       // Make a modifiable clone of the attributes.
       final Map<String, Object> attrs
-        = new HashMap<String, Object>(capability.getAttributes());
+        = new HashMap<>(capability.getAttributes());
 
       final StringBuilder sb = new StringBuilder(50);
       sb.append(attrs.remove(ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE));
@@ -1055,7 +1042,7 @@ public class WiringHTMLDisplayer
     {
       // Make a modifiable clone of the attributes.
       final Map<String, Object> attrs
-        = new HashMap<String, Object>(capability.getAttributes());
+        = new HashMap<>(capability.getAttributes());
 
       final StringBuilder sb = new StringBuilder(50);
       sb.append(attrs.remove(BundleRevision.HOST_NAMESPACE));
@@ -1126,7 +1113,7 @@ public class WiringHTMLDisplayer
           new VersionRange(filter, Constants.VERSION_ATTRIBUTE, false);
         sb.append("&nbsp;");
         sb.append(vr.toHtmlString());
-      } catch (final IllegalArgumentException iae) {
+      } catch (final IllegalArgumentException ignored) {
       }
 
       final String type = getFilterValue(filter, "type");
@@ -1141,7 +1128,7 @@ public class WiringHTMLDisplayer
     {
       // Make a modifiable clone of the attributes.
       final Map<String, Object> attrs
-        = new TreeMap<String, Object>(capability.getAttributes());
+        = new TreeMap<>(capability.getAttributes());
 
       final StringBuilder sb = new StringBuilder(50);
       sb.append(attrs.remove(IdentityNamespace.IDENTITY_NAMESPACE));
@@ -1244,7 +1231,7 @@ public class WiringHTMLDisplayer
     {
       // Make a modifiable clone of the attributes.
       final Map<String, Object> attrs =
-        new HashMap<String, Object>(capability.getAttributes());
+          new HashMap<>(capability.getAttributes());
 
       final StringBuilder sb = new StringBuilder(50);
       sb.append(attrs.remove(BundleRevision.BUNDLE_NAMESPACE));
@@ -1339,7 +1326,7 @@ public class WiringHTMLDisplayer
 
       // Make a modifiable clone of the capability attributes.
       final Map<String, Object> attrs
-        = new HashMap<String, Object>(capability.getAttributes());
+        = new HashMap<>(capability.getAttributes());
 
       sb.append(attrs.remove(BundleRevision.PACKAGE_NAMESPACE));
 

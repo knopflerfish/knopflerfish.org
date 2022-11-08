@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -119,7 +119,7 @@ public interface SwingBundleDisplayer {
    * Value is <tt>org.knopflerfish.service.desktop.displayer.name</tt>
    * </p>
    */
-  public final static String PROP_NAME =
+  String PROP_NAME =
     "org.knopflerfish.service.desktop.displayer.name";
 
   /**
@@ -128,7 +128,7 @@ public interface SwingBundleDisplayer {
    * Value is <tt>org.knopflerfish.service.desktop.displayer.description</tt>
    * </p>
    */
-  public final static String PROP_DESCRIPTION =
+  String PROP_DESCRIPTION =
     "org.knopflerfish.service.desktop.displayer.description";
 
   /**
@@ -137,7 +137,7 @@ public interface SwingBundleDisplayer {
    * Value is <tt>org.knopflerfish.service.desktop.displayer.isdetail</tt>
    * </p>
    */
-  public final static String PROP_ISDETAIL =
+  String PROP_ISDETAIL =
     "org.knopflerfish.service.desktop.displayer.isdetail";
 
 
@@ -149,21 +149,21 @@ public interface SwingBundleDisplayer {
    * call.
    * </p>
    */
-  public JComponent createJComponent();
+  JComponent createJComponent();
 
   /**
    * Perform any necessary cleanup operations.
    *
    * @param comp Component previously created by <tt>createJComponent</tt>
    */
-  public void       disposeJComponent(JComponent comp);
+  void disposeJComponent(JComponent comp);
 
   /**
    * @param model Selection model describing which bundles are
    *              selected. The actual bundle list must be managed
    *              by the displayer itself.
    */
-  public void       setBundleSelectionModel(BundleSelectionModel model);
+  void setBundleSelectionModel(BundleSelectionModel model);
 
   /**
    * Get a large icon (48x48) for the displayer.
@@ -172,7 +172,8 @@ public interface SwingBundleDisplayer {
    * <tt>null</tt> can be returned if no icon is provided.
    * </p>
    */
-  public Icon       getLargeIcon();
+  @SuppressWarnings("unused")
+  Icon getLargeIcon();
 
   /**
    * Get a smaller icon (22x22) for the displayer.
@@ -181,7 +182,7 @@ public interface SwingBundleDisplayer {
    * <tt>null</tt> can be returned if no icon is provided.
    * </p>
    */
-  public Icon       getSmallIcon();
+  Icon getSmallIcon();
 
   /**
    * Allow access to another bundle context than the displayer's
@@ -199,11 +200,11 @@ public interface SwingBundleDisplayer {
    * must update all components with this context.
    * </p>
    */
-  public void       setTargetBundleContext(BundleContext bc);
+  void setTargetBundleContext(BundleContext bc);
 
   /**
    * Attempt to show the specified bundle.
    */
-  public void showBundle(Bundle b);
+  void showBundle(Bundle b);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,15 +38,11 @@ import java.awt.BorderLayout;
 import java.util.prefs.Preferences;
 
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 public class JValueInteger extends JValue {
 
   private static final long serialVersionUID = 1L;
-  JTextField text;
   JSpinner spinner;
 
   SpinnerNumberModel model;
@@ -55,20 +51,6 @@ public class JValueInteger extends JValue {
     super(_node, _key, ExtPreferences.TYPE_INT);
 
     int val = node.getInt(key, 0);
-    /*
-    text = new JTextField("" + val, 20) {{
-      addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            try {
-              node.putInt(key, Integer.parseInt(text.getText()));
-              setErr(null);
-            } catch (Exception e) {
-              setErr(e.getClass().getName() + " " + e.getMessage());
-            }
-          }
-        });
-    }};
-    */
 
     model = 
       new SpinnerNumberModel(new Integer(val),
@@ -77,22 +59,20 @@ public class JValueInteger extends JValue {
                              new Integer(1));
     
     spinner = new JSpinner(model);
-    spinner.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent ev) {
-          try {
-            node.putInt(key, model.getNumber().intValue());
-            setErr(null);
-          } catch (Exception e) {
-            setErr(e.getClass().getName() + " " + e.getMessage());
-          }
-            }
-      });
+    spinner.addChangeListener(ev -> {
+      try {
+        node.putInt(key, model.getNumber().intValue());
+        setErr(null);
+      } catch (Exception e) {
+        setErr(e.getClass().getName() + " " + e.getMessage());
+      }
+    });
     add(spinner, BorderLayout.CENTER);
   }
 
   public void update() {
     // text.setText("" + node.getInt(key, 0));
-    model.setValue(new Integer(node.getInt(key, 0)));
+    model.setValue(node.getInt(key, 0));
   }
 
   public void setEditable(boolean b) {

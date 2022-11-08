@@ -101,19 +101,15 @@ public class LogDisplayer extends DefaultSwingBundleDisplayer {
     JLog() {
       setLayout(new BorderLayout());
 
-
       filterLogModel = new FilterLogTableModel(bc, logModel);
       filterLogModel.setBundles(null);
 
       // construct in two steps
       logDetail = new JLogEntryDetail(null, null);
-      logPanel  = new JLogPanel(filterLogModel, logDetail, false);
+      logPanel  = new JLogPanel(filterLogModel, logDetail);
 
       logDetail.setParentAndEntry(logPanel.getJLogTable(), null);
       logDetail.setModel(filterLogModel);
-
-
-
 
       JSplitPane splitPane =
         new JSplitPane(JSplitPane.VERTICAL_SPLIT,

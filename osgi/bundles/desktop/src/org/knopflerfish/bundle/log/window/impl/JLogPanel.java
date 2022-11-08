@@ -40,8 +40,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -49,27 +47,22 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
 public class JLogPanel extends JPanel implements ClipboardOwner {
   private static final long serialVersionUID = 1L;
 
-  JTextArea text;
+  private LogTableModel model;
+  private JLogTable     table;
+  private JPopupMenu    popup;
 
-  LogTableModel model;
-  JLogTable     table;
-  JScrollPane   scrollpane;
-  JPopupMenu    popup;
-
-  public JLogPanel(LogTableModel   model, 
-		   JLogEntryDetail logEntryDetail,
-		   boolean         bSort) {
+  public JLogPanel(LogTableModel model,
+                   JLogEntryDetail logEntryDetail) {
     super(new BorderLayout());
     this.model = model;
     
-    table = new JLogTable(model, logEntryDetail, bSort);
-    scrollpane = new JScrollPane(table);
+    table = new JLogTable(model, logEntryDetail);
+    JScrollPane scrollpane = new JScrollPane(table);
     
     popup = new JPopupMenu() {
       private static final long serialVersionUID = 1L;
@@ -79,11 +72,7 @@ public class JLogPanel extends JPanel implements ClipboardOwner {
           private static final long serialVersionUID = 1L;
 
           {
-            addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                copyToClipBoard();
-              }
-            });
+            addActionListener(ev -> copyToClipBoard());
           }
         });
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003,2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.desktop.swing.fwspin;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Vector;
 
@@ -47,8 +46,6 @@ public abstract class SpinItem {
   double fac = 1.0;
   double angle = 0;
 
-  Color textColor = Color.gray.brighter().brighter().brighter().brighter();
-
   public void   setPos(double x, double y) {
     this.x = x;
     this.y = y;
@@ -60,15 +57,12 @@ public abstract class SpinItem {
     this.fac = fac;
   }
 
-  public void setAngle(double a) { this.angle = a; };
+  public void setAngle(double a) {
+    this.angle = a;
+  }
 
-  public double getAngle() { return angle; };
-
-  public double dist2(int x0, int y0) {
-    double dx = sx - x0;
-    double dy = sy - y0;
-    
-    return dx * dx + dy * dy;
+  public double getAngle() {
+    return angle;
   }
 
   public double getX() {
@@ -144,5 +138,7 @@ public abstract class SpinItem {
   public static final int DIR_FROM = 1;
   public static final int DIR_TO   = 2;
 
-  Vector<? extends SpinItem> getNext(int dir) { return null; };
+  Vector<? extends SpinItem> getNext(int dir) {
+    return null;
+  }
 }

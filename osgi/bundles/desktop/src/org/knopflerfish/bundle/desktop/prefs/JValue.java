@@ -42,8 +42,6 @@ import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.prefs.Preferences;
@@ -164,12 +162,10 @@ public class JValue
         private static final long serialVersionUID = 1L;
 
         {
-          addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              if (JValue.this instanceof JValueColor) {
-                JValueColor jcCol = (JValueColor) JValue.this;
-                jcCol.selectColor();
-              }
+          addActionListener(ev -> {
+            if (JValue.this instanceof JValueColor) {
+              JValueColor jcCol = (JValueColor) JValue.this;
+              jcCol.selectColor();
             }
           });
         }
@@ -181,11 +177,7 @@ public class JValue
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doCopyPath();
-          }
-        });
+        addActionListener(ev -> doCopyPath());
       }
     };
     popup.add(mi);
@@ -194,11 +186,7 @@ public class JValue
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doRemove();
-          }
-        });
+        addActionListener(ev -> doRemove());
       }
     };
     popup.add(mi);
@@ -208,11 +196,7 @@ public class JValue
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            showExtProps();
-          }
-        });
+        addActionListener(ev -> showExtProps());
       }
     };
     popup.add(mi);
@@ -221,19 +205,13 @@ public class JValue
 
     String[] types = JValueFactory.getSupportedTypes();
 
-    for(int i = 0; i < types.length; i++) {
-      final String t = types[i];
-      final String n = types[i];
-      mi = new JCheckBoxMenuItem(n) {
+    for (final String t : types) {
+      mi = new JCheckBoxMenuItem(t) {
         private static final long serialVersionUID = 1L;
 
         {
           setSelected(t.equals(type));
-          addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              doSetType(t);
-            }
-          });
+          addActionListener(ev -> doSetType(t));
         }
       };
       popup.add(mi);
@@ -342,11 +320,9 @@ public class JValue
   }
 
   public boolean isReadonly() {
-    if(node instanceof ExtPreferences) {
+    if (node instanceof ExtPreferences) {
       ExtPreferences ep = (ExtPreferences)node;
-      if("true".equals(ep.getProperty(key, "frozen", "false"))) {
-        return true;
-      }
+      return "true".equals(ep.getProperty(key, "frozen", "false"));
     }
     return false;
   }

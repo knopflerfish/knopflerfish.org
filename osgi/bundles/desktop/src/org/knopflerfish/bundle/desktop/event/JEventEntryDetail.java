@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.ImageIcon;
@@ -108,12 +106,7 @@ public class JEventEntryDetail
       private static final long serialVersionUID = 1L;
       {
         setToolTipText("Next log entry");
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev)
-          {
-            showNext(1);
-          }
-        });
+        addActionListener(ev -> showNext(1));
       }
     };
 
@@ -121,12 +114,7 @@ public class JEventEntryDetail
       private static final long serialVersionUID = 1L;
       {
         setToolTipText("Previous log entry");
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev)
-          {
-            showNext(-1);
-          }
-        });
+        addActionListener(ev -> showNext(-1));
       }
     };
 
@@ -134,12 +122,7 @@ public class JEventEntryDetail
       private static final long serialVersionUID = 1L;
       {
         setToolTipText("First log entry");
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev)
-          {
-            showFirst();
-          }
-        });
+        addActionListener(ev -> showFirst());
       }
     };
 
@@ -147,12 +130,7 @@ public class JEventEntryDetail
       private static final long serialVersionUID = 1L;
       {
         setToolTipText("Last log entry");
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev)
-          {
-            showLast();
-          }
-        });
+        addActionListener(ev -> showLast());
       }
     };
 
@@ -195,20 +173,17 @@ public class JEventEntryDetail
 
     info.setEntry(entry);
 
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run()
-      {
-        JViewport vp = scrollPane.getViewport();
-        if (vp != null) {
-          vp.setViewPosition(new Point(0, 0));
-          scrollPane.setViewport(vp);
-        }
-        if (table != null && model != null) {
-          int row = model.getEntries().indexOf(entry);
-          Rectangle r = table.getCellRect(row, 0, true);
-          table.scrollRectToVisible(r);
-          revalidate();
-        }
+    SwingUtilities.invokeLater(() -> {
+      JViewport vp = scrollPane.getViewport();
+      if (vp != null) {
+        vp.setViewPosition(new Point(0, 0));
+        scrollPane.setViewport(vp);
+      }
+      if (table != null && model != null) {
+        int row = model.getEntries().indexOf(entry);
+        Rectangle r = table.getCellRect(row, 0, true);
+        table.scrollRectToVisible(r);
+        revalidate();
       }
     });
 
@@ -231,13 +206,13 @@ public class JEventEntryDetail
     if (entry != null && table != null) {
       try {
         List<Event> entries = table.model.getEntries();
-        Event e = (Event) entries.get(0);
+        Event e = entries.get(0);
         if (e != null) {
           setEntry(e);
 
           syncUI();
         }
-      } catch (Exception e) {
+      } catch (Exception ignored) {
       }
     }
   }
@@ -247,13 +222,13 @@ public class JEventEntryDetail
     if (entry != null && table != null) {
       try {
         List<Event> entries = table.model.getEntries();
-        Event e = (Event) entries.get(entries.size() - 1);
+        Event e = entries.get(entries.size() - 1);
         if (e != null) {
           setEntry(e);
 
           syncUI();
         }
-      } catch (Exception e) {
+      } catch (Exception ignored) {
       }
     }
   }

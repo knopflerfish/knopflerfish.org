@@ -55,160 +55,153 @@ public class Strings {
   /**
    * Lookup table for strings.
    */
-  private static Map<String, String> strings;
+  private static final Map<String, String> strings = new HashMap<String, String>() {
+    private static final long serialVersionUID = 1L;
+    {
+      put("frame_title",       "Knopflerfish OSGi desktop ($(2) $(1))");
+      put("menu_quit",         "Quit");
+      put("menu_openbundles",  "Open Bundle File...");
+      put("menu_save",         "Save Deploy Archive...");
+      put("menu_file",         "File");
+      put("menu_edit",         "Edit");
+      put("menu_view",         "View");
+      put("menu_bundles",      "Bundles");
+      put("menu_about",        "About");
+      put("menu_help",         "Help");
+      put("menu_view_bundles",   "Bundles");
+      put("menu_view_console",   "Console");
+      put("menu_view_info",      "Bundle Info");
+      put("menu_view_toolbar",   "Toolbar");
+      put("menu_view_statusbar", "Statusbar");
+      put("menu_view_log",       "Log Window");
+      put("menu_lookandfeel",    "Look and Feel");
+      put("menu_errordialog",     "Error Dialog");
+      put("menu_errordialog_use", "Use Error Dialog");
+      put("menu_errordialoglevel",          "Default Display");
+      put("menu_errordialoglevel_normal",   "Normal");
+      put("menu_errordialoglevel_more",     "More");
+      put("menu_errordialoglevel_advanced", "Advanced");
 
-  /**
-   * Initialize strings map.
-   */
-  static {
-    strings = new HashMap<String, String>() {
-        private static final long serialVersionUID = 1L;
-        {
-          put("frame_title",       "Knopflerfish OSGi desktop ($(2) $(1))");
-          put("menu_quit",         "Quit");
-          put("menu_openbundles",  "Open Bundle File...");
-          put("menu_save",         "Save Deploy Archive...");
-          put("menu_file",         "File");
-          put("menu_edit",         "Edit");
-          put("menu_view",         "View");
-          put("menu_bundles",      "Bundles");
-          put("menu_about",        "About");
-          put("menu_help",         "Help");
-          put("menu_view_bundles",   "Bundles");
-          put("menu_view_console",   "Console");
-          put("menu_view_info",      "Bundle Info");
-          put("menu_view_toolbar",   "Toolbar");
-          put("menu_view_statusbar", "Statusbar");
-          put("menu_view_log",       "Log Window");
-          put("menu_lookandfeel",    "Look and Feel");
-          put("menu_errordialog",     "Error Dialog");
-          put("menu_errordialog_use", "Use Error Dialog");
-          put("menu_errordialoglevel",          "Default Display");
-          put("menu_errordialoglevel_normal",   "Normal");
-          put("menu_errordialoglevel_more",     "More");
-          put("menu_errordialoglevel_advanced", "Advanced");
+      put("tt_html_back",        "Back to previous bundle");
+      put("tt_html_fwd",         "Forward to next bundle");
 
-          put("tt_html_back",        "Back to previous bundle");
-          put("tt_html_fwd",         "Forward to next bundle");
+      put("menu_tips",      "Show tips");
+      put("prev_tip",       "Previous tip");
+      put("next_tip",       "Next tip");
 
-          put("menu_tips",      "Show tips");
-          put("prev_tip",       "Previous tip");
-          put("next_tip",       "Next tip");
+      put("item_resolvebundles",    "Resolve Selected Bundles");
+      put("item_resolvebundles.descr",
+          "Resolves un-resolved selected bundles. If called with no "
+          +"selection, try to resolve all un-resolved bundles.");
+      put("item_startbundles",      "Start Selected Bundles");
+      put("item_stopbundles",       "Stop Selected Bundles");
+      put("item_updatebundles",     "Update Selected Bundles");
+      put("item_refreshbundles",    "Refresh Selected Bundles");
+      put("item_refreshbundles.descr",
+          "Refresh bundles re-wires required capabilites for the selected "
+          +"bundles, if the selection is empty refresh all bundles that "
+          +"are marked as pending removal by the framework.");
+      put("item_uninstallbundles",  "Uninstall Selected Bundles");
 
-          put("item_resolvebundles",    "Resolve Selected Bundles");
-          put("item_resolvebundles.descr",
-              "Resolves un-resolved selected bundles. If called with no "
-              +"selection, try to resolve all un-resolved bundles.");
-          put("item_startbundles",      "Start Selected Bundles");
-          put("item_stopbundles",       "Stop Selected Bundles");
-          put("item_updatebundles",     "Update Selected Bundles");
-          put("item_refreshbundles",    "Refresh Selected Bundles");
-          put("item_refreshbundles.descr",
-              "Refresh bundles re-wires required capabilites for the selected "
-              +"bundles, if the selection is empty refresh all bundles that "
-              +"are marked as pending removal by the framework.");
-          put("item_uninstallbundles",  "Uninstall Selected Bundles");
+      put("item_resolvebundle",    "Resolve Bundle ");
+      put("item_startbundle",      "Start Bundle ");
+      put("item_stopbundle",       "Stop Bundle ");
+      put("item_updatebundle",     "Update Bundle ");
+      put("item_refreshbundle",    "Refresh Bundle ");
+      put("item_refreshbundle.descr",
+          "Refresh bundle re-wires required capabilites for the bundle.");
+      put("item_uninstallbundle",  "Uninstall Bundle ");
 
-          put("item_resolvebundle",    "Resolve Bundle ");
-          put("item_startbundle",      "Start Bundle ");
-          put("item_stopbundle",       "Stop Bundle ");
-          put("item_updatebundle",     "Update Bundle ");
-          put("item_refreshbundle",    "Refresh Bundle ");
-          put("item_refreshbundle.descr",
-              "Refresh bundle re-wires required capabilites for the bundle.");
-          put("item_uninstallbundle",  "Uninstall Bundle ");
+      put("menu_remotefw",          "Remote framework...");
+      put("remote_connect_msg",     "Enter address to remote framework");
+      put("remote_connect_title",   "Connect to remote framework");
 
-          put("menu_remotefw",          "Remote framework...");
-          put("remote_connect_msg",     "Enter address to remote framework");
-          put("remote_connect_title",   "Connect to remote framework");
+      put("menu_openbundleurl",        "Open Bundle Location...");
+      put("dialog_addbundleurl_msg",   "Enter bundle location");
+      put("dialog_addbundleurl_title", "Open Bundle Location");
 
-          put("menu_openbundleurl",        "Open Bundle Location...");
-          put("dialog_addbundleurl_msg",   "Enter bundle location");
-          put("dialog_addbundleurl_title", "Open Bundle Location");
+      put("bundleinfo_startup",
+          "<html>Select on or more bundles to " +
+          "view detail information</html>");
 
-          put("bundleinfo_startup",
-              "<html>Select on or more bundles to " +
-              "view detail information</html>");
+      put("q_stopframework",
+          "Are you sure you want stop the entire framework?\n" +
+          "All bundles will be stopped.");
 
-          put("q_stopframework",
-              "Are you sure you want stop the entire framework?\n" +
-              "All bundles will be stopped.");
+      put("msg_stopframework",   "Stop framework");
 
-          put("msg_stopframework",   "Stop framework");
+      put("q_stopdesktop",
+          "Do you want to stop the desktop bundle?\n" +
+          "This will also close the desktop window.");
 
-          put("q_stopdesktop",
-              "Do you want to stop the desktop bundle?\n" +
-              "This will also close the desktop window.");
+      put("msg_stopdesktop",   "Stop desktop");
 
-          put("msg_stopdesktop",   "Stop desktop");
+      put("cancel", "Cancel");
+      put("yes",    "Yes");
+      put("no",     "No");
+      put("ok",     "OK");
+      put("close",  "Close");
 
-          put("cancel", "Cancel");
-          put("yes",    "Yes");
-          put("no",     "No");
-          put("ok",     "OK");
-          put("close",  "Close");
+      put("local",  "Local");
 
-          put("local",  "Local");
-
-          put("fmt_q_stopdesktop",
-              "Are you sure you want to stop $(1)?\n" +
-              "This will close the desktop window.");
+      put("fmt_q_stopdesktop",
+          "Are you sure you want to stop $(1)?\n" +
+          "This will close the desktop window.");
 
 
-          put("q_uninstallbundle",
-              "Are you sure you want to uninstall the bundle $(1)?");
+      put("q_uninstallbundle",
+          "Are you sure you want to uninstall the bundle $(1)?");
 
 
-          put("msg_uninstallbundle", "Uninstall bundle");
+      put("msg_uninstallbundle", "Uninstall bundle");
 
-          put("str_fwinfo", "Framework info");
-          put("str_about", "About");
-          put("str_abouttext",
-              "Knopflerfish OSGi desktop, version $(1)\n" +
-              "Framework: $(2) $(3)\n\n" +
-              "$(4)\n\n" +
-              "See http://www.knopflerfish.org for more information.\n\n" +
-              "This release uses icons from Tango Desktop\n" +
-              "Project released to the public domain, see\n" +
-              "http://tango.freedesktop.org/Tango_Desktop_Project"
-              );
+      put("str_fwinfo", "Framework info");
+      put("str_about", "About");
+      put("str_abouttext",
+          "Knopflerfish OSGi desktop, version $(1)\n" +
+          "Framework: $(2) $(3)\n\n" +
+          "$(4)\n\n" +
+          "See http://www.knopflerfish.org for more information.\n\n" +
+          "This release uses icons from Tango Desktop\n" +
+          "Project released to the public domain, see\n" +
+          "http://tango.freedesktop.org/Tango_Desktop_Project"
+          );
 
-          put("item_selectall",       "Select all");
-          put("item_unselectall",     "Unselect all");
-          put("item_clear_console",   "Clear console");
+      put("item_selectall",       "Select all");
+      put("item_unselectall",     "Unselect all");
+      put("item_clear_console",   "Clear console");
 
-          put("menu_startOptions", "     Options");
-          put("menu_startOptions.descr","Options to use when starting bundles");
-          put("start_option_transient", "Transient");
-          put("start_option_transient.descr",
-              "Start bundle without marking it as persistently started.");
-          put("start_option_eager",     "Eager");
-          put("start_option_policy",    "Policy");
-          put("start_option_policy.descr",
-              "Start bundle according to its start policy."
-              +" If unchecked the bundle will be eagerly started.");
+      put("menu_startOptions", "     Options");
+      put("menu_startOptions.descr","Options to use when starting bundles");
+      put("start_option_transient", "Transient");
+      put("start_option_transient.descr",
+          "Start bundle without marking it as persistently started.");
+      put("start_option_eager",     "Eager");
+      put("start_option_policy",    "Policy");
+      put("start_option_policy.descr",
+          "Start bundle according to its start policy."
+          +" If unchecked the bundle will be eagerly started.");
 
-          put("menu_stopOptions", "     Options");
-          put("menu_stopOptions.descr","Options to use when stoping bundles");
-          put("stop_option_transient", "Transient");
-          put("stop_option_transient.descr",
-              "Stop bundle without marking it as not persistently started.");
+      put("menu_stopOptions", "     Options");
+      put("menu_stopOptions.descr","Options to use when stoping bundles");
+      put("stop_option_transient", "Transient");
+      put("stop_option_transient.descr",
+          "Stop bundle without marking it as not persistently started.");
 
-          put("startlevel.label",     "Start level: ");
-          put("startlevel.label.descr", "Change the active start level of the Framework.");
-          put("startlevel.descr",  "Sets startlevel for the selected bundle.");
-          put("startlevel.noSel",  "No bundle selected");
-          put("menu_startlevel",      "Start level");
-          put("nostartlevel.label",   "");
+      put("startlevel.label",     "Start level: ");
+      put("startlevel.label.descr", "Change the active start level of the Framework.");
+      put("startlevel.descr",  "Sets startlevel for the selected bundle.");
+      put("startlevel.noSel",  "No bundle selected");
+      put("menu_startlevel",      "Start level");
+      put("nostartlevel.label",   "");
 
-          put("str_checkupdate",      "Check for update");
-          put("item_newwindow",      "New window");
-          put("str_services",      "Services");
-          put("str_packages",      "Packages");
-          put("item_newgraphwindow",      "New graph window");
-        }
-      };
-  }
+      put("str_checkupdate",      "Check for update");
+      put("item_newwindow",      "New window");
+      put("str_services",      "Services");
+      put("str_packages",      "Packages");
+      put("item_newgraphwindow",      "New graph window");
+    }
+  };
 
   /**
    * Get a string given a key.
@@ -217,11 +210,7 @@ public class Strings {
    * @return if key is present return matching value, otherwise return key
    */
   public static String get(String key) {
-    if(strings.containsKey(key)) {
-      return strings.get(key);
-    } else {
-      return key;
-    }
+    return strings.getOrDefault(key, key);
   }
 
   /**
@@ -365,14 +354,11 @@ public class Strings {
         // separator
         if (c == citChar) {
           bCit = !bCit;
-          buf.append(c);
-        } else {
-          if (bSep) {
-            buf.append(replacement);
-            bSep = !bSep;
-          }
-          buf.append(c);
+        } else if (bSep) {
+          buf.append(replacement);
+          bSep = false;
         }
+        buf.append(c);
         i++;
       } else {
         // found separator outside of citation
@@ -406,7 +392,7 @@ public class Strings {
                                           final String separators,
                                           final char citChar)
   {
-    final ArrayList<String> res = new ArrayList<String>();
+    final ArrayList<String> res = new ArrayList<>();
     final StringBuilder buf = new StringBuilder(s.length());
     boolean bCit = false; // true when inside citation chars.
     boolean bSep = false; // true when inside separator chars.
@@ -420,15 +406,12 @@ public class Strings {
         // separator
         if (c == citChar) {
           bCit = !bCit;
-          buf.append(c);
-        } else {
-          if (bSep) {
-            res.add(buf.toString());
-            buf.setLength(0);
-            bSep = !bSep;
-          }
-          buf.append(c);
+        } else if (bSep) {
+          res.add(buf.toString());
+          buf.setLength(0);
+          bSep = false;
         }
+        buf.append(c);
         i++;
       } else {
         // found separator outside of citation

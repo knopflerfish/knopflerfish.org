@@ -103,12 +103,12 @@ public class ServiceHTMLDisplayer
 
     public ServiceUrl(final ServiceReference<?> sr)
     {
-      this.sid = ((Long) sr.getProperty(Constants.SERVICE_ID)).longValue();
+      this.sid = (Long) sr.getProperty(Constants.SERVICE_ID);
     }
 
     public ServiceUrl(final Long serviceId)
     {
-      this.sid = serviceId.longValue();
+      this.sid = serviceId;
     }
 
     public long getSid()
@@ -125,7 +125,7 @@ public class ServiceHTMLDisplayer
 
     private Map<String, String> getParams()
     {
-      final Map<String, String> params = new HashMap<String, String>();
+      final Map<String, String> params = new HashMap<>();
       params.put(URL_SERVICE_KEY_SID, String.valueOf(sid));
       return params;
     }
@@ -288,19 +288,19 @@ public class ServiceHTMLDisplayer
     JHTMLBundle.stopFont(sb);
     sb.append("</td></tr>");
 
-    for (int i = 0; i < methods.length; i++) {
-      if (!Modifier.isPublic(methods[i].getModifiers())) {
+    for (Method method : methods) {
+      if (!Modifier.isPublic(method.getModifiers())) {
         continue;
       }
-      final Class<?>[] params = methods[i].getParameterTypes();
+      final Class<?>[] params = method.getParameterTypes();
       sb.append("<tr>");
 
       sb.append("<td valign=\"top\" colspan=\"3\">");
       JHTMLBundle.startFont(sb);
-      sb.append(className(methods[i].getReturnType().getName()));
+      sb.append(className(method.getReturnType().getName()));
 
       sb.append("&nbsp;");
-      sb.append(methods[i].getName());
+      sb.append(method.getName());
 
       sb.append("(");
       for (int j = 0; j < params.length; j++) {
@@ -330,9 +330,7 @@ public class ServiceHTMLDisplayer
     return name;
   }
 
-  class JHTML
-    extends JHTMLBundle
-  {
+  static class JHTML extends JHTMLBundle {
     private static final long serialVersionUID = 1L;
 
     JHTML(DefaultSwingBundleDisplayer displayer)
@@ -348,90 +346,114 @@ public class ServiceHTMLDisplayer
       try {
         final ServiceReference<?>[] srl =
           Activator.getTargetBC_getServiceReferences();
-        int nExport = 0;
-        int nImport = 0;
-        for (int i = 0; srl != null && i < srl.length; i++) {
-          final Bundle srlb = srl[i].getBundle();
-          if (null == srlb) { // Skip unregistered service.
-            continue;
-          }
-          if (srlb.getBundleId() == b.getBundleId()) {
-            nExport++;
-          }
-          final Bundle[] bl = srl[i].getUsingBundles();
-          for (int j = 0; bl != null && j < bl.length; j++) {
-            if (bl[j].getBundleId() == b.getBundleId()) {
-              nImport++;
-            }
-          }
-        }
-
-        startFont(sb);
-
-        if (nExport > 0) {
-          sb.append("<b>Exported services</b>");
-
-          for (int i = 0; srl != null && i < srl.length; i++) {
-            final Bundle srlb = srl[i].getBundle();
-            if (null != srlb && srlb.getBundleId() == b.getBundleId()) {
-              final String[] cl =
-                (String[]) srl[i].getProperty(Constants.OBJECTCLASS);
-              final Bundle[] bl = srl[i].getUsingBundles();
-
-              for (final String element : cl) {
-                sb.append("<br>");
-                sb.append("#");
-                new ServiceUrl(srl[i])
-                    .serviceLink(sb, srl[i].getProperty(Constants.SERVICE_ID)
-                        .toString());
-                sb.append(" ");
-                sb.append(element);
-              }
-
-              if (bl != null && bl.length > 0) {
-                // sb.append("<b>Used by</b><br>");
-                for (int j = 0; bl != null && j < bl.length; j++) {
-                  sb.append("<br>");
-                  sb.append("&nbsp;&nbsp;");
-                  Util.bundleLink(sb, bl[j]);
-                }
-              }
-            }
-          }
-        }
-
-        if (nImport > 0) {
-          sb.append("<br><b>Imported services</b>");
-          for (int i = 0; srl != null && i < srl.length; i++) {
-            final Bundle[] bl = srl[i].getUsingBundles();
-            for (int j = 0; bl != null && j < bl.length; j++) {
-              if (bl[j].getBundleId() == b.getBundleId()) {
-                final String[] cl =
-                  (String[]) srl[i].getProperty(Constants.OBJECTCLASS);
-                for (final String element : cl) {
-                  sb.append("<br>");
-                  sb.append("#");
-                  new ServiceUrl(srl[i])
-                      .serviceLink(sb, srl[i].getProperty(Constants.SERVICE_ID)
-                          .toString());
-                  sb.append(" ");
-                  sb.append(element);
-                }
-                sb.append("<br>");
-                sb.append("&nbsp;&nbsp;");
-                Util.bundleLink(sb, bl[j]);
-              }
-            }
-          }
-        }
-        sb.append("</font>");
+        appendExportAndImportServices(b, sb, srl);
       } catch (final Exception e) {
         e.printStackTrace();
       }
       sb.append("<table border=0 cellspacing=1 cellpadding=0>\n");
-
       sb.append("</table>");
       return sb;
+    }
+
+    private void appendExportAndImportServices(Bundle b, StringBuilder sb, ServiceReference<?>[] srl) {
+      if (srl == null) {
+        return;
+      }
+
+      int nExport = 0;
+      int nImport = 0;
+      for (ServiceReference<?> serviceReference : srl) {
+        final Bundle srlb = serviceReference.getBundle();
+        if (null == srlb) { // Skip unregistered service.
+          continue;
+        }
+        if (srlb.getBundleId() == b.getBundleId()) {
+          nExport++;
+        }
+
+        final Bundle[] bl = serviceReference.getUsingBundles();
+        if (bl == null) {
+          continue;
+        }
+        for (Bundle bundle : bl) {
+          if (bundle.getBundleId() == b.getBundleId()) {
+            nImport++;
+          }
+        }
+      }
+
+      startFont(sb);
+
+      if (nExport > 0) {
+        appendExportServices(b, sb, srl);
+      }
+
+      if (nImport > 0) {
+        appendImportServices(b, sb, srl);
+      }
+
+      stopFont(sb);
+    }
+
+    private void appendImportServices(Bundle b, StringBuilder sb, ServiceReference<?>[] srl) {
+      sb.append("<br><b>Imported services</b>");
+      for (ServiceReference<?> serviceReference : srl) {
+        final Bundle[] bl = serviceReference.getUsingBundles();
+        if (bl == null) {
+          continue;
+        }
+        for (Bundle bundle : bl) {
+          if (bundle.getBundleId() == b.getBundleId()) {
+            final String[] cl =
+                (String[]) serviceReference.getProperty(Constants.OBJECTCLASS);
+            for (final String element : cl) {
+              sb.append("<br>");
+              sb.append("#");
+              new ServiceUrl(serviceReference)
+                  .serviceLink(sb, serviceReference.getProperty(Constants.SERVICE_ID)
+                      .toString());
+              sb.append(" ");
+              sb.append(element);
+            }
+            sb.append("<br>");
+            sb.append("&nbsp;&nbsp;");
+            Util.bundleLink(sb, bundle);
+          }
+        }
+      }
+      sb.append("<br>");
+    }
+
+    private void appendExportServices(Bundle b, StringBuilder sb, ServiceReference<?>[] srl) {
+      sb.append("<b>Exported services</b>");
+      for (ServiceReference<?> serviceReference : srl) {
+        final Bundle srlb = serviceReference.getBundle();
+        if (null != srlb && srlb.getBundleId() == b.getBundleId()) {
+          final String[] cl =
+              (String[]) serviceReference.getProperty(Constants.OBJECTCLASS);
+          final Bundle[] bl = serviceReference.getUsingBundles();
+
+          for (final String element : cl) {
+            sb.append("<br>");
+            sb.append("#");
+            new ServiceUrl(serviceReference)
+                .serviceLink(sb, serviceReference.getProperty(Constants.SERVICE_ID)
+                    .toString());
+            sb.append(" ");
+            sb.append(element);
+          }
+
+          if (bl != null && bl.length > 0) {
+            // sb.append("<b>Used by</b><br>");
+            for (Bundle bundle : bl) {
+              sb.append("<br>");
+              sb.append("&nbsp;&nbsp;");
+              Util.bundleLink(sb, bundle);
+            }
+          }
+        }
+      }
+      sb.append("<br>");
     }
 
   }

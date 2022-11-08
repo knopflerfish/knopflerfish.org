@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,14 +48,14 @@ public interface BundleSelectionModel {
   /**
    * Clear the entire selection and notify all listeners.
    */
-  public void    clearSelection();
+  void clearSelection();
 
   /**
    * Get the number of selected bundles.
    *
    * @return Number of selected bundles.
    */
-  public int getSelectionCount();
+  int getSelectionCount();
 
   /**
    * Get selected bundle. Return the bundle id of one of the selected
@@ -64,7 +64,7 @@ public interface BundleSelectionModel {
    * @return The bundle ID of one of the selected bundles
    * (arbitrary). If no selection this method returns -1.
    */
-  public long getSelected();
+  long getSelected();
 
   /**
    * Get selection status of a bundle Id.
@@ -73,7 +73,7 @@ public interface BundleSelectionModel {
    * @return <tt>true</tt> if <tt>bid</tt> is selected by the
    *         model, <tt>false</tt> otherwise.
    */
-  public boolean isSelected(long bid);
+  boolean isSelected(long bid);
 
   /**
    * Set selection status of a bundle id and notify all listeners.
@@ -81,7 +81,7 @@ public interface BundleSelectionModel {
    * @param bid Bundle Id to set selection status.
    * @param bSelected new selection status of the bundle.
    */
-  public void    setSelected(long bid, boolean bSelected);
+  void setSelected(long bid, boolean bSelected);
 
   /**
    * Set selection status of all bundle id in the given list and
@@ -90,7 +90,7 @@ public interface BundleSelectionModel {
    * @param bids List of bundle ids to set selection status for.
    * @param bSelected new selection status of the bundles in the list.
    */
-  public void    setSelected(List<Long> bids, boolean bSelected);
+  void setSelected(List<Long> bids, boolean bSelected);
 
   /**
    * Add a <tt>BundleSelectionListener</tt> to the set of listeners
@@ -98,7 +98,7 @@ public interface BundleSelectionModel {
    *
    * @param l listener to add.
    */
-  public void    addBundleSelectionListener(BundleSelectionListener l);
+  void addBundleSelectionListener(BundleSelectionListener l);
 
   /**
    * Remove a <tt>BundleSelectionListener</tt> from the set of listeners
@@ -106,5 +106,5 @@ public interface BundleSelectionModel {
    *
    * @param l listener to remove.
    */
-  public void    removeBundleSelectionListener(BundleSelectionListener l);
+  void removeBundleSelectionListener(BundleSelectionListener l);
 }

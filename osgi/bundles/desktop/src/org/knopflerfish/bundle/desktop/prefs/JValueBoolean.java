@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,10 +82,8 @@ public class JValueBoolean extends JValue {
    * Check if a string is a boolean value.
    */
   public static boolean isBoolean(String s) {
-    boolean b = 
-      0 == "true".compareToIgnoreCase(s) ||
-      0 == "false".compareToIgnoreCase(s);
-
-    return b;
+    return
+        0 == "true".compareToIgnoreCase(s) ||
+        0 == "false".compareToIgnoreCase(s);
   }
 }

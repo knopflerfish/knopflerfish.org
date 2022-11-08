@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,6 @@ import java.util.Date;
 
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import org.osgi.service.log.LogEntry;
 
 /**
  * Table subclass which displays <tt>ExtLogEntry</tt> items.
@@ -53,9 +49,8 @@ public class JLogTable extends JTable {
   LogTableModel    model;
   JLogEntryDetail logEntryDetail;
 
-  public JLogTable(LogTableModel   model, 
-		   JLogEntryDetail logEntryDetail,
-		   boolean         bSort) {
+  public JLogTable(LogTableModel model,
+                   JLogEntryDetail logEntryDetail) {
     super();
     
     this.logEntryDetail = logEntryDetail;
@@ -70,29 +65,23 @@ public class JLogTable extends JTable {
 
     ListSelectionModel rowSM = getSelectionModel();
 
-    rowSM.addListSelectionListener(new ListSelectionListener() {
-	public void valueChanged(ListSelectionEvent e) {
+    rowSM.addListSelectionListener(e -> {
+      if (e.getValueIsAdjusting()) {
+        return;
+      }
 
-	  if (e.getValueIsAdjusting()) {
-	    return;
-	  }
+      ListSelectionModel lsm = (ListSelectionModel)e.getSource();
 
-	  ListSelectionModel lsm = (ListSelectionModel)e.getSource();
+      if (!lsm.isSelectionEmpty()) {
+        int ix = lsm.getMinSelectionIndex();
 
-	  if (lsm.isSelectionEmpty()) {
-	    //
-	  } else {	    
-            int ix = lsm.getMinSelectionIndex();
+        ExtLogEntry entry = JLogTable.this.model.getEntry(ix);
 
-	    ExtLogEntry entry = JLogTable.this.model.getEntry(ix);
-
-	    if(entry != null) {
-	      JLogTable.this.logEntryDetail.setParentAndEntry(JLogTable.this, entry);
-	    }
-	    
-	  }
-	}
-      });
+        if (entry != null) {
+          JLogTable.this.logEntryDetail.setParentAndEntry(JLogTable.this, entry);
+        }
+      }
+    });
 
     getColumnModel().getColumn(LogTableModel.COL_ID).setPreferredWidth(30);
     getColumnModel().getColumn(LogTableModel.COL_BID).setPreferredWidth(30);
@@ -100,12 +89,12 @@ public class JLogTable extends JTable {
     getColumnModel().getColumn(LogTableModel.COL_MESSAGE).setPreferredWidth(150);    
   }
 
-  ExtLogEntry getLogEntry(LogEntry e, int delta) {
+  ExtLogEntry getLogEntry(ExtLogEntry e, int delta) {
     int ix = model.getEntries().indexOf(e);
-    if(ix != -1) {
+    if (ix != -1) {
       int i = ix + delta;
-      if(i >= 0 && i < model.getEntries().size()) {
-	return (ExtLogEntry)model.getEntries().get(i);
+      if (i >= 0 && i < model.getEntries().size()) {
+        return model.getEntries().get(i);
       }
     }
     return null;

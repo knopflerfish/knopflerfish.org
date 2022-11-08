@@ -205,6 +205,12 @@ public class Activator
     return null;
   }
 
+  public static Bundle getSystemBundle() {
+    final Bundle systemBundle = getTargetBC_getBundle(0);
+    assert systemBundle != null;
+    return systemBundle;
+  }
+
   /**
    * Get a specific bundle on the target BC.
    */

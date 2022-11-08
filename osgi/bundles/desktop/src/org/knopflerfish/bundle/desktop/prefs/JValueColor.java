@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,11 +80,7 @@ public class JValueColor extends JValue {
     colSelect.setToolTipText("Select color from color dialog");
     colSelect.setPreferredSize(new Dimension(20, 20));
     colSelect.setIcon(icon);
-    colSelect.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          selectColor();
-        }
-      });
+    colSelect.addActionListener(ev -> selectColor());
 
     text.addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
@@ -130,11 +126,6 @@ public class JValueColor extends JValue {
   }
 
   static boolean isColor(String s) {
-    boolean b = isColor0(s);
-    return b;
-  }
-
-  static boolean isColor0(String s) {
     if(Colors.COLORS.containsKey(s.toLowerCase())) {
       return true;
     }

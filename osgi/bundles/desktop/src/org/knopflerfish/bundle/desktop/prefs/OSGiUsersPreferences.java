@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,24 +50,21 @@ public class OSGiUsersPreferences
   implements ExtPreferences
 {
   protected PreferencesService prefsService;
-  
-  public OSGiUsersPreferences(AbstractPreferences parent, 
+
+  private final Map<String, OSGiPreferences> children = new HashMap<>();
+
+  public OSGiUsersPreferences(AbstractPreferences parent,
                               PreferencesService prefsService) {
     super(parent, "");
     this.prefsService = prefsService;
   }
 
-
-  // AbstractPreferences implementation
-  protected String[] childrenNamesSpi() throws BackingStoreException {
+  @Override
+  protected String[] childrenNamesSpi() {
     return prefsService.getUsers();
   }
 
-  // AbstractPreferences implementation
-
-  Map<String, OSGiPreferences> children
-    = new HashMap<String, OSGiPreferences>();
-
+  @Override
   protected AbstractPreferences  childSpi(String name) {
     synchronized(children) {
       OSGiPreferences child = children.get(name);
@@ -82,49 +79,41 @@ public class OSGiUsersPreferences
     }
   }
   
-  // AbstractPreferences implementation
-  protected void  flushSpi() throws BackingStoreException {
+  @Override
+  protected void  flushSpi() {
     // NOOP
   }
 
 
-  // AbstractPreferences implementation
+  @Override
   protected String getSpi(String key) {
     return null;
   }
 
   final static String[] EMPTY = new String[0];
 
-  // AbstractPreferences implementation
-  protected String[] keysSpi() throws BackingStoreException {
+  @Override
+  protected String[] keysSpi() {
     return EMPTY;
   }
   
-  // AbstractPreferences implementation
+  @Override
   protected void putSpi(String key, String value) {
     throw new RuntimeException("This node " + absolutePath()  + " cannot have keys");
   }
 
-  // AbstractPreferences implementation
+  @Override
   protected void 	removeNodeSpi() throws BackingStoreException {
     throw new BackingStoreException("This node " + absolutePath() + " cannot be removed");
   }
   
-
-  public void clearCachedChild(String name) {
-    synchronized(children) {
-      children.remove(name);
-    }
-  }
-
-
-  // AbstractPreferences implementation
+  @Override
   protected void 	removeSpi(String key) {
     // NOOP
   }
 
-  // AbstractPreferences implementation
-  protected void 	syncSpi() throws BackingStoreException {
+  @Override
+  protected void 	syncSpi() {
     // NOOP
   }
 

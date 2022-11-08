@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,11 +55,11 @@ public class FilterLogTableModel
 {
   private static final long serialVersionUID = 1L;
 
-  Object lock = new Object();
+  private final Object lock = new Object();
 
   LogTableModel model;
-  Set<Bundle> bundles = new HashSet<Bundle>();
-  ArrayList<ExtLogEntry> filteredEntries = new ArrayList<ExtLogEntry>();
+  Set<Bundle> bundles = new HashSet<>();
+  ArrayList<ExtLogEntry> filteredEntries = new ArrayList<>();
 
   public FilterLogTableModel(BundleContext bc,
                              LogTableModel model)
@@ -147,9 +147,7 @@ public class FilterLogTableModel
 
   public ExtLogEntry getEntry(int row) {
     synchronized(lock) {
-      ExtLogEntry e = filteredEntries.get(row);
-
-      return e;
+      return filteredEntries.get(row);
     }
   }
 
@@ -169,7 +167,7 @@ public class FilterLogTableModel
       // Yield and try again.
       try {
         Thread.sleep(0);
-      } catch (InterruptedException ie) {
+      } catch (InterruptedException ignored) {
       }
       filterEntries();
     }

@@ -71,23 +71,21 @@ public class SCRHTMLDisplayer
 
     // Remote framework is not supported.
     scrTracker = Activator.getBC().equals(Activator.getTargetBC())
-      ? new ServiceTracker<ScrService,ScrService>(Activator.getBC(),
-                                                  ScrService.class, this)
-        : null;
+      ? new ServiceTracker<>(Activator.getBC(), ScrService.class, this)
+      : null;
   }
 
   /**
    * Mapping <tt>ServiceReference -&gt; ScrService</tt> holding all available
    * ScrServices.
    */
-  final Map<ServiceReference<ScrService>,ScrService> scrServices
-    = new HashMap<ServiceReference<ScrService>, ScrService>();
+  final Map<ServiceReference<ScrService>,ScrService> scrServices = new HashMap<>();
 
   ScrService getScrServiceById(final long sid) {
     for (final Entry<ServiceReference<ScrService>,ScrService> entry : scrServices.entrySet()) {
       final ServiceReference<ScrService> sr = entry.getKey();
       final Long srSid = (Long) sr.getProperty(Constants.SERVICE_ID);
-      if (srSid.longValue() == sid) {
+      if (srSid == sid) {
         return entry.getValue();
       }
     }
@@ -240,8 +238,6 @@ public class SCRHTMLDisplayer
 
     public ScrUrl(final String componentName) {
       this.compName = componentName;
-      this.sid = -1L;
-      this.cid = -1L;
       this.ref = null;
     }
 
@@ -296,7 +292,7 @@ public class SCRHTMLDisplayer
     }
 
     private Map<String, String> getParams() {
-      final Map<String, String> params = new HashMap<String, String>();
+      final Map<String, String> params = new HashMap<>();
       if (compName!=null) {
         // If componentName set no other params are needed.
         params.put(URL_SCR_KEY_COMP_NAME, compName);
@@ -521,8 +517,7 @@ public class SCRHTMLDisplayer
 
     sb.append("<td>");
     if (scrServices.size()>1) {
-      scrUrl.scrLink(sb,
-                     String.valueOf(component.getId()) +"@" +scrUrl.getSid());
+      scrUrl.scrLink(sb, component.getId() +"@" +scrUrl.getSid());
     } else {
       scrUrl.scrLink(sb, String.valueOf(component.getId()));
     }
@@ -568,7 +563,7 @@ public class SCRHTMLDisplayer
     case Component.STATE_UNSATISFIED:
       return "UNSATISFIED";
     default:
-      return "?" + String.valueOf(component.getState()) + "?";
+      return "?" + component.getState() + "?";
     }
   }
 

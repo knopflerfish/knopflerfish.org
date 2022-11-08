@@ -574,7 +574,7 @@ public class Util
 
     final String jarBase = Util.getProperty("org.knopflerfish.gosg.jars", "");
 
-    all.remove(Activator.getTargetBC_getBundle(0));
+    all.remove(Activator.getSystemBundle());
     if (target != null) {
       all.add(target);
     }

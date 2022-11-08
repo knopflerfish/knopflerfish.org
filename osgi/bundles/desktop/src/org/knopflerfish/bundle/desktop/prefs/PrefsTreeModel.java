@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 package org.knopflerfish.bundle.desktop.prefs;
 
 import java.util.prefs.Preferences;
@@ -42,7 +41,7 @@ import javax.swing.tree.DefaultTreeModel;
 public class PrefsTreeModel extends DefaultTreeModel {
 
   private static final long serialVersionUID = 1L;
-  Preferences root;
+  private Preferences root;
 
   public PrefsTreeModel(Preferences root, String rootName) {
     super(new PrefsTreeNode(root, true, rootName));

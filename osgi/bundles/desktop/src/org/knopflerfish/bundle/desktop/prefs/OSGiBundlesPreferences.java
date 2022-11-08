@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -44,12 +43,9 @@ import org.osgi.framework.Bundle;
 public class OSGiBundlesPreferences 
   extends MountedPreferences
 {
-  static final String[]              EMPTY_STRINGS = new String[0];
   protected Bundle[] bl;
 
-  // String -> OSGiBundlesPreference
-  protected Map<String, OSGiBundlePreferences> childNodes
-    = new LinkedHashMap<String, OSGiBundlePreferences>();
+  protected Map<String, OSGiBundlePreferences> childNodes = new LinkedHashMap<>();
   protected String[] childNames;
 
   public OSGiBundlesPreferences(Bundle[] bl) {
@@ -71,8 +67,7 @@ public class OSGiBundlesPreferences
   }
 
   public void close() {
-    for(Iterator<String> it = childNodes.keySet().iterator(); it.hasNext(); ) {
-      String                name = it.next();
+    for (String name : childNodes.keySet()) {
       OSGiBundlePreferences node = childNodes.get(name);
       node.close();
     }

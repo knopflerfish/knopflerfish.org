@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ package org.knopflerfish.bundle.desktop.event;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import javax.swing.event.TableModelEvent;
@@ -56,11 +55,11 @@ public class FilterEventTableModel
 {
   private static final long serialVersionUID = 1L;
 
-  Object lock = new Object();
+  private final Object lock = new Object();
 
   EventTableModel model;
-  Set<Bundle> bundles = new HashSet<Bundle>();
-  ArrayList<Event> filteredEntries = new ArrayList<Event>();
+  Set<Bundle> bundles = new HashSet<>();
+  ArrayList<Event> filteredEntries = new ArrayList<>();
 
   public FilterEventTableModel(EventTableModel model) {
     super();
@@ -114,10 +113,9 @@ public class FilterEventTableModel
         return true;
       }
 
-      for(Iterator<Bundle> it = bundles.iterator(); it.hasNext();) {
-        Bundle b = it.next();
-        if((Util.getBundle(e) != null) &&
-           (b.getBundleId() == Util.getBundle(e).getBundleId())) {
+      for (Bundle b : bundles) {
+        if ((Util.getBundle(e) != null) &&
+            (b.getBundleId() == Util.getBundle(e).getBundleId())) {
           return true;
         }
       }
@@ -153,9 +151,7 @@ public class FilterEventTableModel
 
   public Event getEntry(int row) {
     synchronized(lock) {
-      Event e = filteredEntries.get(row);
-
-      return e;
+      return filteredEntries.get(row);
     }
   }
 

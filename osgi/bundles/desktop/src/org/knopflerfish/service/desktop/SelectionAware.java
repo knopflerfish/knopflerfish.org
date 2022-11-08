@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,6 @@ public interface SelectionAware
    * Update the displayer to show the current selection.
    *
    */
-  public void displayerSelected();
+  void displayerSelected();
 
 }

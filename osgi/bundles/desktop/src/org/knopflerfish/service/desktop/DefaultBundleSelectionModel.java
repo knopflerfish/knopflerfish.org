@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@
 package org.knopflerfish.service.desktop;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -45,9 +44,8 @@ import java.util.Set;
  */
 public class DefaultBundleSelectionModel implements BundleSelectionModel {
 
-  Set<Long> selection = new HashSet<Long>();
-  Set<BundleSelectionListener> listeners
-    = new HashSet<BundleSelectionListener>();
+  private final Set<Long> selection = new HashSet<>();
+  private final Set<BundleSelectionListener> listeners = new HashSet<>();
 
   public DefaultBundleSelectionModel() {
 
@@ -66,19 +64,19 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
   public long getSelected()
   {
     return selection.size()>0
-      ? selection.iterator().next().longValue()
+      ? selection.iterator().next()
       : -1;
   }
 
   public boolean isSelected(long bid) {
-    return selection.contains(new Long(bid));
+    return selection.contains(bid);
   }
 
   public void    setSelected(long bid, boolean bSelected) {
     if(bSelected) {
-      selection.add(new Long(bid));
+      selection.add(bid);
     } else {
-      selection.remove(new Long(bid));
+      selection.remove(bid);
     }
     fireChange(bid);
   }
@@ -95,7 +93,7 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
     } else {
       selection.removeAll(bids);
     }
-    fireChange(((Long)bids.iterator().next()).longValue());
+    fireChange(bids.iterator().next());
   }
 
 
@@ -120,11 +118,9 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
       try {
         if(!bInFireChange) {
           bInFireChange = true;
-          for(Iterator<BundleSelectionListener> it = listeners.iterator(); it.hasNext();) {
-            BundleSelectionListener l = it.next();
+          for (BundleSelectionListener l : listeners) {
             l.valueChanged(bid);
           }
-        } else {
         }
       } finally {
         bInFireChange = false;

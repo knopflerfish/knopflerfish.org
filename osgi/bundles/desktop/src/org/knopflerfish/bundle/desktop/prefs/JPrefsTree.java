@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ public class JPrefsTree extends JTree {
 
   JPopupMenu popup;
 
-  Collection<JMenuItem> menuItemsRO = new HashSet<JMenuItem>();
+  Collection<JMenuItem> menuItemsRO = new HashSet<>();
 
   String rootName = "Preferences";
 
@@ -84,11 +84,7 @@ public class JPrefsTree extends JTree {
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doSearch();
-          }
-        });
+        addActionListener(ev -> doSearch());
       }
     };
     popup.add(mi);
@@ -97,11 +93,7 @@ public class JPrefsTree extends JTree {
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doCreate();
-          }
-        });
+        addActionListener(ev -> doCreate());
       }
     };
     menuItemsRO.add(mi);
@@ -111,11 +103,7 @@ public class JPrefsTree extends JTree {
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doAddKey();
-          }
-        });
+        addActionListener(ev -> doAddKey());
       }
     };
     menuItemsRO.add(mi);
@@ -126,11 +114,7 @@ public class JPrefsTree extends JTree {
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doRemove();
-          }
-        });
+        addActionListener(ev -> doRemove());
       }
     };
     menuItemsRO.add(mi);
@@ -140,11 +124,7 @@ public class JPrefsTree extends JTree {
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doSync();
-          }
-        });
+        addActionListener(ev -> doSync());
       }
     };
     menuItemsRO.add(mi);
@@ -154,11 +134,7 @@ public class JPrefsTree extends JTree {
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doFlush();
-          }
-        });
+        addActionListener(ev -> doFlush());
       }
     };
     menuItemsRO.add(mi);
@@ -241,8 +217,7 @@ public class JPrefsTree extends JTree {
 
   public void setEditable(boolean b) {
     super.setEditable(b);
-    for(Iterator<JMenuItem> it = menuItemsRO.iterator(); it.hasNext(); ) {
-      JMenuItem mi = it.next();
+    for (JMenuItem mi : menuItemsRO) {
       mi.setEnabled(b);
     }
   }
@@ -251,7 +226,7 @@ public class JPrefsTree extends JTree {
     String name = JOptionPane.showInputDialog(this,
                                               "Search for node or value",
                                               "Search",
-                                              JOptionPane.OK_CANCEL_OPTION);
+                                              JOptionPane.QUESTION_MESSAGE);
     if(name == null || "".equals(name)) {
       return;
     }
@@ -261,7 +236,7 @@ public class JPrefsTree extends JTree {
 
   public void searchAndExpand(String name, int maxLevel) {
     try {
-      Collection<TreePath> paths = new LinkedHashSet<TreePath>();
+      Collection<TreePath> paths = new LinkedHashSet<>();
       TreePath tp = new TreePath(getModel().getRoot());
       search(tp, paths, name.toLowerCase(), true, 0, maxLevel);
 
@@ -293,17 +268,17 @@ public class JPrefsTree extends JTree {
 
     Preferences p = node.getPrefs();
 
-    if(-1 != p.name().toLowerCase().indexOf(q)) {
+    if(p.name().toLowerCase().contains(q)) {
       paths.add(tp);
     }
     String[] keys = p.keys();
-    for(int i = 0; i < keys.length; i++) {
-      if(-1 != keys[i].toLowerCase().indexOf(q)) {
+    for (String key : keys) {
+      if (key.toLowerCase().contains(q)) {
         paths.add(tp);
       }
-      if(bMatchValues) {
-        String val = p.get(keys[i], null);
-        if(val != null && (-1 != val.toLowerCase().indexOf(q))) {
+      if (bMatchValues) {
+        String val = p.get(key, null);
+        if (val != null && (val.toLowerCase().contains(q))) {
           paths.add(tp);
         }
       }
@@ -326,7 +301,7 @@ public class JPrefsTree extends JTree {
       String name = JOptionPane.showInputDialog(this,
                                                 "New node name",
                                                 "New node...",
-                                                JOptionPane.YES_NO_OPTION);
+                                                JOptionPane.QUESTION_MESSAGE);
 
       if(name != null && !"".equals(name)) {
         Collection<TreePath> oldPaths = TreeUtils.getExpandedPaths(this);
@@ -403,7 +378,7 @@ public class JPrefsTree extends JTree {
       String name = JOptionPane.showInputDialog(this,
                                                 "New key name",
                                                 "New key...",
-                                                JOptionPane.YES_NO_OPTION);
+                                                JOptionPane.QUESTION_MESSAGE);
       if(name != null && !"".equals(name)) {
         PrefsTreeNode node = (PrefsTreeNode)tp.getLastPathComponent();
         node.getPrefs().put(name, node.getPrefs().get(name, ""));
@@ -431,17 +406,13 @@ public class JPrefsTree extends JTree {
     int returnVal = fc.showOpenDialog(this);
     if(returnVal == JFileChooser.APPROVE_OPTION) {
 
-      OutputStream out = null;
-      try {
-        PrefsTreeNode node = (PrefsTreeNode)paths[0].getLastPathComponent();
+      File f = fc.getSelectedFile();
+      try (OutputStream out = new FileOutputStream(f)) {
+        PrefsTreeNode node = (PrefsTreeNode) paths[0].getLastPathComponent();
 
-        File f = fc.getSelectedFile();
-        out = new FileOutputStream(f);
         node.getPrefs().exportSubtree(out);
       } catch (Exception e) {
         Activator.log.warn("Failed to export", e);
-      } finally {
-        try { out.close(); } catch (Exception ignored) { }
       }
     }
   }

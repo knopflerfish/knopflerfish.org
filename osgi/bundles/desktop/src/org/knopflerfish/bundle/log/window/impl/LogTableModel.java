@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ public class LogTableModel extends AbstractTableModel {
 
   private int capacity = 342;
 
-  private final ArrayList<ExtLogEntry> entries = new ArrayList<ExtLogEntry>();
+  private final ArrayList<ExtLogEntry> entries;
 
   static final int COL_ID        = 0;
   static final int COL_BID       = 1;
@@ -100,9 +100,10 @@ public class LogTableModel extends AbstractTableModel {
     if (null!=capacityS && capacityS.length()>0) {
       try {
         capacity = Integer.parseInt(capacityS.trim());
-      } catch (NumberFormatException nfe){
+      } catch (NumberFormatException ignored){
       }
     }
+    entries = new ArrayList<>();
     if (capacity>0) {
       entries.ensureCapacity(capacity);
     }
@@ -130,8 +131,7 @@ public class LogTableModel extends AbstractTableModel {
   }
 
   ExtLogEntry getEntry(int row) {
-    final ExtLogEntry e = (ExtLogEntry)entries.get(row);
-    return e;
+    return entries.get(row);
   }
 
 
@@ -148,12 +148,12 @@ public class LogTableModel extends AbstractTableModel {
 
     switch(col) {
     case COL_ID:
-      return new Long(e.getId());
+      return e.getId();
     case COL_BID:
       final Bundle b = e.getBundle();
-      return null!=b ? (Object) new Long(b.getBundleId()) : (Object)"";
+      return null != b ? (Object) b.getBundleId() : "";
     case COL_LEVEL:
-      return Util.levelString(e.getLevel());
+      return Util.levelString(e.getLogLevel());
     case COL_TIME:
       return new Date(e.getTime());
     case COL_MESSAGE:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 package org.knopflerfish.bundle.desktop.prefs;
-
 
 /**
  * Extension interface to java.util.Preferences
@@ -47,12 +45,12 @@ package org.knopflerfish.bundle.desktop.prefs;
  */
 public interface ExtPreferences {
 
-  public static final String TYPE_INT     = Integer.TYPE.getName();
-  public static final String TYPE_LONG    = Long.TYPE.getName();
-  public static final String TYPE_BOOLEAN = Boolean.TYPE.getName();
-  public static final String TYPE_DOUBLE  = Double.TYPE.getName();
-  public static final String TYPE_STRING  = "String";
-  public static final String TYPE_COLOR   = "Color";
+  String TYPE_INT     = Integer.TYPE.getName();
+  String TYPE_LONG    = Long.TYPE.getName();
+  String TYPE_BOOLEAN = Boolean.TYPE.getName();
+  String TYPE_DOUBLE  = Double.TYPE.getName();
+  String TYPE_STRING  = "String";
+  String TYPE_COLOR   = "Color";
 
   /**
    * Property name for description information.
@@ -65,7 +63,7 @@ public interface ExtPreferences {
    * Value is "desc"
    * </p>
    */
-  public static final String PROP_DESC = "desc";
+  String PROP_DESC = "desc";
 
   /**
    * Property name for type information.
@@ -78,9 +76,10 @@ public interface ExtPreferences {
    * Value is "type"
    * </p>
    */
-  public static final String PROP_TYPE        = "type";
+  String PROP_TYPE        = "type";
 
-  public static final String PROP_RESOLVED    = "resolved";
+  @SuppressWarnings("unused")
+  String PROP_RESOLVED    = "resolved";
 
   /**
    * Returns an extended property of a preference node's key
@@ -90,7 +89,7 @@ public interface ExtPreferences {
    *
    * @param defValue of extended property or <tt>defValue</tt> if not defined.
    */
-  public String  getProperty(String key, String propName, String defValue);
+  String getProperty(String key, String propName, String defValue);
 
   /**
    * Set an extentended property of a prefererence node's key
@@ -99,10 +98,10 @@ public interface ExtPreferences {
    * @param propName name of extended property for the key
    * @param val new value for the propName extended property
    */
-  public void    setProperty(String key, String propName, String val);
+  void setProperty(String key, String propName, String val);
 
   /**
    * Get array of property names.
    */
-  public String[] getExtPropNames(String key);
+  String[] getExtPropNames(String key);
 }

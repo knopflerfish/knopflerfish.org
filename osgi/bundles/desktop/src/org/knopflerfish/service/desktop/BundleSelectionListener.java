@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,5 +53,5 @@ public interface BundleSelectionListener {
    * @param bid Bundle ID that has changes, or -1 if the model has
    *          become empty.
    */
-  public void valueChanged(long bid);
+  void valueChanged(long bid);
 }

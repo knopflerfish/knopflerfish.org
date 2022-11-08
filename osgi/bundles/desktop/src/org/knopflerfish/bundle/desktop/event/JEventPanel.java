@@ -42,17 +42,12 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -70,7 +65,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -83,8 +77,7 @@ import org.osgi.service.event.Event;
 public class JEventPanel extends JPanel implements ClipboardOwner {
   private static final long serialVersionUID = 1L;
 
-  JTextArea text;
-  JComboBox topicC;
+  JComboBox<String> topicC;
   JTextField filterC;
 
   EventTableModel model;
@@ -93,16 +86,16 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
   JPopupMenu    popup;
   Color txtColor;
 
-  DefaultComboBoxModel topicModel;
-  DefaultListModel allTopics;
-  DefaultListModel allKeys;
+  DefaultComboBoxModel<String> topicModel;
+  DefaultListModel<String> allTopics;
+  DefaultListModel<String> allKeys;
 
   Set<String> selectedKeys;
 
   boolean popupOK = false;
 
-  public JEventPanel(DefaultListModel allTopics,
-                     DefaultListModel allKeys,
+  public JEventPanel(DefaultListModel<String> allTopics,
+                     DefaultListModel<String> allKeys,
                      Set<String>      selectedKeys,
                      EventTableModel   model,
                      JEventEntryDetail logEntryDetail,
@@ -110,12 +103,12 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     super(new BorderLayout());
     this.allTopics = allTopics;
     this.allKeys   = allKeys;
-    this.selectedKeys = new LinkedHashSet<String>();
+    this.selectedKeys = new LinkedHashSet<>();
     this.selectedKeys.addAll(selectedKeys);
     this.model = model;
 
-    topicModel = new DefaultComboBoxModel();
-    topicC     = new JComboBox(topicModel);
+    topicModel = new DefaultComboBoxModel<>();
+    topicC     = new JComboBox<>(topicModel);
     topicC.setEditable(true);
 
     allTopics.addListDataListener(new ListDataListener() {
@@ -181,12 +174,11 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     updateTableModel();
 
     topicC.setMaximumSize(new Dimension(120, 50));
-    topicC.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          String topicS = topicC.getSelectedItem().toString();
-          setTopic(topicS);
-        }
-      });
+    topicC.addActionListener(e -> {
+      final Object selectedItem = topicC.getSelectedItem();
+      String topicS = selectedItem == null ? null : selectedItem.toString();
+      setTopic(topicS);
+    });
 
     tPanel.add(topicC, BorderLayout.CENTER);
 
@@ -200,26 +192,24 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
     filterC = new JTextField(model.getDispatcher().getFilter(), 8);
     txtColor = filterC.getForeground();
-    filterC.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          String filterS = filterC.getText().trim();
-          try {
-            if(filterS.length() > 0) {
-              // Validate textual filter.
-              org.knopflerfish.bundle.desktop.swing.Activator.getBC().createFilter(filterS);
-            }
-            filterC.setToolTipText("Event filter");
-            filterC.setForeground(txtColor);
-            JEventPanel.this.model.clear();
-            JEventPanel.this.model.getDispatcher().setFilter(filterS);
-          } catch (Exception ex) {
-            System.out.println("bad filter " + filterS + ", " + ex.getMessage());
-            filterC.setForeground(Color.red);
-            filterC.setToolTipText(ex.getMessage());
-          }
-
+    filterC.addActionListener(e -> {
+      String filterS = filterC.getText().trim();
+      try {
+        if(filterS.length() > 0) {
+          // Validate textual filter.
+          org.knopflerfish.bundle.desktop.swing.Activator.getBC().createFilter(filterS);
         }
-      });
+        filterC.setToolTipText("Event filter");
+        filterC.setForeground(txtColor);
+        JEventPanel.this.model.clear();
+        JEventPanel.this.model.getDispatcher().setFilter(filterS);
+      } catch (Exception ex) {
+        System.out.println("bad filter " + filterS + ", " + ex.getMessage());
+        filterC.setForeground(Color.red);
+        filterC.setToolTipText(ex.getMessage());
+      }
+
+    });
 
     fPanel.add(filterC, BorderLayout.CENTER);
 
@@ -227,29 +217,17 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
     JButton newButton = new JButton("New");
     newButton.setToolTipText("New event view window");
-    newButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          newWindow();
-        }
-      });
+    newButton.addActionListener(e -> newWindow());
 
 
 
     JButton clearButton = new JButton("Clear");
     clearButton.setToolTipText("Clear event list");
-    clearButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          JEventPanel.this.model.clear();
-        }
-      });
+    clearButton.addActionListener(e -> JEventPanel.this.model.clear());
 
     JButton sendButton = new JButton("Send...");
     sendButton.setToolTipText("Send event...");
-    sendButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          openSendFrame();
-        }
-      });
+    sendButton.addActionListener(e -> openSendFrame());
 
     JPanel p2 = new JPanel();
     p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
@@ -309,11 +287,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              copyToClipBoard();
-            }
-          });
+        addActionListener(ev -> copyToClipBoard());
       }
     };
 
@@ -321,7 +295,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     popupOK = false;
   }
 
-  ArrayList<JCheckBoxMenuItem> cbList = new ArrayList<JCheckBoxMenuItem>();
+  ArrayList<JCheckBoxMenuItem> cbList = new ArrayList<>();
 
   void makePopup() {
     if(popupOK) {
@@ -334,34 +308,31 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
     cbList.clear();
 
-    Set<String> keys = new TreeSet<String>();
-    for(int i = 0; i < allKeys.getSize(); i++) {
-      String val = allKeys.getElementAt(i).toString();
+    Set<String> keys = new TreeSet<>();
+    for (int i = 0; i < allKeys.getSize(); i++) {
+      String val = allKeys.getElementAt(i);
       keys.add(val);
     }
-    for(Iterator<String> it = keys.iterator(); it.hasNext(); ) {
-      final String val = it.next();
+    for (final String val : keys) {
       final JCheckBoxMenuItem cb = new JCheckBoxMenuItem(val);
-      if(selectedKeys.contains(val)) {
+      if (selectedKeys.contains(val)) {
         cb.setState(true);
       }
       cbList.add(cb);
-      cb.addItemListener(new ItemListener() {
-          public void   itemStateChanged(ItemEvent e) {
-            if(cb.getState()) {
-              selectedKeys.add(val);
-            } else {
-              selectedKeys.remove(val);
+      cb.addItemListener(e -> {
+        if (cb.getState()) {
+          selectedKeys.add(val);
+        } else {
+          selectedKeys.remove(val);
 
-              // avoid zero-column table
-              if(selectedKeys.size() == 0) {
-                selectedKeys.add(val);
-                cb.setState(true);
-              }
-            }
-            updateTableModel();
+          // avoid zero-column table
+          if (selectedKeys.size() == 0) {
+            selectedKeys.add(val);
+            cb.setState(true);
           }
-        });
+        }
+        updateTableModel();
+      });
       popup.add(cb);
     }
 
@@ -369,18 +340,18 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
   }
 
   void updateTableModel() {
-    ArrayList<String> names = new ArrayList<String>(selectedKeys);
+    ArrayList<String> names = new ArrayList<>(selectedKeys);
     model.setColumns(names);
   }
 
   void updateTopics() {
-    DefaultComboBoxModel cbModel = new DefaultComboBoxModel();
+    DefaultComboBoxModel<String> cbModel = new DefaultComboBoxModel<>();
     for(int i = 0; i < topicModel.getSize(); i++) {
-      Object val = topicModel.getElementAt(i);
+      String val = topicModel.getElementAt(i);
       cbModel.addElement(val);
     }
     for(int i = 0; i < allTopics.getSize(); i++) {
-      Object val = allTopics.getElementAt(i);
+      String val = allTopics.getElementAt(i);
       if(-1 == cbModel.getIndexOf(val)) {
         cbModel.addElement(val);
       }

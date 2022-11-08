@@ -67,6 +67,7 @@ public class ExtLogEntry implements LogEntry {
     return entry.getServiceReference();
   }
 
+  @Deprecated
   public int getLevel() {
     return entry.getLevel();
   }
@@ -113,7 +114,7 @@ public class ExtLogEntry implements LogEntry {
     StringBuilder sb = new StringBuilder();
     sb.append(getId());
     sb.append(": ").append(new Date(getTime()));
-    sb.append("  ").append(Util.levelString(getLevel()));
+    sb.append("  ").append(getLogLevel());
 
     sb.append(" #").append(getBundle().getBundleId());
     sb.append(" ").append(Util.getBundleName(getBundle()));

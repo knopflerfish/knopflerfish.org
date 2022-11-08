@@ -223,6 +223,7 @@ public class JBundleHistory extends JPanel {
       g.fillRect(0, 0, size.width, size.height);
 
       int width  = Math.min(size.width, size.height);
+      @SuppressWarnings("SuspiciousNameCombination")
       int height = width;
 
       double fx = (double) width / icon.getIconWidth();

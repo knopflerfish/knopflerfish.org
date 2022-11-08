@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,26 +83,24 @@ public class JPrefsEditor extends JPanel {
     panel.setEditable(true);
     panel.setPreferredSize(new Dimension(400, 300));
 
-    tree.addTreeSelectionListener(new TreeSelectionListener() {
-        public void 	valueChanged(TreeSelectionEvent ev) {
-          TreePath path = ev.getPath();
-          Object   node = path.getLastPathComponent();
-          
-          if(node instanceof PrefsTreeNode) {
-            try {
-              PrefsTreeNode pNode = (PrefsTreeNode)node;
-              if(pNode.getPrefs().nodeExists("")) {
-                Preferences prefs = pNode.getPrefs();
-                panel.setPreferences(prefs);
-              }
-            } catch (BackingStoreException e) {
-              Activator.log.warn("Failed to get keys", e);
-            } catch (IllegalStateException e) {
-              Activator.log.warn("hohum", e);
-            }
+    tree.addTreeSelectionListener(ev -> {
+      TreePath path = ev.getPath();
+      Object   node = path.getLastPathComponent();
+
+      if(node instanceof PrefsTreeNode) {
+        try {
+          PrefsTreeNode pNode = (PrefsTreeNode)node;
+          if(pNode.getPrefs().nodeExists("")) {
+            Preferences prefs = pNode.getPrefs();
+            panel.setPreferences(prefs);
           }
+        } catch (BackingStoreException e) {
+          Activator.log.warn("Failed to get keys", e);
+        } catch (IllegalStateException e) {
+          Activator.log.warn("hohum", e);
         }
-      });
+      }
+    });
     
     JScrollPane treeScroll  = new JScrollPane(tree);
     treeScroll.setPreferredSize(new Dimension(200, 400));
@@ -152,7 +150,7 @@ public class JPrefsEditor extends JPanel {
       });
 
 
-      Preferences root = null;
+      Preferences root;
       
       root = Preferences.systemRoot();
 

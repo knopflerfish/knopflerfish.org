@@ -33,11 +33,9 @@
  */
 package org.knopflerfish.bundle.desktop.swing.graph;
 
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 
 import org.knopflerfish.bundle.desktop.swing.Activator;
 import org.knopflerfish.bundle.desktop.swing.PackageManager;
@@ -45,10 +43,7 @@ import org.knopflerfish.bundle.desktop.swing.Util;
 import org.osgi.framework.Bundle;
 import org.osgi.service.packageadmin.ExportedPackage;
 
-
-public class PackageNode
-  extends BundleNode
-{
+public class PackageNode extends BundleNode {
   Collection<DefaultLink> inLinks;
   Collection<DefaultLink> outLinks;
 
@@ -77,7 +72,7 @@ public class PackageNode
   public Collection<DefaultLink> getOutLinks() {
     if(outLinks == null) {
       try {
-        outLinks = new ArrayList<DefaultLink>();
+        outLinks = new ArrayList<>();
 
         Color colA = Util.rgbInterpolate(baseColor, burnColor, (double)depth/3);
         Collection<ExportedPackage> pkgs = pm.getExportedPackages(b);
@@ -89,14 +84,14 @@ public class PackageNode
           Bundle[] bl = pkg.getImportingBundles();
           String sId = pkg.getName() +";" + pkg.getVersion();
 
-          if(bl == null || bl.length == 0) {
+          if (bl == null || bl.length == 0) {
             StringBuilder lId = new StringBuilder();
             lId.append(getId());
             lId.append("/");
             lId.append("out.");
             lId.append(sId);
             lId.append(".");
-            lId.append(Long.toString(b.getBundleId()));
+            lId.append(b.getBundleId());
 
             StringBuilder nId = new StringBuilder();
             nId.append(getId());
@@ -104,37 +99,41 @@ public class PackageNode
             nId.append(lId.toString());
             nId.append(".none");
 
-            String name = sId.toString();
-            DefaultLink link =
-              new DefaultLink(this, new EmptyNode("none", depth+1, nId.toString()),
-                              depth+1, lId.toString(), name);
+            DefaultLink link = new DefaultLink(
+                this,
+                new EmptyNode("none", depth+1, nId.toString()),
+                depth + 1,
+                lId.toString(),
+                sId
+            );
             link.setColor(col);
             outLinks.add(link);
           } else {
-            for(int j = 0; j < bl.length; j++) {
+            for (Bundle bundle : bl) {
               StringBuilder lId = new StringBuilder();
               lId.append(getId());
               lId.append("/");
               lId.append("out.");
               lId.append(sId);
               lId.append(".");
-              lId.append(Long.toString(b.getBundleId()));
+              lId.append(b.getBundleId());
               lId.append(".");
-              lId.append(Long.toString(bl[j].getBundleId()));
+              lId.append(bundle.getBundleId());
 
               StringBuilder nId = new StringBuilder();
               nId.append(getId());
               nId.append("/");
               nId.append(lId.toString());
               nId.append(".");
-              nId.append(Long.toString(bl[j].getBundleId()));
+              nId.append(bundle.getBundleId());
 
-              String name = sId.toString();
-
-              DefaultLink link =
-                new DefaultLink(this,
-                                new PackageNode(pm, bl[j], depth+1, nId.toString()),
-                                depth+1, lId.toString(), name);
+              DefaultLink link = new DefaultLink(
+                  this,
+                  new PackageNode(pm, bundle, depth + 1, nId.toString()),
+                  depth + 1,
+                  lId.toString(),
+                  sId
+              );
               link.setColor(col);
               outLinks.add(link);
             }
@@ -142,36 +141,35 @@ public class PackageNode
         }
 
         if(bFragments) {
-          Bundle bl[] = pm.getHosts(b) ;
+          Bundle[] bl = pm.getHosts(b) ;
           Color col = Util.rgbInterpolate(baseFragmentColor, burnFragmentColor, (double)depth/3);
-          for(int i = 0; i < bl.length; i++) {
-            String sId = "fragment:" + b.getBundleId() + ":" + bl[i].getBundleId();
+          for (Bundle bundle : bl) {
+            String sId = "fragment:" + b.getBundleId() + ":" + bundle.getBundleId();
             String lId =
-              getId() + "/" +
-              "fragout." + sId +
-              "." + b.getBundleId() +
-              "." + bl[i].getBundleId();
+                getId() + "/" +
+                    "fragout." + sId +
+                    "." + b.getBundleId() +
+                    "." + bundle.getBundleId();
 
             String nId =
-              getId() + "/" +
-              lId +
-              "." + bl[i].getBundleId();
+                getId() + "/" +
+                    lId +
+                    "." + bundle.getBundleId();
 
-            String name = "Fragment to " + Util.getBundleName(bl[i]);
+            String name = "Fragment to " + Util.getBundleName(bundle);
 
             Node node;
-            node = new PackageNode(pm, bl[i], depth+1, nId);
+            node = new PackageNode(pm, bundle, depth + 1, nId);
 
-            DefaultLink link =  new DefaultLink(this, node,
-                                                depth+1, lId, name);
+            DefaultLink link = new DefaultLink(this, node,
+                depth + 1, lId, name);
 
             link.setColor(col);
             link.setType(2);
             outLinks.add(link);
           }
         }
-        for(Iterator<DefaultLink> it = outLinks.iterator(); it.hasNext(); ) {
-          DefaultLink link = it.next();
+        for (DefaultLink link : outLinks) {
           link.setDetail(outLinks.size() > 20 ? 10 : 0);
         }
       } catch (Exception e) {
@@ -194,8 +192,7 @@ public class PackageNode
   public Collection<DefaultLink> getInLinks() {
     if(inLinks == null) {
       try {
-        inLinks = new ArrayList<DefaultLink>();
-
+        inLinks = new ArrayList<>();
 
         Collection<ExportedPackage> importedPkgs = pm.getImportedPackages(b);
 
@@ -216,23 +213,22 @@ public class PackageNode
           lId.append("in.");
           lId.append(sId);
           lId.append(".");
-          lId.append(Long.toString(fromB.getBundleId()));
+          lId.append(fromB.getBundleId());
           lId.append(".");
-          lId.append(Long.toString(b.getBundleId()));
+          lId.append(b.getBundleId());
 
           StringBuilder nId = new StringBuilder();
           nId.append(getId());
           nId.append("/");
           nId.append(lId.toString());
-          nId.append(Long.toString(fromB.getBundleId()));
+          nId.append(fromB.getBundleId());
 
-          String name = sId.toString();
-
-          PackageNode node = new PackageNode(pm, fromB, depth+1,
-                                             nId.toString());
-          DefaultLink link =  new DefaultLink(node,
-                                              this,
-                                              depth+1, lId.toString(), name);
+          PackageNode node = new PackageNode(
+              pm, fromB,depth + 1, nId.toString()
+          );
+          DefaultLink link =  new DefaultLink(
+              node, this, depth+1, lId.toString(), sId
+          );
           link.setType(-1);
           link.setColor(col);
           inLinks.add(link);
@@ -256,16 +252,16 @@ public class PackageNode
               lId.append("fragin.");
               lId.append(sId);
               lId.append(".");
-              lId.append(Long.toString(bl[i].getBundleId()));
+              lId.append(bl[i].getBundleId());
               lId.append(".");
-              lId.append(Long.toString(b.getBundleId()));
+              lId.append(b.getBundleId());
 
               StringBuilder nId = new StringBuilder();
               nId.append(getId());
               nId.append("/");
               nId.append(lId.toString());
               nId.append(".");
-              nId.append(Long.toString(b.getBundleId()));
+              nId.append(b.getBundleId());
 
               String name = "Fragment to " + host;
 
@@ -288,18 +284,16 @@ public class PackageNode
           Collection<String> missingImports = pm.getMissingImports(b);
 
           for(String pkgName : missingImports) {
-            Color col = colA;
-            String sId = pkgName;
 
             StringBuilder lId = new StringBuilder();
             lId.append(getId());
             lId.append("/");
             lId.append("in.");
-            lId.append(sId);
+            lId.append(pkgName);
             lId.append(".");
             lId.append("missing");
             lId.append(".");
-            lId.append(Long.toString(b.getBundleId()));
+            lId.append(b.getBundleId());
 
             StringBuilder nId = new StringBuilder();
             nId.append(getId());
@@ -307,22 +301,19 @@ public class PackageNode
             nId.append(lId.toString());
             nId.append("missing");
 
-            String name = sId.toString();
-
             DefaultNode node = new EmptyNode("missing " + pkgName,
                                              depth+1,
                                              nId.toString());
             DefaultLink link =  new DefaultLink(node,
                                                 this,
-                                                depth+1, lId.toString(), name);
+                                                depth+1, lId.toString(), pkgName);
             link.setType(-3);
-            link.setColor(col);
+            link.setColor(colA);
             inLinks.add(link);
           }
         }
 
-        for(Iterator<DefaultLink> it = inLinks.iterator(); it.hasNext(); ) {
-          DefaultLink link = it.next();
+        for (DefaultLink link : inLinks) {
           link.setDetail(inLinks.size() > 20 ? 10 : 0);
         }
       } catch (Exception e) {

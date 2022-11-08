@@ -73,7 +73,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
   }
 
-  class JHTML extends JHTMLBundle {
+  static class JHTML extends JHTMLBundle {
     private static final long serialVersionUID = 1L;
 
     JHTML(DefaultSwingBundleDisplayer displayer) {
@@ -88,7 +88,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       startFont(sb);
 
       final Desktop desktop = Activator.desktop;
-      if (null!=desktop) {
+      if (null != desktop) {
         final PackageManager pm = desktop.getPackageManager();
         if (null!=pm) {
           final PackageAdmin pkgAdmin = pm.getPackageAdmin();
@@ -101,7 +101,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
             boolean useParagraph = false;
 
             final Bundle[] fragmentBundles = pm.getFragments(b); // pkgAdmin.getFragments(b);
-            if (fragmentBundles.length>0) {
+            if (fragmentBundles.length > 0) {
               if (useParagraph) {
                 sb.append("<p>");
               }
@@ -141,7 +141,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
             final RequiredBundle rb = pm.getRequiredBundle(rbl, b);
             final Bundle[] requiringBundles = rb!=null
               ? rb.getRequiringBundles() : null;
-            if (requiringBundles!=null && requiringBundles.length>0) {
+            if (requiringBundles != null && requiringBundles.length > 0) {
               if (useParagraph) {
                 sb.append("<p>");
               }
@@ -149,11 +149,10 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
               if (rb.isRemovalPending()) {
                 sb.append(" (<i>pending removal on refresh</i>)");
               }
-              for (int j=0; requiringBundles!=null && j<requiringBundles.length;
-                   j++) {
+              for (Bundle requiringBundle : requiringBundles) {
                 sb.append("<br>");
                 sb.append("&nbsp;&nbsp");
-                Util.bundleLink(sb, requiringBundles[j]);
+                Util.bundleLink(sb, requiringBundle);
               }
               if (useParagraph) {
                 sb.append("</p>");
@@ -184,7 +183,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
       if(pkgs.size() > 0) {
         sb.append("<b>Exported packages</b>");
-        final List<String> exportDescr  = new ArrayList<String>();
+        final List<String> exportDescr  = new ArrayList<>();
         for (final ExportedPackage pkg : pkgs) {
           final StringBuilder sb1 = new StringBuilder();
 

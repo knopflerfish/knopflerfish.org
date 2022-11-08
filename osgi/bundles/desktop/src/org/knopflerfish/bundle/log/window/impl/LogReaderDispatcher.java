@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ public class LogReaderDispatcher
   }
 
   Hashtable<ServiceReference<LogReaderService>, LogReaderService> logReaders =
-    new Hashtable<ServiceReference<LogReaderService>, LogReaderService>();
+      new Hashtable<>();
 
   public void clearAll()
   {
@@ -96,7 +96,7 @@ public class LogReaderDispatcher
   {
     // Note that the enumeration of log entries returned by LogReader.getLog()
     // is in the reverse order (latest entry first).
-    final ArrayList <LogEntry> entries = new ArrayList<LogEntry>();
+    final ArrayList <LogEntry> entries = new ArrayList<>();
     for (final LogReaderService lr : logReaders.values()) {
       for (@SuppressWarnings("unchecked")
       final Enumeration<LogEntry> e = lr.getLog(); e.hasMoreElements();) {
@@ -121,13 +121,11 @@ public class LogReaderDispatcher
   public void serviceChanged(ServiceEvent ev)
   {
     @SuppressWarnings("unchecked")
-    final
-    ServiceReference<LogReaderService> sr =
+    final ServiceReference<LogReaderService> sr =
       (ServiceReference<LogReaderService>) ev.getServiceReference();
 
     final LogReaderService lr =
-      logReaders.containsKey(sr) ? logReaders.get(sr) : (LogReaderService) bc
-          .getService(sr);
+      logReaders.containsKey(sr) ? logReaders.get(sr) : bc.getService(sr);
 
     if (null != lr) {
       switch (ev.getType()) {
@@ -156,12 +154,10 @@ public class LogReaderDispatcher
    *          A <code>LogEntry</code> object containing log information.
    * @see LogEntry
    */
-  public void logged(LogEntry entry)
-  {
+  public void logged(LogEntry entry) {
     final ExtLogEntry extEntry = new ExtLogEntry(entry, idCount++);
     SwingUtilities.invokeLater(new Runnable() {
-      public void run()
-      {
+      public void run() {
         try {
           model.logged(extEntry);
         } catch (final Exception e) {
@@ -177,12 +173,10 @@ public class LogReaderDispatcher
    *
    * @param entries List of log entries to add to the model.
    */
-  private void logged(final List<LogEntry> entries)
-  {
+  private void logged(final List<LogEntry> entries) {
     // Like a call to logged(LogEntry) but with
     SwingUtilities.invokeLater(new Runnable() {
-      public void run()
-      {
+      public void run() {
         for (final LogEntry entry : entries) {
           try {
             final ExtLogEntry extEntry = new ExtLogEntry(entry, idCount++);

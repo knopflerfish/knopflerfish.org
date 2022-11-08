@@ -1207,7 +1207,7 @@ public class Desktop
 
   FrameworkStartLevel getFrameworkStartLevel()
   {
-    final Bundle systemBundle = Activator.getTargetBC_getBundle(0L);
+    final Bundle systemBundle = Activator.getSystemBundle();
     return systemBundle.adapt(FrameworkStartLevel.class);
   }
 

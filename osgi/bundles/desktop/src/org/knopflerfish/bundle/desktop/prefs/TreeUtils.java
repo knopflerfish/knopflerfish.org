@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@ package org.knopflerfish.bundle.desktop.prefs;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.TreeSet;
 
 import javax.swing.JTree;
@@ -48,22 +47,18 @@ import javax.swing.tree.TreePath;
 public class TreeUtils {
 
   static public Collection<TreePath> getExpandedPaths(JTree tree) {
-    Collection<TreePath> set = new TreeSet<TreePath>(tpLengthComparator);
+    Collection<TreePath> set = new TreeSet<>(tpLengthComparator);
     TreePath root = new TreePath(tree.getModel().getRoot());
-    if(root != null) {
-      for(Enumeration<TreePath> e = tree.getExpandedDescendants(root); e != null && e.hasMoreElements(); ) {
-        TreePath tp = e.nextElement();
-        set.add(tp);
-      }
+    for(Enumeration<TreePath> e = tree.getExpandedDescendants(root); e != null && e.hasMoreElements(); ) {
+      TreePath tp = e.nextElement();
+      set.add(tp);
     }
     return set;
   }
   
   static public void expandPaths(JTree tree, Collection<TreePath> paths) {
     if(paths != null) {
-      for(Iterator<TreePath> it = paths.iterator(); it.hasNext(); ) {
-        TreePath tp = it.next();
-        
+      for (TreePath tp : paths) {
         expandPath(tree, tp);
       }
     }
@@ -105,15 +100,13 @@ public class TreeUtils {
   }
 
 
-  public static Comparator<TreePath> tpLengthComparator = new Comparator<TreePath>() {
-      public int compare(TreePath tp1, TreePath tp2) {
-        Object[] a1 = tp1.getPath();
-        Object[] a2 = tp2.getPath();
-        
-        int n1 = a1 != null ? a1.length : 0;
-        int n2 = a2 != null ? a2.length : 0;
-        
-        return n1 - n2;
-      }
-    };
+  public static Comparator<TreePath> tpLengthComparator = (tp1, tp2) -> {
+    Object[] a1 = tp1.getPath();
+    Object[] a2 = tp2.getPath();
+
+    int n1 = a1.length;
+    int n2 = a2.length;
+
+    return n1 - n2;
+  };
 }

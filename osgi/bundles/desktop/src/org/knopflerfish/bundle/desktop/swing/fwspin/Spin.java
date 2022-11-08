@@ -75,6 +75,7 @@ import org.knopflerfish.bundle.desktop.swing.Activator;
 /**
  * @author Erik Wistrand
  */
+@SuppressWarnings("SameParameterValue")
 public class Spin extends JPanel implements Runnable, BundleListener, ServiceListener {
   private static final long serialVersionUID = 1L;
   
@@ -102,12 +103,11 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   double deltaA = Math.PI * 1.5;
   double aStep  = Math.PI * 2 / 120;
 
-  Map<Long, BX> bundles  = new TreeMap<Long, BX>();
-  Map<ServiceReference<?>, SX> services = new HashMap<ServiceReference<?>, SX>();
-  Map<SpinItem, SpinItem> active   = new HashMap<SpinItem, SpinItem>();
+  final Map<Long, BX> bundles  = new TreeMap<>();
+  final Map<ServiceReference<?>, SX> services = new HashMap<>();
+  final Map<SpinItem, SpinItem> active   = new HashMap<>();
 
-  Object paintLock = services;
-
+  final Object paintLock = services;
 
   double fontSize = 1.0;
 
@@ -118,7 +118,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
   Console console;
 
-  public KeyListener kl = null;
+  public KeyListener kl;
 
   Color bgColor   = new Color(20, 20, 80);
   Color textColor = bgColor.brighter().brighter().brighter();
@@ -172,11 +172,11 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       });
 
     center = new SpinItem() {
-        public void    paint(Graphics g) { };
-        public void    paintDependencies(Graphics g) { };
-        public void    paintInfo(Graphics g, double x, double y) { };
-        public boolean isActive() { return false; }
-      };
+      public void    paint(Graphics g) { }
+      public void    paintDependencies(Graphics g) { }
+      public void    paintInfo(Graphics g, double x, double y) { }
+      public boolean isActive() { return false; }
+    };
 
     addKeyListener(kl = new KeyAdapter() {
         public void keyPressed(KeyEvent e) {
@@ -225,21 +225,19 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
             {
               if(mouseActive != null) {
                 final SpinItem item = mouseActive;
-                Runnable run = new Runnable() {
-                    public void run() {
-                      while(deltaA < 0) deltaA += Math.PI * 2;
-                      while(deltaA > -item.getAngle()) {
-                        deltaA -= Math.PI / 50;
-                        bxNeedRecalc = true;
-                        sxNeedRecalc = true;
-                        repaint();
-                        try {
-                          Thread.sleep(20);
-                        } catch (Exception e) { }
-                      }
-                      deltaA = -item.getAngle();
-                    }
-                  };
+                Runnable run = () -> {
+                  while(deltaA < 0) deltaA += Math.PI * 2;
+                  while(deltaA > -item.getAngle()) {
+                    deltaA -= Math.PI / 50;
+                    bxNeedRecalc = true;
+                    sxNeedRecalc = true;
+                    repaint();
+                    try {
+                      Thread.sleep(20);
+                    } catch (Exception ignored) { }
+                  }
+                  deltaA = -item.getAngle();
+                };
                 Thread t = new Thread(run, "spin thread");
                 t.start();
               }
@@ -318,6 +316,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
   }
 
+  @SuppressWarnings("unused")
   void handleConsole(KeyEvent e) {
   }
 
@@ -333,10 +332,9 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
     lineCount++;
     console.addLine("count=" + lineCount);
-    if(bShowConsole) {
+    if (bShowConsole) {
       console.setBounds(10, size.height / 2,
                         size.width - 10, size.height - 10);
-    } else {
     }
     repaint();
   }
@@ -391,7 +389,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       SX   sx = (SX)mouseActive;
       Long id = (Long)sx.sr.getProperty("service.id");
 
-      SX sx2 = getSX(id.longValue() + delta);
+      SX sx2 = getSX(id + delta);
       if(sx2 != null) {
         mouseActive = sx2;
         repaint();
@@ -407,16 +405,15 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     initFonts("Dialog");
   }
 
-
   void initFonts(String name) {
     fonts = new Font[fontMax - fontMin + 1];
     int n = 0;
-    for(int i = fontMin; i <= fontMax; i++) {
+    for (int i = fontMin; i <= fontMax; i++) {
       int h = (int)(fontSize * i);
-      if(bStepSize && i < fontMax) {
+      if (bStepSize && i < fontMax) {
         h = (int)(fontMin * fontSize);
       }
-      Font f = new Font("Dialog", Font.PLAIN, h);
+      Font f = new Font(name, Font.PLAIN, h);
       fonts[n++] = f;
     }
   }
@@ -467,18 +464,11 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     return fonts[i];
   }
 
-  public void forceRepaint() {
-    bxNeedRecalc = true;
-    sxNeedRecalc = true;
-    //    System.out.println("forceRepaint");
-    repaint();
-  }
-
   boolean bxNeedRecalc = false;
   boolean sxNeedRecalc = false;
 
   public void bundleChanged(BundleEvent ev) {
-    Long    id = new Long(ev.getBundle().getBundleId());
+    Long    id = ev.getBundle().getBundleId();
     synchronized(bundles) {
       BX bx = bundles.get(id);
 
@@ -512,8 +502,8 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
       boolean isPAdmin = false;
       if (objClass !=  null) {
-        for (int i=0; i<objClass.length; i++) {
-          if (PackageAdmin.class.getName().equals(objClass[i])) {
+        for (String aClass : objClass) {
+          if (PackageAdmin.class.getName().equals(aClass)) {
             isPAdmin = true;
           }
         }
@@ -615,7 +605,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       while(bRun) {
 
         long startTime = System.currentTimeMillis();
-        synchronized(paintLock) {
+        synchronized (paintLock) {
           updateAll();
           paintAll();
         }
@@ -687,7 +677,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     if(item == null) return;
 
     StringBuilder sb = new StringBuilder();
-    getDeps(sb, new Hashtable<String, String>(), item, 0);
+    getDeps(sb, new Hashtable<>(), item, 0);
 
 
     String name = "";
@@ -751,9 +741,9 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     String[] lines = split(s, "\n");
 
     int maxCols = 0;
-    for(int i = 0; i <lines.length; i++) {
-      if(lines[i].length() > maxCols) {
-        maxCols = lines[i].length();
+    for (String line : lines) {
+      if (line.length() > maxCols) {
+        maxCols = line.length();
       }
     }
 
@@ -781,13 +771,13 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       }
     }
 
-    for(int i = 0; i <lines.length; i++) {
-      int ix = lines[i].indexOf("\t");
-      if(ix != -1) {
-        g.drawString(lines[i].substring(0, ix),  x, y);
-        g.drawString(lines[i].substring(ix + 1), x+font.getSize()*4, y);
+    for (String line : lines) {
+      int ix = line.indexOf("\t");
+      if (ix != -1) {
+        g.drawString(line.substring(0, ix), x, y);
+        g.drawString(line.substring(ix + 1), x + font.getSize() * 4, y);
       } else {
-        g.drawString(lines[i], x, y);
+        g.drawString(line, x, y);
       }
       y += font.getSize() + 3;
     }
@@ -855,21 +845,13 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
   boolean bAntiAlias = true;
 
-  public void setAntiAlias(boolean b) {
-    bAntiAlias = b;
-  }
-
-  public boolean getAntiAlias() {
-    return bAntiAlias;
-  }
-
   long bgTime, spriteTime, fgTime;
 
   public void update(Graphics g) {
     paint(g);
   }
 
-  public void paint(Graphics _g) {
+  public void paint(Graphics g) {
     //    System.out.println("paint()");
     if(isPainting) return;
     isPainting = true;
@@ -882,8 +864,6 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
           alphaHalf = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .7f);
         }
       }
-
-      Graphics g = _g;
 
       makeOff(false);
 
@@ -1018,6 +998,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
          (size == null || d.width != size.width || d.height != size.height))
         {
           size = d;
+          //noinspection IntegerDivisionInFloatingPointContext
           center.setPos(size.width / 2, size.height / 2);
           bxNeedRecalc = true;
           sxNeedRecalc = true;
@@ -1107,7 +1088,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       SX sx = services.get(sr);
 
       Long sid = (Long) sr.getProperty("service.id");
-      if(sid.longValue() == id) {
+      if(sid == id) {
         return sx;
       }
     }
@@ -1137,7 +1118,7 @@ class SX extends SpinItem {
     this.sr = sr;
     this.spin = spin;
 
-    bid = new Long(sr.getBundle().getBundleId());
+    bid = sr.getBundle().getBundleId();
 
     className = ((String[])sr.getProperty(Constants.OBJECTCLASS))[0]; // TODO: Display all objectclasses?
 
@@ -1191,19 +1172,19 @@ class SX extends SpinItem {
 
   Vector<? extends SpinItem> getNext(int dir) {
 
-    TreeMap<Long, BX> map = new TreeMap<Long, BX>();
+    TreeMap<Long, BX> map = new TreeMap<>();
 
     if((dir & SpinItem.DIR_FROM) != 0) {
       Bundle[] bl = sr.getUsingBundles();
       for(int i = 0; bl != null && i < bl.length; i++) {
         BX bx = spin.getBX(bl[i].getBundleId());
         if(bx != null) {
-          map.put(new Long(bx.b.getBundleId()), bx);
+          map.put(bx.b.getBundleId(), bx);
         }
       }
     }
 
-    Vector<BX> v = new Vector<BX>();
+    Vector<BX> v = new Vector<>();
     for(Long key : map.keySet()) {
       BX bx = map.get(key);
       v.addElement(bx);
@@ -1288,7 +1269,7 @@ class BX extends SpinItem {
 
   Vector<? extends SpinItem> getNext(int dir) {
 
-    Map<Long, BX> map = new TreeMap<Long, BX>();
+    Map<Long, BX> map = new TreeMap<>();
 
     if(spin.pkgAdmin != null) {
 
@@ -1300,7 +1281,7 @@ class BX extends SpinItem {
           for(int j = 0; bl != null && j < bl.length; j++) {
             BX bx = spin.getBX(bl[j].getBundleId());
             if(bx != null) {
-              map.put(new Long(bx.b.getBundleId()), bx);
+              map.put(bx.b.getBundleId(), bx);
             }
           }
         }
@@ -1316,7 +1297,7 @@ class BX extends SpinItem {
             Bundle[] bl =  exp[i].getImportingBundles();
             for(int j = 0; !done && bl != null && j < bl.length; j++) {
               if(bl[j].getBundleId() == b.getBundleId()) {
-                map.put(new Long(bx.b.getBundleId()), bx);
+                map.put(bx.b.getBundleId(), bx);
                 done = true;
               }
             }
@@ -1325,9 +1306,9 @@ class BX extends SpinItem {
       }
     }
 
-    map.remove(new Long(b.getBundleId()));
+    map.remove(b.getBundleId());
 
-    Vector<BX> v = new Vector<BX>();
+    Vector<BX> v = new Vector<>();
     for(Long key : map.keySet()) {
       BX bx = map.get(key);
       v.addElement(bx);
@@ -1384,7 +1365,7 @@ class BX extends SpinItem {
 
     for(Enumeration<String> e = headers.keys(); e.hasMoreElements(); ) {
       final String key = e.nextElement();
-      final String val = (String)headers.get(key);
+      final String val = headers.get(key);
 
       sb.append(key).append(": ").append(val).append("\n");
     }

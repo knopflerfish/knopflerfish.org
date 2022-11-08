@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ package org.knopflerfish.bundle.desktop.prefs;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -61,12 +61,12 @@ public class MountedPreferences
   extends AbstractPreferences
   implements ExtPreferences
 {
-  static final String[]              EMPTY_STRINGS = new String[0];
-  Preferences target;
+  private static final String[] EMPTY_STRINGS = new String[0];
+  private Preferences target;
 
-  Set<NodeChangeListener> nclSet = new LinkedHashSet<NodeChangeListener>();
+  private final Set<NodeChangeListener> nclSet = new LinkedHashSet<>();
 
-  Map<String, Preferences> mounts = new LinkedHashMap<String, Preferences>();
+  private final Map<String, Preferences> mounts = new LinkedHashMap<>();
 
   public MountedPreferences() {
     super(null, "");
@@ -117,11 +117,10 @@ public class MountedPreferences
 
   protected void notifyNCL(NodeChangeEvent evt, boolean bAdded) {
     synchronized(nclSet) {
-      
-      for(Iterator<NodeChangeListener> it = nclSet.iterator(); it.hasNext(); ) {
-        NodeChangeListener ncl = it.next();
+
+      for (NodeChangeListener ncl : nclSet) {
         try {
-          if(bAdded) {
+          if (bAdded) {
             ncl.childAdded(evt);
           } else {
             ncl.childRemoved(evt);
@@ -187,13 +186,11 @@ public class MountedPreferences
 
   // AbstractPreferences implementation
   protected String[] childrenNamesSpi() throws BackingStoreException {
-    Collection<String> set = new LinkedHashSet<String>();
+    Collection<String> set = new LinkedHashSet<>();
 
     if(target != null) {
       String[] names = target.childrenNames();
-      for(int i = 0; i < names.length; i++) {
-        set.add(names[i]);
-      }
+      Collections.addAll(set, names);
     }
     set.addAll(mounts.keySet());
 
@@ -331,8 +328,8 @@ public class MountedPreferences
       Preferences user = Preferences.userRoot();
 
       MountedPreferences root = new MountedPreferences();
-      root.mount((AbstractPreferences)user, "user");
-      root.mount((AbstractPreferences)sys, "sys");
+      root.mount(user, "user");
+      root.mount(sys, "sys");
 
       MountedPreferences test = (MountedPreferences)root.node("test/tjipp");
 

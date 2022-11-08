@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ public class DefaultLink implements Link {
   String id;
   String name;
   Color color = Color.blue;
-  int dir;
   int z;
   int type;
   int detail;

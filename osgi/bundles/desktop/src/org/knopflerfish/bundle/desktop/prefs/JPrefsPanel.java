@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,19 +32,15 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 package org.knopflerfish.bundle.desktop.prefs;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.PreferenceChangeEvent;
@@ -71,7 +67,7 @@ public class JPrefsPanel extends JPanel
   private static final long serialVersionUID = 1L;
 
   Preferences  node;
-  Map<String, JValue> nodeMap = new HashMap<String, JValue>();
+  private final Map<String, JValue> nodeMap = new HashMap<>();
   JPanel       valuePanel;
   boolean      bEditable = true;
   JButton      addButton;
@@ -105,11 +101,7 @@ public class JPrefsPanel extends JPanel
       private static final long serialVersionUID = 1L;
 
       {
-        addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doAddKey();
-          }
-        });
+        addActionListener(ev -> doAddKey());
       }
     };
     addButton.setToolTipText("Add new key");
@@ -134,9 +126,8 @@ public class JPrefsPanel extends JPanel
     
     addButton.setEnabled(b);
     synchronized(nodeMap) {
-      for(Iterator<String> it = nodeMap.keySet().iterator(); it.hasNext(); ) {
-        String   key  = it.next();
-        JValue   jv   = nodeMap.get(key);
+      for (String key : nodeMap.keySet()) {
+        JValue jv = nodeMap.get(key);
         jv.setEditable(bEditable);
       }
     }
@@ -147,7 +138,7 @@ public class JPrefsPanel extends JPanel
       String name = JOptionPane.showInputDialog(this, 
                                                 "New key name",
                                                 "New key...",
-                                                JOptionPane.YES_NO_OPTION);
+                                                JOptionPane.QUESTION_MESSAGE);
       if(name != null && !"".equals(name)) {  
         node.put(name, node.get(name, ""));
         node.flush();
@@ -176,64 +167,60 @@ public class JPrefsPanel extends JPanel
   public void 	preferenceChange(PreferenceChangeEvent ev) {
   // log.info("JPrefsPanel.preferenceChange ev=" + ev);
 
-    SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-  
-          boolean bNeedUpdate = false;
-          
-          synchronized(nodeMap) {
-            HashSet<String> removeSet = new HashSet<String>();
-            
-            for(Iterator<String> it = nodeMap.keySet().iterator(); it.hasNext(); ) {
-              String   key  = it.next();
-              if(null == node.get(key, null)) {
-                removeSet.add(key);
-              } else {
-                JValue   jv   = nodeMap.get(key);
-                jv.update();
-              }
-            }
-            
-            for(Iterator<String> it = removeSet.iterator(); it.hasNext(); ) {
-              String   key  = it.next();
-              JValue   jv   = nodeMap.get(key);
-              nodeMap.remove(key);
-              valuePanel.remove(jv);
-              bNeedUpdate = true;
-            }
-            
-            try {
-              String[] keys = getKeys(node);
-              for(int i = 0; i < keys.length; i++) {    
-                if(!nodeMap.containsKey(keys[i])) {
-                  bNeedUpdate = true;
-                } else {
-                  JValue   jv   = nodeMap.get(keys[i]);
-                  bNeedUpdate |= jv.getNeedUpdate();
-                  jv.setNeedUpdate(false);
-                }
-              }
-            } catch (Exception e) {
-              bNeedUpdate = true;
-            }
-          }
-          
-          // log.info("bNeedUpdate=" + bNeedUpdate);
+    SwingUtilities.invokeLater(() -> {
 
-          if(bNeedUpdate) {
-            setPreferences(node);
+      boolean bNeedUpdate = false;
+
+      synchronized(nodeMap) {
+        HashSet<String> removeSet = new HashSet<>();
+
+        for (String key : nodeMap.keySet()) {
+          if (null == node.get(key, null)) {
+            removeSet.add(key);
+          } else {
+            JValue jv = nodeMap.get(key);
+            jv.update();
           }
         }
-      });
+
+        for (String key : removeSet) {
+          JValue jv = nodeMap.get(key);
+          nodeMap.remove(key);
+          valuePanel.remove(jv);
+          bNeedUpdate = true;
+        }
+
+        try {
+          String[] keys = getKeys(node);
+          for (String key : keys) {
+            if (!nodeMap.containsKey(key)) {
+              bNeedUpdate = true;
+            } else {
+              JValue jv = nodeMap.get(key);
+              bNeedUpdate |= jv.getNeedUpdate();
+              jv.setNeedUpdate(false);
+            }
+          }
+        } catch (Exception e) {
+          bNeedUpdate = true;
+        }
+      }
+
+      // log.info("bNeedUpdate=" + bNeedUpdate);
+
+      if(bNeedUpdate) {
+        setPreferences(node);
+      }
+    });
   }
 
   static private String[] getKeys(Preferences node) {
-    ArrayList<String> a = new ArrayList<String>();
+    ArrayList<String> a = new ArrayList<>();
     try {
       String[] keys = node.keys();
-      for(int i = 0; i < keys.length; i++) {
-        if(!isHidden(keys[i])) {
-          a.add(keys[i]);
+      for (String key : keys) {
+        if (!isHidden(key)) {
+          a.add(key);
         }
       }
     } catch (Exception e) {
@@ -271,9 +258,8 @@ public class JPrefsPanel extends JPanel
     header.setText(node.absolutePath());
     
     synchronized(nodeMap) {
-      for(Iterator<String> it = nodeMap.keySet().iterator(); it.hasNext(); ) {
-        String   key  = it.next();
-        JValue   jv   = nodeMap.get(key);
+      for (String key : nodeMap.keySet()) {
+        JValue jv = nodeMap.get(key);
         jv.cleanup();
         valuePanel.remove(jv);
       }
@@ -288,12 +274,12 @@ public class JPrefsPanel extends JPanel
           // node.parent().addNodeChangeListener(this);
           
           String[] keys = getKeys(node);
-          for(int i = 0; i < keys.length; i++) {
-            JValue jv = JValueFactory.createJValue(node, keys[i]);
+          for (String key : keys) {
+            JValue jv = JValueFactory.createJValue(node, key);
             jv.setEditable(bEditable);
             jv.setMaximumSize(new Dimension(Short.MAX_VALUE, 20));
 
-            nodeMap.put(keys[i], jv);
+            nodeMap.put(key, jv);
             valuePanel.add(jv);
           }
           Dimension minSize = new Dimension(1, 1);

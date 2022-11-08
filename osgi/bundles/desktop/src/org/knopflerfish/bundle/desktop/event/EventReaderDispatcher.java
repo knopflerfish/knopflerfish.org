@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ public class EventReaderDispatcher implements EventHandler
 
   public void open() {
     if(reg == null) {
-      Dictionary<String, Object> props = new Hashtable<String, Object>();
+      Dictionary<String, Object> props = new Hashtable<>();
       props.put(EventConstants.EVENT_TOPIC,  new String[] { topic });
       if(filter != null && !"".equals(filter)) {
         props.put(EventConstants.EVENT_FILTER, filter);
@@ -124,10 +124,6 @@ public class EventReaderDispatcher implements EventHandler
   /**
    */
   public void handleEvent(final Event ev) {
-    SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          model.logged(ev);
-        }
-      });
+    SwingUtilities.invokeLater(() -> model.logged(ev));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008,2013, KNOPFLERFISH project
+ * Copyright (c) 2008,2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,11 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import java.util.*;
-import java.util.prefs.*;
-
-
-// import org.osgi.service.prefs.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.prefs.AbstractPreferences;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 /**
 
@@ -74,8 +74,7 @@ public class OSGiPreferences
 
   // AbstractPreferences implementation
 
-  Map<String, OSGiPreferences> children
-    = new HashMap<String, OSGiPreferences>();
+  private final Map<String, OSGiPreferences> children = new HashMap<>();
 
   protected AbstractPreferences  childSpi(String name) {
     synchronized(children) {

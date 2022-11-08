@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ public class EventTableModel extends DefaultTableModel {
 
   private int capacity = 342;
 
-  private ArrayList<Event> entries = new ArrayList<Event>();
+  private ArrayList<Event> entries = new ArrayList<>();
 
   EventReaderDispatcher dispatcher;
 
@@ -80,7 +80,7 @@ public class EventTableModel extends DefaultTableModel {
     if (null!=capacityS && capacityS.length()>0) {
       try {
         capacity = Integer.parseInt(capacityS.trim());
-      } catch (NumberFormatException nfe){
+      } catch (NumberFormatException ignored){
       }
     }
     if (capacity>0) {
@@ -133,6 +133,7 @@ public class EventTableModel extends DefaultTableModel {
       for (int i = 0; i < headers.length; i++) {
         if (!h2[i].equals(headers[i])) {
           bChanged = true;
+          break;
         }
       }
     } else {
@@ -141,7 +142,6 @@ public class EventTableModel extends DefaultTableModel {
     if (bChanged) {
       headers = h2;
       fireTableStructureChanged();
-    } else {
     }
   }
 
@@ -158,16 +158,15 @@ public class EventTableModel extends DefaultTableModel {
   }
 
   Event getEntry(int row) {
-    Event e = (Event)entries.get(row);
-    return e;
+    return entries.get(row);
   }
 
 
   public Object getValueAt(int row, int col) {
     Object val = getValueAt(getEntry(row), col);
 
-    if(-1 != headers[col].indexOf("timestamp") && (val instanceof Long)) {
-      return new Date(((Long)val).longValue());
+    if (headers[col].contains("timestamp") && (val instanceof Long)) {
+      return new Date((Long) val);
     }
 
     return val;

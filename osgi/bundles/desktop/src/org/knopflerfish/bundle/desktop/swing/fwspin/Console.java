@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ public class Console {
   int width;
   int height;
 
-  Vector<String> lines = new Vector<String>();
+  Vector<String> lines = new Vector<>();
 
   public Console(Spin spin) {
     super();
@@ -93,8 +93,9 @@ public class Console {
     }
   }
 
+  @SuppressWarnings("SameParameterValue")
   void paintBox(Vector<String> lines, Graphics g, Color bgCol, Color fgCol, int x,
-      int y, double size, int width, int height) {
+                int y, double size, int width, int height) {
 
     int maxCols = 0;
     for (int i = 0; i < lines.size(); i++) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
  */
 package org.knopflerfish.bundle.desktop.swing.graph;
 
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,14 +61,13 @@ public class BundleServiceNode extends BundleNode  {
 
   }
 
-
   Color baseColor = new Color(255, 220, 255);
   Color burnColor = new Color(255, 255, 50);
 
   public Collection<DefaultLink> getOutLinks() {
     if(outLinks == null) {
       try {
-        outLinks = new ArrayList<DefaultLink>();
+        outLinks = new ArrayList<>();
         ServiceReference<?>[] srl = b.getRegisteredServices();
 
         Color col = Util.rgbInterpolate(baseColor, burnColor, (double)depth/5);
@@ -98,24 +96,24 @@ public class BundleServiceNode extends BundleNode  {
             link.setDetail(srl.length > 20 ? 10 : 0);
             outLinks.add(link);
           } else {
-            for(int j = 0; j < bl.length; j++) {
+            for (Bundle bundle : bl) {
               String lId =
-                getId() + "/" +
-                "." + sId +
-                "." + b.getBundleId() +
-                "." + bl[j].getBundleId();
+                  getId() + "/" +
+                      "." + sId +
+                      "." + b.getBundleId() +
+                      "." + bundle.getBundleId();
               String nId =
-                getId() + "/" +
-                lId +
-                "." + bl[j].getBundleId();
+                  getId() + "/" +
+                      lId +
+                      "." + bundle.getBundleId();
 
               String name =
-                "#" + sId + " " + Util.getClassNames(srl[i]);
+                  "#" + sId + " " + Util.getClassNames(srl[i]);
 
               DefaultLink link =
-                new DefaultLink(this,
-                                new BundleServiceNode(bl[j], depth+1, nId),
-                                depth+1, lId, name);
+                  new DefaultLink(this,
+                      new BundleServiceNode(bundle, depth + 1, nId),
+                      depth + 1, lId, name);
               link.setColor(col);
               outLinks.add(link);
               link.setDetail(bl.length * srl.length > 20 ? 10 : 0);
@@ -134,37 +132,40 @@ public class BundleServiceNode extends BundleNode  {
   public Collection<DefaultLink> getInLinks() {
     if(inLinks == null) {
       try {
-        inLinks = new ArrayList<DefaultLink>();
+        inLinks = new ArrayList<>();
 
         ServiceReference<?>[] srl = Activator.getTargetBC_getServiceReferences();
         for(int i = 0; srl != null && i < srl.length; i++) {
           Bundle[] bl = srl[i].getUsingBundles();
-          Color col = Util.rgbInterpolate(baseColor, burnColor, (double)depth/3);
+          if (bl == null) {
+            continue;
+          }
+          Color col = Util.rgbInterpolate(baseColor, burnColor, (double) depth / 3);
           col = Util.rgbInterpolate(col, Color.black, .3);
 
           String sId = srl[i].getProperty("service.id").toString();
 
-          for(int j = 0; bl != null && j < bl.length; j++) {
-            if(bl[j].getBundleId() == b.getBundleId()) {
+          for (Bundle bundle : bl) {
+            if (bundle.getBundleId() == b.getBundleId()) {
               String lId =
-                getId() + "/" +
-                "in." + sId +
-                "." + b.getBundleId() +
-                "." + bl[j].getBundleId();
+                  getId() + "/" +
+                      "in." + sId +
+                      "." + b.getBundleId() +
+                      "." + bundle.getBundleId();
               String nId =
-                getId() + "/" +
-                lId +
-                "." + bl[j].getBundleId();
+                  getId() + "/" +
+                      lId +
+                      "." + bundle.getBundleId();
 
               String name =
-                "#" + sId + " " + Util.getClassNames(srl[i]);
+                  "#" + sId + " " + Util.getClassNames(srl[i]);
 
-              BundleServiceNode node = new BundleServiceNode(srl[i].getBundle(), depth+1, nId);
+              BundleServiceNode node = new BundleServiceNode(srl[i].getBundle(), depth + 1, nId);
               DefaultLink link = new DefaultLink(node,
-                                                 this,
-                                                 depth+1,
-                                                 lId,
-                                                 name);
+                  this,
+                  depth + 1,
+                  lId,
+                  name);
               link.setType(-1);
               link.setColor(col);
               inLinks.add(link);
@@ -172,7 +173,7 @@ public class BundleServiceNode extends BundleNode  {
           }
         }
       } catch (Exception e) {
-        if(Activator.log != null) {
+        if (Activator.log != null) {
           Activator.log.error("Failed to get services", e);
         }
       }

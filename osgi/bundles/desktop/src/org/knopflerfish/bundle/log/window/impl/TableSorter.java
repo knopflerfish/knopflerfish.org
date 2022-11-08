@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ package org.knopflerfish.bundle.log.window.impl;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Vector;
 
@@ -49,20 +49,23 @@ import javax.swing.table.TableModel;
 
 import org.knopflerfish.bundle.desktop.swing.Activator;
 
+@SuppressWarnings("unused")
 public class TableSorter extends TableMap {
     private static final long serialVersionUID = 1L;
 
-    int             indexes[];
-    Vector<Integer>          sortingColumns = new Vector<Integer>();
-    boolean         ascending = true;
-    int compares;
+    private int[] indexes;
+    private Vector<Integer> sortingColumns;
+    private boolean ascending = true;
+    private int compares;
 
     public TableSorter() {
         indexes = new int[0]; // for consistency
+        sortingColumns = new Vector<>();
     }
 
     public TableSorter(TableModel model) {
         setModel(model);
+        sortingColumns = new Vector<>();
     }
 
     @Override
@@ -99,59 +102,33 @@ public class TableSorter extends TableMap {
          */
 
         if (type.getSuperclass() == java.lang.Number.class) {
-            final Number n1 = (Number)data.getValueAt(row1, column);
+            final Number n1 = (Number) data.getValueAt(row1, column);
             final double d1 = n1.doubleValue();
-            final Number n2 = (Number)data.getValueAt(row2, column);
+            final Number n2 = (Number) data.getValueAt(row2, column);
             final double d2 = n2.doubleValue();
 
-            if (d1 < d2) {
-                return -1;
-            } else if (d1 > d2) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return Double.compare(d1, d2);
         } else if (type == java.lang.Integer.class) {
-	  final int d1 = ((Integer)data.getValueAt(row1, column)).intValue();
-	  final int d2 = ((Integer)data.getValueAt(row2, column)).intValue();
+            final int d1 = (Integer) data.getValueAt(row1, column);
+            final int d2 = (Integer) data.getValueAt(row2, column);
 
-	  if (d1 < d2) {
-	    return -1;
-	  } else if (d1 > d2) {
-	    return 1;
-	  } else {
-	    return 0;
-	  }
+            return Integer.compare(d1, d2);
         } else if (type == java.util.Date.class) {
-            final Date d1 = (Date)data.getValueAt(row1, column);
+            final Date d1 = (Date) data.getValueAt(row1, column);
             final long n1 = d1.getTime();
-            final Date d2 = (Date)data.getValueAt(row2, column);
+            final Date d2 = (Date) data.getValueAt(row2, column);
             final long n2 = d2.getTime();
 
-            if (n1 < n2) {
-                return -1;
-            } else if (n1 > n2) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return Long.compare(n1, n2);
         } else if (type == String.class) {
-            final String s1 = (String)data.getValueAt(row1, column);
-            final String s2    = (String)data.getValueAt(row2, column);
+            final String s1 = (String) data.getValueAt(row1, column);
+            final String s2 = (String) data.getValueAt(row2, column);
             final int result = s1.compareTo(s2);
 
-            if (result < 0) {
-                return -1;
-            } else if (result > 0) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return Integer.compare(result, 0);
         } else if (type == Boolean.class) {
-            final Boolean bool1 = (Boolean)data.getValueAt(row1, column);
-            final boolean b1 = bool1.booleanValue();
-            final Boolean bool2 = (Boolean)data.getValueAt(row2, column);
-            final boolean b2 = bool2.booleanValue();
+            final boolean b1 = (Boolean) data.getValueAt(row1, column);
+            final boolean b2 = (Boolean) data.getValueAt(row2, column);
 
             if (b1 == b2) {
                 return 0;
@@ -167,13 +144,7 @@ public class TableSorter extends TableMap {
             final String s2 = v2.toString();
             final int result = s1.compareTo(s2);
 
-            if (result < 0) {
-                return -1;
-            } else if (result > 0) {
-                return 1;
-            } else {
-        	return 0;
-            }
+            return Integer.compare(result, 0);
         }
     }
 
@@ -181,7 +152,7 @@ public class TableSorter extends TableMap {
         compares++;
         for (int level = 0; level < sortingColumns.size(); level++) {
             final Integer column = sortingColumns.elementAt(level);
-            final int result = compareRowsByColumn(row1, row2, column.intValue());
+            final int result = compareRowsByColumn(row1, row2, column);
             if (result != 0) {
                 return ascending ? result : -result;
             }
@@ -217,13 +188,13 @@ public class TableSorter extends TableMap {
           throw new Exception("Sorter not informed of a change in model.");
         } catch (final Exception e) {
           final String msg = "indexes.length = " + indexes.length +", model.getRowCount() = " + model.getRowCount()
-              + ", indexes: " +Arrays.asList(indexes) +", model. " +model.toString();
+              + ", indexes: " + Collections.singletonList(indexes) +", model. " +model.toString();
           Activator.log.error(e.getMessage() + "; " +msg, e);
         }
       }
     }
 
-    public void sort(Object sender) {
+    public void sort() {
         checkModel();
 
         compares = 0;
@@ -250,7 +221,7 @@ public class TableSorter extends TableMap {
     // arrays. The number of compares appears to vary between N-1 and
     // NlogN depending on the initial order but the main reason for
     // using it here is that, unlike qsort, it is stable.
-    public void shuttlesort(int from[], int to[], int low, int high) {
+    public void shuttlesort(int[] from, int[] to, int low, int high) {
         if (high - low < 2) {
             return;
         }
@@ -277,6 +248,7 @@ public class TableSorter extends TableMap {
         order diminishes - it may drop very quickly.  */
 
         if (high - low >= 4 && compare(from[middle-1], from[middle]) <= 0) {
+            //noinspection ManualArrayCopy
             for (int i = low; i < high; i++) {
                 to[i] = from[i];
             }
@@ -323,8 +295,8 @@ public class TableSorter extends TableMap {
     public void sortByColumn(int column, boolean ascending) {
         this.ascending = ascending;
         sortingColumns.removeAllElements();
-        sortingColumns.addElement(new Integer(column));
-        sort(this);
+        sortingColumns.addElement(column);
+        sort();
         super.tableChanged(new TableModelEvent(this));
     }
 
