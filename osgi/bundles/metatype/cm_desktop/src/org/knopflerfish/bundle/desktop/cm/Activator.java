@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,10 +61,10 @@ public class Activator
     Activator.log = new LogRef(bc);
 
     mtsTracker =
-      new ServiceTracker<MetaTypeService, MetaTypeService>(
-                                                           bc,
-                                                           MetaTypeService.class,
-                                                           null);
+        new ServiceTracker<>(
+            bc,
+            MetaTypeService.class,
+            null);
     mtsTracker.open();
 
     // bundle displayers
@@ -87,7 +87,7 @@ public class Activator
   static MetaTypeInformation getMTP(Bundle b)
   {
     final MetaTypeService mts = mtsTracker.getService();
-    if (mts != null && mts instanceof SystemMetatypeProvider) {
+    if (mts instanceof SystemMetatypeProvider) {
       final SystemMetatypeProvider smtp = (SystemMetatypeProvider) mts;
       return smtp.getMTP(b);
     }
@@ -98,6 +98,7 @@ public class Activator
   public void stop(BundleContext bc)
   {
     try {
+      disp.unregister();
       disp.close();
       disp = null;
 

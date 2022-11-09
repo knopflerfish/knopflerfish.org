@@ -56,6 +56,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import org.knopflerfish.shared.cm.CMDataConstants;
 import org.knopflerfish.shared.cm.CMDataReader;
 
 /**
@@ -222,7 +223,7 @@ class DeployedCMData
       final CMDataReader cmDataReader = new CMDataReader();
       final InputStream is = new FileInputStream(f);
       final InputStreamReader isr =
-        new InputStreamReader(is, CMDataReader.ENCODING);
+        new InputStreamReader(is, CMDataConstants.ENCODING);
       reader = new PushbackReader(new BufferedReader(isr, 8192), 8);
 
       final Hashtable<String, Object>[] configs =
@@ -309,9 +310,9 @@ class DeployedCMData
 
         final Hashtable<String, Object>[] configs = loadCMDataFile(file);
         for (final Hashtable<String, Object> config : configs) {
-          final String pid = (String) config.get(CMDataReader.SERVICE_PID);
+          final String pid = (String) config.get(CMDataConstants.SERVICE_PID);
           config.remove("service.bundleLocation");
-          final String fpid = (String) config.get(CMDataReader.FACTORY_PID);
+          final String fpid = (String) config.get(CMDataConstants.FACTORY_PID);
 
           Configuration cfg;
           if (fpid == null) {
@@ -411,10 +412,10 @@ class DeployedCMData
 
             final Hashtable<String, Object>[] configs = loadCMDataFile(file);
             for (final Hashtable<String, Object> config : configs) {
-              final String pid = (String) config.get(CMDataReader.SERVICE_PID);
+              final String pid = (String) config.get(CMDataConstants.SERVICE_PID);
               config.remove("service.bundleLocation");
 
-              final String fpid = (String) config.get(CMDataReader.FACTORY_PID);
+              final String fpid = (String) config.get(CMDataConstants.FACTORY_PID);
               Configuration cfg  = null;
               if (fpid == null) {
                 // Non-factory configuration

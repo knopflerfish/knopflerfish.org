@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@ import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.knopflerfish.shared.cm.CMDataConstants;
 import org.knopflerfish.shared.cm.CMDataReader;
 import org.knopflerfish.shared.cm.CMDataWriter;
 import org.osgi.framework.Constants;
@@ -95,14 +96,20 @@ class ConfigurationStore {
   private Hashtable<String, Object> factoryPidToPids;
 
   private final Hashtable<String, ConfigurationDictionary> cache
-  = new Hashtable<String, ConfigurationDictionary>();
+  = new Hashtable<>();
 
   private final CMDataReader cmDataReader = new CMDataReader();
 
 
   public ConfigurationStore(File storeDir) throws IOException {
     this.storeDir = storeDir;
-    storeDir.mkdirs();
+
+    if (!storeDir.mkdirs() && !storeDir.isDirectory()) {
+      Activator.log.error(
+          "Configurations store directory could not be created: " + storeDir
+      );
+    }
+
     boolean doInit = true;
  
     if (loadProperties(STORE_DATA_FILE, storeData)) {
@@ -137,12 +144,13 @@ class ConfigurationStore {
     storeData.put(VERSION_PROP, VERSION);
     pidToFileName.clear();
     generatedPids.clear();
-    factoryPidToPids = new Hashtable<String, Object>();
-    String [] files = storeDir.list(); 
-    HashSet<String> pidFiles = new HashSet<String>();
+    factoryPidToPids = new Hashtable<>();
+    String [] files = storeDir.list();
+    assert files != null;
+    HashSet<String> pidFiles = new HashSet<>();
     int recovered = 0;
     for (String f : files) {
-      String n = null;
+      String n;
       if (f.endsWith(NEXT_SUFFIX)) {
         n = f.substring(0, f.length() - NEXT_SUFFIX.length());
       } else if (f.endsWith(OLD_SUFFIX)) {
@@ -158,15 +166,15 @@ class ConfigurationStore {
       try {
         Long.parseLong(n);
         pidFiles.add(n);
-      } catch (NumberFormatException _ignore) {
+      } catch (NumberFormatException e) {
         Activator.log.warn("Found unknown file in CM data dir: " + f);
       }
     }
     for (String f : pidFiles) {
       try {
         Hashtable<String, Object> d = loadHashtable(f);
-        String pid = (String) d.get(CMDataReader.SERVICE_PID);
-        String factoryPid = (String) d.get(CMDataReader.FACTORY_PID);
+        String pid = (String) d.get(CMDataConstants.SERVICE_PID);
+        String factoryPid = (String) d.get(CMDataConstants.FACTORY_PID);
         if (pid != null) {
           if (factoryPid != null) {
             registerFactoryPid(pid, factoryPid);
@@ -183,7 +191,7 @@ class ConfigurationStore {
                   }
                 }
               }
-            } catch (NumberFormatException _ignore) { }
+            } catch (NumberFormatException ignored) { }
           }
           String old = (String) pidToFileName.put(pid, f);
           // If we have conflict keep newest
@@ -204,7 +212,7 @@ class ConfigurationStore {
         Activator.log.warn("Found corrupted CM data in: " + f, e);
       }
     }
-    storeHashtable(factoryPidToPids, FACTORY_PID_DATA_FILE);
+    storeHashtable(factoryPidToPids);
     storeProperties(generatedPids, GENERATED_PIDS_FILE);
     storeProperties(pidToFileName, PID_DATA_FILE);
     storeProperties(storeData, STORE_DATA_FILE);
@@ -248,7 +256,7 @@ class ConfigurationStore {
     if (v == null) {
       return null;
     }
-    Vector<ConfigurationDictionary> loaded = new Vector<ConfigurationDictionary>();
+    Vector<ConfigurationDictionary> loaded = new Vector<>();
     for (int i = 0; i < v.size(); ++i) {
       ConfigurationDictionary d = load(v.elementAt(i));
       if (d != null) {
@@ -293,7 +301,7 @@ class ConfigurationStore {
           if (v.isEmpty()) {
             factoryPidToPids.remove(fpid);
           }
-          storeHashtable(factoryPidToPids, FACTORY_PID_DATA_FILE);
+          storeHashtable(factoryPidToPids);
         }
       }
     }
@@ -305,13 +313,12 @@ class ConfigurationStore {
       throws IOException
   {
     final String factoryPid = factoryKey(targetedFactoryPid);
-    String suffix = null;
-    suffix = generatedPids.getProperty(factoryPid);
+    String suffix = generatedPids.getProperty(factoryPid);
     if (suffix == null) {
-      suffix = new Long(0).toString();
+      suffix = Long.toString(0);
     } else {
-      long l = Long.parseLong(suffix) + 1;
-      suffix = Long.toString(l);
+      long newSuffix = Long.parseLong(suffix) + 1;
+      suffix = Long.toString(newSuffix);
     }
     generatedPids.put(factoryPid, suffix);
     storeProperties(generatedPids, GENERATED_PIDS_FILE);
@@ -335,17 +342,17 @@ class ConfigurationStore {
 
     String fileNumber = storeData.getProperty(lastUsedFileNumber);
     if (fileNumber == null) {
-      fileNumber = new Long(0).toString();
+      fileNumber = Long.toString(0);
     } else {
-      long l = Long.parseLong(fileNumber) + 1;
-      fileNumber = new Long(l).toString();
+      long newFileNumber = Long.parseLong(fileNumber) + 1;
+      fileNumber = Long.toString(newFileNumber);
     }
     storeData.put(lastUsedFileNumber, fileNumber);
     storeProperties(storeData, STORE_DATA_FILE);
 
     if (factoryPid != null) {
       registerFactoryPid(pid, factoryPid);
-      storeHashtable(factoryPidToPids, FACTORY_PID_DATA_FILE);
+      storeHashtable(factoryPidToPids);
     }
 
     pidToFileName.put(pid, fileNumber);
@@ -358,7 +365,7 @@ class ConfigurationStore {
     @SuppressWarnings("unchecked")
     Vector<String> v = (Vector<String>) factoryPidToPids.get(factoryPid);
     if (v == null) {
-      v = new Vector<String>();
+      v = new Vector<>();
       factoryPidToPids.put(factoryPid, v);
     }
     v.addElement(pid);
@@ -392,11 +399,11 @@ class ConfigurationStore {
         if (is != null) {
           try {
             is.close();
-          } catch (IOException _ignore) { }
+          } catch (IOException ignored) { }
         }
         Activator.log.warn("FAIL! Read properties: " + file, e);
       }
-      file.delete();
+      deleteFile(file);
       p.clear();
     }
     return false;
@@ -425,14 +432,14 @@ class ConfigurationStore {
       try {
         r = new PushbackReader(new BufferedReader(
             new InputStreamReader(new FileInputStream(f),
-                CMDataReader.ENCODING), 8192), 8);
+                CMDataConstants.ENCODING), 8192), 8);
 
         Hashtable<String,Object> h = cmDataReader.readCMData(r);
         r.close();
         r = null;
         if (f.getName().length() != fileName.length()) {
           // We have recovered a file
-          f.renameTo(new File(storeDir, fileName));
+          renameFile(f, new File(storeDir, fileName));
           Activator.log.info("Recovered CM data from: " + fileName);
         } else {
           // Succeeded reading a file, remove backup
@@ -449,29 +456,29 @@ class ConfigurationStore {
         if (r != null) {
           try {
             r.close();
-          } catch (IOException _ignore) { }
+          } catch (IOException ignored) { }
         }
-        f.delete();
+        deleteFile(f);
       }
     }
     if (savedException != null) {
       throw savedException;
     }
-    throw new FileNotFoundException(fileName.toString());
+    throw new FileNotFoundException(fileName);
   }
 
-  private void storeHashtable(Hashtable<String, Object> h, String fileName)
+  private void storeHashtable(Hashtable<String, Object> h)
       throws IOException {
     FileOutputStream fo = null;
     try {
-      fo = foutput(fileName);
-      PrintWriter w = new PrintWriter(new OutputStreamWriter(fo, CMDataWriter.ENCODING));
+      fo = foutput(ConfigurationStore.FACTORY_PID_DATA_FILE);
+      PrintWriter w = new PrintWriter(new OutputStreamWriter(fo, CMDataConstants.ENCODING));
 
-      CMDataWriter.writeConfiguration(fileName, h, w);
+      CMDataWriter.writeConfiguration(ConfigurationStore.FACTORY_PID_DATA_FILE, h, w);
       w.close();
       fo = null;
     } finally {
-      fclose(fileName, fo, true);
+      fclose(ConfigurationStore.FACTORY_PID_DATA_FILE, fo, true);
     }
   }
 
@@ -519,7 +526,7 @@ class ConfigurationStore {
     FileOutputStream fo = null;
     try {
       fo = foutput(fileName);
-      PrintWriter w = new PrintWriter(new OutputStreamWriter(fo, CMDataWriter.ENCODING));
+      PrintWriter w = new PrintWriter(new OutputStreamWriter(fo, CMDataConstants.ENCODING));
 
       if (incrementChangeCount) {
         d.incrementChangeCount();
@@ -529,7 +536,7 @@ class ConfigurationStore {
       if (fpid == null) {
         CMDataWriter.writeConfiguration(pid, d, w);
       } else {
-        CMDataWriter.writeFactoryConfiguration(fpid, pid, d, w);
+        CMDataWriter.writeFactoryConfiguration(fpid, d, w);
       }
       w.close();
       fo = null;
@@ -556,14 +563,26 @@ class ConfigurationStore {
     File f = new File(storeDir, fileName);
     if (f.exists()) {
       File fold = new File(storeDir, fileName + OLD_SUFFIX);
-      fold.delete();
-      f.renameTo(fold);
+      deleteFile(fold);
+      renameFile(f, fold);
     }
     File fnext = new File(storeDir, fileName + NEXT_SUFFIX);
     if (fnext.exists()) {
-      fnext.renameTo(f);
+      renameFile(fnext, f);
     }
     return new FileOutputStream(fnext);
+  }
+
+  private void deleteFile(File file) {
+    if (!file.delete()) {
+      Activator.log.info("Failed to delete file " + file);
+    }
+  }
+
+  private void renameFile(File from, File to) {
+    if (!from.renameTo(to)) {
+      Activator.log.info("Failed to rename file " + from + " to " + to);
+    }
   }
 
   private void fclose(String fileName, FileOutputStream fo, boolean purgeOld) {
@@ -571,28 +590,28 @@ class ConfigurationStore {
     if (fo == null) {
       File f = new File(storeDir, fileName);
       if (f.exists()) {
-        f.delete();
+        deleteFile(f);
       }
-      fnext.renameTo(f);
+      renameFile(fnext, f);
       if (purgeOld) {
-        new File(storeDir, fileName + OLD_SUFFIX).delete();
+        deleteFile(new File(storeDir, fileName + OLD_SUFFIX));
       }
     } else {
       try {
         fo.close();
-      } catch (IOException _ignore) { }
-      fnext.delete();
+      } catch (IOException ignored) { }
+      deleteFile(fnext);
     }
   }
 
   private void fdelete(String fileName) {
-    new File(storeDir, fileName).delete();
-    new File(storeDir, fileName + NEXT_SUFFIX).delete();
-    new File(storeDir, fileName + OLD_SUFFIX).delete();
+    deleteFile(new File(storeDir, fileName));
+    deleteFile(new File(storeDir, fileName + NEXT_SUFFIX));
+    deleteFile(new File(storeDir, fileName + OLD_SUFFIX));
   }
 
-  private boolean deleteBackup(String fileName) {
-    return new File(storeDir, fileName + OLD_SUFFIX).delete();
+  private void deleteBackup(String fileName) {
+    deleteFile(new File(storeDir, fileName + OLD_SUFFIX));
   }
 
   private int checkSum(Properties p) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,15 +36,11 @@ package org.knopflerfish.bundle.desktop.cm;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.osgi.service.metatype.AttributeDefinition;
 
@@ -57,7 +53,6 @@ public class JNumber
    *
    */
   private static final long serialVersionUID = 1L;
-  Number num;
   AttributeDefinition ad;
 
   JTextField text;
@@ -121,41 +116,31 @@ public class JNumber
     if (slider != null) {
       add(slider, BorderLayout.CENTER);
     }
-    text.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent ev)
-      {
-        final Number n = (Number) AD.parse(text.getText(), 0, ad.getType());
-        setValue(n);
-      }
+    text.addActionListener(ev -> {
+      final Number n = (Number) AD.parse(text.getText(), 0, ad.getType());
+      setValue(n);
     });
 
     if (slider != null) {
-      slider.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent e)
-        {
-          final int v = slider.getValue();
-          switch (ad.getType()) {
-          case AttributeDefinition.INTEGER:
-          case AttributeDefinition.SHORT:
-          case AttributeDefinition.LONG: {
-            final long val = (long) (min + (max - min) * v / RANGE);
-            text.setText(Long.toString(val));
-          }
-            break;
-          case AttributeDefinition.DOUBLE:
-          case AttributeDefinition.FLOAT: {
-            final double val = min + (max - min) * v / RANGE;
-            text.setText(Double.toString(val));
-          }
-            break;
-          }
+      slider.addChangeListener(e -> {
+        final int v = slider.getValue();
+        switch (ad.getType()) {
+        case AttributeDefinition.INTEGER:
+        case AttributeDefinition.SHORT:
+        case AttributeDefinition.LONG: {
+          final long val = (long) (min + (max - min) * v / RANGE);
+          text.setText(Long.toString(val));
+        }
+          break;
+        case AttributeDefinition.DOUBLE:
+        case AttributeDefinition.FLOAT: {
+          final double val = min + (max - min) * v / RANGE;
+          text.setText(Double.toString(val));
+        }
+          break;
         }
       });
     }
-  }
-
-  void syncUI()
-  {
   }
 
   Object getValue()
@@ -184,7 +169,7 @@ public class JNumber
 
   private String getTypeName(int type)
   {
-    switch (ad.getType()) {
+    switch (type) {
     case AttributeDefinition.INTEGER:
       return "integer";
     case AttributeDefinition.LONG:
@@ -196,7 +181,7 @@ public class JNumber
     case AttributeDefinition.FLOAT:
       return "float";
     default:
-      return "unknown AD type=" + ad.getType();
+      return "unknown AD type=" + type;
     }
   }
 

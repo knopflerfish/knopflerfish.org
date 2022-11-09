@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ final public class ListenerEventQueue implements Runnable {
   /**
    ** The queue of events.
    **/
-  private Vector<ListenerEvent> queue = new Vector<ListenerEvent>();
+  private Vector<ListenerEvent> queue = new Vector<>();
 
   /**
    * The bundle context
@@ -76,9 +76,7 @@ final public class ListenerEventQueue implements Runnable {
     this.bc = bc;
   }
 
-  /**
-   ** Overide of Thread.run().
-   **/
+  @Override
   public void run() {
     while (true) {
       ListenerEvent update = dequeue();
@@ -107,7 +105,7 @@ final public class ListenerEventQueue implements Runnable {
       return;
     }
     queue.addElement(update);
-    attachNewThreadIfNeccesary();
+    attachNewThreadIfNecessary();
     notifyAll();
   }
 
@@ -136,7 +134,7 @@ final public class ListenerEventQueue implements Runnable {
     }
   }
 
-  void attachNewThreadIfNeccesary() {
+  void attachNewThreadIfNecessary() {
     synchronized (threadLock) {
       if (thread == null && !quit) {
         thread = new Thread(this);
@@ -159,7 +157,7 @@ final public class ListenerEventQueue implements Runnable {
       if (thread != null) {
         try {
           thread.join(3000);
-        } catch (InterruptedException _ignore) { }
+        } catch (InterruptedException ignored) { }
       }
     }
   }

@@ -66,7 +66,7 @@ final class UpdateQueue
   /**
    * The queue of updates.
    */
-  private Vector<Update> queue = new Vector<Update>();
+  private Vector<Update> queue = new Vector<>();
 
   UpdateQueue(PluginManager pm)
   {
@@ -96,8 +96,6 @@ final class UpdateQueue
    * 
    * @param update
    *          The Update to add to the queue.
-   * @throws java.lang.Exception
-   *           If given a null argument.
    */
   public synchronized void enqueue(Update update)
   {

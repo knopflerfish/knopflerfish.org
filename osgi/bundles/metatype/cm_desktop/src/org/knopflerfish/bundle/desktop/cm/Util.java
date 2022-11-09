@@ -50,7 +50,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 
-
 public class Util
 {
   /**
@@ -73,22 +72,19 @@ public class Util
     return s;
   }
 
-  public static Comparator<Bundle> bundleNameComparator = new Comparator<Bundle>() {
-    @Override
-    public int compare(Bundle b1, Bundle b2) {
-      if(b1 == b2) {
-        return 0;
-      }
-      if(b1 == null) {
-        return -1;
-      }
-      if(b2 == null) {
-        return 1;
-      }
-
-      return
-        getBundleName(b1).compareToIgnoreCase(getBundleName(b2));
+  public static Comparator<Bundle> bundleNameComparator = (b1, b2) -> {
+    if(b1 == b2) {
+      return 0;
     }
+    if(b1 == null) {
+      return -1;
+    }
+    if(b2 == null) {
+      return 1;
+    }
+
+    return
+      getBundleName(b1).compareToIgnoreCase(getBundleName(b2));
   };
 
   static public void openExternalURL(URL url)
@@ -119,7 +115,7 @@ public class Util
   {
     final String os = Activator.bc.getProperty("os.name");
     if (os != null) {
-      return -1 != os.toLowerCase().indexOf("win");
+      return os.toLowerCase().contains("win");
     }
     return false;
   }
@@ -152,7 +148,7 @@ public class Util
           line = br.readLine();
           // System.out.println(line);
         }
-      } catch (final IOException _ioe) {
+      } catch (final IOException ignored) {
       }
     }
   }
@@ -162,7 +158,7 @@ public class Util
     if (v == null) {
       return null;
     }
-    final Object array = Array.newInstance(clazz, v != null ? v.size() : 0);
+    final Object array = Array.newInstance(clazz, v.size());
 
     for (int i = 0; i < v.size(); i++) {
       Array.set(array, i, v.elementAt(i));
@@ -179,8 +175,8 @@ public class Util
     if (array == null) {
       return null;
     }
-    final Vector<Object> v = new Vector<Object>();
-    for (int i = 0; array != null && i < Array.getLength(array); i++) {
+    final Vector<Object> v = new Vector<>();
+    for (int i = 0; i < Array.getLength(array); i++) {
       v.addElement(Array.get(array, i));
     }
     return v;
@@ -211,9 +207,7 @@ public class Util
 
   public static String getHeader(Bundle b, String name, String def)
   {
-    final String s = b != null ? (String) b.getHeaders().get(name) : def;
-
-    return s;
+    return b != null ? b.getHeaders().get(name) : def;
   }
 
   public static void startFont(StringBuilder sb)
@@ -290,7 +284,7 @@ public class Util
 
   public static Map<String, String> paramsFromURL(final URL url)
   {
-    final Map<String, String> res = new HashMap<String, String>();
+    final Map<String, String> res = new HashMap<>();
     final String query = url.getQuery();
     if (null != query) {
       final StringTokenizer st = new StringTokenizer(query, "&");

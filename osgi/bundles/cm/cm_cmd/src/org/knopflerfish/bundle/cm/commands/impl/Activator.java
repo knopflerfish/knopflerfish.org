@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ public class Activator
   {
     this.bc = bc;
     final CommandGroup cg = new CMCommands(bc);
-    final Hashtable<String, String> props = new Hashtable<String, String>();
+    final Hashtable<String, String> props = new Hashtable<>();
     props.put("groupName", cg.getGroupName());
     sr = bc.registerService(CommandGroup.class, cg, props);
   }

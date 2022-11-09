@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ class SystemMetaTypeInformation
   implements MetaTypeInformation
 {
 
-  private final Map<Bundle,MetaTypeInformation> bundle2mti = new HashMap<Bundle, MetaTypeInformation>();
+  private final Map<Bundle,MetaTypeInformation> bundle2mti = new HashMap<>();
 
   public SystemMetaTypeInformation()
   {
@@ -84,34 +84,34 @@ class SystemMetaTypeInformation
   @Override
   public String[] getLocales()
   {
-    final Set<String> res = new TreeSet<String>();
+    final Set<String> res = new TreeSet<>();
 
     for (final MetaTypeInformation mti : bundle2mti.values()) {
       res.addAll(Arrays.asList(mti.getLocales()));
     }
-    return res.toArray(new String[res.size()]);
+    return res.toArray(new String[0]);
   }
 
   @Override
   public String[] getPids()
   {
-    final Set<String> res = new TreeSet<String>();
+    final Set<String> res = new TreeSet<>();
 
     for (final MetaTypeInformation mti : bundle2mti.values()) {
       res.addAll(Arrays.asList(mti.getPids()));
     }
-    return res.toArray(new String[res.size()]);
+    return res.toArray(new String[0]);
   }
 
   @Override
   public String[] getFactoryPids()
   {
-    final Set<String> res = new TreeSet<String>();
+    final Set<String> res = new TreeSet<>();
 
     for (final MetaTypeInformation mti : bundle2mti.values()) {
       res.addAll(Arrays.asList(mti.getFactoryPids()));
     }
-    return res.toArray(new String[res.size()]);
+    return res.toArray(new String[0]);
   }
 
   @Override

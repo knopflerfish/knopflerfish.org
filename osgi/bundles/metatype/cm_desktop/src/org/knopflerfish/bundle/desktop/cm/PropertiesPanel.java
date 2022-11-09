@@ -62,7 +62,7 @@ public class PropertiesPanel
   private static final long serialVersionUID = 1L;
 
   /** Current property values to present. */
-  Map<String, JCMProp> props = new HashMap<String, JCMProp>();
+  private final Map<String, JCMProp> props = new HashMap<>();
 
   public PropertiesPanel()
   {
@@ -81,8 +81,7 @@ public class PropertiesPanel
     props.clear();
 
     if (ocd != null) {
-      final Dictionary<String, Object> configProps =
-        new Hashtable<String, Object>();
+      final Dictionary<String, Object> configProps = new Hashtable<>();
 
       final AttributeDefinition[] reqAttrs =
         ocd.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
@@ -114,7 +113,7 @@ public class PropertiesPanel
                   String info)
   {
     for (final AttributeDefinition ad : ads) {
-      JLabelled item = null;
+      JLabelled item;
       try {
         final JCMProp jcmProp = new JCMProp(ad, configProps);
         props.put(ad.getID(), jcmProp);
@@ -170,7 +169,7 @@ public class PropertiesPanel
   Dictionary<String, Object> getProps()
       throws IllegalArgumentException
   {
-    final Hashtable<String, Object> res = new Hashtable<String, Object>();
+    final Hashtable<String, Object> res = new Hashtable<>();
 
     int errCount = 0;
     // Avoid concurrent updates.
@@ -211,7 +210,7 @@ public class PropertiesPanel
   void setProps(Dictionary<String, Object> in)
   {
     if (in == null) {
-      in = new Hashtable<String, Object>();
+      in = new Hashtable<>();
     }
     // Avoid concurrent updates.
     synchronized (props) {

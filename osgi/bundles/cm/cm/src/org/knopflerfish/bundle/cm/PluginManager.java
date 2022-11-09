@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,25 +65,25 @@ final class PluginManager
    * Sorted Vector of ServiceReferences to ConfigurationPlugins.
    */
 
-  Vector<ServiceReference<ConfigurationPlugin>> preModificationPlugins = new Vector<ServiceReference<ConfigurationPlugin>>();
+  Vector<ServiceReference<ConfigurationPlugin>> preModificationPlugins = new Vector<>();
 
   /**
    * Sorted Vector of ServiceReferences to ConfigurationPlugins.
    */
 
-  Vector<ServiceReference<ConfigurationPlugin>> modifyingPlugins = new Vector<ServiceReference<ConfigurationPlugin>>();
+  Vector<ServiceReference<ConfigurationPlugin>> modifyingPlugins = new Vector<>();
 
   /**
    * Sorted Vector of ServiceReferences to ConfigurationPlugins.
    */
 
-  Vector<ServiceReference<ConfigurationPlugin>> postModificationPlugins = new Vector<ServiceReference<ConfigurationPlugin>>();
+  Vector<ServiceReference<ConfigurationPlugin>> postModificationPlugins = new Vector<>();
 
   /**
    * Hashtable mapping a ServiceReference to its ranking (Integer).
    */
 
-  Hashtable<Long, Object> rankings = new Hashtable<Long, Object>();
+  Hashtable<Long, Object> rankings = new Hashtable<>();
 
   /**
    * Construct a PluginManager
@@ -107,9 +107,9 @@ final class PluginManager
   {
     Object rankingProperty = serviceReference.getProperty(CM_RANKING);
     if (rankingProperty == null) {
-      rankingProperty = new Integer(0);
+      rankingProperty = 0;
     } else if (rankingProperty.getClass() != Integer.class) {
-      rankingProperty = new Integer(0);
+      rankingProperty = 0;
     }
 
     Long serviceId = (Long) serviceReference.getProperty(SERVICE_ID);
@@ -118,7 +118,7 @@ final class PluginManager
       return;
     }
 
-    int ranking = ((Integer) rankingProperty).intValue();
+    int ranking = (Integer) rankingProperty;
 
     switch (eventType) {
     case ServiceEvent.REGISTERED:
@@ -126,7 +126,7 @@ final class PluginManager
       insertPluginReference(serviceReference, ranking);
       break;
     case ServiceEvent.MODIFIED:
-      int oldRanking = ((Integer) rankings.get(serviceId)).intValue();
+      int oldRanking = (Integer) rankings.get(serviceId);
       if (ranking == oldRanking) {
         return;
       }
@@ -158,12 +158,10 @@ final class PluginManager
   {
     if (ranking < 0) {
       insertPluginReference(serviceReference, ranking, preModificationPlugins);
-    } else if (0 <= ranking && ranking <= 1000) {
+    } else if (ranking <= 1000) {
       insertPluginReference(serviceReference, ranking, modifyingPlugins);
-    } else if (ranking > 1000) {
-      insertPluginReference(serviceReference, ranking, postModificationPlugins);
     } else {
-      // Shouldn't happen
+      insertPluginReference(serviceReference, ranking, postModificationPlugins);
     }
   }
 
@@ -185,7 +183,7 @@ final class PluginManager
       ServiceReference<ConfigurationPlugin> nextReference = pluginsVector.elementAt(i);
       Long serviceId = (Long) nextReference.getProperty(SERVICE_ID);
       Integer rankingOfNextReference = (Integer) rankings.get(serviceId);
-      if (ranking < rankingOfNextReference.intValue()) {
+      if (ranking < rankingOfNextReference) {
         break;
       }
     }
@@ -206,12 +204,10 @@ final class PluginManager
   {
     if (ranking < 0) {
       removePluginReference(serviceId, preModificationPlugins);
-    } else if (0 <= ranking && ranking <= 1000) {
+    } else if (ranking <= 1000) {
       removePluginReference(serviceId, modifyingPlugins);
-    } else if (ranking > 1000) {
-      removePluginReference(serviceId, postModificationPlugins);
     } else {
-      // Shouldn't happen
+      removePluginReference(serviceId, postModificationPlugins);
     }
   }
 
@@ -237,8 +233,9 @@ final class PluginManager
    *          The configuration dictionary to be modified.
    * @return The description of what the method returns.
    */
-  public synchronized ConfigurationDictionary callPluginsAndCreateACopy(ServiceReference<?> targetServiceReference,
-                                                                        ConfigurationDictionary dictionary)
+  public synchronized ConfigurationDictionary callPluginsAndCreateACopy(
+      ServiceReference<?> targetServiceReference,
+      ConfigurationDictionary dictionary)
   {
     if (dictionary == null) {
       return null;
@@ -256,10 +253,7 @@ final class PluginManager
 
     }
 
-    if (dictionary != null) {
-      dictionary = dictionary.createCopyIfRealAndRemoveLocation();
-    }
-    return dictionary;
+    return dictionary.createCopyIfRealAndRemoveLocation();
   }
 
   /**

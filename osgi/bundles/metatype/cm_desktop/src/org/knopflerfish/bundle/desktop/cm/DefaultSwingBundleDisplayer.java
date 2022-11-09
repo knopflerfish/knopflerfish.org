@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,7 +92,7 @@ public abstract class DefaultSwingBundleDisplayer
 
     open();
 
-    final Dictionary<String, Object> props = new Hashtable<String, Object>();
+    final Dictionary<String, Object> props = new Hashtable<>();
     props.put(SwingBundleDisplayer.PROP_NAME, getName());
     props.put(SwingBundleDisplayer.PROP_DESCRIPTION, getDescription());
     props.put(SwingBundleDisplayer.PROP_ISDETAIL, isDetail()
@@ -153,7 +153,7 @@ public abstract class DefaultSwingBundleDisplayer
     synchronized (components) {
       // Must clone components to avoid concurrent modification since dispose
       // will remove items from components.
-      for (final JComponent comp : new HashSet<JComponent>(components)) {
+      for (final JComponent comp : new HashSet<>(components)) {
         disposeJComponent(comp);
       }
       components.clear(); // Should be a noop since disposeJComponent shall remove it...
@@ -210,14 +210,13 @@ public abstract class DefaultSwingBundleDisplayer
   static private Bundle[] getBundles()
   {
     final BundleContext tbc = getTargetBundleContext();
-    final Bundle[] bl = tbc == null ? null : tbc.getBundles();
-    return bl;
+    return tbc == null ? null : tbc.getBundles();
   }
 
   public static SortedSet<Bundle> getAllBundlesSortedByName()
   {
     final Bundle[] bl = getBundles();
-    final SortedSet<Bundle> set = new TreeSet<Bundle>(Util.bundleNameComparator);
+    final SortedSet<Bundle> set = new TreeSet<>(Util.bundleNameComparator);
     if (bl != null) {
       set.addAll(Arrays.asList(bl));
     }
@@ -239,7 +238,7 @@ public abstract class DefaultSwingBundleDisplayer
     return bundleSelModel;
   }
 
-  Set<JComponent> components = new HashSet<JComponent>();
+  final Set<JComponent> components = new HashSet<>();
 
   @Override
   public JComponent createJComponent()

@@ -104,13 +104,11 @@ public class Activator implements BundleActivator {
 
   private File getStoreDir() {
     String storeDirName = bc.getProperty(STORE_DIR_PROP);
-    File storeDir = null;
     if (storeDirName == null || "".equals(storeDirName)) {
-      storeDir = bc.getDataFile(DEFAULT_STORE_DIR);
+      return bc.getDataFile(DEFAULT_STORE_DIR);
     } else {
-      storeDir = new File(storeDirName);
+      return new File(storeDirName);
     }
-    return storeDir;
   }
 
 }

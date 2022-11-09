@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -82,8 +80,7 @@ public class JVector
     this.header = _header;
     this.maxItems = maxItems;
 
-    // Set to empty vector initially
-    v = new Vector<Object>();
+    v = new Vector<>();
 
     model = new AbstractTableModel() {
       /**
@@ -145,12 +142,10 @@ public class JVector
         switch (col) {
         case COL_ITEM: {
           final Object val = v.elementAt(row);
-          final String s = val.toString();
-
-          return s;
+          return val.toString();
         }
         case COL_ID: {
-          return new Integer(row);
+          return row;
         }
         default:
           throw new IllegalArgumentException("Col to large");
@@ -160,15 +155,12 @@ public class JVector
       @Override
       public void setValueAt(Object val, int row, int col)
       {
-        switch (col) {
-        case COL_ITEM: {
+        if (col == COL_ITEM) {
           final String s = val.toString();
 
           final Object obj = AD.parse(s, 0, ad.getType());
           v.setElementAt(obj, row);
-        }
-          break;
-        default:
+        } else {
           throw new IllegalArgumentException("Col to large");
         }
       }
@@ -185,21 +177,11 @@ public class JVector
     final JPanel cmds = new JPanel(new BorderLayout());
 
     addRowButton = new JButton("Add");
-    addRowButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent ev)
-      {
-        addRow();
-      }
-    });
+    addRowButton.addActionListener(ev -> addRow());
     addRowButton.setToolTipText("Add a new row to sequence");
 
     delRowButton = new JButton("Delete");
-    delRowButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent ev)
-      {
-        deleteRow();
-      }
-    });
+    delRowButton.addActionListener(ev -> deleteRow());
     delRowButton
         .setToolTipText("Delete the selected (or first) row from sequence");
 
@@ -222,6 +204,7 @@ public class JVector
     addRowButton.setEnabled(v.size() < maxItems);
   }
 
+  @SuppressWarnings("SameParameterValue")
   void setColWidth(int col, int w)
   {
     final TableModel model = table.getModel();
@@ -251,7 +234,7 @@ public class JVector
   @SuppressWarnings("unchecked")
   void setVector(Vector<Object> _v)
   {
-    this.v = _v != null ? (Vector<Object>) _v.clone() : new Vector<Object>();
+    this.v = _v != null ? (Vector<Object>) _v.clone() : new Vector<>();
 
     if (v.size() > maxItems) {
       throw new IllegalArgumentException("Size too large (got " + v.size()
@@ -293,7 +276,7 @@ public class JVector
   void setValue(Object obj)
   {
     if (obj == null) {
-      final Vector<Object> def = new Vector<Object>();
+      final Vector<Object> def = new Vector<>();
       final String[] defValues = ad.getDefaultValue();
       for (final String defValue : defValues) {
         def.addElement(AD.parse(defValue, 0, ad.getType()));

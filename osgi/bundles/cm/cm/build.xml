@@ -33,6 +33,7 @@
                    java.lang.reflect,
                    java.security,
                    java.util,
+                   java.util.function,
                    java.lang.annotation"/>
 <!--
                    org.osgi.annotation.bundle,

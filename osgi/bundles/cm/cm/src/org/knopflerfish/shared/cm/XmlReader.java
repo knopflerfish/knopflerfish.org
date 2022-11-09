@@ -138,9 +138,8 @@ public class XmlReader {
     startElement(elementType, attributes);
     String content = null;
     if (notEmptyElement) {
-      content = readContent(r, elementType, attributes);
+      content = readContent(r);
       readEndTag(elementType, r);
-    } else {
     }
     endElement(elementType, attributes, content);
   }
@@ -160,7 +159,7 @@ public class XmlReader {
     char c = readAndPushbackNextChar(r);
     // Turn into a method
     if (c != '>' && c != '/' && isNotXMLWhitespace(c)) {
-      throwMessage("Error while reading element type after: " + elementType);
+      throw new Exception("Error while reading element type after: " + elementType);
     }
   }
 
@@ -172,8 +171,8 @@ public class XmlReader {
     if (isXMLNameStartChar(c)) {
       throwIfNotExpectedChar(c, elementType.charAt(pos++));
     } else {
-      throwMessage("Error while reading XML name: " + c
-                   + " is not a valid start char.");
+      throw new Exception("Error while reading XML name: " + c
+          + " is not a valid start char.");
     }
     c = readNextChar(r);
     while (isXMLNameChar(c)) {
@@ -190,7 +189,7 @@ public class XmlReader {
     char c = readAndPushbackNextChar(r);
     // Turn into a method
     if (c != '>' && c != '/' && isNotXMLWhitespace(c)) {
-      throwMessage("Error while reading element type after: " + elementType);
+      throw new Exception("Error while reading element type after: " + elementType);
     }
     return elementType;
   }
@@ -203,8 +202,8 @@ public class XmlReader {
     if (isXMLNameStartChar(c)) {
       xmlName.append(c);
     } else {
-      throwMessage("Error while reading XML name: " + c
-                   + " is not a valid start char.");
+      throw new Exception("Error while reading XML name: " + c
+          + " is not a valid start char.");
     }
     c = readNextChar(r);
     while (isXMLNameChar(c)) {
@@ -225,7 +224,7 @@ public class XmlReader {
       throwIfNotExpectedChar(c, '=');
       String value = readAttributeValue(r);
       if (attributes == null) {
-        attributes = new Hashtable<String,String>();
+        attributes = new Hashtable<>();
       }
       attributes.put(name, value);
     }
@@ -292,9 +291,7 @@ public class XmlReader {
     return !emptyElement;
   }
 
-  String readContent(PushbackReader r,
-                     String elementType,
-                     Dictionary<String, String> attributes)
+  String readContent(PushbackReader r)
       throws Exception
   {
     char c = readAndPushbackNextNonWhitespaceChar(r);
@@ -349,7 +346,7 @@ public class XmlReader {
     }
 
     String s = escapeCode.toString();
-    char c = 0;
+    char c;
     if (isHexCode) {
       c = (char) Integer.parseInt(s, 16);
     } else if (isCharCode) {
@@ -365,7 +362,7 @@ public class XmlReader {
     } else if ("quot".equals(s)) {
       c = '\"';
     } else {
-      throwMessage("Invalid or unsupported escape character: " + s);
+      throw new Exception("Invalid or unsupported escape character: " + s);
     }
     return c;
   }
@@ -461,6 +458,7 @@ public class XmlReader {
     }
   }
 
+  @SuppressWarnings("SameParameterValue")
   protected void throwIfNotExpectedChar(char c,
                                         char expected,
                                         PushbackReader pbr)
@@ -481,25 +479,13 @@ public class XmlReader {
     }
   }
 
-  protected void throwMessage(String message)
-      throws Exception
-  {
-    throw new Exception(message); // TODO
-  }
-
   protected void throwIfMissingAttribute(String element,
                                          String name,
                                          String value)
       throws Exception
   {
     if (value == null) {
-      throwMessage("Missing " + name + " attribute in <" + element + "> tag.");
+      throw new Exception("Missing " + name + " attribute in <" + element + "> tag.");
     }
-  }
-
-  protected void throwMisplacedTagException(String element)
-      throws Exception
-  {
-    throw new Exception("Misplaced <" + element + "> tag.");
   }
 }

@@ -50,6 +50,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
@@ -92,10 +93,10 @@ class ConfigurationAdminFactory
   // The service reference is either for a ManagedService or a
   // ManagedServiceFactory
   private final Hashtable<String, Hashtable<String, TreeSet<ServiceReference<?>>>> locationToPids =
-    new Hashtable<String, Hashtable<String, TreeSet<ServiceReference<?>>>>();
+      new Hashtable<>();
 
   private final Hashtable<String, String> existingBundleLocations =
-    new Hashtable<String, String>();
+      new Hashtable<>();
 
   ConfigurationStore store;
 
@@ -125,7 +126,6 @@ class ConfigurationAdminFactory
 
   public ConfigurationAdminFactory(File storeDir)
   {
-    storeDir.mkdirs();
     try {
       this.store = new ConfigurationStore(storeDir);
     } catch (final Exception e) {
@@ -138,7 +138,7 @@ class ConfigurationAdminFactory
 
     configurationDispatcher = new ConfigurationDispatcher(pluginManager);
 
-    lookForExisitingBundleLocations();
+    lookForExistingBundleLocations();
 
     final String filter =
       "(|(objectClass=" + ManagedServiceFactory.class.getName() + ")"
@@ -168,7 +168,8 @@ class ConfigurationAdminFactory
       if (refs == null || !ConfigurationAdmin.class.getName().equals(((String [])refs[0].getProperty(Constants.OBJECTCLASS))[0])){
         Activator.log.error("Could not get configuration admin service reference for configuration event creation.");
       } else {
-        serviceReference = (ServiceReference<ConfigurationAdmin>)refs[0];
+        //noinspection unchecked
+        serviceReference = (ServiceReference<ConfigurationAdmin>) refs[0];
       }
     }
     return serviceReference;
@@ -192,18 +193,23 @@ class ConfigurationAdminFactory
     postEvent(event);
   }
 
+  private <T> Collection<ServiceReference<T>> getServiceReferences(Class<T> clazz)
+  {
+    try {
+      return Activator.bc.getServiceReferences(clazz, null);
+    } catch (final InvalidSyntaxException ignored) {
+      // Impossible with filter == null
+      return Collections.emptyList();
+    }
+  }
+
   // Send configuration event to synchronous configuration listeners.
   // Note that the even must be delivered using the thread that called update/delete
   // thus there is no way for us to protect against listeners that does not return...
   private void sendEventSync(final ConfigurationEvent event)
   {
-    Collection<ServiceReference<SynchronousConfigurationListener>> lReferences = null;
-
-    try {
-      lReferences =
-        Activator.bc.getServiceReferences(SynchronousConfigurationListener.class, null);
-    } catch (final InvalidSyntaxException ignored) {
-    }
+    Collection<ServiceReference<SynchronousConfigurationListener>> lReferences
+        = getServiceReferences(SynchronousConfigurationListener.class);
 
     for (final ServiceReference<SynchronousConfigurationListener> listenerRef : lReferences) {
       try {
@@ -215,13 +221,8 @@ class ConfigurationAdminFactory
   }
 
   private void postEvent(final ConfigurationEvent event) {
-    Collection<ServiceReference<ConfigurationListener>> lReferences = null;
-
-    try {
-      lReferences =
-        Activator.bc.getServiceReferences(ConfigurationListener.class, null);
-    } catch (final InvalidSyntaxException ignored) {
-    }
+    Collection<ServiceReference<ConfigurationListener>> lReferences
+        = getServiceReferences(ConfigurationListener.class);
 
     for (final ServiceReference<ConfigurationListener> listenerRef : lReferences) {
       listenerEventQueue.enqueue(new ListenerEvent(listenerRef, event));
@@ -230,18 +231,14 @@ class ConfigurationAdminFactory
 
   private <C> void lookForAlreadyRegisteredServices(Class<C> c)
   {
-    Collection<ServiceReference<C>> srs = null;
-    try {
-      srs = Activator.bc.getServiceReferences(c, null);
-    } catch (final InvalidSyntaxException ignored) {
-    }
+    Collection<ServiceReference<C>> srs = getServiceReferences(c);
 
     for (final ServiceReference<C> sr : srs) {
       serviceChanged(sr, ServiceEvent.REGISTERED, c.getName());
     }
   }
 
-  private void lookForExisitingBundleLocations()
+  private void lookForExistingBundleLocations()
   {
     final Bundle[] bs = Activator.bc.getBundles();
     for (int i = 0; bs != null && i < bs.length; ++i) {
@@ -269,7 +266,7 @@ class ConfigurationAdminFactory
 
     if (isNonExistingBundleLocation(configLocation)) {
       final Boolean dynamicLocation = (Boolean) d.get(DYNAMIC_BUNDLE_LOCATION);
-      if (dynamicLocation != null && dynamicLocation.booleanValue()) {
+      if (dynamicLocation != null && dynamicLocation) {
         configLocation = null;
         d.remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
         d.remove(DYNAMIC_BUNDLE_LOCATION);
@@ -296,11 +293,12 @@ class ConfigurationAdminFactory
       "(&(" + ConfigurationAdmin.SERVICE_BUNDLELOCATION + "=" + bundleLocation
           + ")" + "(" + DYNAMIC_BUNDLE_LOCATION + "=" + Boolean.TRUE + "))";
     try {
-      final Configuration[] configurations = listConfigurations(filter, null);
-      for (int i = 0; configurations != null && i < configurations.length; ++i) {
-        ((ConfigurationImpl) configurations[i])
-            .setBundleLocationAndPersist(null);
-        ((ConfigurationImpl) configurations[i]).update();
+      final Configuration[] configurations = listConfigurations(filter);
+      if (configurations != null) {
+        for (Configuration configuration : configurations) {
+          ((ConfigurationImpl) configuration).setBundleLocationAndPersist(null);
+          configuration.update();
+        }
       }
     } catch (final Exception e) {
       Activator.log.error("[CM] Error while unbinding configurations bound to "
@@ -317,7 +315,7 @@ class ConfigurationAdminFactory
     final String configLocation = d.getLocation();
     if (isNonExistingBundleLocation(configLocation)) {
       final Boolean dynamicLocation = (Boolean) d.get(DYNAMIC_BUNDLE_LOCATION);
-      if (dynamicLocation != null && dynamicLocation.booleanValue()) {
+      if (dynamicLocation != null && dynamicLocation) {
         d.remove(DYNAMIC_BUNDLE_LOCATION);
         d.remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
         final String fpid = d.getFactoryPid();
@@ -342,8 +340,7 @@ class ConfigurationAdminFactory
   private <S> Collection<ServiceReference<S>> filterOnTargetedPid(Collection<ServiceReference<S>> srs,
                                                                   String targetedPid)
   {
-    final Collection<ServiceReference<S>> res =
-      new ArrayList<ServiceReference<S>>(srs.size());
+    final Collection<ServiceReference<S>> res = new ArrayList<>(srs.size());
     for (final ServiceReference<S> sr : srs) {
       if (targetedPidMatches(targetedPid, sr.getBundle())) {
         res.add(sr);
@@ -363,7 +360,7 @@ class ConfigurationAdminFactory
       final Collection<ServiceReference<S>> res = Collections.EMPTY_LIST;
       return res;
     }
-    final List<ServiceReference<S>> res = new ArrayList<ServiceReference<S>>();
+    final List<ServiceReference<S>> res = new ArrayList<>();
     for (final ServiceReference<S> sr : srs) {
       if (locationsMatch(sr.getBundle(), configLocation)) {
         res.add(sr);
@@ -396,10 +393,8 @@ class ConfigurationAdminFactory
                                                        configLocation,
                                                        ConfigurationPermission.TARGET));
       }
-    } else if (configLocation.equals(targetBundle.getLocation())) {
-      return true;
     } else {
-      return false;
+      return configLocation.equals(targetBundle.getLocation());
     }
   }
 
@@ -412,26 +407,19 @@ class ConfigurationAdminFactory
     if (pids == null || pids.length == 0) {
       return;
     }
-    Hashtable<String, TreeSet<ServiceReference<?>>> pidsForLocation =
-      locationToPids.get(bundleLocation);
-    if (pidsForLocation == null) {
-      pidsForLocation = new Hashtable<String, TreeSet<ServiceReference<?>>>();
-      locationToPids.put(bundleLocation, pidsForLocation);
-    }
+    Hashtable<String, TreeSet<ServiceReference<?>>> pidsForLocation
+        = locationToPids.computeIfAbsent(bundleLocation, k -> new Hashtable<>());
     for (final String pid : pids) {
-      TreeSet<ServiceReference<?>> ssr = pidsForLocation.get(pid);
-      if (ssr == null) {
-        ssr = new TreeSet<ServiceReference<?>>();
-        pidsForLocation.put(pid, ssr);        
-      }
+      TreeSet<ServiceReference<?>> ssr
+          = pidsForLocation.computeIfAbsent(pid, k -> new TreeSet<>());
       ssr.add(sr);
     }
   }
 
-  class ChangedPids
+  static class ChangedPids
   {
-    Vector<String> added = new Vector<String>();
-    Vector<String> deleted = new Vector<String>();
+    Vector<String> added = new Vector<>();
+    Vector<String> deleted = new Vector<>();
   }
 
   private ChangedPids updateLocationToPidsAndCheck(ServiceReference<?> sr)
@@ -444,7 +432,7 @@ class ConfigurationAdminFactory
     final Hashtable<String, TreeSet<ServiceReference<?>>> oldPids =
       locationToPids.get(bundleLocation);
     final String[] newPids = getPids(sr);
-    if (newPids == null || newPids.length == 0) {
+    if (newPids.length == 0) {
       if (oldPids == null || oldPids.size() == 0) {
         return null;
       } else {
@@ -483,7 +471,7 @@ class ConfigurationAdminFactory
 
   private Set<String> removeFromLocationToPids(ServiceReference<?> sr)
   {
-    HashSet<String> res = new HashSet<String>();
+    HashSet<String> res = new HashSet<>();
     if (sr != null) {
       Bundle bundle = sr.getBundle();
       final String bundleLocation = bundle.getLocation();
@@ -773,6 +761,7 @@ class ConfigurationAdminFactory
    * @param srs
    *          collection of matching (on {@code pid}) managed services.
    * @throws IOException
+   *          if writing to ConfigurationStore fails.
    */
   private void updateManagedServicesForDeletedTargetedPID(final String targetedPid,
                                                           final String oldBundleLocation,
@@ -866,9 +855,7 @@ class ConfigurationAdminFactory
     } catch (final InvalidSyntaxException e) {
       Activator.log.error("Faulty ldap filter " + filter + ": "
                               + e.getMessage(), e);
-      @SuppressWarnings("unchecked")
-      final Collection<ServiceReference<C>> res = Collections.EMPTY_LIST;
-      return res;
+      return Collections.emptyList();
     }
   }
 
@@ -876,18 +863,7 @@ class ConfigurationAdminFactory
       throws IOException
   {
     try {
-      AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-        @Override
-        public Object run()
-            throws IOException
-        {
-          final ConfigurationDictionary cd = store.delete(c.getPid());
-          if (cd != null) {
-            updateTargetServicesMatching(cd);
-          }
-          return null;
-        }
-      });
+      AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> doDelete(c));
     } catch (final PrivilegedActionException e) {
       final IOException ee = (IOException) e.getException();
       // Android don't supply nested exception
@@ -897,6 +873,14 @@ class ConfigurationAdminFactory
         throw new IOException("Failed to handle persistent CM data");
       }
     }
+  }
+
+  private Object doDelete(ConfigurationImpl c) throws IOException {
+    final ConfigurationDictionary cd = store.delete(c.getPid());
+    if (cd != null) {
+      updateTargetServicesMatching(cd);
+    }
+    return null;
   }
 
   /**
@@ -909,6 +893,7 @@ class ConfigurationAdminFactory
    * @param dispatchUpdate
    *          If {@code true} dispatch updates to matching targets.
    * @throws IOException
+   *          if privileged action fails
    */
   void update(final ConfigurationImpl c,
               final boolean incrementChangeCount,
@@ -920,18 +905,10 @@ class ConfigurationAdminFactory
     // servicePid is not registered?
 
     try {
-      AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-        @Override
-        public Object run()
-            throws IOException
-        {
-          store.store(c.getPid(), c.getFactoryPid(), c.properties, incrementChangeCount);
-          if (dispatchUpdate) {
-            updateTargetServicesMatching(c.properties);
-          }
-          return null;
-        }
-      });
+      AccessController.doPrivileged(
+          (PrivilegedExceptionAction<Object>) () ->
+              doUpdate(c, incrementChangeCount, dispatchUpdate)
+      );
     } catch (final PrivilegedActionException e) {
       final IOException ee = (IOException) e.getException();
       // Android don't supply nested exception
@@ -943,19 +920,23 @@ class ConfigurationAdminFactory
     }
   }
 
+  private Object doUpdate(
+      ConfigurationImpl c, boolean incrementChangeCount, boolean dispatchUpdate
+  ) throws IOException {
+    store.store(c.getPid(), c.getFactoryPid(), c.properties, incrementChangeCount);
+    if (dispatchUpdate) {
+      updateTargetServicesMatching(c.properties);
+    }
+    return null;
+  }
+
   String generatePid(final String factoryPid)
       throws IOException
   {
     try {
-      return AccessController
-          .doPrivileged(new PrivilegedExceptionAction<String>() {
-            @Override
-            public String run()
-                throws IOException
-            {
-              return store.generatePid(factoryPid);
-            }
-          });
+      return AccessController.doPrivileged(
+          (PrivilegedExceptionAction<String>) () ->
+              store.generatePid(factoryPid));
     } catch (final PrivilegedActionException e) {
       final IOException ee = (IOException) e.getException();
       // Android don't supply nested exception
@@ -971,23 +952,9 @@ class ConfigurationAdminFactory
       throws IOException
   {
     try {
-      return AccessController
-          .doPrivileged(new PrivilegedExceptionAction<ConfigurationDictionary>() {
-            @Override
-            public ConfigurationDictionary run()
-                throws IOException
-            {
-              final List<String> targetPIDsuffixes = getTargetedPidSuffixes(bundle);
-              for (int i = targetPIDsuffixes.size() - 1; i >= 0; i--) {
-                final ConfigurationDictionary cd =
-                  store.load(pid + targetPIDsuffixes.get(i));
-                if (cd != null) {
-                  return cd;
-                }
-              }
-              return null;
-            }
-          });
+      return AccessController.doPrivileged(
+          (PrivilegedExceptionAction<ConfigurationDictionary>) () ->
+              doLoad(bundle, pid));
     } catch (final PrivilegedActionException e) {
       final IOException ee = (IOException) e.getException();
       // Android don't supply nested exception
@@ -997,29 +964,27 @@ class ConfigurationAdminFactory
         throw new IOException("Failed to handle persistent CM data");
       }
     }
+  }
+
+  private ConfigurationDictionary doLoad(Bundle bundle, String pid) throws IOException {
+    final List<String> targetPIDsuffixes = getTargetedPidSuffixes(bundle);
+    for (int i = targetPIDsuffixes.size() - 1; i >= 0; i--) {
+      final ConfigurationDictionary cd =
+        store.load(pid + targetPIDsuffixes.get(i));
+      if (cd != null) {
+        return cd;
+      }
+    }
+    return null;
   }
 
   List<ConfigurationDictionary> loadAll(final String factoryPid, final Bundle bundle)
       throws IOException
   {
     try {
-      return AccessController
-          .doPrivileged(new PrivilegedExceptionAction<List<ConfigurationDictionary>>() {
-            @Override
-            public List<ConfigurationDictionary> run()
-                throws IOException
-            {
-              final List<ConfigurationDictionary> res = new ArrayList<ConfigurationDictionary>();
-              final List<String> targetedPidSuffixes = getTargetedPidSuffixes(bundle);
-              for (int i = targetedPidSuffixes.size() - 1; i >= 0; i--) {
-                final ConfigurationDictionary[] cda = store.loadAll(factoryPid + targetedPidSuffixes.get(i));
-                if (cda != null && cda.length>0) {
-                  res.addAll(Arrays.asList(cda));
-                }
-              }
-              return res;
-            }
-          });
+      return AccessController.doPrivileged(
+          (PrivilegedExceptionAction<List<ConfigurationDictionary>>) () ->
+              doLoadAll(bundle, factoryPid));
     } catch (final PrivilegedActionException e) {
       final IOException ee = (IOException) e.getException();
       // Android don't supply nested exception
@@ -1031,20 +996,31 @@ class ConfigurationAdminFactory
     }
   }
 
-  Configuration[] listConfigurations(String filterString, Bundle callingBundle)
-      throws IOException, InvalidSyntaxException
+  private List<ConfigurationDictionary> doLoadAll(Bundle bundle, String factoryPid) throws IOException {
+    final List<ConfigurationDictionary> res = new ArrayList<>();
+    final List<String> targetedPidSuffixes = getTargetedPidSuffixes(bundle);
+    for (int i = targetedPidSuffixes.size() - 1; i >= 0; i--) {
+      final ConfigurationDictionary[] cda = store.loadAll(factoryPid + targetedPidSuffixes.get(i));
+      if (cda != null && cda.length>0) {
+        res.addAll(Arrays.asList(cda));
+      }
+    }
+    return res;
+  }
+
+  private Configuration[] listConfigurations(String filterString)
+      throws InvalidSyntaxException
   {
-    return listConfigurations(filterString, callingBundle, false);
+    return listConfigurations(filterString, null, false);
   }
 
   Configuration[] listConfigurations(String filterString,
                                      Bundle callingBundle,
                                      boolean activeOnly)
-      throws IOException, InvalidSyntaxException
+      throws InvalidSyntaxException
   {
     final Enumeration<Object> configurationPids = store.listPids();
-    final Vector<ConfigurationImpl> matchingConfigurations =
-      new Vector<ConfigurationImpl>();
+    final Vector<ConfigurationImpl> matchingConfigurations = new Vector<>();
     final Filter filter =
       filterString == null ? null : Activator.bc.createFilter(filterString);
     while (configurationPids.hasMoreElements()) {
@@ -1111,6 +1087,7 @@ class ConfigurationAdminFactory
   class ConfigurationImpl
     implements Configuration
   {
+    @SuppressWarnings("unused")
     private final Bundle callingBundle;
 
     private final String factoryPid; // Factory PID
@@ -1280,7 +1257,7 @@ class ConfigurationAdminFactory
 
       // Notify of loss
       if (oldLoc != null && srs != null) {
-        for (final ServiceReference<?> sr : (srs != null) ? srs : srsF) {
+        for (final ServiceReference<?> sr : srs) {
           if (locationsMatch(sr.getBundle(), oldLoc)) {
             configurationDispatcher.dispatchUpdateFor(sr, servicePid,
                                                       factoryPid, null);
@@ -1288,7 +1265,7 @@ class ConfigurationAdminFactory
         }
       }
 
-      if (bundleLocation == null) {
+      if (bundleLocation == null && (srs != null || srsF != null)) {
         // Assume should Dynamically rebind
         for (final ServiceReference<?> sr : (srs != null) ? srs : srsF) {
           bundleLocation = sr.getBundle().getLocation();
@@ -1318,7 +1295,7 @@ class ConfigurationAdminFactory
         properties = new ConfigurationDictionary();
       }
       Object oldLoc = properties.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
-      boolean newLoc = bundleLocation == null ? oldLoc != null : !bundleLocation.equals(oldLoc);
+      boolean newLoc = !Objects.equals(bundleLocation, oldLoc);
       if (dynamic) {
         properties.put(DYNAMIC_BUNDLE_LOCATION, Boolean.TRUE);
       } else {
@@ -1361,6 +1338,7 @@ class ConfigurationAdminFactory
      *          save operation that has not changed the configuration properties
      *          (except the bound location).
      * @throws IOException
+     *          if privileged action failed.
      */
     void update(boolean incrementChangeCount, boolean dispatchUpdate)
         throws IOException
@@ -1466,35 +1444,33 @@ class ConfigurationAdminFactory
       return servicePid.hashCode();
     }
 
-	@Override
-	public Dictionary<String, Object> getProcessedProperties(ServiceReference<?> reference) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Dictionary<String, Object> getProcessedProperties(ServiceReference<?> reference) {
+      // TODO Auto-generated method stub
+      return null;
+    }
 
-	@Override
-	public boolean updateIfDifferent(Dictionary<String, ?> properties) throws IOException {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public boolean updateIfDifferent(Dictionary<String, ?> properties) {
+      // TODO Auto-generated method stub
+      return false;
+    }
 
-	@Override
-	public void addAttributes(ConfigurationAttribute... attrs) throws IOException {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void addAttributes(ConfigurationAttribute... attrs) {
+      // TODO Auto-generated method stub
+    }
 
-	@Override
-	public Set<ConfigurationAttribute> getAttributes() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Set<ConfigurationAttribute> getAttributes() {
+      // TODO Auto-generated method stub
+      return null;
+    }
 
-	@Override
-	public void removeAttributes(ConfigurationAttribute... attrs) throws IOException {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void removeAttributes(ConfigurationAttribute... attrs) {
+      // TODO Auto-generated method stub
+    }
 
   }
 
@@ -1604,18 +1580,20 @@ class ConfigurationAdminFactory
 
     private void checkConfigPerm(String location)
     {
-      if ((System.getSecurityManager() == null)
-          || (callingBundle.getLocation().equals(location))
-          || (callingBundle
-              .hasPermission(new ConfigurationPermission(location == null
-                ? "*"
-                : location, ConfigurationPermission.CONFIGURE)))) {
-        return;
-      } else {
+      if (
+          System.getSecurityManager() != null
+          && !callingBundle.getLocation().equals(location)
+          && !callingBundle.hasPermission(
+              new ConfigurationPermission(
+                  location == null ? "*" : location,
+                  ConfigurationPermission.CONFIGURE
+              )
+          )
+      ) {
         throw new SecurityException(
-                                    "Not allowed to access configuration owned by "
-                                        + location + " caller is "
-                                        + callingBundleLocation);
+            "Not allowed to access configuration owned by "
+                + location + " caller is "
+                + callingBundleLocation);
       }
     }
 
@@ -1659,22 +1637,15 @@ class ConfigurationAdminFactory
     public Configuration[] listConfigurations(final String filterString)
         throws IOException, InvalidSyntaxException
     {
-      Configuration[] configurations = null;
-
       try {
-        configurations =
-          AccessController
-              .doPrivileged(new PrivilegedExceptionAction<Configuration[]>() {
-                @Override
-                public Configuration[] run()
-                    throws IOException, InvalidSyntaxException
-                {
-                  return ConfigurationAdminFactory.this
-                      .listConfigurations(filterString,
-                                          ConfigurationAdminImpl.this.callingBundle,
-                                          true);
-                }
-              });
+        return AccessController
+            .doPrivileged((PrivilegedExceptionAction<Configuration[]>) () ->
+                ConfigurationAdminFactory.this.listConfigurations(
+                    filterString,
+                    ConfigurationAdminImpl.this.callingBundle,
+                    true
+                )
+            );
       } catch (final PrivilegedActionException e) {
         final Exception ee = e.getException();
         // Android don't supply nested exception
@@ -1687,20 +1658,19 @@ class ConfigurationAdminFactory
           throw new IOException("Failed to handle CM data");
         }
       }
-      return configurations;
     }
 
-	@Override
-	public Configuration getFactoryConfiguration(String factoryPid, String name, String location) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Configuration getFactoryConfiguration(String factoryPid, String name, String location) {
+      // TODO Auto-generated method stub
+      return null;
+    }
 
-	@Override
-	public Configuration getFactoryConfiguration(String factoryPid, String name) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Configuration getFactoryConfiguration(String factoryPid, String name) {
+      // TODO Auto-generated method stub
+      return null;
+    }
 
   }
 
@@ -1762,7 +1732,7 @@ class ConfigurationAdminFactory
     switch (eventType) {
     case ServiceEvent.REGISTERED:
       configurationDispatcher.addQueueFor(sr);
-      if (factoryPids == null || factoryPids.length == 0) {
+      if (factoryPids.length == 0) {
         final String bundleLocation = sr.getBundle().getLocation();
         Activator.log
             .error("[CM] ManagedServiceFactory w/o valid service.pid registered by "
@@ -1772,7 +1742,7 @@ class ConfigurationAdminFactory
       addToLocationToPidsAndCheck(sr, factoryPids);
       if (Activator.log.doDebug()) {
         Activator.log.debug("[CM] ManagedServiceFactory registered: "
-                            + factoryPids);
+                            + Arrays.toString(factoryPids));
       }
       try {
         updateManagedServiceFactory(sr);
@@ -1809,7 +1779,7 @@ class ConfigurationAdminFactory
     } else if (prop instanceof Collection) {
       @SuppressWarnings("unchecked")
       final Collection<String> propCS = (Collection<String>) prop;
-      return propCS.toArray(new String[propCS.size()]);
+      return propCS.toArray(new String[0]);
     } else {
       return new String[0];
     }
@@ -1822,7 +1792,7 @@ class ConfigurationAdminFactory
     switch (eventType) {
     case ServiceEvent.REGISTERED:
       configurationDispatcher.addQueueFor(sr);
-      if (servicePids == null || servicePids.length == 0) {
+      if (servicePids.length == 0) {
         final String bundleLocation = sr.getBundle().getLocation();
         Activator.log
             .error("[CM] ManagedService w/o valid service.pid registered by "
@@ -1831,7 +1801,8 @@ class ConfigurationAdminFactory
       }
       addToLocationToPidsAndCheck(sr, servicePids);
       if (Activator.log.doDebug()) {
-        Activator.log.debug("[CM] ManagedService registered: " + servicePids);
+        Activator.log.debug("[CM] ManagedService registered: "
+            + Arrays.toString(servicePids));
       }
       try {
         updateManagedService(sr);
@@ -1864,7 +1835,7 @@ class ConfigurationAdminFactory
    */
   private List<String> getTargetedPidSuffixes(final Bundle bundle)
   {
-    final List<String> targetPIDsuffixes = new ArrayList<String>(4);
+    final List<String> targetPIDsuffixes = new ArrayList<>(4);
     targetPIDsuffixes.add("");
     if (bundle != null) {
       final String bsn = bundle.getSymbolicName();

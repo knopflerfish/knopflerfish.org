@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ public class JCMProp
 
   AttributeDefinition ad;
 
-  JComponent comp = null;
+  JComponent comp;
   JLabel err;
 
   @SuppressWarnings("unchecked")
@@ -75,7 +75,7 @@ public class JCMProp
     err.setForeground(Color.red);
 
     final int card = ad.getCardinality();
-    int maxItems = Integer.MAX_VALUE;
+    int maxItems;
 
     if (card == Integer.MAX_VALUE || card == Integer.MIN_VALUE) {
       maxItems = Integer.MAX_VALUE;
@@ -96,9 +96,9 @@ public class JCMProp
     } else {
       if (ad.getOptionValues() != null) {
         if (ad.getOptionLabels() != null) {
-          comp = new JComboBox(ad.getOptionLabels());
+          comp = new JComboBox<>(ad.getOptionLabels());
         } else {
-          comp = new JComboBox(ad.getOptionValues());
+          comp = new JComboBox<>(ad.getOptionValues());
         }
       } else {
         switch (ad.getType()) {
@@ -130,7 +130,7 @@ public class JCMProp
     // obj.getClass().getName() : "null"));
     if (ad.getCardinality() == 0) {
       setValue(AD.toString(obj != null ? obj : ad.getDefaultValue()));
-    } else {
+    // } else {
       // done in constructor for JVector
     }
   }
@@ -148,7 +148,7 @@ public class JCMProp
     String s = null;
     if (ad.getCardinality() == 0) {
       s = AD.toString(obj != null ? obj : ad.getDefaultValue());
-    } else {
+    // } else {
       // done in constructor for JVector
     }
 
@@ -165,7 +165,7 @@ public class JCMProp
         final JCheckBox cb = (JCheckBox) comp;
         cb.setSelected("true".equals(s));
       } else if (comp instanceof JComboBox) {
-        final JComboBox cb = (JComboBox) comp;
+        final JComboBox<?> cb = (JComboBox<?>) comp;
         final String[] opts = ad.getOptionValues();
         for (int i = 0; i < opts.length; i++) {
           if (opts[i].equals(s)) {
@@ -198,7 +198,7 @@ public class JCMProp
       final JCheckBox cb = (JCheckBox) comp;
       s = "" + cb.isSelected();
     } else if (comp instanceof JComboBox) {
-      final JComboBox cb = (JComboBox) comp;
+      final JComboBox<?> cb = (JComboBox<?>) comp;
       s = ad.getOptionValues()[cb.getSelectedIndex()];
     }
 

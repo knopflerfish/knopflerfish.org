@@ -39,8 +39,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -52,7 +50,6 @@ import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -63,7 +60,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLEditorKit;
 
 import org.osgi.framework.Bundle;
@@ -71,6 +67,7 @@ import org.osgi.service.cm.Configuration;
 import org.osgi.service.metatype.MetaTypeInformation;
 import org.osgi.service.metatype.ObjectClassDefinition;
 
+import org.knopflerfish.shared.cm.CMDataConstants;
 import org.knopflerfish.shared.cm.CMDataReader;
 import org.knopflerfish.util.metatype.MTP;
 
@@ -99,8 +96,8 @@ public class JCMInfo
     add(main, BorderLayout.CENTER);
   }
 
-  JComboBox servicePIDBox = null;
-  JComboBox factoryPIDBox = null;
+  JComboBox<String> servicePIDBox = null;
+  JComboBox<String> factoryPIDBox = null;
 
   void setProvider(MetaTypeInformation mti, Bundle bundle)
   {
@@ -119,37 +116,25 @@ public class JCMInfo
 
   private void renderBundleWithMetaTypeInformation(final Bundle bundle)
   {
-    final String[] servicePIDs = mti.getPids();
-    servicePIDBox = new JComboBox(servicePIDs);
-    servicePIDBox.setEnabled(servicePIDs != null && servicePIDs.length > 0);
-    servicePIDBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent ev)
-      {
-        final int ix = servicePIDBox.getSelectedIndex();
-        if (ix == -1) {
-          return;
-        } else {
-          final String pid = (String) servicePIDBox.getSelectedItem();
-          setServiceOCD(pid, bundle);
-        }
+    final String[] servicePIDs = makeNotNull(mti.getPids());
+    servicePIDBox = new JComboBox<>(servicePIDs);
+    servicePIDBox.setEnabled(servicePIDs.length > 0);
+    servicePIDBox.addActionListener(ev -> {
+      final int ix = servicePIDBox.getSelectedIndex();
+      if (ix != -1) {
+        final String pid = (String) servicePIDBox.getSelectedItem();
+        setServiceOCD(pid, bundle);
       }
     });
 
-    final String[] factoryPIDs = mti.getFactoryPids();
-    factoryPIDBox = new JComboBox(factoryPIDs);
-    factoryPIDBox.setEnabled(factoryPIDs != null && factoryPIDs.length > 0);
-    factoryPIDBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent ev)
-      {
-        final int ix = factoryPIDBox.getSelectedIndex();
-        if (ix == -1) {
-          return;
-        } else {
-          final String pid = (String) factoryPIDBox.getSelectedItem();
-          setFactoryOCD(pid, bundle);
-        }
+    final String[] factoryPIDs = makeNotNull(mti.getFactoryPids());
+    factoryPIDBox = new JComboBox<>(factoryPIDs);
+    factoryPIDBox.setEnabled(factoryPIDs.length > 0);
+    factoryPIDBox.addActionListener(ev -> {
+      final int ix = factoryPIDBox.getSelectedIndex();
+      if (ix != -1) {
+        final String pid = (String) factoryPIDBox.getSelectedItem();
+        setFactoryOCD(pid, bundle);
       }
     });
 
@@ -163,20 +148,27 @@ public class JCMInfo
     if (mti instanceof MTP) {
       title = title + " (" + ((MTP) mti).getId() + ")";
     }
-    upperBox.setBorder(makeBorder(this, title));
+    upperBox.setBorder(makeBorder(title));
     main.add(upperBox, BorderLayout.NORTH);
 
     // Set either the first service or the first factory as displayed
-    if (servicePIDs != null && servicePIDs.length > 0) {
+    if (servicePIDs.length > 0) {
       main.add(jcmService, BorderLayout.CENTER);
       setServiceOCD(servicePIDs[0], bundle);
-    } else if (factoryPIDs != null && factoryPIDs.length > 0) {
+    } else if (factoryPIDs.length > 0) {
       main.add(jcmService, BorderLayout.CENTER);
       setFactoryOCD(factoryPIDs[0], bundle);
-    } else {
+    // } else {
       // Neither service PID nor factory PID found in provider; leave the rest
       // of the main-panel empty.
     }
+  }
+
+  private String[] makeNotNull(String[] array) {
+    if (array == null) {
+      return new String[0];
+    }
+    return array;
   }
 
   /**
@@ -305,8 +297,6 @@ public class JCMInfo
    * Import configurations from a cm_data XML file. Pop-up a dialog asking for
    * the name of the file to import, do the actual import work then show a
    * confirmation dialog with the PIDs of the imported configurations.
-   *
-   * @param comp
    */
   static void importCfg(Component comp)
   {
@@ -337,7 +327,7 @@ public class JCMInfo
                                  new BufferedReader(
                                                     new InputStreamReader(
                                                                           url.openStream(),
-                                                                          CMDataReader.ENCODING),
+                                                                          CMDataConstants.ENCODING),
                                                     8192), 8);
             final Hashtable<String, Object>[] configs =
               cmDataReader.readCMDatas(reader);
@@ -345,8 +335,8 @@ public class JCMInfo
             final StringBuilder sb = new StringBuilder(100*configs.length);
             sb.append("<html>Imported configurations with PIDs:<ul>");
             for (final Hashtable<String, Object> props : configs) {
-              final String pid = (String) props.get(CMDataReader.SERVICE_PID);
-              final String fpid = (String) props.get(CMDataReader.FACTORY_PID);
+              final String pid = (String) props.get(CMDataConstants.SERVICE_PID);
+              final String fpid = (String) props.get(CMDataConstants.FACTORY_PID);
               Configuration cfg;
               if (fpid == null) {
                 cfg = CMDisplayer.getCA().getConfiguration(pid, null);
@@ -386,7 +376,7 @@ public class JCMInfo
 
   }
 
-  static Border makeBorder(JComponent comp, String title)
+  static Border makeBorder(String title)
   {
     return BorderFactory.createTitledBorder(title);
   }
@@ -426,9 +416,6 @@ public class JCMInfo
 class JHTML
   extends JPanel
 {
-  /**
-   *
-   */
   private static final long serialVersionUID = 1L;
   JTextPane html;
   JScrollPane scroll;
@@ -453,9 +440,8 @@ class JHTML
     try {
       // Call htmlEditor.setAutoFormSubmission(false); if available (Java 5+)
       final Method setAutoFormSubmissionMethod = htmlEditor.getClass()
-        .getMethod("setAutoFormSubmission", new Class[]{ Boolean.TYPE});
-      setAutoFormSubmissionMethod.invoke(htmlEditor,
-                                         new Object[]{Boolean.FALSE});
+        .getMethod("setAutoFormSubmission", Boolean.TYPE);
+      setAutoFormSubmissionMethod.invoke(htmlEditor, Boolean.FALSE);
     } catch (final Throwable t) {
       Activator.log.warn("Failed to enable auto form submission for JHTMLBundle.", t);
     }
@@ -463,25 +449,21 @@ class JHTML
     html.setText(s);
     html.setCaretPosition(0);
 
-    html.addHyperlinkListener(new HyperlinkListener() {
-      @Override
-      public void hyperlinkUpdate(HyperlinkEvent ev)
-      {
-        if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-          final URL url = ev.getURL();
-          try {
-            if (Util.isBundleLink(url)) {
-              final long bid = Util.bidFromURL(url);
-              Activator.disp.getBundleSelectionModel().clearSelection();
-              Activator.disp.getBundleSelectionModel().setSelected(bid, true);
-            } else if (Util.isImportLink(url)) {
-              JCMInfo.importCfg(JHTML.this);
-            } else {
-              Util.openExternalURL(url);
-            }
-          } catch (final Exception e) {
-            Activator.log.error("Failed to show " + url, e);
+    html.addHyperlinkListener(ev -> {
+      if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        final URL url = ev.getURL();
+        try {
+          if (Util.isBundleLink(url)) {
+            final long bid = Util.bidFromURL(url);
+            Activator.disp.getBundleSelectionModel().clearSelection();
+            Activator.disp.getBundleSelectionModel().setSelected(bid, true);
+          } else if (Util.isImportLink(url)) {
+            JCMInfo.importCfg(JHTML.this);
+          } else {
+            Util.openExternalURL(url);
           }
+        } catch (final Exception e) {
+          Activator.log.error("Failed to show " + url, e);
         }
       }
     });
@@ -502,19 +484,15 @@ class JHTML
     } catch (final Exception e) {
       Activator.log.error("Failed to set html", e);
     }
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run()
-      {
-        try {
-          final JViewport vp = scroll.getViewport();
-          if (vp != null) {
-            vp.setViewPosition(new Point(0, 0));
-            scroll.setViewport(vp);
-          }
-        } catch (final Exception e) {
-          Activator.log.error("Failed to set html", e);
+    SwingUtilities.invokeLater(() -> {
+      try {
+        final JViewport vp = scroll.getViewport();
+        if (vp != null) {
+          vp.setViewPosition(new Point(0, 0));
+          scroll.setViewport(vp);
         }
+      } catch (final Exception e) {
+        Activator.log.error("Failed to set html", e);
       }
     });
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,12 +53,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
+import org.knopflerfish.shared.cm.CMDataConstants;
 import org.osgi.framework.Bundle;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.metatype.ObjectClassDefinition;
 
 import org.knopflerfish.bundle.desktop.cm.TargetPanel.ConfigurationAlternative;
-import org.knopflerfish.shared.cm.CMDataReader;
 import org.knopflerfish.shared.cm.CMDataWriter;
 
 /**
@@ -168,7 +168,7 @@ public class JCMService
   void updateOCD(String pid, ObjectClassDefinition ocd)
   {
     if (ocd != null) {
-      setBorder(JCMInfo.makeBorder(this, pid));
+      setBorder(JCMInfo.makeBorder(pid));
 
       // Rebuild the props pane presenting default values.
       propPanel.rebuild(ocd);
@@ -249,19 +249,16 @@ public class JCMService
         }
         final OutputStream out = new FileOutputStream(file);
         final OutputStreamWriter ow =
-          new OutputStreamWriter(out, CMDataReader.ENCODING);
-        final PrintWriter pw = new PrintWriter(ow);
-        try {
+            new OutputStreamWriter(out, CMDataConstants.ENCODING);
+        try (PrintWriter pw = new PrintWriter(ow)) {
           if (cfg.getFactoryPid() != null) {
-            CMDataWriter.writeFactoryConfiguration(cfg.getFactoryPid(),
-                                                   cfg.getPid(),
-                                                   cfg.getProperties(), pw);
+            CMDataWriter.writeFactoryConfiguration(
+                cfg.getFactoryPid(), cfg.getProperties(), pw
+            );
           } else {
             CMDataWriter.writeConfiguration(cfg.getPid(), cfg.getProperties(),
-                                            pw);
+                pw);
           }
-        } finally {
-          pw.close();
         }
       }
     } catch (final Exception e) {
@@ -296,7 +293,7 @@ public class JCMService
         final Dictionary<String, Object> newProps =
           selectedValue.cfg != null
             ? selectedValue.cfg.getProperties()
-            : new Hashtable<String, Object>();
+            : new Hashtable<>();
         propPanel.setProps(newProps);
       }
     } catch (final Exception e) {
@@ -347,7 +344,7 @@ public class JCMService
   static void showError(Component component, String msg, Throwable t)
   {
     Activator.log.error(msg, t);
-    JOptionPane.showMessageDialog(component, msg + "\n" + t.toString(), msg,
+    JOptionPane.showMessageDialog(component, msg + "\n" + t, msg,
                                   JOptionPane.ERROR_MESSAGE);
   }
 

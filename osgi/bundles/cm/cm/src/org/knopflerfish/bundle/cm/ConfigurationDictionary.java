@@ -40,7 +40,6 @@ import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Vector;
 
 import org.osgi.framework.Constants;
@@ -64,7 +63,7 @@ final class ConfigurationDictionary
    * * Use BigDecimal if available.
    */
 
-  private static Class<?> classBigDecimal = null;
+  private static Class<?> classBigDecimal;
   static {
     try {
       classBigDecimal = Class.forName("java.math.BigDecimal");
@@ -77,7 +76,7 @@ final class ConfigurationDictionary
    * * Allowed object types.
    */
 
-  private final static Hashtable<Class<?>, Class<?>> allowedObjectTypes = new Hashtable<Class<?>, Class<?>>();
+  private final static Hashtable<Class<?>, Class<?>> allowedObjectTypes = new Hashtable<>();
   static {
     allowedObjectTypes.put(Integer.class, Integer.class);
     allowedObjectTypes.put(Short.class, Short.class);
@@ -99,7 +98,7 @@ final class ConfigurationDictionary
    */
 
   private final static Hashtable<Class<?>, Class<?>> allowedPrimitiveTypes
-    = new Hashtable<Class<?>, Class<?>>();
+    = new Hashtable<>();
   static {
     allowedPrimitiveTypes.put(Integer.TYPE, Integer.TYPE);
     allowedPrimitiveTypes.put(Short.TYPE, Short.TYPE);
@@ -112,7 +111,7 @@ final class ConfigurationDictionary
   }
 
   private final static Hashtable<Class<?>, Class<?>> classToPrimitiveType
-    = new Hashtable<Class<?>, Class<?>>();
+    = new Hashtable<>();
   static {
     classToPrimitiveType.put(Integer.class, Integer.TYPE);
     classToPrimitiveType.put(Short.class, Short.TYPE);
@@ -139,8 +138,8 @@ final class ConfigurationDictionary
 
   public ConfigurationDictionary()
   {
-    this(new Hashtable<String, Object>());
-    setNullDictionary(true);
+    this(new Hashtable<>());
+    setNullDictionary();
   }
 
   /**
@@ -153,7 +152,7 @@ final class ConfigurationDictionary
    */
   public ConfigurationDictionary(Hashtable<String, Object> dictionary)
   {
-    this.lowercaseToOriginalCase = new Hashtable<String, String>();
+    this.lowercaseToOriginalCase = new Hashtable<>();
     this.originalCase = dictionary;
     updateLowercaseToOriginalCase();
   }
@@ -171,7 +170,7 @@ final class ConfigurationDictionary
   {
     this.originalCase = copyDictionary(original.originalCase);
     this.lowercaseToOriginalCase =
-      new Hashtable<String, String>(original.lowercaseToOriginalCase);
+        new Hashtable<>(original.lowercaseToOriginalCase);
   }
 
   @Override
@@ -183,6 +182,7 @@ final class ConfigurationDictionary
   @Override
   public Object get(Object key)
   {
+    @SuppressWarnings("SuspiciousMethodCalls")
     Object val = originalCase.get(key);
 
     if (val != null) {
@@ -262,11 +262,6 @@ final class ConfigurationDictionary
     return originalCase.size();
   }
 
-  Hashtable<String, Object> getOriginal()
-  {
-    return originalCase;
-  }
-
   ConfigurationDictionary createCopy()
   {
     return new ConfigurationDictionary(this);
@@ -290,16 +285,12 @@ final class ConfigurationDictionary
   boolean isNullDictionary()
   {
     final Boolean b = (Boolean) get(IS_NULL_DICTIONARY);
-    return b != null && b.booleanValue();
+    return b != null && b;
   }
 
-  void setNullDictionary(boolean b)
+  void setNullDictionary()
   {
-    if (b) {
-      put(IS_NULL_DICTIONARY, Boolean.TRUE);
-    } else {
-      remove(IS_NULL_DICTIONARY);
-    }
+    put(IS_NULL_DICTIONARY, Boolean.TRUE);
   }
 
   private void updateLowercaseToOriginalCase()
@@ -325,8 +316,7 @@ final class ConfigurationDictionary
   static public ConfigurationDictionary createDeepCopy(Dictionary<String, ?> properties)
   {
     final Hashtable<String, Object> h = copyDictionary(properties);
-    final ConfigurationDictionary res = new ConfigurationDictionary(h);
-    return res;
+    return new ConfigurationDictionary(h);
   }
 
   /**
@@ -342,7 +332,7 @@ final class ConfigurationDictionary
       return null;
     }
 
-    final Hashtable<String, Object> res = new Hashtable<String, Object>();
+    final Hashtable<String, Object> res = new Hashtable<>();
     final Enumeration<String> keys = properties.keys();
     while (keys.hasMoreElements()) {
       final String key = keys.nextElement();
@@ -371,10 +361,9 @@ final class ConfigurationDictionary
     if (in == null) {
       return null;
     }
-    final Vector<Object> out = new Vector<Object>();
-    final Iterator<?> i = in.iterator();
-    while (i.hasNext()) {
-      out.addElement(copyValue(i.next()));
+    final Vector<Object> out = new Vector<>();
+    for (Object object : in) {
+      out.addElement(copyValue(object));
     }
     return out;
   }
@@ -437,7 +426,7 @@ final class ConfigurationDictionary
       return;
     }
 
-    final Class<? extends Object> valueClass = value.getClass();
+    final Class<?> valueClass = value.getClass();
     if (valueClass.isArray()) {
       validateArray(value);
     } else if (value instanceof Collection) {
@@ -459,7 +448,7 @@ final class ConfigurationDictionary
       for (int i = 0; i < length; ++i) {
         final Object o = Array.get(array, i);
         if (o != null) {
-          final Class<? extends Object> objectClass = o.getClass();
+          final Class<?> objectClass = o.getClass();
           if (objectClass != componentType) {
             throw new IllegalArgumentException(
                                                "Objects with different type in array. "
@@ -481,7 +470,7 @@ final class ConfigurationDictionary
       for (int i = 0; i < length; ++i) {
         final Object o = Array.get(array, i);
         if (o != null) {
-          Class<? extends Object> objectClass = o.getClass();
+          Class<?> objectClass = o.getClass();
           if (componentType.isPrimitive()) {
             objectClass = classToPrimitiveType.get(objectClass);
           }
@@ -500,9 +489,8 @@ final class ConfigurationDictionary
 
   static private void validateCollection(Collection<?> collection)
   {
-    final Iterator<?> i = collection.iterator();
-    while (i.hasNext()) {
-      validateValue(i.next());
+    for (Object object : collection) {
+      validateValue(object);
     }
   }
 
@@ -546,14 +534,14 @@ final class ConfigurationDictionary
   {
     synchronized (changeCountLock) {
       final Long cc = (Long) originalCase.get(KEY_CHANGE_COUNT);
-      return cc == null ? 0L : cc.longValue();
+      return cc == null ? 0L : cc;
     }
   }
 
   void setChangeCount(long changeCount)
   {
     synchronized (changeCountLock) {
-      put(KEY_CHANGE_COUNT, new Long(changeCount));
+      put(KEY_CHANGE_COUNT, changeCount);
     }
   }
 

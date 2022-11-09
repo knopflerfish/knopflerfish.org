@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
 import org.knopflerfish.service.console.Session;
+import org.knopflerfish.shared.cm.CMDataConstants;
 import org.knopflerfish.shared.cm.CMDataReader;
 import org.knopflerfish.shared.cm.CMDataWriter;
 import org.knopflerfish.util.sort.Sort;
@@ -84,6 +85,7 @@ import org.knopflerfish.util.sort.Sort;
  * @author Per Gustafson
  */
 
+@SuppressWarnings("unused")
 public class CMCommands
   extends CommandGroupAdapter
   implements ServiceListener
@@ -125,9 +127,9 @@ public class CMCommands
   private static final String LISTED_CONFIGS_PID_TO_INDEX =
     "org.knopflerfish.bundle.cm.commands.impl.listed.configs.pid.to.ix";
 
-  BundleContext bc;
+  private BundleContext bc;
 
-  ServiceReference<ConfigurationAdmin> refCA = null;
+  private ServiceReference<ConfigurationAdmin> refCA;
 
   private static Class<?> classBigDecimal;
 
@@ -136,8 +138,7 @@ public class CMCommands
   static {
     try {
       classBigDecimal = Class.forName("java.math.BigDecimal");
-      consBigDecimal =
-        classBigDecimal.getConstructor(new Class[] { String.class });
+      consBigDecimal = classBigDecimal.getConstructor(String.class);
     } catch (final Exception ignore) {
       classBigDecimal = null;
       consBigDecimal = null;
@@ -179,7 +180,7 @@ public class CMCommands
 
       final String[] selection = (String[]) opts.get("selection");
 
-      Configuration[] cs = null;
+      Configuration[] cs;
       if (selection == null) {
         cs = srvCA.listConfigurations(null);
       } else {
@@ -190,9 +191,9 @@ public class CMCommands
       } else {
         sortConfigurationArray(cs);
         setSessionProperty(session, LISTED_CONFIGS, cs);
-        final Map<String,Integer> pidToIndex = new HashMap<String, Integer>();
+        final Map<String,Integer> pidToIndex = new HashMap<>();
         for (int i = 0; i<cs.length; i++) {
-          pidToIndex.put(cs[i].getPid(), new Integer(i));
+          pidToIndex.put(cs[i].getPid(), i);
         }
         setSessionProperty(session, LISTED_CONFIGS_PID_TO_INDEX, pidToIndex);
         out.println("Available configurations:");
@@ -240,7 +241,7 @@ public class CMCommands
       srvCA = getCA();
       final String[] selection = (String[]) opts.get("selection");
       final Configuration[] cs = getConfigurations(out, session, srvCA, selection);
-      if (cs == null || cs.length == 0) {
+      if (cs.length == 0) {
         throw new Exception("No matching configurations for selection.");
       }
       sortConfigurationArray(cs);
@@ -271,7 +272,7 @@ public class CMCommands
                   "           can contain wildcards '*', or an ldap filter,",
                   "           or an index in output from the latest use of",
                   "           the 'list' command.",
-                  "           If the template selectio doesn't match exactly one",
+                  "           If the template selection doesn't match exactly one",
                   "           configuration it will have to be refined." };
 
   public int cmdCreate(Dictionary<?, ?> opts,
@@ -293,7 +294,7 @@ public class CMCommands
       final String template = (String) opts.get("template");
       if (template != null) {
         final Configuration[] templates = getConfigurations(out, session, srvCA, template);
-        if (templates == null || templates.length == 0) {
+        if (templates.length == 0) {
           throw new Exception("Template didn't match any configurations. "
                               + "Remove the template parameter or change "
                               + "your it to match exactly one "
@@ -311,14 +312,14 @@ public class CMCommands
         }
       }
 
-      Configuration cfg = null;
+      Configuration cfg;
       if (createFactoryConfiguration) {
         cfg = srvCA.createFactoryConfiguration(pid, null);
       } else {
-        final Configuration[] exisitingCfgs =
+        final Configuration[] existingCfgs =
           srvCA
               .listConfigurations("(" + Constants.SERVICE_PID + "=" + pid + ")");
-        if (exisitingCfgs != null && exisitingCfgs.length == 1) {
+        if (existingCfgs != null && existingCfgs.length == 1) {
           throw new Exception("A configuration with PID '" + pid
                               + "' already exists.");
         }
@@ -369,7 +370,7 @@ public class CMCommands
       srvCA = getCA();
 
       final Configuration[] cs = getConfigurations(out, session, srvCA, selection);
-      if (cs == null || cs.length == 0) {
+      if (cs.length == 0) {
         throw new Exception("Selection didn't match any configurations. "
                             + "Change your selection to match exactly "
                             + "one configuration.");
@@ -428,11 +429,11 @@ public class CMCommands
       srvCA = getCA();
 
       final Configuration[] cs = getConfigurations(out, session, srvCA, selection);
-      if (cs == null || cs.length == 0) {
+      if (cs.length == 0) {
         throw new Exception(
                             "Selection didn't match any configurations. "
                                 + "Use 'create' to create the configuration you want to edit "
-                                + "if it doesnt exist, or change your selection to match "
+                                + "if it doesn't exist, or change your selection to match "
                                 + "exactly one configuration.");
       } else if (cs.length == 1) {
         out.println("Editing " + cs[0].getPid());
@@ -565,7 +566,7 @@ public class CMCommands
         if (ov == null) {
           dict.put(p, v);
         } else {
-          final Class<? extends Object> ovc = ov.getClass();
+          final Class<?> ovc = ov.getClass();
           final Object nv = stringToObjectOfClass(v, ovc);
           if (nv == null) {
             throw new Exception(
@@ -574,7 +575,7 @@ public class CMCommands
           dict.put(p, nv);
         }
       } else {
-        Object o = null;
+        Object o;
         try {
           o = createValue(t, v);
         } catch (final Exception e) {
@@ -590,8 +591,6 @@ public class CMCommands
       out.print("Set failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
-    } finally {
-      // bluerg
     }
 
     return retcode;
@@ -625,8 +624,6 @@ public class CMCommands
       out.print("Unset failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
-    } finally {
-
     }
 
     return retcode;
@@ -648,45 +645,40 @@ public class CMCommands
       final String spec = (String) opts.get("url");
       final URL url = new URL(spec);
 
-      AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-        @Override
-        public Object run()
-            throws Exception
-        {
-          ConfigurationAdmin configAdmin = null;
-          PushbackReader reader = null;
-          try {
-            configAdmin = getCA();
+      AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
+        ConfigurationAdmin configAdmin = null;
+        PushbackReader reader = null;
+        try {
+          configAdmin = getCA();
 
-            final CMDataReader cmDataReader = new CMDataReader();
-            reader =
-              new PushbackReader(new BufferedReader(new InputStreamReader(url
-                  .openStream(), CMDataReader.ENCODING), 8192), 8);
-            final Hashtable<String, Object>[] configs =
-              cmDataReader.readCMDatas(reader);
+          final CMDataReader cmDataReader = new CMDataReader();
+          reader =
+            new PushbackReader(new BufferedReader(new InputStreamReader(url
+                .openStream(), CMDataConstants.ENCODING), 8192), 8);
+          final Hashtable<String, Object>[] configs =
+            cmDataReader.readCMDatas(reader);
 
-            for (final Hashtable<String, Object> props : configs) {
-              final String pid = (String) props.get(CMDataReader.SERVICE_PID);
-              final String fpid =
-                (String) props.get(CMDataReader.FACTORY_PID);
-              Configuration config;
-              if (fpid == null) {
-                config = configAdmin.getConfiguration(pid, null);
-              } else {
-                config = configAdmin.createFactoryConfiguration(fpid, null);
-              }
-              config.update(props);
+          for (final Hashtable<String, Object> props : configs) {
+            final String pid = (String) props.get(CMDataConstants.SERVICE_PID);
+            final String fpid =
+              (String) props.get(CMDataConstants.FACTORY_PID);
+            Configuration config;
+            if (fpid == null) {
+              config = configAdmin.getConfiguration(pid, null);
+            } else {
+              config = configAdmin.createFactoryConfiguration(fpid, null);
             }
-          } finally {
-            if (reader != null) {
-              reader.close();
-            }
-            if (configAdmin != null) {
-              bc.ungetService(refCA);
-            }
+            config.update(props);
           }
-          return null;
+        } finally {
+          if (reader != null) {
+            reader.close();
+          }
+          if (configAdmin != null) {
+            bc.ungetService(refCA);
+          }
         }
+        return null;
       });
 
       retcode = 0; // Success!
@@ -703,8 +695,6 @@ public class CMCommands
       out.print("Import failed. Details:");
       final String reason = e.getMessage();
       out.println(reason == null ? "<unknown>" : reason);
-    } finally {
-
     }
     return retcode;
   }
@@ -729,13 +719,13 @@ public class CMCommands
                        Session session)
   {
     int retcode = 1; // 1 initially not set to 0 until end of try
-    PrintWriter pw = null;
+    PrintWriter pw;
     ConfigurationAdmin srvCA = null;
     try {
       srvCA = getCA();
 
       final String[] selection = (String[]) opts.get("selection");
-      Configuration[] cs = null;
+      Configuration[] cs;
       if (selection == null || selection.length == 0) {
         cs = srvCA.listConfigurations(null);
       } else {
@@ -751,16 +741,11 @@ public class CMCommands
         new File(fileName.endsWith(".xml") ? fileName : (fileName + ".xml"));
         pw =
           AccessController
-              .doPrivileged(new PrivilegedExceptionAction<PrintWriter>() {
-                @Override
-                public PrintWriter run()
-                    throws Exception
-                {
-                  final OutputStream out = new FileOutputStream(file);
-                  final OutputStreamWriter ow =
-                    new OutputStreamWriter(out, CMDataReader.ENCODING);
-                  return new PrintWriter(ow);
-                }
+              .doPrivileged((PrivilegedExceptionAction<PrintWriter>) () -> {
+                final OutputStream out1 = new FileOutputStream(file);
+                final OutputStreamWriter ow =
+                  new OutputStreamWriter(out1, CMDataConstants.ENCODING);
+                return new PrintWriter(ow);
               });
         try {
           CMDataWriter.writeConfigurations(cs, pw);
@@ -777,8 +762,8 @@ public class CMCommands
       final String reason = pae.getException().getMessage();
       out.println(reason == null ? "<unknown>" : reason);
     } catch (final Exception e) {
-      out.print("Export failed. Details:");
       final String reason = e.getMessage();
+      out.print("Export failed. Details:");
       out.println(reason == null ? "<unknown>" : reason);
     } finally {
       if (srvCA != null) {
@@ -795,16 +780,9 @@ public class CMCommands
     ConfigurationAdmin srvCA = null;
     if (refCA != null) {
       try {
-        srvCA =
-          AccessController
-              .doPrivileged(new PrivilegedExceptionAction<ConfigurationAdmin>() {
-                @Override
-                public ConfigurationAdmin run()
-                    throws Exception
-                {
-                  return bc.getService(refCA);
-                }
-              });
+        srvCA = AccessController
+            .doPrivileged((PrivilegedExceptionAction<ConfigurationAdmin>) () ->
+                bc.getService(refCA));
       } catch (final PrivilegedActionException pae) {
         // Re-throw wrapped exception
         final Exception ee = pae.getException();
@@ -877,7 +855,7 @@ public class CMCommands
         dict = cfg.getProperties();
       }
       if (dict == null) {
-        dict = new Hashtable<String, Object>();
+        dict = new Hashtable<>();
       }
       setEditingDict(session, dict, changeCount);
     }
@@ -891,7 +869,7 @@ public class CMCommands
   private long getEditingVersion(Session session)
   {
     final Long version = (Long) session.getProperties().get(EDITED_VERSION);
-    return (version == null) ? Long.MIN_VALUE : version.longValue();
+    return (version == null) ? Long.MIN_VALUE : version;
   }
 
   private Configuration[] getConfigurations(PrintWriter out, Session session,
@@ -1014,11 +992,8 @@ public class CMCommands
    * @param pid
    *          the PID that we are looking for.
    * @return the index of the specified PID or -1 if not present in the list.
-   * @throws Exception
    */
-  private int getIndexOfPidInLastList(Session session, String pid)
-      throws Exception
-  {
+  private int getIndexOfPidInLastList(Session session, String pid) {
     int res = -1;
     @SuppressWarnings("unchecked")
     final Map<String, Integer> pidToIndex =
@@ -1027,7 +1002,7 @@ public class CMCommands
     if (pidToIndex != null) {
       final Integer ix = pidToIndex.get(pid);
       if (ix != null) {
-        res = ix.intValue();
+        res = ix;
       }
     }
     return res;
@@ -1045,7 +1020,7 @@ public class CMCommands
       return cs;
     }
 
-    final List<Configuration> matching = new ArrayList<Configuration>();
+    final List<Configuration> matching = new ArrayList<>();
     for (final Configuration cfg : cs) {
       for (final Filter filter : filters) {
         if (filter.match(cfg.getProperties())) {
@@ -1055,7 +1030,7 @@ public class CMCommands
       }
     }
 
-    return matching.toArray(new Configuration[matching.size()]);
+    return matching.toArray(new Configuration[0]);
   }
 
   /***************************************************************************
@@ -1087,7 +1062,7 @@ public class CMCommands
       session.getProperties().remove(EDITED_VERSION);
     } else {
       session.getProperties().put(EDITED, dict);
-      session.getProperties().put(EDITED_VERSION, new Long(version));
+      session.getProperties().put(EDITED_VERSION, version);
     }
   }
 
@@ -1095,7 +1070,6 @@ public class CMCommands
                                   Session session,
                                   final Configuration cfg,
                                   boolean printTypes)
-      throws Exception
   {
     final String pid = cfg.getPid();
     final int listIndex = getIndexOfPidInLastList(session, pid);
@@ -1224,89 +1198,86 @@ public class CMCommands
     }
   }
 
-  private Object stringToObjectOfClass(String str, Class<? extends Object> c)
+  private Object stringToObjectOfClass(String str, Class<?> c)
   {
     if (str == null) {
       return null;
     }
-    Object o = null;
     try {
       if (c == null || c == String.class) {
-        o = str;
+        return str;
       } else if (str.length() == 0) {
         // None of the other Classes can handle a zero length String
-        o = null;
+        return null;
       } else if (c == Integer.class) {
         return new Integer(str);
       } else if (c == Long.class) {
-        o = new Long(str);
+        return new Long(str);
       } else if (c == Float.class) {
-        o = new Float(str);
+        return new Float(str);
       } else if (c == Double.class) {
-        o = new Double(str);
+        return new Double(str);
       } else if (c == Byte.class) {
-        o = new Byte(str);
+        return new Byte(str);
       } else if (c == Short.class) {
-        o = new Short(str);
+        return new Short(str);
       } else if (c == BigInteger.class) {
-        o = new BigInteger(str);
+        return new BigInteger(str);
       } else if (classBigDecimal != null && c == classBigDecimal) {
         if (consBigDecimal != null) {
-          o = consBigDecimal.newInstance(new Object[] { str });
+          return consBigDecimal.newInstance(str);
         } else {
-          o = null;
+          return null;
         }
       } else if (c == Character.class) {
-        o = new Character(str.charAt(0));
+        return str.charAt(0);
       } else if (c == Boolean.class) {
-        o = new Boolean(str);
+        return Boolean.valueOf(str);
       } else {
-        o = null;
+        return null;
       }
     } catch (final Exception ignored) {
-      o = null;
+      return null;
     }
-    return o;
   }
 
   Object createValue(String type, String def)
   {
     def = def.equals("") ? null : def;
-    if (type.equals("String")) {
-      return def == null ? new String() : new String(def);
-    } else if (type.equals("Integer")) {
-      return def == null ? new Integer(0) : new Integer(def);
-    } else if (type.equals("Long")) {
-      return def == null ? new Long(0) : new Long(def);
-    } else if (type.equals("Float")) {
-      return def == null ? new Float(0) : new Float(def);
-    } else if (type.equals("Double")) {
-      return def == null ? new Double(0) : new Double(def);
-    } else if (type.equals("Byte")) {
-      return def == null ? new Byte("0") : new Byte(def);
-    } else if (type.equals("Short")) {
-      return def == null ? new Short("0") : new Short(def);
-    } else if (type.equals("BigInteger")) {
-      return def == null ? new BigInteger("0") : new BigInteger(def);
-    } else if (type.equals("BigDecimal")) {
-      Object o = null;
-      if (classBigDecimal != null && consBigDecimal != null) {
-        def = def == null ? "0" : def;
-        try {
-          o = consBigDecimal.newInstance(new Object[] { def });
-        } catch (final Exception ignored) {
-          o = null;
+    switch (type) {
+      case "String":
+        return def == null ? "" : def;
+      case "Integer":
+        return def == null ? new Integer(0) : new Integer(def);
+      case "Long":
+        return def == null ? new Long(0) : new Long(def);
+      case "Float":
+        return def == null ? new Float(0) : new Float(def);
+      case "Double":
+        return def == null ? new Double(0) : new Double(def);
+      case "Byte":
+        return def == null ? new Byte("0") : new Byte(def);
+      case "Short":
+        return def == null ? new Short("0") : new Short(def);
+      case "BigInteger":
+        return def == null ? new BigInteger("0") : new BigInteger(def);
+      case "BigDecimal":
+        if (classBigDecimal != null && consBigDecimal != null) {
+          def = def == null ? "0" : def;
+          try {
+            return consBigDecimal.newInstance(def);
+          } catch (final Exception ignored) {
+            return null;
+          }
         }
-      }
-      return o;
-    } else if (type.equals("Character")) {
-      return def == null ? new Character('a') : new Character(def.charAt(0));
-    } else if (type.equals("Boolean")) {
-      return def == null ? new Boolean(false) : new Boolean(def);
-    } else {
-      // Unsupported type
-
-      return null;
+        return null;
+      case "Character":
+        return def == null ? new Character('a') : new Character(def.charAt(0));
+      case "Boolean":
+        return def == null ? Boolean.FALSE : Boolean.valueOf(def);
+      default:
+        // Unsupported type
+        return null;
     }
   }
 
@@ -1381,13 +1352,12 @@ public class CMCommands
         refCA = sr;
       }
       break;
-    case ServiceEvent.MODIFIED:
-      break;
     case ServiceEvent.UNREGISTERING:
       if (refCA != null) {
         refCA = null;
       }
       break;
+    case ServiceEvent.MODIFIED:
     default:
       break;
     }

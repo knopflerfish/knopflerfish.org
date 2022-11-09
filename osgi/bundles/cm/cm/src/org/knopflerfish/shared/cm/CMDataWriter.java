@@ -50,33 +50,7 @@ import org.osgi.service.cm.Configuration;
 
 public class CMDataWriter
 {
-  public final static String ENCODING = "ISO-8859-1";
-
-  // Element names
-  public final static String CONFIGURATION = "configuration";
-
-  public final static String FACTORY_CONFIGURATION = "factoryconfiguration";
-
-  public final static String PROPERTY = "property";
-
-  public final static String VECTOR = "vector";
-
-  public final static String ARRAY = "array";
-
-  public final static String VALUE = "value";
-
-  public final static String PRIMITIVE_VALUE = "primitiveValue";
-
-  // Attribute names
-  public final static String NAME = "name";
-
-  public final static String TYPE = "type";
-
-  public final static String LENGTH = "length";
-
-  public final static String ELEMENT_TYPE = "elementType";
-
-  private static Class<?> classBigDecimal = null;
+  private static Class<?> classBigDecimal;
   static {
     try {
       classBigDecimal = Class.forName("java.math.BigDecimal");
@@ -86,7 +60,7 @@ public class CMDataWriter
   }
 
   final static String[] PRE = {
-                               "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>",
+                               "<?xml version=\"1.0\" encoding=\"" + CMDataConstants.ENCODING + "\"?>",
                                "<!DOCTYPE cm_data PUBLIC '-//Gatespace//DTD cm_data 0.1//EN' 'cm_data.dtd'>",
                                "<cm_data version=\"0.1\">",
                                "<!-- EDITING THIS FILE IS NOT GUARANTEED TO WORK  -->" };
@@ -124,7 +98,6 @@ public class CMDataWriter
   }
 
   public static void writeFactoryConfiguration(String fpid,
-                                               String pid,
                                                Dictionary<String, Object> d,
                                                PrintWriter w)
   {
@@ -165,7 +138,7 @@ public class CMDataWriter
       return;
     }
 
-    final Class<? extends Object> valueClass = value.getClass();
+    final Class<?> valueClass = value.getClass();
     if (valueClass.isArray()) {
       writeArray(value, w);
     } else if (valueClass == Vector.class) {
@@ -259,6 +232,7 @@ public class CMDataWriter
     String elementType = "";
     Class<?> c = array.getClass().getComponentType();
     while (c.isArray()) {
+      //noinspection StringConcatenationInLoop
       elementType = elementType + "[]";
       c = c.getComponentType();
     }
@@ -277,12 +251,12 @@ public class CMDataWriter
 
   static private String typeOf(Object value)
   {
-    final Class<? extends Object> c = value.getClass();
+    final Class<?> c = value.getClass();
     return (String) classToString.get(c);
   }
 
   private final static Hashtable<Class<?>, Object> classToString
-    = new Hashtable<Class<?>, Object>();
+    = new Hashtable<>();
   static {
     classToString.put(Vector.class, "Vector");
     classToString.put(Integer.class, "Integer");
@@ -306,7 +280,7 @@ public class CMDataWriter
   }
 
   private final static Hashtable<Class<?>, String> primitiveTypeToString
-    = new Hashtable<Class<?>, String>();
+    = new Hashtable<>();
   static {
     primitiveTypeToString.put(Integer.TYPE, "int");
     primitiveTypeToString.put(Short.TYPE, "short");

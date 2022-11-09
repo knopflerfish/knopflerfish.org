@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,10 +62,10 @@ final class ConfigurationDispatcher {
      */
 
     private final Hashtable<ServiceReference<?>, Object> serviceReferenceToTargetService
-      = new Hashtable<ServiceReference<?>, Object>();
+      = new Hashtable<>();
 
     private final Hashtable<Object, UpdateQueue> targetServiceToQueue
-      = new Hashtable<Object, UpdateQueue>();
+      = new Hashtable<>();
 
     /**
      * Construct a ConfigurationDispatcher given a PluginManager.

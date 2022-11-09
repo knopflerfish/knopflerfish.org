@@ -1,8 +1,39 @@
+/*
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.knopflerfish.bundle.desktop.cm;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -98,8 +129,7 @@ public class TargetPanel
    * Mapping from (factory) configuration instance PID to the actual
    * configuration.
    */
-  private final Map<String, Configuration> pid2Cfg =
-    new HashMap<String, Configuration>();
+  private final Map<String, Configuration> pid2Cfg = new HashMap<>();
 
   /**
    * A horizontal box that presents all instances of the selected factory PID.
@@ -138,7 +168,7 @@ public class TargetPanel
    * Combo box that displays PIDs of the factory configuration instances
    * belonging to {@code #targetedPids[0]}.
    */
-  final JComboBox fbox = new JComboBox();
+  final JComboBox<String> fbox = new JComboBox<>();
 
   /**
    * Icon for an existing target configuration.
@@ -221,8 +251,8 @@ public class TargetPanel
   {
     final JLabel targetedLabel = new JLabel("Configuration target level: ");
     targetedLabel.setToolTipText(CONFIGURATION_TARGET_LEVEL_TOOLTIP);
-    targetedLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    targetedLabel.setAlignmentY(Component.LEFT_ALIGNMENT);
+    targetedLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    targetedLabel.setAlignmentY(Component.CENTER_ALIGNMENT);
 
     targetSelectionBox.add(targetedLabel);
     targetSelectionBox.add(Box.createHorizontalStrut(30));
@@ -231,33 +261,28 @@ public class TargetPanel
       rbs[i] = new JRadioButton(TARGET_LEVEL_NAMES[i]);
       bg.add(rbs[i]);
       rbs[i].setActionCommand(String.valueOf(i));
-      rbs[i].setAlignmentX(Component.CENTER_ALIGNMENT);
-      rbs[i].setAlignmentY(Component.LEFT_ALIGNMENT);
-      rbs[i].addActionListener(new ActionListener() {
+      rbs[i].setAlignmentX(Component.LEFT_ALIGNMENT);
+      rbs[i].setAlignmentY(Component.CENTER_ALIGNMENT);
+      rbs[i].addActionListener(event -> {
+        // If this is a factory PID then changing target level must be handled
+        // as a request for a new instance with the selected binding.
+        // Thus we change the selected PID in fbox to the default entry. We
+        // must do this without triggering an action event, thus replace the
+        // model with a new empty model, change selection in the real model
+        // and set it back as the model of the combo-box.
+        final ComboBoxModel<String> cbm = fbox.getModel();
+        fbox.setModel(new DefaultComboBoxModel<>());
+        cbm.setSelectedItem(FACTORY_PID_DEFAULTS);
+        fbox.setModel(cbm);
 
-        @Override
-        public void actionPerformed(ActionEvent event)
-        {
-          // If this is a factory PID then changing target level must be handled
-          // as a request for a new instance with the selected binding.
-          // Thus we change the selected PID in fbox to the default entry. We
-          // must do this without triggering an action event, thus replace the
-          // model with a new empty model, change selection in the real model
-          // and set it back as the model of the combo-box.
-          final ComboBoxModel cbm = fbox.getModel();
-          fbox.setModel(new DefaultComboBoxModel());
-          cbm.setSelectedItem(FACTORY_PID_DEFAULTS);
-          fbox.setModel(cbm);
-
-          selectedTargetLevel = Integer.parseInt(event.getActionCommand());
-          TargetPanel.this.owner.targetSelectionChanged();
-        }
+        selectedTargetLevel = Integer.parseInt(event.getActionCommand());
+        TargetPanel.this.owner.targetSelectionChanged();
       });
       targetSelectionBox.add(rbs[i]);
 
       icons[i] = new JLabel(newDocumentIcon);
-      icons[i].setAlignmentX(Component.BOTTOM_ALIGNMENT);
-      icons[i].setAlignmentY(Component.LEFT_ALIGNMENT);
+      icons[i].setAlignmentX(Component.LEFT_ALIGNMENT);
+      icons[i].setAlignmentY(Component.BOTTOM_ALIGNMENT);
       targetSelectionBox.add(icons[i]);
       targetSelectionBox.add(Box.createHorizontalGlue());
     }
@@ -267,19 +292,15 @@ public class TargetPanel
   {
     final JLabel factoryInstanceLabel = new JLabel("Factory PID instance: ");
     factoryInstanceLabel.setToolTipText(FACTORY_PID_INSTANCE_SELECTOR_TOOLTIP);
-    factoryInstanceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    factoryInstanceLabel.setAlignmentY(Component.LEFT_ALIGNMENT);
+    factoryInstanceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    factoryInstanceLabel.setAlignmentY(Component.CENTER_ALIGNMENT);
 
-    fbox.setAlignmentX(Component.CENTER_ALIGNMENT);
-    fbox.setAlignmentY(Component.LEFT_ALIGNMENT);
-    fbox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent ev)
-      {
-        final String slectedPid = (String) fbox.getSelectedItem();
-        updateSelectionFactoryPID(slectedPid);
-        TargetPanel.this.owner.targetSelectionChanged();
-      }
+    fbox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    fbox.setAlignmentY(Component.CENTER_ALIGNMENT);
+    fbox.addActionListener(ev -> {
+      final String slectedPid = (String) fbox.getSelectedItem();
+      updateSelectionFactoryPID(slectedPid);
+      TargetPanel.this.owner.targetSelectionChanged();
     });
 
     factoryPidInstanceSelectionBox.add(factoryInstanceLabel);
@@ -412,7 +433,7 @@ public class TargetPanel
 
       // Find the targeted PIDs that has a configuration and handle
       // nextPidToSelect
-      String tpid = null;
+      String tpid;
       for (int i = 0; i < MAX_SIZE && null != (tpid = targetedPids[i]); i++) {
         rbs[i].setToolTipText(TARGET_LEVEL_PID_TOOLTIPS[i] + tpid
                               + "</code></p></html>");
@@ -480,12 +501,11 @@ public class TargetPanel
         }
       }
 
-      final SortedSet<String> instancePIDs =
-        new TreeSet<String>(pid2Cfg.keySet());
+      final SortedSet<String> instancePIDs = new TreeSet<>(pid2Cfg.keySet());
       instancePIDs.add(FACTORY_PID_DEFAULTS);
 
-      final DefaultComboBoxModel model =
-        new DefaultComboBoxModel(instancePIDs.toArray());
+      final DefaultComboBoxModel<String> model =
+          new DefaultComboBoxModel<>(instancePIDs.toArray(new String[0]));
       if (nextFactoryPidToSelect != null) {
         if (instancePIDs.contains(nextFactoryPidToSelect)) {
           selectedPid = nextFactoryPidToSelect;
@@ -493,7 +513,7 @@ public class TargetPanel
         nextFactoryPidToSelect = null;
       } else if (!instancePIDs.contains(selectedPid)) {
         // New selection needed, use last PID.
-        selectedPid = (String) model.getElementAt(model.getSize() - 1);
+        selectedPid = model.getElementAt(model.getSize() - 1);
       }
       model.setSelectedItem(selectedPid);
       fbox.setModel(model);
@@ -503,7 +523,7 @@ public class TargetPanel
       // factory PID of the selected instance.
       final String fpid =
         selectedCfg != null ? selectedCfg.getFactoryPid() : targetedPids[0];
-      String tpid = null;
+      String tpid;
       for (int i = 0; i < MAX_SIZE && null != (tpid = targetedPids[i]); i++) {
         rbs[i].setToolTipText(TARGET_LEVEL_FACOTRY_PID_TOOLTIPS[i] + tpid
                               + "</code></p></html>");
@@ -600,6 +620,8 @@ public class TargetPanel
    *         {@code create} is {@code false} and there is no configuration for
    *         the current selection.
    * @throws IOException
+   *          if method is not supported for factory config
+   *          or if access to persistent storage fails.
    */
   Configuration getSelectedConfiguration(boolean create,
                                          Dictionary<String, Object> newProps)
@@ -643,10 +665,12 @@ public class TargetPanel
    *
    * @param props
    *          Properties to update the selected configuration with.
-   * @throws Exception
+   * @throws IOException
+   *          if method is not supported for factory config
+   *          or if access to persistent storage fails.
    */
   void createSelectedConfiguration(Dictionary<String, Object> props)
-      throws Exception
+      throws IOException
   {
     try {
       getSelectedConfiguration(true, props);
@@ -661,7 +685,7 @@ public class TargetPanel
   /**
    * Deletes the currently selected configuration.
    *
-   * @throws IOException
+   * @throws IOException If delete fails.
    */
   void deleteSelectedConfiguration()
       throws IOException
@@ -683,8 +707,7 @@ public class TargetPanel
    */
   Set<ConfigurationAlternative> getAlternatives()
   {
-    final Set<ConfigurationAlternative> res =
-      new TreeSet<ConfigurationAlternative>();
+    final Set<ConfigurationAlternative> res = new TreeSet<>();
 
     // The default configuration is always an option.
     res.add(new ConfigurationAlternative("Default", null));

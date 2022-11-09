@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,10 +65,10 @@ public class CMDisplayer
       infoIcon = new ImageIcon(getClass().getResource("/info16x16.png"));
     }
     cmTracker =
-      new ServiceTracker<ConfigurationAdmin, ConfigurationAdmin>(
-                                                                 bc,
-                                                                 ConfigurationAdmin.class,
-                                                                 null);
+        new ServiceTracker<>(
+            bc,
+            ConfigurationAdmin.class,
+            null);
   }
 
   static ConfigurationAdmin getCA()
@@ -91,7 +91,7 @@ public class CMDisplayer
         final Configuration[] configs =
           getCA().listConfigurations("(service.pid=" + pid + ")");
         return configs[0];
-      } catch (final Exception e) {
+      } catch (final Exception ignored) {
       }
     }
     return null;
@@ -99,7 +99,7 @@ public class CMDisplayer
 
   static boolean isCmBundle(final Bundle bundle) {
     final Bundle cmBundle = cmTracker.getServiceReference().getBundle();
-    return cmBundle != null ? cmBundle.equals(bundle)  : false;
+    return cmBundle != null && cmBundle.equals(bundle);
   }
 
   static boolean isSystemBundle(final Bundle bundle) {
@@ -120,10 +120,10 @@ public class CMDisplayer
         }
       }
       cmTracker =
-        new ServiceTracker<ConfigurationAdmin, ConfigurationAdmin>(
-                                                                   bc,
-                                                                   ConfigurationAdmin.class,
-                                                                   null);
+          new ServiceTracker<>(
+              bc,
+              ConfigurationAdmin.class,
+              null);
       if (bAlive) {
         cmTracker.open();
       }
@@ -172,33 +172,29 @@ public class CMDisplayer
   @Override
   public void valueChangedLazy(final long bid)
   {
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run()
-      {
-        synchronized (components) {
-          try {
-            for (final JComponent jComponent : components) {
-              final JCMAdmin cmAdmin = (JCMAdmin) jComponent;
-              if (bundleSelModel.getSelectionCount() == 0) {
-                cmAdmin.setBundle(null);
-              } else {
-                // This displayer can only handle singleton selections, if
-                // multiple bundles are selected, present one of them.
-                final Bundle oldSelection = cmAdmin.getBundle();
-                if (oldSelection == null
-                    || !bundleSelModel.isSelected(oldSelection.getBundleId())) {
-                  // Currently displayed bundle is no longer selected, display
-                  // another selected bundle.
-                  final long newBundleId = bundleSelModel.getSelected();
-                  cmAdmin.setBundle(-1 == newBundleId ? (Bundle) null : bc
-                      .getBundle(newBundleId));
-                }
+    SwingUtilities.invokeLater(() -> {
+      synchronized (components) {
+        try {
+          for (final JComponent jComponent : components) {
+            final JCMAdmin cmAdmin = (JCMAdmin) jComponent;
+            if (bundleSelModel.getSelectionCount() == 0) {
+              cmAdmin.setBundle(null);
+            } else {
+              // This displayer can only handle singleton selections, if
+              // multiple bundles are selected, present one of them.
+              final Bundle oldSelection = cmAdmin.getBundle();
+              if (oldSelection == null
+                  || !bundleSelModel.isSelected(oldSelection.getBundleId())) {
+                // Currently displayed bundle is no longer selected, display
+                // another selected bundle.
+                final long newBundleId = bundleSelModel.getSelected();
+                cmAdmin.setBundle(-1 == newBundleId ? null : bc
+                    .getBundle(newBundleId));
               }
             }
-          } catch (final Exception e) {
-            Activator.log.error("Selection change handling failed: " + e, e);
           }
+        } catch (final Exception e) {
+          Activator.log.error("Selection change handling failed: " + e, e);
         }
       }
     });
@@ -210,7 +206,7 @@ public class CMDisplayer
     return null;
   }
 
-  class JCMAdmin
+  static class JCMAdmin
     extends JPanel
   {
 
