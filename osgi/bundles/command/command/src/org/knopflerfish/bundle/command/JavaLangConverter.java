@@ -32,13 +32,13 @@
 
 package org.knopflerfish.bundle.command;
 
-import java.util.*;
-import java.lang.reflect.*;
-import org.osgi.service.command.*;
+import java.lang.reflect.Constructor;
+
+import org.osgi.service.command.Converter;
 
 public class JavaLangConverter implements Converter {
   
-  static Class[] CLASSES = new Class[] {
+  static Class<?>[] CLASSES = new Class[] {
     Double.class,
     Double.TYPE,
 
@@ -71,13 +71,13 @@ public class JavaLangConverter implements Converter {
     }
   }
   
-  public static void main(String argv[]) {
+  public static void main(String[] argv) {
     try {
       String cname = argv[0];
-      Class clazz = null;
-      for(int i = 0; i < CLASSES.length; i++) {
-        if(CLASSES[i].getName().equals(cname)) {
-          clazz = CLASSES[i];
+      Class<?> clazz = null;
+      for (Class<?> aClass : CLASSES) {
+        if (aClass.getName().equals(cname)) {
+          clazz = aClass;
         }
       }
       if(clazz == null) {
@@ -95,66 +95,71 @@ public class JavaLangConverter implements Converter {
     }
   }
 
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public Object convert(Class desiredType, Object in) {
-    if(in == null) {
+    return convertTyped(desiredType, in);
+  }
+
+  public <T> T convertTyped(Class<T> desiredType, Object in) {
+    if (in == null) {
       return null;
     }
-    if(desiredType.isAssignableFrom(in.getClass())) {
-      return in;
+    if (desiredType.isAssignableFrom(in.getClass())) {
+      return desiredType.cast(in);
     }
-    if(desiredType == String.class) {
-      return in.toString();
+    if (desiredType == String.class) {
+      return desiredType.cast(in.toString());
     }
-    if(desiredType == Character.class || desiredType == Character.TYPE) {
+    if (desiredType == Character.class || desiredType == Character.TYPE) {
       String s = in.toString();
-      if(s.length() != 1) {
+      if (s.length() != 1) {
         throw new IllegalArgumentException("input must be a single char");
       }
-      return new Character(s.charAt(0));
+      return desiredType.cast(s.charAt(0));
     }
-    if(desiredType == Integer.class || desiredType == Integer.TYPE) {
-      if(in instanceof Number) {
-        return new Integer(((Number)in).intValue());
+    if (desiredType == Integer.class || desiredType == Integer.TYPE) {
+      if (in instanceof Number) {
+        return desiredType.cast(((Number) in).intValue());
       } else {
-        return new Integer(Integer.parseInt(in.toString().trim()));
+        return desiredType.cast(Integer.parseInt(in.toString().trim()));
       }
     }
-    if(desiredType == Boolean.class || desiredType == Boolean.TYPE) {
-      if(in instanceof Number) {        
-        return (0 != ((Number)in).intValue()) ? Boolean.TRUE : Boolean.FALSE;
+    if (desiredType == Boolean.class || desiredType == Boolean.TYPE) {
+      if (in instanceof Number) {
+        return desiredType.cast(0 != ((Number)in).intValue());
       } else {
-        return "true".equals(in.toString()) ? Boolean.TRUE : Boolean.FALSE;
+        return desiredType.cast("true".equals(in.toString()));
       }
     }
-    if(desiredType == Long.class || desiredType == Long.TYPE) {
-      if(in instanceof Number) {
-        return new Long(((Number)in).longValue());
+    if (desiredType == Long.class || desiredType == Long.TYPE) {
+      if (in instanceof Number) {
+        return desiredType.cast(((Number) in).longValue());
       } else {
-        return Long.valueOf(in.toString().trim());
+        return desiredType.cast(Long.valueOf(in.toString().trim()));
       }
     }
-    if(desiredType == Double.class || desiredType == Double.TYPE) {
-      if(in instanceof Number) {
-        return new Double(((Number)in).doubleValue());
+    if (desiredType == Double.class || desiredType == Double.TYPE) {
+      if (in instanceof Number) {
+        return desiredType.cast(((Number) in).doubleValue());
       } else {
-        return Double.valueOf(in.toString().trim());
+        return desiredType.cast(Double.valueOf(in.toString().trim()));
       }
     }
-    if(desiredType == Byte.class || desiredType == Byte.TYPE) {
-      if(in instanceof Number) {
-        return new Byte(((Number)in).byteValue());
+    if (desiredType == Byte.class || desiredType == Byte.TYPE) {
+      if (in instanceof Number) {
+        return desiredType.cast(((Number) in).byteValue());
       } else {
-        return Byte.valueOf(in.toString().trim());
+        return desiredType.cast(Byte.valueOf(in.toString().trim()));
       }
     }
 
     try {
-      Constructor cons = desiredType.getConstructor(new Class[] { in.getClass() });
-      return cons.newInstance(new Object[] { in });
+      Constructor<T> cons = desiredType.getConstructor(in.getClass());
+      return cons.newInstance(in);
     } catch (NoSuchMethodException e) {
       try {
-        Constructor cons = desiredType.getConstructor(new Class[] { String.class });
-        return cons.newInstance(new Object[] { in.toString() });
+        Constructor<T> cons = desiredType.getConstructor(String.class);
+        return cons.newInstance(in.toString());
       } catch (Exception e2) {
         // return null;
         // throw new IllegalArgumentException("Cannot convert '" + in + "' to " + desiredType.getName() + ", " + e2);

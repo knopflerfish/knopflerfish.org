@@ -32,12 +32,12 @@
 
 package org.knopflerfish.bundle.command.commands;
 
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-import java.lang.reflect.*;
-import org.osgi.framework.*;
-import org.osgi.service.command.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.command.CommandProcessor;
 
 public class CommandCommands {
 
@@ -49,20 +49,23 @@ public class CommandCommands {
   };
 
   BundleContext bc;
-  Map aliasMap = new HashMap();
+  Map<String, String> aliasMap = new HashMap<>();
 
   public CommandCommands(BundleContext bc) {
     this.bc = bc;
   }
   
+  @SuppressWarnings("unused")
   public void alias(String from, String to) {
     aliasMap.put(from, to);
   }
 
+  @SuppressWarnings("unused")
   public void unalias(String from) {
     aliasMap.remove(from);
   }
 
+  @SuppressWarnings("unused")
   public Object help(String scope) throws Exception {
     String filter = "(" + CommandProcessor.COMMAND_FUNCTION + "=*)";
     if(scope != null) {
@@ -73,18 +76,17 @@ public class CommandCommands {
         ")";
         
     }
-    ServiceReference[] srl = bc.getServiceReferences((String)null, filter);
+    ServiceReference<?>[] srl = bc.getServiceReferences((String)null, filter);
     for(int i = 0; srl != null && i < srl.length; i++) {
-      Object obj = null;
       try {
-        obj = bc.getService(srl[i]);
+        Object obj = bc.getService(srl[i]);
         System.out.println(obj.getClass().getName());
         System.out.println(" function: " + srl[i].getProperty(CommandProcessor.COMMAND_FUNCTION));
         System.out.println(" scope:    " + srl[i].getProperty(CommandProcessor.COMMAND_SCOPE));
 
         String[] function = (String[])srl[i].getProperty(CommandProcessor.COMMAND_FUNCTION);
-        for(int j = 0; j < function.length; j++) {
-          System.out.println("  " + function[j]);
+        for (String s : function) {
+          System.out.println("  " + s);
         }
         /*
         Method[] ml = obj.getClass().getMethods();

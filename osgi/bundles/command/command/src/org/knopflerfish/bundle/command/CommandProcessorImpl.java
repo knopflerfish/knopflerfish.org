@@ -32,25 +32,29 @@
 
 package org.knopflerfish.bundle.command;
 
-import java.util.*;
-import java.io.*;
-import org.osgi.framework.*;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.osgi.framework.Bundle;
+import org.osgi.service.command.CommandProcessor;
+import org.osgi.service.command.CommandSession;
 import org.osgi.service.threadio.ThreadIO;
-import org.osgi.service.command.*;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class CommandProcessorImpl implements CommandProcessor {
-  protected Set    sessions = new HashSet();
+  protected final Set<CommandSessionImpl> sessions = new HashSet<>();
   
-  ServiceTracker          tioTracker;
+  ServiceTracker<ThreadIO, ThreadIO> tioTracker;
   CommandProvidersService commandProviders;
   Bundle b;
 
   CommandProcessorImpl(Bundle b) {
     this.b = b;
-    tioTracker = new ServiceTracker(Activator.bc, 
-                                    ThreadIO.class.getName(),
-                                    null);
+    tioTracker = new ServiceTracker<>(Activator.bc,
+                                      ThreadIO.class.getName(),
+                                      null);
     tioTracker.open();
 
     commandProviders = new CommandProvidersService();      
@@ -58,7 +62,7 @@ public class CommandProcessorImpl implements CommandProcessor {
   }
   
   public CommandSession createSession(InputStream in, PrintStream out, PrintStream err) {
-    synchronized(sessions) {
+    synchronized (sessions) {
       CommandSessionImpl cs = new CommandSessionImpl(this, in, out, err);
       cs.init();
       sessions.add(cs);
@@ -68,15 +72,13 @@ public class CommandProcessorImpl implements CommandProcessor {
   }
 
   public void stop() {
-    synchronized(sessions) {
+    synchronized (sessions) {
       tioTracker.close();
       tioTracker = null;
-      for(Iterator it = sessions.iterator(); it.hasNext(); ) {
-        CommandSessionImpl cs = (CommandSessionImpl)it.next();
+      for (CommandSessionImpl cs : sessions) {
         cs.close();
       }
       sessions.clear();
-      sessions = null;
 
       commandProviders.close();
       commandProviders = null;

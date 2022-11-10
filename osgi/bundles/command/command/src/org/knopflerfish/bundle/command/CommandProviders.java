@@ -32,11 +32,9 @@
 
 package org.knopflerfish.bundle.command;
 
-import java.util.*;
-import org.osgi.service.command.*;
-
+import java.util.Collection;
 
 public interface CommandProviders {
-  public Object   convert(Class desiredType, Object from);
-  public Collection  findCommands(String scope, String name);
+  <T> T convert(Class<T> desiredType, Object from);
+  Collection<?> findCommands(String scope, String name);
 }

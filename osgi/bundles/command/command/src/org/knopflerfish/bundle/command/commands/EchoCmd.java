@@ -32,11 +32,9 @@
 
 package org.knopflerfish.bundle.command.commands;
 
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
 
+@SuppressWarnings("unused")
 public class EchoCmd {
 
   public static String   SCOPE = EchoCmd.class.getName();
@@ -53,7 +51,7 @@ public class EchoCmd {
   public void print(String[] args) {
     System.out.println("print String[]");
     for(int i = 0; i < args.length; i++) {
-      System.out.println("#" + i + "=" + args[i].toString());
+      System.out.println("#" + i + "=" + args[i]);
     }
   }
 
@@ -86,18 +84,18 @@ public class EchoCmd {
   }
   
   public Object New(String name, Object[] args) throws Exception {
-    Class clazz;
+    Class<?> clazz;
     try {
       clazz = Class.forName(name);
     } catch (Exception e) {
       e.printStackTrace();
       clazz = Class.forName("java.lang." + name);
     }
-    Class[] types = new Class[args.length];
+    Class<?>[] types = new Class[args.length];
     for(int i = 0; i < args.length; i++) {
       types[i] = args[i].getClass();
     }
-    Constructor cons = clazz.getConstructor(types);
+    Constructor<?> cons = clazz.getConstructor(types);
     return cons.newInstance(args);
   }
 

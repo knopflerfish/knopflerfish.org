@@ -32,11 +32,8 @@
 
 package org.knopflerfish.bundle.command.commands;
 
-import java.util.*;
-import java.io.*;
-import java.net.URL;
-import java.lang.reflect.*;
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 
 public class FrameworkCommands {
 
@@ -48,6 +45,7 @@ public class FrameworkCommands {
     this.bc = bc;
   }
 
+  @SuppressWarnings("unused")
   public Bundle[] ps() {
     Bundle[] bl = bc.getBundles();
     for(int i = 0; bl != null && i < bl.length; i++) {

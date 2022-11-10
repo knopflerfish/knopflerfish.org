@@ -32,16 +32,20 @@
 
 package org.knopflerfish.bundle.command;
 
-import java.util.*;
-import java.io.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.net.URL;
-import java.lang.reflect.*;
-import org.knopflerfish.bundle.command.commands.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class Program {
-  protected Program          parent;
+  protected Program parent;
   protected CommandProviders cp;
-  protected Map              varMap = new HashMap();
+  protected Map<String, Object> varMap = new HashMap<>();
   
   public Program(Program parent) {
     this(parent, null);
@@ -79,8 +83,8 @@ public class Program {
     return null;
   }
 
-  protected List getStatements(Iterator it, String stop) {
-    List toks = new ArrayList();
+  protected List<Object> getStatements(Iterator<Object> it, String stop) {
+    List<Object> toks = new ArrayList<>();
     while(it.hasNext()) {
       String t = (String)it.next();
       if(stop.equals(t)) {
@@ -95,15 +99,15 @@ public class Program {
   public Object exec(CharSequence cs) {
     Tokenizer tz = new Tokenizer(cs);
 
-    List tokens = tz.tokenize();    
-    List pipes  = new ArrayList();
-    List toks;
+    List<Object> tokens = tz.tokenize();
+    List<List<List<Object>>> pipes  = new ArrayList<>();
+    List<Object> toks;
 
-    Iterator it = tokens.iterator();
+    Iterator<Object> it = tokens.iterator();
     while(null != (toks = getStatements(it, Tokenizer.PIPE))) {
-      List pipe = new ArrayList();
-      List statToks; 
-      Iterator it2 = toks.iterator();
+      List<List<Object>> pipe = new ArrayList<>();
+      List<Object> statToks;
+      Iterator<Object> it2 = toks.iterator();
       while(null != (statToks = getStatements(it2, Tokenizer.SEP))) {
         pipe.add(statToks);
       }
@@ -113,21 +117,19 @@ public class Program {
     return execPipes(pipes);
   }
   
-  Object execPipes(List pipes) {
+  Object execPipes(List<List<List<Object>>> pipes) {
     Object pipeObj = null;
-    for(Iterator it = pipes.iterator(); it.hasNext(); ) {
-      List pipe = (List)it.next();
+    for (List<List<Object>> pipe : pipes) {
       pipeObj = execPipe(pipe, pipeObj);
     }
     return pipeObj;
   }
 
-  Object execPipe(List pipe, Object pipeObj) {
+  Object execPipe(List<List<Object>> pipe, Object pipeObj) {
     Object r = null;
-    for(Iterator it = pipe.iterator(); it.hasNext(); ) {
-      List statement = (List)it.next();
+    for (List<Object> statement : pipe) {
       if(pipeObj != null) {
-        List pipeStmt = new ArrayList(statement);
+        List<Object> pipeStmt = new ArrayList<>(statement);
         pipeStmt.add(pipeObj);
         statement = pipeStmt;
       }
@@ -137,12 +139,12 @@ public class Program {
   }
 
 
-  public Map getVarMap() {
+  public Map<String, Object> getVarMap() {
     return varMap;
   }
 
   Object getVar(String key) {    
-    Object r = null;
+    Object r;
 
     // first, check if the key uses recursive variables
     int ix = key.indexOf("${");
@@ -194,7 +196,7 @@ public class Program {
    *  STATEMENT
    * </pre>
    */
-  Object execStatementOrAssignment(List statement)  {
+  Object execStatementOrAssignment(List<Object> statement)  {
     if(statement.size() == 2 && 
        Tokenizer.ASSIGN.equals(statement.get(1))) {
       return removeVar(statement.get(0).toString());
@@ -207,17 +209,17 @@ public class Program {
     }
   }
 
-  Object execStatement(List statement_in)  {
+  Object execStatement(List<Object> statement_in)  {
     // System.out.println("execStatement " + statement_in);
     String cmd = null;
-    String scope = null;
+    String scope;
     String mName = null;
     Object cmdInstance = null;
     MethodInfo mi = null;
-    List paramList = new ArrayList();
+    List<Object> paramList = new ArrayList<>();
 
     try {
-      List statement = new ArrayList();
+      List<Object> statement = new ArrayList<>();
       
       {
         int i = 0; 
@@ -232,11 +234,11 @@ public class Program {
         }
       }
 
-      List inArgs  = statement.subList(1, statement.size());
-      List outArgs = new ArrayList();
+      List<Object> inArgs  = statement.subList(1, statement.size());
+      List<Object> outArgs = new ArrayList<>();
 
       Object first = statement.get(0);
-      if((first instanceof String) || (first instanceof CharSequence)) {
+      if (first instanceof CharSequence) {
         cmd = first.toString();
       } else {
         cmdInstance = first;
@@ -251,19 +253,19 @@ public class Program {
           return cmdInstance;
         }
       } else {
-        if(cmdInstance == null) {
+        if(cmd != null) {
           scope = null;
           int ix = cmd.indexOf(":");
           if(ix != -1) {
             scope = cmd.substring(0, ix);
             cmd   = cmd.substring(ix+1);
           }          
-          Collection candidates = getCP().findCommands(scope, cmd);
+          Collection<?> candidates = getCP().findCommands(scope, cmd);
           // System.out.println(" candidates=" + candidates);
-          for(Iterator it = candidates.iterator(); it.hasNext(); ) {
-            cmdInstance = it.next();      
+          for (Object candidate : candidates) {
+            cmdInstance = candidate;
             mi = findMethod(cmdInstance, cmd, inArgs, outArgs);
-            if(mi != null) {
+            if (mi != null) {
               mName = mi.m.getName();
               break;
             }
@@ -281,18 +283,20 @@ public class Program {
                           outArgs);
         }
         if(mi == null) {
-          throw new NoSuchMethodException(cmdInstance.getClass().getName() + 
-                                          "." + mName + "(" + inArgs + ")");
+          final String className = cmdInstance == null
+              ? ""
+              : cmdInstance.getClass().getName() + ".";
+          throw new NoSuchMethodException(className + mName + "(" + inArgs + ")");
         }
         
         // System.out.println("mi=" + mi);
         int offset = 0; // mi.type == MethodInfo.TYPE_MAIN ? 1 : 0;
-        Class[]  pTypes = mi.m.getParameterTypes();
+        Class<?>[]  pTypes = mi.m.getParameterTypes();
         Object[] params = new Object[pTypes.length + offset];
         
-        if(offset == 1) {
-          params[0] = cmd;
-        }
+        // if(offset == 1) {
+          // params[0] = cmd;
+        // }
         for(int i = offset; i < pTypes.length; i++) {
           Object from = outArgs.get(i);
           params[i] = getCP().convert(pTypes[i], from);
@@ -300,13 +304,12 @@ public class Program {
           paramList.add(params[i]);
         }
         
-        Class retType = mi.m.getReturnType();
+        Class<?> retType = mi.m.getReturnType();
         if(retType == Void.TYPE) {
           mi.m.invoke(cmdInstance, params);
           return "";
         } else {
-          Object r = mi.m.invoke(cmdInstance, params);
-          return r;
+          return mi.m.invoke(cmdInstance, params);
         }        
       }
     } catch (Exception e) {
@@ -324,7 +327,7 @@ public class Program {
 
   
   Object parseArg(Object obj) {
-    Object r   = null;
+    Object r;
     if(obj instanceof CharSequence) {
       String arg = obj.toString();
       
@@ -375,46 +378,46 @@ public class Program {
     }
   }
 
-  MethodInfo findMethod(Object obj, String cmd, List args, List out) {
+  MethodInfo findMethod(Object obj, String cmd, List<Object> args, List<Object> out) {
     try {
       // System.out.println("findMethod obj=" + obj + ", cmd=" + cmd + ", args=" + args);
       Method[] ml = obj.getClass().getMethods();
-      for(int i = 0; i < ml.length; i++) {
-        if(ml[i].getName().equalsIgnoreCase(cmd)) {
+      for (Method method : ml) {
+        if (method.getName().equalsIgnoreCase(cmd)) {
           out.clear();
-          if(matchMethodAllArgs(ml[i], args, out)) {
+          if (matchMethodAllArgs(method, args, out)) {
             //             System.out.println("found all " + ml[i]);
-            new MethodInfo(ml[i], MethodInfo.TYPE_ALL);
+            new MethodInfo(method, MethodInfo.TYPE_ALL);
           }
         }
       }
-      for(int i = 0; i < ml.length; i++) {
-        if(ml[i].getName().equalsIgnoreCase(cmd)) {
+      for (Method method : ml) {
+        if (method.getName().equalsIgnoreCase(cmd)) {
           out.clear();
-          if(matchMethodNullPaddedArgs(ml[i], args, out)) {
+          if (matchMethodNullPaddedArgs(method, args, out)) {
             // System.out.println("found null " + ml[i]);
-            return new MethodInfo(ml[i], MethodInfo.TYPE_NULL_PADDED);
+            return new MethodInfo(method, MethodInfo.TYPE_NULL_PADDED);
           }
         }
       }
-      for(int i = 0; i < ml.length; i++) {
-        if(ml[i].getName().equalsIgnoreCase(cmd)) {
+      for (Method method : ml) {
+        if (method.getName().equalsIgnoreCase(cmd)) {
           out.clear();
-          if(matchMethodVarArgs(ml[i], args, out)) {
+          if (matchMethodVarArgs(method, args, out)) {
             // System.out.println("found var " + ml[i] + ", out=" + out);
-            return new MethodInfo(ml[i], MethodInfo.TYPE_VARARGS);
+            return new MethodInfo(method, MethodInfo.TYPE_VARARGS);
           }
         }
       }
-      for(int i = 0; i < ml.length; i++) {
-        if(ml[i].getName().equalsIgnoreCase("main")) {
+      for (Method method : ml) {
+        if (method.getName().equalsIgnoreCase("main")) {
           out.clear();
-          List mainArgs = new ArrayList();
+          List<Object> mainArgs = new ArrayList<>();
           mainArgs.add(cmd);
           mainArgs.addAll(args);
-          if(matchMethodVarArgs(ml[i], mainArgs, out)) {
+          if (matchMethodVarArgs(method, mainArgs, out)) {
             // System.out.println("found main " + ml[i] + ", out=" + out);
-            return new MethodInfo(ml[i], MethodInfo.TYPE_MAIN);
+            return new MethodInfo(method, MethodInfo.TYPE_MAIN);
           }
         }
       }
@@ -424,8 +427,8 @@ public class Program {
     return null;
   }
 
-  boolean matchMethodNullPaddedArgs(Method m, List args, List out) {
-    Class[] pTypes = m.getParameterTypes();
+  boolean matchMethodNullPaddedArgs(Method m, List<Object> args, List<Object> out) {
+    Class<?>[] pTypes = m.getParameterTypes();
     if(args.size() < pTypes.length) {
       if(pTypes[pTypes.length-1].isArray()) {
         return false;
@@ -439,12 +442,12 @@ public class Program {
     return false;
   }
 
-  boolean matchMethodVarArgs(Method m, List args, List out) {
-    Class[] pTypes = m.getParameterTypes();
+  boolean matchMethodVarArgs(Method m, List<Object> args, List<Object> out) {
+    Class<?>[] pTypes = m.getParameterTypes();
 
-    if(args.size() < pTypes.length) {
+    // if(args.size() < pTypes.length) {
       // return false;
-    }
+    //}
 
     int last = pTypes.length-1;
 
@@ -452,12 +455,12 @@ public class Program {
       return false;
     }
     
-    Class pType = pTypes[last];
+    Class<?> pType = pTypes[last];
     if(!pType.isArray()) {      
       return false;
     }
     
-    Class    aType = pType.getComponentType();
+    Class<?> aType = pType.getComponentType();
     Object[] array = (Object[])Array.newInstance(aType, args.size() - last);      
     int n = 0;
     for(int i = last; i < args.size(); i++) {
@@ -475,15 +478,15 @@ public class Program {
     return true; 
   }
 
-  protected boolean matchMethodAllArgs(Method m, List args, List out) {
-    Class[] pTypes = m.getParameterTypes();
+  protected boolean matchMethodAllArgs(Method m, List<Object> args, List<Object> out) {
+    Class<?>[] pTypes = m.getParameterTypes();
     if(pTypes.length != args.size()) {
       return false;
     }
     return convertParams(pTypes, pTypes.length, args, out);
   }
 
-  protected boolean convertParams(Class[] pTypes, int n, List args, List out) {
+  protected boolean convertParams(Class<?>[] pTypes, int n, List<Object> args, List<Object> out) {
     for(int i = 0; i < n; i++) {
       Object from = args.get(i);
       Object to = null;

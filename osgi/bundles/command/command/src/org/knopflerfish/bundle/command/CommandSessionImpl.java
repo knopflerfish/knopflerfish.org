@@ -32,19 +32,25 @@
 
 package org.knopflerfish.bundle.command;
 
-import java.util.*;
-import java.io.*;
-import org.osgi.framework.*;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.command.CommandSession;
+import org.osgi.service.command.Converter;
 import org.osgi.service.threadio.ThreadIO;
-import org.osgi.service.command.*;
 
 public class CommandSessionImpl implements CommandSession {
-  CommandProcessorImpl cp;
-  InputStream in;
-  PrintStream out;
-  PrintStream err;
+  private CommandProcessorImpl cp;
+  private InputStream in;
+  private PrintStream out;
+  private PrintStream err;
 
-  Map sessionVars = new HashMap();
+  private final Map<String, Object> sessionVars = new HashMap<>();
   
   CommandSessionImpl(CommandProcessorImpl cp,
                      InputStream in, 
@@ -59,27 +65,28 @@ public class CommandSessionImpl implements CommandSession {
   void init() {
   }
 
-  public Object convert(Class type,   Object in) {
-    ServiceReference[] srl  = null;
-    Converter        conv = null;
+  public Object convert(@SuppressWarnings("rawtypes") Class type, Object in) {
+    ServiceReference<Converter> sr = null;
+    Converter converter = null;
     try {
-      String filter = "(" + Converter.CONVERTER_CLASSES + "=" + type.getClass().getName() + ")";
-      srl = Activator.bc.getServiceReferences(Converter.class.getName(), filter);
-      if(srl == null || srl.length == 0) {
+      String filter = "(" + Converter.CONVERTER_CLASSES + "=" + type.getName() + ")";
+      Collection<ServiceReference<Converter>> srl
+          = Activator.bc.getServiceReferences(Converter.class, filter);
+      if (srl == null || srl.isEmpty()) {
         throw new RuntimeException("No converter for type=" + type.getName());
-      }      
-      conv = (Converter)Activator.bc.getService(srl[0]);
+      }
+      sr = srl.iterator().next();
+      converter = Activator.bc.getService(sr);
 
-      Object r = conv.convert(type, in);
-      return r;
+      return converter.convert(type, in);
 
     } catch (InvalidSyntaxException e) {
       throw new RuntimeException("Bad filter:" + e);
     } catch (Exception e) {
       throw new RuntimeException("Failed to convert " + in + " to " + type.getName() + ", " + e); 
     } finally {
-      if(conv != null) {
-        Activator.bc.ungetService(srl[0]);
+      if (converter != null) {
+        Activator.bc.ungetService(sr);
       }
     }
   }
@@ -92,7 +99,7 @@ public class CommandSessionImpl implements CommandSession {
                         InputStream in,   
                         PrintStream out, 
                         PrintStream err) {
-    ThreadIO tio = (ThreadIO)cp.tioTracker.getService();
+    ThreadIO tio = cp.tioTracker.getService();
     if(tio == null) {
       throw new RuntimeException("No ThreadIO service available");
     }

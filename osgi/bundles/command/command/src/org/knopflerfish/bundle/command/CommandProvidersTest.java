@@ -32,42 +32,43 @@
 
 package org.knopflerfish.bundle.command;
 
-import java.util.*;
-import org.osgi.service.command.*;
 import java.lang.reflect.Method;
-import org.knopflerfish.bundle.command.commands.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+
+import org.knopflerfish.bundle.command.commands.EchoCmd;
 
 
 public class CommandProvidersTest implements CommandProviders {
   
-  JavaLangConverter conv = new JavaLangConverter();
+  JavaLangConverter converter = new JavaLangConverter();
   
-  Map commands = new HashMap() {{
+  Map<String, Object> commands = new HashMap<String, Object>() {{
     put("echocmd", new EchoCmd());
   }};
   
-  public Object convert(Class desiredType, Object from) {
-    return conv.convert(desiredType, from);
+  public <T> T convert(Class<T> desiredType, Object from) {
+    return converter.convertTyped(desiredType, from);
   }
   
 
-  public Collection findCommands(String scope, String name) {
-    Collection candidates = new LinkedHashSet();
-    if(scope != null) {
+  public Collection<?> findCommands(String scope, String name) {
+    Collection<Object> candidates = new LinkedHashSet<>();
+    if (scope != null) {
       Object r = commands.get(scope);
-      if(r != null) {
+      if (r != null) {
         candidates.add(r);
       }
     } else {
       candidates.addAll(commands.values());
     }
-    
-    for(Iterator it = candidates.iterator(); it.hasNext(); ) {
-      Object obj = it.next();
-      
+
+    for (Object obj : candidates) {
       Method[] ml = obj.getClass().getMethods();
-      for(int i = 0; i < ml.length; i++) {
-        if(ml[i].getName().equalsIgnoreCase(name)) {
+      for (Method method : ml) {
+        if (method.getName().equalsIgnoreCase(name)) {
           candidates.add(obj);
         }
       }

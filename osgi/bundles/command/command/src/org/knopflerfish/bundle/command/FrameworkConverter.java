@@ -32,14 +32,12 @@
 
 package org.knopflerfish.bundle.command;
 
-import java.util.*;
-import java.lang.reflect.*;
-import org.osgi.service.command.*;
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.service.command.Converter;
 
 public class FrameworkConverter implements Converter {
   
-  static Class[] CLASSES = new Class[] {
+  static Class<?>[] CLASSES = new Class[] {
     Bundle.class,
   };
   
@@ -50,18 +48,23 @@ public class FrameworkConverter implements Converter {
       CLASSES_STRINGS[i] = CLASSES[i].getName();
     }
   }
-  
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public Object convert(Class desiredType, Object in) {
-    if(in == null) {
+    return convertTyped(desiredType, in);
+  }
+
+  public <T> T convertTyped(Class<T> desiredType, Object in) {
+    if (in == null) {
       return null;
     }
-    if(desiredType.isAssignableFrom(in.getClass())) {
-      return in;
+    if (desiredType.isAssignableFrom(in.getClass())) {
+      return desiredType.cast(in);
     }
-    if(in instanceof Bundle) {
-      Bundle b = (Bundle)in;
-      if(desiredType == String.class) {
-        return "#" + b.getBundleId();
+    if (in instanceof Bundle) {
+      Bundle b = (Bundle) in;
+      if (desiredType == String.class) {
+        return desiredType.cast("#" + b.getBundleId());
       }
     }
     return null;
