@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2013, KNOPFLERFISH project
+ * Copyright (c) 2009-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,23 @@
 
 package org.knopflerfish.bundle.commandtty;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
+import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import org.osgi.service.command.*;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ManagedService;
+import org.osgi.service.command.CommandProcessor;
+import org.osgi.service.command.CommandSession;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
@@ -59,8 +64,8 @@ public class CommandTty implements
 
   boolean nonblocking = false;
 
-  private ServiceTracker<CommandProcessor,CommandProcessor> cmdProcTracker;
-  private ServiceTracker<LogService,LogService> logTracker;
+  private ServiceTracker<CommandProcessor, CommandProcessor> cmdProcTracker;
+  private ServiceTracker<LogService, LogService> logTracker;
   private CommandSession commandSession = null;
 
   private BundleContext bc;
@@ -70,13 +75,13 @@ public class CommandTty implements
   PrintStream errStream;
 
   ReadThread  readThread;
-  public void start(BundleContext bc) throws Exception {
+  public void start(BundleContext bc) {
     this.bc = bc;
 
-    log(LogService.LOG_INFO, "Starting");
+    logInfo("Starting");
 
     // Get config
-    Dictionary<String,String> p = new Hashtable<String,String>();
+    Dictionary<String,String> p = new Hashtable<>();
     p.put(Constants.SERVICE_PID, getClass().getName());
     bc.registerService(ManagedService.class, this, p);
 
@@ -84,17 +89,17 @@ public class CommandTty implements
     outStream = System.out;
     errStream = System.err;
 
-    cmdProcTracker = new ServiceTracker(bc, CommandProcessor.class, this);
+    cmdProcTracker = new ServiceTracker<>(bc, CommandProcessor.class, this);
     cmdProcTracker.open();
 
-    logTracker = new ServiceTracker(bc, LogService.class, null);
+    logTracker = new ServiceTracker<>(bc, LogService.class, null);
     logTracker.open();
 
   }
 
 
   public synchronized void stop(BundleContext bc) {
-    log(LogService.LOG_INFO, "Stopping");
+    logInfo("Stopping");
     cmdProcTracker.close();
     closeSession();
   }
@@ -103,12 +108,12 @@ public class CommandTty implements
    *			  ManagedService implementation
    *---------------------------------------------------------------------------*/
 
-  public synchronized void updated(Dictionary cfg)
+  public synchronized void updated(Dictionary<String, ?> cfg)
     throws IllegalArgumentException {
     if (cfg != null) {
       Boolean b = (Boolean) cfg.get(NONBLOCKING);
       if (b != null) {
-        nonblocking = b.booleanValue();
+        nonblocking = b;
       }
     } else {
       nonblocking = false;
@@ -126,8 +131,7 @@ public class CommandTty implements
       readThread = new ReadThread(inStream, commandSession);
       readThread.start();
     } catch (Exception ioe) {
-      log(LogService.LOG_ERROR,
-          "Failed to start command session, can not continue");
+      logError("Failed to start command session, can not continue");
     }
     return cmdProcessor;
   }
@@ -153,8 +157,16 @@ public class CommandTty implements
     }
   }
 
-  public void log(int level, String msg) {
-    log(level, msg, null);
+  public void logInfo(String msg) {
+    log(LogService.LOG_INFO, msg, null);
+  }
+
+  public void logError(String msg) {
+    log(LogService.LOG_ERROR, msg, null);
+  }
+
+  public void logError(String msg, Exception e) {
+    log(LogService.LOG_ERROR, msg, e);
   }
 
   public void log(int level, String msg, Exception e) {
@@ -225,7 +237,7 @@ public class CommandTty implements
         while (in.available() == 0) {
           try {
             Thread.sleep(nap);
-          } catch (InterruptedException e) {
+          } catch (InterruptedException ignored) {
           }
           nap = 200;
         }
@@ -260,19 +272,18 @@ public class CommandTty implements
           outStream.print("> ");
           String line = reader.readLine();
           if(bOpen) {
-            log(LogService.LOG_INFO, "exec '" + line + "'");
+            logInfo("exec '" + line + "'");
             try {
               session.execute(line);
             } catch (Exception e) {
-              log(LogService.LOG_ERROR, "Failed to exec " + line, e);
+              logError("Failed to exec " + line, e);
             }
-          } else {
+          //} else {
             // closed
           }
         } catch (InterruptedIOException ignore) {
           // If we are interrupted, we check bOpen flag and try to read
           // again.
-          continue;
         } catch (IOException ignore) {
           bOpen = false;
         }
