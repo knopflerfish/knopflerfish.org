@@ -100,10 +100,10 @@ public class PermissionAdminHelperImpl
     if (selection != null) {
       Bundle[] b = bc.getBundles();
       Util.selectBundles(b, new String[] { selection });
-      for (int i = 0; i < b.length; i++) {
-        if (b[i] != null) {
+      for (Bundle bundle : b) {
+        if (bundle != null) {
           if (loc == null) {
-            loc = b[i].getLocation();
+            loc = bundle.getLocation();
           } else {
             out.println("ERROR! Multiple bundles selected");
             return 1;
@@ -166,10 +166,10 @@ public class PermissionAdminHelperImpl
     if (selection != null) {
       Bundle[] b = bc.getBundles();
       Util.selectBundles(b, new String[] { selection });
-      for (int i = 0; i < b.length; i++) {
-        if (b[i] != null) {
+      for (Bundle bundle : b) {
+        if (bundle != null) {
           if (loc == null) {
-            loc = b[i].getLocation();
+            loc = bundle.getLocation();
           } else {
             out.println("ERROR! Multiple bundles selected");
             return 1;
@@ -239,16 +239,16 @@ public class PermissionAdminHelperImpl
     String[] loclist = permissionAdmin.getLocations();
     String[] selection = (String[]) opts.get("selection");
     if (loclist != null && selection != null) {
-      Bundle[] b = bc.getBundles();
-      Util.selectBundles(b, selection);
+      Bundle[] bundles = bc.getBundles();
+      Util.selectBundles(bundles, selection);
       lloop: for (int i = 0; i < loclist.length; i++) {
-        for (int j = 0; j < selection.length; j++) {
-          if (loclist[i].equals(selection[j])) {
+        for (String s : selection) {
+          if (loclist[i].equals(s)) {
             continue lloop;
           }
         }
-        for (int j = 0; j < b.length; j++) {
-          if (b[j] != null && loclist[i].equals(b[j].getLocation())) {
+        for (Bundle bundle : bundles) {
+          if (bundle != null && loclist[i].equals(bundle.getLocation())) {
             continue lloop;
           }
         }
@@ -262,20 +262,20 @@ public class PermissionAdminHelperImpl
     }
 
     if (loclist != null) {
-      Bundle[] b = bc.getBundles();
-      for (int i = 0; i < loclist.length; i++) {
-        if (loclist[i] != null) {
-          int j = b.length;
+      Bundle[] bundles = bc.getBundles();
+      for (String loc : loclist) {
+        if (loc != null) {
+          int j = bundles.length;
           while (--j >= 0) {
-            if (loclist[i].equals(b[j].getLocation())) {
+            if (loc.equals(bundles[j].getLocation())) {
               break;
             }
           }
           out.println("Location: "
-                      + loclist[i]
-                      + (j >= 0 ? " (Bundle #" + b[j].getBundleId() + ")"
-                         : ""));
-          showPerms(out, permissionAdmin.getPermissions(loclist[i]));
+              + loc
+              + (j >= 0 ? " (Bundle #" + bundles[j].getBundleId() + ")"
+              : ""));
+          showPerms(out, permissionAdmin.getPermissions(loc));
         }
       }
     }
@@ -293,15 +293,14 @@ public class PermissionAdminHelperImpl
     String [] names = (String []) opts.get("name");
     Enumeration<ConditionalPermissionInfo> e;
     if (names != null) {
-      Vector<ConditionalPermissionInfo> cpis = new Vector<ConditionalPermissionInfo>();
-      for (int i = 0; i < names.length; i++ ) {
+      Vector<ConditionalPermissionInfo> cpis = new Vector<>();
+      for (String name : names) {
         ConditionalPermissionInfo cpi
-          = condPermAdmin.getConditionalPermissionInfo(names[i]);
+            = condPermAdmin.getConditionalPermissionInfo(name);
         if (cpi != null) {
           cpis.addElement(cpi);
         } else {
-          out.println("Didn't find ConditionalPermissionInfo named: "
-                      + names[i]);
+          out.println("Didn't find ConditionalPermissionInfo named: " + name);
         }
       }
       e = cpis.elements();
@@ -324,8 +323,8 @@ public class PermissionAdminHelperImpl
       out.println("Conditional Permission Admin service is not available");
       return 1;
     }
-    Vector /* ConditionInfo */<ConditionInfo> cis = new Vector<ConditionInfo>();
-    Vector /* PermissionInfo */<PermissionInfo> pis = new Vector<PermissionInfo>();
+    Vector<ConditionInfo> cis = new Vector<>();
+    Vector<PermissionInfo> pis = new Vector<>();
     String name = (String) opts.get("-name");
     String [] cpis = (String []) opts.get("conditional_permission_info");
     String endChar = null;
@@ -337,6 +336,7 @@ public class PermissionAdminHelperImpl
         i++;
         if (cpi.endsWith(endChar)) {
           try {
+            //noinspection StringEquality
             if (endChar == "]") {
               cis.addElement(new ConditionInfo(buf.toString()));
             } else {
@@ -361,8 +361,8 @@ public class PermissionAdminHelperImpl
         return 1;
       }
     }
-    ConditionInfo [] cia = cis.toArray(new ConditionInfo [cis.size()]);
-    PermissionInfo [] pia = pis.toArray(new PermissionInfo [pis.size()]);
+    ConditionInfo [] cia = cis.toArray(new ConditionInfo[0]);
+    PermissionInfo [] pia = pis.toArray(new PermissionInfo[0]);
     condPermAdmin.setConditionalPermissionInfo(name, cia, pia);
     return 0;
   }
@@ -374,8 +374,8 @@ public class PermissionAdminHelperImpl
     } else if (pi.length == 0) {
       out.println(shift + "NONE");
     } else {
-      for (int i = 0; i < pi.length; i++) {
-        out.println(shift + pi[i]);
+      for (PermissionInfo permissionInfo : pi) {
+        out.println(shift + permissionInfo);
       }
     }
   }

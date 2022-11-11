@@ -201,10 +201,11 @@ OSGi Compendium Specification
 
 * Internally use StringBuilder instead of StringBuffer.
 
-### FW-Commands 4.1.0
+### FW-Commands 7.0.0
 
 * Internally use StringBuilder instead of StringBuffer.
 * Javadoc fixes.
+* Internal code cleanup.
 
 ### HTTP-Server 7.0.0
 
