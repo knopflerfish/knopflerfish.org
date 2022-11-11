@@ -236,6 +236,10 @@ OSGi Compendium Specification
 
 * Internal code cleanup and refactoring.
 
+### LogCommands 7.0.0
+
+* Internal code cleanup
+
 ### LogCommands 5.1.0
 
 * Internal code cleanup and refactoring.

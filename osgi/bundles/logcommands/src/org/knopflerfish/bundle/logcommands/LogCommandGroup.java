@@ -79,9 +79,11 @@ public class LogCommandGroup
   // Show command
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_SHOW =
     "[-f] [-h #hours#] [-l #level#] [-n #count#] [-r] [-s] [<bundle>] ...";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_SHOW =
     new String[] {
                   "Show log bundle entries",
@@ -94,166 +96,161 @@ public class LogCommandGroup
                   "-s         Show stacktrace for exceptions",
                   "<bundle>   Name or id of bundle" };
 
+  @SuppressWarnings("unused")
   public int cmdShow(final Dictionary<String, ?> opts,
                      final Reader in,
                      final PrintWriter out,
                      final Session session)
   {
-    final Integer res =
-      AccessController.doPrivileged(new PrivilegedAction<Integer>() {
-        public Integer run()
-        {
-          final ServiceReference<LogReaderService> sr =
-            bc.getServiceReference(LogReaderService.class);
-          if (sr == null) {
-            out.println("Unable to get a LogReaderService");
-            return new Integer(1);
-          }
-          final LogReaderService lr = bc.getService(sr);
-          if (lr == null) {
-            out.println("Unable to get a LogReaderService");
-            return new Integer(1);
-          }
+    return AccessController.doPrivileged((PrivilegedAction<Integer>) () -> {
+      final ServiceReference<LogReaderService> sr =
+          bc.getServiceReference(LogReaderService.class);
+      if (sr == null) {
+        out.println("Unable to get a LogReaderService");
+        return 1;
+      }
+      final LogReaderService lr = bc.getService(sr);
+      if (lr == null) {
+        out.println("Unable to get a LogReaderService");
+        return 1;
+      }
 
-          ArrayList<Bundle> bv = null;
-          final String[] selection = (String[]) opts.get("bundle");
-          if (selection != null) {
-            final Bundle[] bundles = bc.getBundles();
-            Util.selectBundles(bundles, selection);
-            bv = new ArrayList<Bundle>();
-            for (final Bundle bundle : bundles) {
-              if (bundle != null) {
-                bv.add(bundle);
-              }
-            }
+      ArrayList<Bundle> bv = null;
+      final String[] selection = (String[]) opts.get("bundle");
+      if (selection != null) {
+        final Bundle[] bundles = bc.getBundles();
+        Util.selectBundles(bundles, selection);
+        bv = new ArrayList<>();
+        for (final Bundle bundle : bundles) {
+          if (bundle != null) {
+            bv.add(bundle);
           }
-
-          final boolean fflag = opts.get("-f") != null;
-
-          final String lflag = (String) opts.get("-l");
-          int level;
-          if (lflag != null) {
-            if (lflag.equalsIgnoreCase("error")) {
-              level = LogService.LOG_ERROR;
-            } else if (lflag.equalsIgnoreCase("warning")) {
-              level = LogService.LOG_WARNING;
-            } else if (lflag.equalsIgnoreCase("info")) {
-              level = LogService.LOG_INFO;
-            } else if (lflag.equalsIgnoreCase("debug")) {
-              level = LogService.LOG_DEBUG;
-            } else {
-              out.println("Unknown level: " + lflag);
-              return new Integer(1);
-            }
-          } else {
-            level = LogService.LOG_DEBUG;
-          }
-
-          final String hflag = (String) opts.get("-h");
-          long startTime = 0;
-          if (hflag != null) {
-            try {
-              startTime =
-                System.currentTimeMillis()
-                    - (long) (60 * 60 * 1000 * (new Double(hflag))
-                        .doubleValue());
-            } catch (final NumberFormatException e) {
-              out.println("Illegal number of hours: " + hflag);
-              return new Integer(1);
-            }
-          }
-
-          final String nflag = (String) opts.get("-n");
-          int count = Integer.MAX_VALUE;
-          if (nflag != null) {
-            try {
-              count = Integer.parseInt(nflag);
-            } catch (final NumberFormatException e) {
-              out.println("Illegal number as count: " + nflag);
-              return new Integer(1);
-            }
-          }
-
-          @SuppressWarnings("unchecked")
-          Enumeration<LogEntry> e = lr.getLog();
-          final Vector<LogEntry> lv = new Vector<LogEntry>();
-          final boolean rflag = opts.get("-r") == null;
-          while (e.hasMoreElements()) {
-            final LogEntry le = e.nextElement();
-            final Bundle b = le.getBundle();
-            if (b == null && fflag || bv == null && !fflag || bv != null
-                && bv.contains(b)) {
-              if (count-- <= 0) {
-                break;
-              }
-              if (le.getLevel() > level) {
-                continue;
-              }
-              if (le.getTime() < startTime) {
-                break;
-              }
-              if (rflag) {
-                lv.insertElementAt(le, 0);
-              } else {
-                lv.addElement(le);
-              }
-            }
-          }
-
-          final StringBuilder sb = new StringBuilder();
-          final SimpleDateFormat tf = new SimpleDateFormat("MMM dd HH:mm:ss ");
-
-          for (e = lv.elements(); e.hasMoreElements();) {
-            final LogEntry le = e.nextElement();
-            sb.setLength(0);
-            sb.append(tf.format(new Date(le.getTime())));
-            pad(sb, 16);
-            switch (le.getLevel()) {
-            case LogService.LOG_INFO:
-              sb.append("INFO");
-              break;
-            case LogService.LOG_DEBUG:
-              sb.append("DEBUG");
-              break;
-            case LogService.LOG_WARNING:
-              sb.append("WARNING");
-              break;
-            case LogService.LOG_ERROR:
-              sb.append("ERROR");
-              break;
-            default:
-              sb.append("UNKNOWN");
-              break;
-            }
-            pad(sb, 23);
-            final Bundle b = le.getBundle();
-            if (b != null) {
-              sb.append(" #").append(b.getBundleId());
-              pad(sb, 28);
-              sb.append(Util.shortName(b));
-            } else {
-              sb.append(" FRAMEWORK");
-            }
-            pad(sb, 42);
-            sb.append(" - ");
-            sb.append(le.getMessage());
-            final ServiceReference<?> leSr = le.getServiceReference();
-            if (leSr != null) {
-              sb.append(", Service#");
-              sb.append(leSr.getProperty(Constants.SERVICE_ID));
-              sb.append(": ");
-              sb.append(Util.showServiceClasses(leSr));
-            }
-            out.println(sb.toString());
-            if (le.getException() != null && opts.get("-s") != null) {
-              le.getException().printStackTrace(out);
-            }
-          }
-          bc.ungetService(sr);
-          return new Integer(0);
         }
-      });
-    return res.intValue();
+      }
+
+      final boolean fflag = opts.get("-f") != null;
+
+      final String lflag = (String) opts.get("-l");
+      int level;
+      if (lflag != null) {
+        if (lflag.equalsIgnoreCase("error")) {
+          level = LogService.LOG_ERROR;
+        } else if (lflag.equalsIgnoreCase("warning")) {
+          level = LogService.LOG_WARNING;
+        } else if (lflag.equalsIgnoreCase("info")) {
+          level = LogService.LOG_INFO;
+        } else if (lflag.equalsIgnoreCase("debug")) {
+          level = LogService.LOG_DEBUG;
+        } else {
+          out.println("Unknown level: " + lflag);
+          return 1;
+        }
+      } else {
+        level = LogService.LOG_DEBUG;
+      }
+
+      final String hflag = (String) opts.get("-h");
+      long startTime = 0;
+      if (hflag != null) {
+        try {
+          startTime =
+            System.currentTimeMillis()
+                - (long) (60 * 60 * 1000 * Double.parseDouble(hflag));
+        } catch (final NumberFormatException e) {
+          out.println("Illegal number of hours: " + hflag);
+          return 1;
+        }
+      }
+
+      final String nflag = (String) opts.get("-n");
+      int count = Integer.MAX_VALUE;
+      if (nflag != null) {
+        try {
+          count = Integer.parseInt(nflag);
+        } catch (final NumberFormatException e) {
+          out.println("Illegal number as count: " + nflag);
+          return 1;
+        }
+      }
+
+      @SuppressWarnings("unchecked")
+      Enumeration<LogEntry> e = lr.getLog();
+      final Vector<LogEntry> lv = new Vector<>();
+      final boolean rflag = opts.get("-r") == null;
+      while (e.hasMoreElements()) {
+        final LogEntry le = e.nextElement();
+        final Bundle b = le.getBundle();
+        if (b == null && fflag || bv == null && !fflag || bv != null
+            && bv.contains(b)) {
+          if (count-- <= 0) {
+            break;
+          }
+          if (le.getLevel() > level) {
+            continue;
+          }
+          if (le.getTime() < startTime) {
+            break;
+          }
+          if (rflag) {
+            lv.insertElementAt(le, 0);
+          } else {
+            lv.addElement(le);
+          }
+        }
+      }
+
+      final StringBuilder sb = new StringBuilder();
+      final SimpleDateFormat tf = new SimpleDateFormat("MMM dd HH:mm:ss ");
+
+      for (e = lv.elements(); e.hasMoreElements();) {
+        final LogEntry le = e.nextElement();
+        sb.setLength(0);
+        sb.append(tf.format(new Date(le.getTime())));
+        pad(sb, 16);
+        switch (le.getLevel()) {
+        case LogService.LOG_INFO:
+          sb.append("INFO");
+          break;
+        case LogService.LOG_DEBUG:
+          sb.append("DEBUG");
+          break;
+        case LogService.LOG_WARNING:
+          sb.append("WARNING");
+          break;
+        case LogService.LOG_ERROR:
+          sb.append("ERROR");
+          break;
+        default:
+          sb.append("UNKNOWN");
+          break;
+        }
+        pad(sb, 23);
+        final Bundle b = le.getBundle();
+        if (b != null) {
+          sb.append(" #").append(b.getBundleId());
+          pad(sb, 28);
+          sb.append(Util.shortName(b));
+        } else {
+          sb.append(" FRAMEWORK");
+        }
+        pad(sb, 42);
+        sb.append(" - ");
+        sb.append(le.getMessage());
+        final ServiceReference<?> leSr = le.getServiceReference();
+        if (leSr != null) {
+          sb.append(", Service#");
+          sb.append(leSr.getProperty(Constants.SERVICE_ID));
+          sb.append(": ");
+          sb.append(Util.showServiceClasses(leSr));
+        }
+        out.println(sb.toString());
+        if (le.getException() != null && opts.get("-s") != null) {
+          le.getException().printStackTrace(out);
+        }
+      }
+      bc.ungetService(sr);
+      return 0;
+    });
   }
 
   void pad(StringBuilder sb, int n)

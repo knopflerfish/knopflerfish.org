@@ -68,14 +68,17 @@ public class LogConfigCommandGroup
   //
   // Set memory size command
   //
+  @SuppressWarnings("unused")
   public final static String USAGE_MEMORY = "[-c] [<int>]";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_MEMORY =
     new String[] { "Number of log entries to keep in memory.",
                   "The no argument version prints the current setting.",
                   "<int>   The new number of log entries to keep.",
                   "-c      Clear the in memory log.", };
 
+  @SuppressWarnings("unused")
   public int cmdMemory(final Dictionary<String, ?> opts,
                        final Reader in,
                        final PrintWriter out,
@@ -119,8 +122,10 @@ public class LogConfigCommandGroup
   //
   // Set level command
   //
+  @SuppressWarnings("unused")
   public final static String USAGE_SETLEVEL = "<level> [<bundle>] ...";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_SETLEVEL =
     new String[] {
                   "Set log level",
@@ -133,6 +138,7 @@ public class LogConfigCommandGroup
                   "          This means that if wanting to set the configuration of a specific",
                   "          bundle the bundle id or the bundle location has to be given. ", };
 
+  @SuppressWarnings("unused")
   public int cmdSetlevel(final Dictionary<String, ?> opts,
                          final Reader in,
                          final PrintWriter out,
@@ -167,7 +173,7 @@ public class LogConfigCommandGroup
                                String[] givenBundles,
                                int level)
   {
-    String location = null;
+    String location;
     for (int i = givenBundles.length - 1; i >= 0; i--) {
       location = givenBundles[i].trim();
       try {
@@ -181,7 +187,7 @@ public class LogConfigCommandGroup
         } else {
           location = null;
         }
-      } catch (final NumberFormatException nfe) {
+      } catch (final NumberFormatException ignored) {
       }
       if (location != null && location.length() > 0) {
         configuration.setFilter(location, level);
@@ -192,8 +198,10 @@ public class LogConfigCommandGroup
   //
   // Show level command
   //
+  @SuppressWarnings("unused")
   public final static String USAGE_SHOWLEVEL = "[<bundle>] ...";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_SHOWLEVEL =
     new String[] {
                   "Show current log levels for bundles.",
@@ -205,6 +213,7 @@ public class LogConfigCommandGroup
                   "             bundles symbolic name or the bundle location. If the bundle",
                   "             uses the default log level its line will end with the text \"(default)\".", };
 
+  @SuppressWarnings("unused")
   public int cmdShowlevel(Dictionary<String, ?> opts,
                           Reader in,
                           PrintWriter out,
@@ -225,14 +234,13 @@ public class LogConfigCommandGroup
     final boolean showAll = null == selections;
     if (showAll) {
       final HashMap<String, Integer> filters = configuration.getFilters();
-      selections =
-        filters.keySet().toArray(new String[filters.size()]);
+      selections = filters.keySet().toArray(new String[0]);
     }
     // Print the default filter level.
     out.println("    *  " + LogUtil.fromLevel(configuration.getFilter(), 8)
                 + "(default)");
 
-    final Set<String> matchedSelectors = new HashSet<String>();
+    final Set<String> matchedSelectors = new HashSet<>();
     Util.selectBundles(bundles, selections, matchedSelectors);
     Util.sortBundlesId(bundles);
 
@@ -265,7 +273,7 @@ public class LogConfigCommandGroup
                                         final Set<String> weedOut,
                                         final PrintWriter out)
   {
-    final SortedSet<String> selectionSet = new TreeSet<String>();
+    final SortedSet<String> selectionSet = new TreeSet<>();
     for (int i = selections.length - 1; i >= 0; i--) {
       final String selection = selections[i];
       if (null != selection && 0 < selection.length()
@@ -303,20 +311,19 @@ public class LogConfigCommandGroup
       level = filters.get(String.valueOf(bundle.getBundleId()));
     }
 
-    return (level != null) ? level.intValue() : -1;
+    return (level != null) ? level : -1;
   }
 
   private int getLevel(final LogConfig configuration,
-                       final String full_name,
-                       final String short_name)
+                       final String fullName,
+                       @SuppressWarnings("SameParameterValue") final String shortName)
   {
     final HashMap<String, Integer> filters = configuration.getFilters();
-    Integer level_to_use = filters.get(full_name);
+    Integer level_to_use = filters.get(fullName);
     if (level_to_use == null) {
-      level_to_use = filters.get(short_name);
+      level_to_use = filters.get(shortName);
     }
-    return (level_to_use != null) ? level_to_use.intValue() : configuration
-        .getFilter();
+    return (level_to_use != null) ? level_to_use : configuration.getFilter();
   }
 
   private String getPaddedName(String bundle)
@@ -331,15 +338,21 @@ public class LogConfigCommandGroup
   //
   // Set out command
   //
+  @SuppressWarnings("unused")
   public final static String USAGE_OUT = "[-on | -off]";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_OUT =
     new String[] {
                   "Configures logging to standard out",
                   "-on          Turns on writing of log entries to standard out.",
                   "-off         Turns off writing of log entries to standard out.", };
 
-  public int cmdOut(Dictionary<String, ?> opts, Reader in, PrintWriter out, Session session)
+  @SuppressWarnings("unused")
+  public int cmdOut(Dictionary<String, ?> opts,
+                    Reader in,
+                    PrintWriter out,
+                    Session session)
   {
 
     // Get log configuration service
@@ -374,9 +387,11 @@ public class LogConfigCommandGroup
   //
   // Set file command
   //
+  @SuppressWarnings("unused")
   public final static String USAGE_FILE =
     "[-on | -off] [-size #size#] [-gen #gen#] [-flush | -noflush]";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_FILE =
     new String[] {
                   "Configures the file logging (the no argument version prints the current settings)",
@@ -387,6 +402,7 @@ public class LogConfigCommandGroup
                   "-flush       Turns on log file flushing after each log entry.",
                   "-noflush     Turns off log file flushing after each log entry.", };
 
+  @SuppressWarnings("unused")
   public int cmdFile(final Dictionary<String, ?> opts,
                      final Reader in,
                      final PrintWriter out,
@@ -463,14 +479,17 @@ public class LogConfigCommandGroup
   //
   // Set timestamp pattern
   //
+  @SuppressWarnings("unused")
   public final static String USAGE_TIMESTAMP = "[<pattern>]";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_TIMESTAMP =
     new String[] {
                   "Configures the timestamp format used by the Knopflerfish log service",
                   "The no argument version prints the current pattern.",
-                  "<pattern>    Timstamp pattern as defined by java.text.SimpleDateFormat.", };
+                  "<pattern>    Timestamp pattern as defined by java.text.SimpleDateFormat.", };
 
+  @SuppressWarnings("unused")
   public int cmdTimestamp(Dictionary<String, ?> opts,
                           Reader in,
                           PrintWriter out,

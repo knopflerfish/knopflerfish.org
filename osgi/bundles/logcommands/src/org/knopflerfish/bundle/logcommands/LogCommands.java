@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,18 +72,18 @@ public class LogCommands
 
     // Create service tracker for log config service
     LogCommands.logConfigTracker =
-      new ServiceTracker<LogConfig, LogConfig>(bc, LogConfig.class, null);
+        new ServiceTracker<>(bc, LogConfig.class, null);
     LogCommands.logConfigTracker.open();
 
     // Register log commands
     final CommandGroup logCommandGroup = new LogCommandGroup(bc);
-    Dictionary<String, Object> props = new Hashtable<String, Object>();
+    Dictionary<String, Object> props = new Hashtable<>();
     props.put("groupName", logCommandGroup.getGroupName());
     bc.registerService(CommandGroup.class, logCommandGroup, props);
 
     // Register log config commands
     final CommandGroup logConfigCommandGroup = new LogConfigCommandGroup();
-    props = new Hashtable<String, Object>();
+    props = new Hashtable<>();
     props.put("groupName", logConfigCommandGroup.getGroupName());
     bc.registerService(CommandGroup.class, logConfigCommandGroup, props);
   }
