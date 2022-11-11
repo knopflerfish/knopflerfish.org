@@ -19,6 +19,7 @@ Knopflerfish Framework - OSGi Core Specification
 ### Framework 9.0
 
 * Updated API classes to match OSGi R7.
+* Javadoc fixes.
 
 ### Framework 8.0.12
 
@@ -50,6 +51,8 @@ OSGi Compendium Specification
 ### CM 7.0.0
 
 * Updated API classes to match OSGi R7.
+* Internal code cleanup.
+* Javadoc fixes.
 
 ### Component Annotations 7.0.0
 
@@ -69,6 +72,7 @@ OSGi Compendium Specification
 * Added EVENT_ADMIN_IMPLEMENTATION capability.
 * Added osgi.service capability
 * Updated API classes to match OSGi R7.
+* Javadoc fixes.
 
 ### Foreign Applications 7.0.0
 
@@ -81,6 +85,7 @@ OSGi Compendium Specification
 ### KF Metatype 7.0.0
 
 * Updated to match OSGi R7 API minor version 1.4.
+* Javadoc fixes.
 
 ### Log 7.0.0
 
@@ -111,6 +116,7 @@ OSGi Compendium Specification
 ### Promise 7.0.0
 
 * Updated API classes to match OSGi R7
+* Javadoc fixes.
 
 ### Provisioning 7.0.0
 
@@ -119,6 +125,7 @@ OSGi Compendium Specification
 ### Push Stream 7.0.0
 
 * New library bundle providing the `org.osgi.util.pushstream` package.
+* Javadoc fixes.
 
 ### Remote Service Admin 7.0.0
 
@@ -127,6 +134,7 @@ OSGi Compendium Specification
 ### Repository 7.0.0
 
 * Updated API classes to match OSGi R7
+* Javadoc fixes.
 
 ### Wire Admin Service 7.0.0
 
@@ -139,10 +147,16 @@ OSGi Compendium Specification
 ### Configuration Management Service (cm) 5.2.0
 
 * Internally use StringBuilder instead of StringBuffer.
+* Internal code cleanup.
 
 ### Command Service (command) 0.3
 
 * Internal code cleanup.
+
+### Component (SCR) 7.0.0
+
+* Internal code cleanup.
+* Javadoc fixes.
 
 ### Component (SCR) 6.1.0
 
@@ -190,6 +204,11 @@ OSGi Compendium Specification
 ### FW-Commands 4.1.0
 
 * Internally use StringBuilder instead of StringBuffer.
+* Javadoc fixes.
+
+### HTTP-Server 7.0.0
+
+* Javadoc fixes.
 
 ### HTTP-Server 5.4.0
 
@@ -203,9 +222,10 @@ OSGi Compendium Specification
 
 * Internal code cleanup and refactoring.
 
-### JSDK 2.6.0.kf3-2
+### JSDK 2.5.0.kf3-2
 
 * Internally use StringBuilder instead of StringBuffer.
+* Javadoc fixes.
 
 ### kXML 2.4.0.kf4-001
 
@@ -222,6 +242,7 @@ OSGi Compendium Specification
 ### Repository-Manager 1.4.0
 
 * Internally use StringBuilder instead of StringBuffer.
+* Javadoc fixes.
 
 ### repository xml 1.2.0
 
@@ -242,6 +263,7 @@ OSGi Compendium Specification
 ### UserAdmin 4.2.0
 
 * Internally use StringBuilder instead of StringBuffer.
+* Internal code cleanup.
 
 ### util 4.2.0
 
@@ -251,13 +273,15 @@ OSGi Compendium Specification
 Knopflerfish Services
 ----------------------------------------------------------------------
 
-### CM-Desktop 5.1.0
+### CM-Desktop 7.0.0
 
 * Internally use StringBuilder instead of StringBuffer.
+* Internal code cleanup.
 
 ### Commons-Logging 2.1.0.kf4-001
 
 * Internally use StringBuilder instead of StringBuffer.
+* Javadoc fixes.
 
 ### Crimson is no longer redistributed
 
@@ -270,6 +294,9 @@ Knopflerfish Services
 ### Desktop 7.0.0
 
 * Updated to match OSGi R7 Log
+* Internal code cleanup.
+* Fixed issue with input dialog icons.
+* Javadoc fixes.
 
 ### Desktop 6.1.0
 
@@ -278,6 +305,7 @@ Knopflerfish Services
 ### FW-Tray 4.1.0
 
 * Internally use StringBuilder instead of StringBuffer.
+* Internal code cleanup.
 
 ### gson-2.7.0
 
@@ -287,6 +315,7 @@ Knopflerfish Services
 ### httpclient_connector 3.2.0.kf5-001
 
 * Code cleanup and refactoring.
+* Javadoc fixes.
 
 ### Jini-Driver 0.2.0
 
@@ -318,6 +347,7 @@ Knopflerfish Services
 ### KF-XML-Metatype 5.2.0
 
 * Internally use StringBuilder instead of StringBuffer.
+* Internal code cleanup.
 
 ### Repository Desktop 1.2.0
 
