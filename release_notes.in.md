@@ -203,9 +203,12 @@ OSGi Compendium Specification
 
 ### FW-Commands 7.0.0
 
+* Internal code cleanup.
+
+### FW-Commands 4.1.0
+
 * Internally use StringBuilder instead of StringBuffer.
 * Javadoc fixes.
-* Internal code cleanup.
 
 ### HTTP-Server 7.0.0
 
@@ -280,8 +283,11 @@ Knopflerfish Services
 
 ### CM-Desktop 7.0.0
 
-* Internally use StringBuilder instead of StringBuffer.
 * Internal code cleanup.
+
+### CM-Desktop 5.1.0
+
+* Internally use StringBuilder instead of StringBuffer.
 
 ### Commons-Logging 2.1.0.kf4-001
 
