@@ -136,6 +136,10 @@ OSGi Compendium Specification
 * Updated API classes to match OSGi R7
 * Javadoc fixes.
 
+### Repository-Commands 7.0.0
+
+* Fixed bug in repository list command, not possible to pass repository parameter.
+
 ### Wire Admin Service 7.0.0
 
 * Updated API classes to match OSGi R7

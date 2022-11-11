@@ -307,7 +307,7 @@ extends CommandGroupAdapter
   //
 
   public final static String USAGE_LIST
-  = "[-l] [<repository>]";
+  = "[-l] [<repository>] ...";
 
   public final static String[] HELP_LIST = new String[] {
     "List repositories. Mark with a '*' in the first",
