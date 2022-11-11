@@ -32,11 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Erik Wistrand
- * @author Philippe Laporte
- */
-
 package org.knopflerfish.util.metatype;
 
 import java.io.IOException;
@@ -72,7 +67,7 @@ public class OCD
   List<AD> reqAttrs;
   List<AD> localized_optAttrs;
   List<AD> localized_reqAttrs;
-  Hashtable<Integer, String> icons = new Hashtable<Integer, String>();
+  Hashtable<Integer, String> icons = new Hashtable<>();
   Hashtable<Integer, String> localized_icons = null;
   int maxInstances = 1;
 
@@ -99,8 +94,8 @@ public class OCD
     this.id = id;
     this.name = name != null ? name : id;
     this.desc = desc;
-    this.optAttrs = new ArrayList<AD>();
-    this.reqAttrs = new ArrayList<AD>();
+    this.optAttrs = new ArrayList<>();
+    this.reqAttrs = new ArrayList<>();
     this.sourceURL = sourceURL;
   }
 
@@ -184,7 +179,7 @@ public class OCD
   {
     switch (filter) {
     case ALL: {
-      final ArrayList<AD> all = new ArrayList<AD>();
+      final ArrayList<AD> all = new ArrayList<>();
       if (localized_optAttrs == null) {
         all.addAll(reqAttrs);
         all.addAll(optAttrs);
@@ -245,13 +240,13 @@ public class OCD
     final Hashtable<?, ?> itab = (localized_icons != null) ? localized_icons : icons;
     if (size == 0) {
       for (final Enumeration<?> keys = itab.keys(); keys.hasMoreElements();) {
-        final int i = ((Integer) keys.nextElement()).intValue();
+        final int i = (Integer) keys.nextElement();
         if (size < i) {
           size = i;
         }
       }
     }
-    return (String) itab.get(new Integer(size));
+    return (String) itab.get(size);
   }
 
   /**
@@ -291,12 +286,12 @@ public class OCD
    */
   public void setIconURL(String url)
   {
-    icons.put(new Integer(Integer.MAX_VALUE), url);
+    icons.put(Integer.MAX_VALUE, url);
   }
 
   public void addIcon(int size, String url)
   {
-    icons.put(new Integer(size), url);
+    icons.put(size, url);
   }
 
   public String getID()
@@ -319,18 +314,18 @@ public class OCD
       localized_name = localizeName(name, properties);
       localized_desc = localizeName(desc, properties);
 
-      localized_icons = new Hashtable<Integer, String>();
+      localized_icons = new Hashtable<>();
       for (final Entry<Integer, String> entry : icons.entrySet()) {
         localized_icons.put(entry.getKey(),
                             localizeName(entry.getValue(), properties));
       }
 
-      localized_reqAttrs = new ArrayList<AD>();
+      localized_reqAttrs = new ArrayList<>();
       for (final AD attr : reqAttrs) {
         localized_reqAttrs.add(attr.localize(properties));
       }
 
-      localized_optAttrs = new ArrayList<AD>();
+      localized_optAttrs = new ArrayList<>();
       for (final AD attr : optAttrs) {
         localized_optAttrs.add(attr.localize(properties));
       }

@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,11 +67,10 @@ class BundleMetaTypeInformationSnapshot
 {
   private final BundleContext bc;
   private final Bundle bundle;
-  final List<String> pids = new ArrayList<String>();
-  final List<String> factoryPids = new ArrayList<String>();
-  final Set<String> locales = new TreeSet<String>();
-  final Map<String, MetaTypeProvider> idToMtp =
-    new HashMap<String, MetaTypeProvider>();
+  final List<String> pids = new ArrayList<>();
+  final List<String> factoryPids = new ArrayList<>();
+  final Set<String> locales = new TreeSet<>();
+  final Map<String, MetaTypeProvider> idToMtp = new HashMap<>();
 
   public static BundleMetaTypeInformationSnapshot extractMetatypeInformation(BundleContext bc,
                                                                              Bundle b)
@@ -111,8 +109,8 @@ class BundleMetaTypeInformationSnapshot
       }
       final MetaTypeProvider mtp = (MetaTypeProvider) s;
 
-      final List<String> pidProps = new ArrayList<String>();
-      final List<String> fpidProps = new ArrayList<String>();
+      final List<String> pidProps = new ArrayList<>();
+      final List<String> fpidProps = new ArrayList<>();
       if(s instanceof ManagedService){
         pidProps.add(Constants.SERVICE_PID);
         pidProps.add(MetaTypeProvider.METATYPE_PID);
@@ -169,7 +167,7 @@ class BundleMetaTypeInformationSnapshot
 
   private static String[] toStringArray(Collection<String> al)
   {
-    return al.toArray(new String[al.size()]);
+    return al.toArray(new String[0]);
   }
 
   private void addSrPropertiesToListAndMapIds(ServiceReference<?> sr,
@@ -181,7 +179,8 @@ class BundleMetaTypeInformationSnapshot
       final Object o = sr.getProperty(key);
       if (o == null) {
         continue;
-      } else if (o instanceof String) {
+      }
+      if (o instanceof String) {
         final String s = (String) o;
         al.add(s);
         idToMtp.put(s, mtp);
@@ -195,41 +194,25 @@ class BundleMetaTypeInformationSnapshot
           (Collection<? extends String>) o;
         al.addAll(sc);
         mapAllIds(sc, mtp);
-      } else {
-        continue;
       }
     }
   }
 
   private void mapAllIds(Collection<? extends String> c, MetaTypeProvider mtp)
   {
-    final Iterator<? extends String> i = c.iterator();
-    while (i.hasNext()) {
-      idToMtp.put(i.next(), mtp);
+    for (String s : c) {
+      idToMtp.put(s, mtp);
     }
   }
 
   @Override
   public String toString()
   {
-    final StringBuilder sb = new StringBuilder(200);
-    sb.append("Bundle: #");
-    sb.append(bundle.getBundleId());
-    sb.append('\n');
-
-    sb.append("PIDs: ");
-    sb.append(pids);
-    sb.append('\n');
-
-    sb.append("factory PIDs: ");
-    sb.append(factoryPids);
-    sb.append('\n');
-
-    sb.append("locales: ");
-    sb.append(locales);
-    sb.append('\n');
-
-    return sb.toString();
+    return
+        "Bundle: #" + bundle.getBundleId() + '\n' +
+        "PIDs: " + pids + '\n' +
+        "factory PIDs: " + factoryPids + '\n' +
+        "locales: " + locales + '\n';
   }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,6 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/**
- * @author Erik Wistrand
- * @author Philippe Laporte
  */
 
 package org.knopflerfish.util.metatype;
@@ -122,8 +117,7 @@ public class SystemMetatypeProvider
   final BundleContext bc;
   final LogRef log;
 
-  final Map<Bundle, MetaTypeInformation> providers =
-    new Hashtable<Bundle, MetaTypeInformation>();
+  final Map<Bundle, MetaTypeInformation> providers = new Hashtable<>();
 
   ServiceTracker<ConfigurationAdmin, ConfigurationAdmin> cmTracker;
 
@@ -131,16 +125,13 @@ public class SystemMetatypeProvider
   MTP cmMTP;
 
   // Map from PID to OCD
-  Map<String, OCD> cmOCDMap = new HashMap<String, OCD>();
+  Map<String, OCD> cmOCDMap = new HashMap<>();
 
-  Map<ServiceRegistration<MetaTypeProvider>, MTP> confMtpRegs;
+  final Map<ServiceRegistration<MetaTypeProvider>, MTP> confMtpRegs;
 
   /**
    * Create a SystemMetatypeProvider, using the specified bundle context for
    * listeners.
-   *
-   * @param bc
-   * @param confMtpRegs
    */
   public SystemMetatypeProvider(BundleContext bc,
                                 Map<ServiceRegistration<MetaTypeProvider>, MTP> confMtpRegs)
@@ -162,33 +153,30 @@ public class SystemMetatypeProvider
       return;
     }
 
-    bl = new SynchronousBundleListener() {
-      public void bundleChanged(BundleEvent ev)
-      {
-        switch (ev.getType()) {
-        case BundleEvent.INSTALLED:
-        case BundleEvent.RESOLVED:
-        case BundleEvent.UNRESOLVED:
-        case BundleEvent.UPDATED:
-          // NYI! Reduce the number of loadMTPs by combining U* events.
-          // We can't read properties from the system bundle
-          if (ev.getBundle().getBundleId() != 0) {
-            try {
-              loadMTP(ev.getBundle());
-            } catch (final Exception e) {
-              log.error("Failed to handle bundle "
-                        + ev.getBundle().getBundleId(), e);
-              // e.printStackTrace(System.out);
-            }
+    bl = ev -> {
+      switch (ev.getType()) {
+      case BundleEvent.INSTALLED:
+      case BundleEvent.RESOLVED:
+      case BundleEvent.UNRESOLVED:
+      case BundleEvent.UPDATED:
+        // NYI! Reduce the number of loadMTPs by combining U* events.
+        // We can't read properties from the system bundle
+        if (ev.getBundle().getBundleId() != 0) {
+          try {
+            loadMTP(ev.getBundle());
+          } catch (final Exception e) {
+            log.error("Failed to handle bundle "
+                      + ev.getBundle().getBundleId(), e);
+            // e.printStackTrace(System.out);
           }
-          break;
-        case BundleEvent.UNINSTALLED:
-          final Bundle b = ev.getBundle();
-          if (b.getBundleId() != 0) {
-            providers.remove(b);
-          }
-          break;
         }
+        break;
+      case BundleEvent.UNINSTALLED:
+        final Bundle b = ev.getBundle();
+        if (b.getBundleId() != 0) {
+          providers.remove(b);
+        }
+        break;
       }
     };
 
@@ -199,11 +187,7 @@ public class SystemMetatypeProvider
       bl.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bundle));
     }
 
-    cmTracker =
-      new ServiceTracker<ConfigurationAdmin, ConfigurationAdmin>(
-                                                                 bc,
-                                                                 ConfigurationAdmin.class,
-                                                                 null);
+    cmTracker = new ServiceTracker<>(bc, ConfigurationAdmin.class, null);
     cmTracker.open();
 
     // track CM configuration instances as MTPs on the CM bundle.
@@ -300,7 +284,7 @@ public class SystemMetatypeProvider
       final Enumeration<String> p =
         b.getEntryPaths(MetaTypeService.METATYPE_DOCUMENTS_LOCATION);
       if (p != null) {
-        final Vector<URL> tmp = new Vector<URL>();
+        final Vector<URL> tmp = new Vector<>();
         while (p.hasMoreElements()) {
           tmp.addElement(b.getEntry(p.nextElement()));
         }
@@ -384,7 +368,7 @@ public class SystemMetatypeProvider
   @Override
   public String[] getPids()
   {
-    final Set<String> set = new TreeSet<String>();
+    final Set<String> set = new TreeSet<>();
     synchronized (providers) {
       for (final Entry<Bundle, MetaTypeInformation> entry : providers.entrySet()) {
         final MetaTypeInformation mti = entry.getValue();
@@ -406,7 +390,7 @@ public class SystemMetatypeProvider
   @Override
   public String[] getFactoryPids()
   {
-    final Set<String> set = new TreeSet<String>();
+    final Set<String> set = new TreeSet<>();
     synchronized (providers) {
       for (final Entry<Bundle, MetaTypeInformation> entry : providers.entrySet()) {
         final MetaTypeInformation mti = entry.getValue();
@@ -439,17 +423,13 @@ public class SystemMetatypeProvider
   {
     final ServiceReference<?> cmSR = cmTracker.getServiceReference();
 
-    MetaTypeInformation mti = null;
-
     if (cmSR != null && cmSR.getBundle() == b) {
-      mti = cmMTP;
+      return cmMTP;
     } else if (b.getBundleId() == 0) {
-      mti = this;
+      return this;
     } else {
-      mti = providers.get(b);
+      return providers.get(b);
     }
-
-    return mti;
   }
 
   /**
@@ -489,7 +469,7 @@ public class SystemMetatypeProvider
 
   Set<String> getCMServicePIDs()
   {
-    final Set<String> pids = new HashSet<String>();
+    final Set<String> pids = new HashSet<>();
     final ConfigurationAdmin ca = cmTracker.getService();
     if (ca != null) {
       try {
@@ -508,7 +488,7 @@ public class SystemMetatypeProvider
 
   Set<String> getCMFactoryPIDs()
   {
-    final Set<String> pids = new HashSet<String>();
+    final Set<String> pids = new HashSet<>();
     final ConfigurationAdmin ca = cmTracker.getService();
     if (ca != null) {
       try {

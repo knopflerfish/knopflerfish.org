@@ -32,10 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Philippe Laporte
- */
-
 //TODO lots of optimization to be done, both in speed and storage
 
 package org.knopflerfish.util.metatype;
@@ -44,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -62,19 +59,17 @@ import org.osgi.service.metatype.AttributeDefinition;
 import org.osgi.service.metatype.MetaTypeInformation;
 import org.osgi.service.metatype.ObjectClassDefinition;
 
-//TODO lots of optimization
-
 public class BundleMetaTypeResource
   implements MetaTypeInformation
 {
 
   private final Bundle bundle;
 
-  private final Vector<MetaData> metaDatas = new Vector<MetaData>();
+  private final Vector<MetaData> metaDatas = new Vector<>();
 
   // id -> MetaData
-  private final Hashtable<String, MetaData> pids = new Hashtable<String, MetaData>();
-  private final Hashtable<String, MetaData> factoryPids = new Hashtable<String, MetaData>();
+  private final Hashtable<String, MetaData> pids = new Hashtable<>();
+  private final Hashtable<String, MetaData> factoryPids = new Hashtable<>();
 
   private String[] locales;
 
@@ -97,22 +92,20 @@ public class BundleMetaTypeResource
   @Override
   public String[] getFactoryPids()
   {
-    final Vector<String> factoryPidsV = new Vector<String>();
-    factoryPidsV.addAll(factoryPids.keySet());
-    return factoryPidsV.toArray(new String[factoryPidsV.size()]);
+    final Vector<String> factoryPidsV = new Vector<>(factoryPids.keySet());
+    return factoryPidsV.toArray(new String[0]);
   }
 
   @Override
   public String[] getPids()
   {
-    final Vector<String> pidsV = new Vector<String>();
-    pidsV.addAll(pids.keySet());
-    return pidsV.toArray(new String[pidsV.size()]);
+    final Vector<String> pidsV = new Vector<>(pids.keySet());
+    return pidsV.toArray(new String[0]);
   }
 
   public void prepare()
   {
-    final Set<String> locales = new HashSet<String>();
+    final Set<String> locales = new HashSet<>();
     for (final MetaData md : metaDatas) {
       for (final String pid : md.getPids()) {
         pids.put(pid, md);
@@ -122,12 +115,10 @@ public class BundleMetaTypeResource
       }
       final String[] newLocales = md.getLocales();
       if (newLocales!=null) {
-        for (final String locale : newLocales) {
-          locales.add(locale);
-        }
+        Collections.addAll(locales, newLocales);
       }
     }
-    this.locales = locales.toArray(new String[locales.size()]);
+    this.locales = locales.toArray(new String[0]);
   }
 
   @Override
@@ -145,7 +136,7 @@ public class BundleMetaTypeResource
       md = factoryPids.get(id);
     }
     if (md == null) {
-      final Set<String> allIDs = new TreeSet<String>();
+      final Set<String> allIDs = new TreeSet<>();
       allIDs.addAll(pids.keySet());
       allIDs.addAll(factoryPids.keySet());
       throw new IllegalArgumentException("no information available for id "
@@ -168,33 +159,16 @@ public class BundleMetaTypeResource
       return;
     }
 
-    final Enumeration<MetaData> enume = other.metaDatas.elements();
-    while (enume.hasMoreElements()) {
-      metaDatas.add(enume.nextElement());
-    }
+    metaDatas.addAll(other.metaDatas);
   }
 
   @Override
   public String toString()
   {
-    final StringBuilder sb = new StringBuilder(200);
-    sb.append("Bundle: #");
-    sb.append(bundle.getBundleId());
-    sb.append('\n');
-
-    sb.append("PIDs: ");
-    sb.append(pids.keySet());
-    sb.append('\n');
-
-    sb.append("factory PIDs: ");
-    sb.append(factoryPids.keySet());
-    sb.append('\n');
-
-    sb.append("locales: ");
-    sb.append(Arrays.asList(locales));
-    sb.append('\n');
-
-    return sb.toString();
+    return "Bundle: #" + bundle.getBundleId() + '\n' +
+        "PIDs: " + pids.keySet() + '\n' +
+        "factory PIDs: " + factoryPids.keySet() + '\n' +
+        "locales: " + Arrays.asList(locales) + '\n';
   }
 
 }
@@ -206,10 +180,10 @@ class MetaData
 
   private final String localizationFileBaseName;
 
-  private final Hashtable<String, ObjectClassDefinition> pids = new Hashtable<String, ObjectClassDefinition>();
-  private final Hashtable<String, ObjectClassDefinition> factoryPids = new Hashtable<String, ObjectClassDefinition>();
+  private final Hashtable<String, ObjectClassDefinition> pids = new Hashtable<>();
+  private final Hashtable<String, ObjectClassDefinition> factoryPids = new Hashtable<>();
 
-  private final Hashtable<String, ObjectClassDefinition> OCDs = new Hashtable<String, ObjectClassDefinition>();
+  private final Hashtable<String, ObjectClassDefinition> OCDs = new Hashtable<>();
 
   private String[] locales;
 
@@ -323,7 +297,7 @@ class MetaData
       if (conf != null && currentAttributes.size() > 0) {
         final AttributeDefinition[] attrDefs =
           ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
-        final Hashtable<String, AttributeDefinition> ADs = new Hashtable<String, AttributeDefinition>(); // id is key
+        final Hashtable<String, AttributeDefinition> ADs = new Hashtable<>(); // id is key
         for (final AttributeDefinition ad : attrDefs) {
           ADs.put(ad.getID(), ad);
         }
@@ -341,7 +315,7 @@ class MetaData
             switch (ad.getType()) {
             case AttributeDefinition.STRING:
               if (card < 0) {
-                final Vector<String> res = new Vector<String>(-1 * card);
+                final Vector<String> res = new Vector<>(-1 * card);
                 final Enumeration<?> values = ae.values.elements();
                 while (values.hasMoreElements()) {
                   res.add((String)values.nextElement());
@@ -360,7 +334,7 @@ class MetaData
               break;
             case AttributeDefinition.BOOLEAN:
               if (card < 0) {
-                final Vector<Boolean> res = new Vector<Boolean>(-1 * card);
+                final Vector<Boolean> res = new Vector<>(-1 * card);
                 final Enumeration<?> values = ae.values.elements();
                 while (values.hasMoreElements()) {
                   res.add(Boolean.valueOf((String) values.nextElement()));
@@ -379,7 +353,7 @@ class MetaData
               break;
             case AttributeDefinition.BYTE:
               if (card < 0) {
-                final Vector<Byte> res = new Vector<Byte>(-1 * card);
+                final Vector<Byte> res = new Vector<>(-1 * card);
                 final Enumeration<?> values = ae.values.elements();
                 while (values.hasMoreElements()) {
                   res.add(Byte.valueOf((String) values.nextElement()));
@@ -398,7 +372,7 @@ class MetaData
               break;
             case AttributeDefinition.DOUBLE:
               if (card < 0) {
-                final Vector<Double> res = new Vector<Double>(-1 * card);
+                final Vector<Double> res = new Vector<>(-1 * card);
                 final Enumeration<?> values = ae.values.elements();
                 while (values.hasMoreElements()) {
                   res.add(Double.valueOf((String) values.nextElement()));
@@ -417,7 +391,7 @@ class MetaData
               break;
             case AttributeDefinition.FLOAT:
               if (card < 0) {
-                final Vector<Float> res = new Vector<Float>(-1 * card);
+                final Vector<Float> res = new Vector<>(-1 * card);
                 final Enumeration<?> values = ae.values.elements();
                 while (values.hasMoreElements()) {
                   res.add(Float.valueOf((String) values.nextElement()));
@@ -436,7 +410,7 @@ class MetaData
               break;
             case AttributeDefinition.INTEGER:
               if (card < 0) {
-                final Vector<Integer> res = new Vector<Integer>(-1 * card);
+                final Vector<Integer> res = new Vector<>(-1 * card);
                 final Enumeration<?> values = ae.values.elements();
                 while (values.hasMoreElements()) {
                   res.add(Integer.valueOf((String) values.nextElement()));
@@ -455,7 +429,7 @@ class MetaData
               break;
             case AttributeDefinition.LONG:
               if (card < 0) {
-                final Vector<Long> res = new Vector<Long>(-1 * card);
+                final Vector<Long> res = new Vector<>(-1 * card);
                 final Enumeration<?> values = ae.values.elements();
                 while (values.hasMoreElements()) {
                   res.add(Long.valueOf((String) values.nextElement()));
@@ -474,7 +448,7 @@ class MetaData
               break;
             case AttributeDefinition.SHORT:
               if (card < 0) {
-                final Vector<Short> res = new Vector<Short>(-1 * card);
+                final Vector<Short> res = new Vector<>(-1 * card);
                 final Enumeration<?> values = ae.values.elements();
                 while (values.hasMoreElements()) {
                   res.add(Short.valueOf((String) values.nextElement()));
@@ -493,24 +467,21 @@ class MetaData
               break;
             case AttributeDefinition.CHARACTER:
               if (card < 0) {
-                final Vector<Character> res = new Vector<Character>(-1 * card);
+                final Vector<Character> res = new Vector<>(-1 * card);
                 final Enumeration<?> values = ae.values.elements();
                 while (values.hasMoreElements()) {
-                  res.add(new Character(((String) values.nextElement())
-                      .charAt(0)));
+                  res.add(((String) values.nextElement()).charAt(0));
                 }
                 value = res;
               } else if (card > 0) {
                 final Character[] res = new Character[card];
                 final Enumeration<?> values = ae.values.elements();
                 for (int i = 0; values.hasMoreElements(); i++) {
-                  res[i] =
-                    new Character(((String) values.nextElement()).charAt(0));
+                  res[i] = ((String) values.nextElement()).charAt(0);
                 }
                 value = res;
               } else {
-                value =
-                  new Character(ae.values.elementAt(0).charAt(0));
+                value = ae.values.elementAt(0).charAt(0);
               }
               break;
             }
@@ -560,7 +531,7 @@ class MetaData
 
         try {
           conf.update(props);
-        } catch (final IOException ioe) {
+        } catch (final IOException ignored) {
         }
 
       } // if
@@ -578,7 +549,7 @@ class MetaData
   private void loadLocales()
   {
     //final String x = Locale.getDefault().toString();
-    final Vector<String> localesV = new Vector<String>();
+    final Vector<String> localesV = new Vector<>();
 
     final Enumeration<URL> localizationFiles =
       findEntries(locBaseDir, localizationFileBaseName, ".properties");
@@ -587,28 +558,27 @@ class MetaData
       while (localizationFiles.hasMoreElements()) {
         final URL url = localizationFiles.nextElement();
         String fileName = url.getFile().substring(15);
-        if (fileName.length() == (localizationFileBaseName + ".properties")
+        if (fileName.length() != (localizationFileBaseName + ".properties")
             .length()) {
-          continue;
-        } else {
-          final int dot = fileName.lastIndexOf('.');
-          fileName = fileName.substring(0, dot);
-          final int underscore = fileName.indexOf('_');
-          fileName = fileName.substring(underscore + 1);
-          localesV.add(fileName);
-        }
+              final int dot = fileName.lastIndexOf('.');
+              fileName = fileName.substring(0, dot);
+              final int underscore = fileName.indexOf('_');
+              fileName = fileName.substring(underscore + 1);
+              localesV.add(fileName);
+            }
       }
-      locales = localesV.toArray(new String[localesV.size()]);
+      locales = localesV.toArray(new String[0]);
     }
   }
 
   // Find files in the bundle without triggering resolve of it.
+  @SuppressWarnings("SameParameterValue")
   private Enumeration<URL> findEntries(String baseDir, String fileName) {
     Enumeration<URL> res;
     if (bundle.getState() == Bundle.INSTALLED) {
       final Enumeration<String> p = bundle.getEntryPaths(baseDir);
       if (p != null) {
-        final Vector<URL> tmp = new Vector<URL>();
+        final Vector<URL> tmp = new Vector<>();
         while (p.hasMoreElements()) {
           final String path = p.nextElement();
           final int lastSlash = path.lastIndexOf('/');
@@ -631,6 +601,7 @@ class MetaData
   }
 
   // Find files in the bundle without triggering resolve of it.
+  @SuppressWarnings("SameParameterValue")
   private Enumeration<URL> findEntries(String baseDir,
                                        String fileNamePrefix,
                                        String fileNameSuffix)
@@ -639,7 +610,7 @@ class MetaData
     if (bundle.getState() == Bundle.INSTALLED) {
       final Enumeration<String> p = bundle.getEntryPaths(baseDir);
       if (p != null) {
-        final Vector<URL> tmp = new Vector<URL>();
+        final Vector<URL> tmp = new Vector<>();
         while (p.hasMoreElements()) {
           final String path = p.nextElement();
           final int lastSlash = path.lastIndexOf('/');

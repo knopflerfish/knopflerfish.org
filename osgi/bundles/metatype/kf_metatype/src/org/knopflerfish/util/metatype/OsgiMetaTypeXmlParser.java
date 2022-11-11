@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2014, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Erik Wistrand
- * @author Philippe Laporte
- */
-
 //TODO use only one parser...
 
 package org.knopflerfish.util.metatype;
@@ -57,8 +52,6 @@ import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.metatype.AttributeDefinition;
 import org.osgi.util.tracker.ServiceTracker;
-
-import org.knopflerfish.util.metatype.OsgiMetaTypeXmlParser.Designate;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -129,8 +122,8 @@ public class OsgiMetaTypeXmlParser {
   private static MetaData currentMetaData;
   private static OCD currentOCD;
   private static AD currentAD;
-  private static List<String> currentOptionLabels = new ArrayList<String>();
-  private static List<String> currentOptionValues = new ArrayList<String>();
+  private static List<String> currentOptionLabels = new ArrayList<>();
+  private static List<String> currentOptionValues = new ArrayList<>();
 
   private static String currentDesignatePid;
   private static String currentDesignateFactoryPid;
@@ -138,7 +131,7 @@ public class OsgiMetaTypeXmlParser {
   private static String currentDesignateBundleLocation;
   private static boolean currentDesignateMerge;
 
-  private static List<Designate> currentDesignates = new ArrayList<Designate>();
+  private static List<Designate> currentDesignates = new ArrayList<>();
 
   private static ServiceTracker<?, ?> confAdminTracker;
   private static Configuration currentConf;
@@ -157,7 +150,7 @@ public class OsgiMetaTypeXmlParser {
       } catch (XmlPullParserException e) {
         throw new IOException("XML namespace support missing");
       }
-      confAdminTracker = new ServiceTracker<Object, Object>(bc,
+      confAdminTracker = new ServiceTracker<>(bc,
           ConfigurationAdmin.class.getName(), null);
       confAdminTracker.open();
     }
@@ -177,9 +170,7 @@ public class OsgiMetaTypeXmlParser {
 
   private static void processDocument(XmlPullParser xpp, URL url)
       throws XmlPullParserException, IOException {
-    InputStream in = null;
-    try {
-      in = url.openStream();
+    try (InputStream in = url.openStream()) {
 
       xpp.setInput(in, CHARACTER_ENCODING);
 
@@ -209,12 +200,12 @@ public class OsgiMetaTypeXmlParser {
 
           content = xpp.getText().trim();
           // System.out.println("Text: " + content);
-        } else {
+        //} else {
           // System.out.println("Got something else");
         }
         try {
           eventType = xpp.next();
-        } catch (final java.io.IOException ex) {
+        } catch (final IOException ex) {
 
           // System.out.println(ex); //stream closed for example
           return; // TODO proper handling
@@ -226,13 +217,6 @@ public class OsgiMetaTypeXmlParser {
       } while (eventType != XmlPullParser.END_DOCUMENT);
       // System.out.println("End document");
       // System.out.flush();
-    } finally {
-      if (in != null) {
-        try {
-          in.close();
-        } catch (final IOException _ignore) {
-        }
-      }
     }
   } // method
 
@@ -240,7 +224,7 @@ public class OsgiMetaTypeXmlParser {
   protected static void startElement(String element, URL sourceURL)
       throws Exception {
     final int n_attrs = xml_parser.getAttributeCount();
-    final HashMap<String, String> attrs = new HashMap<String, String>();
+    final HashMap<String, String> attrs = new HashMap<>();
     for (int i = 0; i < n_attrs; i++) {
       attrs
           .put(xml_parser.getAttributeName(i), xml_parser.getAttributeValue(i));
@@ -325,7 +309,7 @@ public class OsgiMetaTypeXmlParser {
       final String requiredS = attrs.get(ATTR_REQUIRED);
       boolean required;
       if (requiredS != null) {
-        required = Boolean.valueOf(requiredS).booleanValue();
+        required = Boolean.parseBoolean(requiredS);
       } else {
         required = true;
       }
@@ -365,8 +349,10 @@ public class OsgiMetaTypeXmlParser {
 
       final String optional = attrs.get(ATTR_OPTIONAL);
       if (optional != null && !"".equals(optional)) {
-        optionalB = Boolean.valueOf(optional).booleanValue();
+        //noinspection UnusedAssignment
+        optionalB = Boolean.parseBoolean(optional);
       } else {
+        //noinspection UnusedAssignment
         optionalB = false;
       }
 
@@ -385,7 +371,7 @@ public class OsgiMetaTypeXmlParser {
       if (merge == null && !"".equals(merge)) {
         currentDesignateMerge = false; // default
       } else {
-        currentDesignateMerge = Boolean.valueOf(merge).booleanValue();
+        currentDesignateMerge = Boolean.parseBoolean(merge);
       }
 
       final String bundle_location = attrs.get(ATTR_BUNDLE);
@@ -393,7 +379,7 @@ public class OsgiMetaTypeXmlParser {
         currentDesignateBundleLocation = bundle_location;
       }
 
-      currentAttributes = new ArrayList<AE>();
+      currentAttributes = new ArrayList<>();
     } else if (OPTION.equals(element)) {
 
       final String label = attrs.get(ATTR_LABEL);
@@ -461,14 +447,13 @@ public class OsgiMetaTypeXmlParser {
         // Must check that all default values are valid option values.
         if (currentAD.defValue != null) {
           // Any default value that is not a valid option value must be removed.
-          List<String> defValues = new ArrayList<String>(
+          List<String> defValues = new ArrayList<>(
               Arrays.asList(currentAD.defValue));
           defValues.retainAll(currentOptionValues);
           if (defValues.size() == 0) {
             currentAD.defValue = null;
           } else {
-            currentAD.defValue = defValues
-                .toArray(new String[defValues.size()]);
+            currentAD.defValue = defValues.toArray(new String[0]);
           }
         }
       }
@@ -528,35 +513,30 @@ public class OsgiMetaTypeXmlParser {
   }
 
   static int getType(String strType) {
-    int type = -1;
-
     if ("Integer".equals(strType)) {
-      type = AttributeDefinition.INTEGER;
+      return AttributeDefinition.INTEGER;
     } else if ("String".equals(strType)) {
-      type = AttributeDefinition.STRING;
+      return AttributeDefinition.STRING;
     } else if ("Boolean".equals(strType)) {
-      type = AttributeDefinition.BOOLEAN;
+      return AttributeDefinition.BOOLEAN;
     } else if ("Float".equals(strType)) {
-      type = AttributeDefinition.FLOAT;
+      return AttributeDefinition.FLOAT;
     } else if ("Long".equals(strType)) {
-      type = AttributeDefinition.LONG;
+      return AttributeDefinition.LONG;
     } else if ("Short".equals(strType)) {
-      type = AttributeDefinition.SHORT;
+      return AttributeDefinition.SHORT;
     } else if (currentNSMinor <= 2 && "Char".equals(strType)) {
-      type = AttributeDefinition.CHARACTER;
+      return AttributeDefinition.CHARACTER;
     } else if (currentNSMinor >= 3 && "Character".equals(strType)) {
-      type = AttributeDefinition.CHARACTER;
+      return AttributeDefinition.CHARACTER;
     } else if ("Byte".equals(strType)) {
-      type = AttributeDefinition.BYTE;
+      return AttributeDefinition.BYTE;
     } else if ("Double".equals(strType)) {
-      type = AttributeDefinition.DOUBLE;
+      return AttributeDefinition.DOUBLE;
     } else if ("Password".equals(strType)) {
-      type = AttributeDefinition.PASSWORD;
-    } else {
-      throw new IllegalArgumentException("Unsupported type '" + strType);
+      return AttributeDefinition.PASSWORD;
     }
-
-    return type;
+    throw new IllegalArgumentException("Unsupported type '" + strType);
   }
 
   static class Designate

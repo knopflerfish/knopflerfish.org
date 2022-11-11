@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Philippe Laporte
- */
-
 package org.knopflerfish.util.metatype;
 
 import java.util.Vector;
@@ -49,7 +45,7 @@ public class AE
   public AE(String adref)
   {
     this.adref = adref;
-    values = new Vector<String>();
+    values = new Vector<>();
   }
 
   public void addValue(String value)

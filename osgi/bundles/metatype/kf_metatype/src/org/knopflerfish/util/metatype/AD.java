@@ -32,11 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Erik Wistrand
- * @author Philippe Laporte
- */
-
 package org.knopflerfish.util.metatype;
 
 import java.lang.reflect.Array;
@@ -122,15 +117,18 @@ public class AD
       String s = "";
       switch (type) {
       case STRING:
+      case PASSWORD:
         s = "";
         break;
       case INTEGER:
       case LONG:
       case SHORT:
       case BYTE:
+      //noinspection deprecation
       case BIGINTEGER:
         s = "0";
         break;
+      //noinspection deprecation
       case BIGDECIMAL:
       case DOUBLE:
       case FLOAT:
@@ -141,9 +139,6 @@ public class AD
         break;
       case BOOLEAN:
         s = "false";
-        break;
-      case PASSWORD:
-        s = "";
         break;
       }
       defValue = new String[] { s };
@@ -167,12 +162,13 @@ public class AD
     this.required = required;
   }
 
+  @SuppressWarnings("MethodDoesntCallSuperMethod")
   @Override
   public Object clone()
   {
-    final AD newI =
-      new AD(id, type, card, name, desc, defValue.clone(), min, max,
-             required);
+    final AD newI = new AD(
+        id, type, card, name, desc, defValue.clone(), min, max, required
+    );
     if (optLabels != null) {
       newI.optLabels = optLabels.clone();
     }
@@ -326,7 +322,7 @@ public class AD
   }
 
   /**
-   * Get the attribute type given any suported java object.
+   * Get the attribute type given any supported java object.
    *
    * @param val
    *          Any java object, including arrays of primitive types. If
@@ -465,8 +461,6 @@ public class AD
       return DOUBLE;
     } else if (val instanceof Float) {
       return FLOAT;
-    } else if (val instanceof Integer) {
-      return INTEGER;
     } else if (val instanceof Long) {
       return LONG;
     } else if (val instanceof Boolean) {
@@ -478,8 +472,10 @@ public class AD
     } else if (val instanceof Byte) {
       return BYTE;
     } else if (BIGINTEGER_OBJECT.isAssignableFrom(val.getClass())) {
+      //noinspection deprecation
       return BIGINTEGER;
     } else if (BIGDECIMAL_OBJECT.isAssignableFrom(val.getClass())) {
+      //noinspection deprecation
       return BIGDECIMAL;
     } else {
       throw new IllegalArgumentException("Unsupported type "
@@ -543,7 +539,7 @@ public class AD
 
     // System.out.println("AD.parseMany '" + value + "', item count=" +
     // items.length);
-    final Vector<Object> v = new Vector<Object>();
+    final Vector<Object> v = new Vector<>();
     for (final String item : items) {
       v.addElement(parseSingle(item, type));
     }
@@ -606,8 +602,7 @@ public class AD
               return "Value must be one of the options";
             }
           }
-        } catch (final ClassCastException cce) {
-
+        } catch (final ClassCastException ignored) {
         }
         break;
       case INTEGER:
@@ -636,8 +631,7 @@ public class AD
               return "Value must be one of the options";
             }
           }
-        } catch (final NumberFormatException nfe) {
-
+        } catch (final NumberFormatException ignored) {
         }
         break;
       case LONG:
@@ -666,8 +660,7 @@ public class AD
               return "Value must be one of the options";
             }
           }
-        } catch (final NumberFormatException nfe) {
-
+        } catch (final NumberFormatException ignored) {
         }
         break;
       case BYTE:
@@ -696,8 +689,7 @@ public class AD
               return "Value must be one of the options";
             }
           }
-        } catch (final NumberFormatException nfe) {
-
+        } catch (final NumberFormatException ignored) {
         }
         break;
       case SHORT:
@@ -726,8 +718,7 @@ public class AD
               return "Value must be one of the options";
             }
           }
-        } catch (final NumberFormatException nfe) {
-
+        } catch (final NumberFormatException ignored) {
         }
         break;
       case CHARACTER:
@@ -757,8 +748,7 @@ public class AD
               return "Value must be one of the options";
             }
           }
-        } catch (final ClassCastException cce) {
-
+        } catch (final ClassCastException ignored) {
         }
         break;
       case DOUBLE:
@@ -787,8 +777,7 @@ public class AD
               return "Value must be one of the options";
             }
           }
-        } catch (final NumberFormatException nfe) {
-
+        } catch (final NumberFormatException ignored) {
         }
         break;
       case FLOAT:
@@ -817,7 +806,7 @@ public class AD
               return "Value must be one of the options";
             }
           }
-        } catch (final NumberFormatException nfe) {
+        } catch (final NumberFormatException ignored) {
         }
         break;
       case BOOLEAN:
@@ -855,7 +844,7 @@ public class AD
     case SHORT:
       return new Short(value.trim());
     case CHARACTER:
-      return new Character(value.charAt(0));
+      return value.charAt(0);
     case DOUBLE:
       return new Double(value.trim());
     case FLOAT:
@@ -896,6 +885,7 @@ public class AD
   @Override
   public String toString()
   {
+    @SuppressWarnings("StringBufferReplaceableByString")
     final StringBuilder sb = new StringBuilder();
 
     sb.append("AD[");
@@ -944,7 +934,7 @@ public class AD
    */
   public static String escape(String s)
   {
-    boolean bNeedEscape = s.indexOf(SEQUENCE_SEP) != -1;
+    boolean bNeedEscape = s.contains(SEQUENCE_SEP);
     if (bNeedEscape) {
       if (s.length() > 1 && s.startsWith("\"") && s.endsWith("\"")) {
         bNeedEscape = false;
@@ -1028,7 +1018,7 @@ public class AD
   @Override
   public boolean equals(Object other)
   {
-    if (other == null || !(other instanceof AD)) {
+    if (!(other instanceof AD)) {
       return false;
     }
 

@@ -32,11 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Erik Wistrand
- * @author Philippe Laporte
- */
-
 package org.knopflerfish.util.metatype;
 
 import java.util.HashMap;
@@ -56,11 +51,10 @@ public class MTP
   implements MetaTypeInformation, Comparable<MTP>
 {
   // Mapping from pid/fpid to OCD
-  Map<String, ObjectClassDefinition> ocdMap =
-    new HashMap<String, ObjectClassDefinition>();
+  Map<String, ObjectClassDefinition> ocdMap = new HashMap<>();
 
-  Set<String> pids = new HashSet<String>();
-  Set<String> factoryPids = new HashSet<String>();
+  Set<String> pids = new HashSet<>();
+  Set<String> factoryPids = new HashSet<>();
 
   String id;
 
@@ -86,7 +80,7 @@ public class MTP
 
   static String[] toStringArray(Set<String> set)
   {
-    return set.toArray(new String[set.size()]);
+    return set.toArray(new String[0]);
   }
 
   void setBundle(Bundle bundle)
@@ -117,10 +111,7 @@ public class MTP
   public ObjectClassDefinition getObjectClassDefinition(String pid,
                                                         String locale)
   {
-
-    final ObjectClassDefinition ocd = ocdMap.get(pid);
-
-    return ocd;
+    return ocdMap.get(pid);
   }
 
   @Override
@@ -171,7 +162,7 @@ public class MTP
   @Override
   public boolean equals(Object other)
   {
-    if (other == null || !(other instanceof MTP)) {
+    if (!(other instanceof MTP)) {
       return false;
     }
 
