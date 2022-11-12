@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -67,9 +66,7 @@ import org.osgi.resource.Capability;
 import org.osgi.resource.Requirement;
 import org.osgi.resource.Resource;
 import org.osgi.service.repository.ContentNamespace;
-import org.osgi.service.repository.RepositoryContent;
 import org.osgi.util.tracker.ServiceTracker;
-
 
 /**
  * Console commands for interaction with OSGI repositories.
@@ -86,8 +83,8 @@ extends CommandGroupAdapter
   RepositoryCommandGroup(BundleContext bc) {
     super("repository", "Repository commands");
     this.bc = bc;
-    repoMgrTracker = new ServiceTracker<RepositoryManager, RepositoryManager>(bc,
-        RepositoryManager.class.getName(), null);
+    repoMgrTracker = new ServiceTracker<>(
+        bc, RepositoryManager.class.getName(), null);
     repoMgrTracker.open();
   }
 
@@ -96,20 +93,23 @@ extends CommandGroupAdapter
   // Add repository command
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_ADD
   = "[-r #rank#] <url>";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_ADD = new String[] {
     "Add a XML based repository.",
     "-r #rank#  Set rank explicitly",
     "<url>      URL for repository file"
   };
 
+  @SuppressWarnings("unused")
   public int cmdAdd(Dictionary<String,?> opts, Reader in, PrintWriter out,
       Session session) {
     final String url = (String) opts.get("url");
     final String rank = (String) opts.get("-r");
-    Hashtable<String, Object> p = new Hashtable<String, Object>();
+    Hashtable<String, Object> p = new Hashtable<>();
     if (rank != null) {
       try {
         p.put(Constants.SERVICE_RANKING, Integer.parseInt(rank));
@@ -133,9 +133,11 @@ extends CommandGroupAdapter
   // Bundle command
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_BUNDLE
   = "[-l] [<symbolicname> [<versionRange>]]";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_BUNDLE = new String[] {
     "List bundle resources.",
     "List all bundles that matches <symbolicname>",
@@ -146,6 +148,7 @@ extends CommandGroupAdapter
     "<versionRange> Optional bundle version range"
   };
 
+  @SuppressWarnings("unused")
   public int cmdBundle(Dictionary<String,?> opts, Reader in, PrintWriter out,
       Session session) {
     final boolean verbose = (opts.get("-l") != null);
@@ -161,7 +164,7 @@ extends CommandGroupAdapter
       requirement.addVersionRangeFilter(new VersionRange(ver)); 
     }
     requirement.addBundleIdentityFilter();
-    List<Resource> resources = new ArrayList<Resource>();
+    List<Resource> resources = new ArrayList<>();
     for (Capability c : getRepositoryManager().findProviders(requirement)) {
       resources.add(c.getResource());
     }
@@ -178,9 +181,11 @@ extends CommandGroupAdapter
   // Disable command
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_DISABLE
   = "<repository> ...";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_DISABLE = new String[] {
     "Disable selected repository.",
     "Disables a repository so that it won't be used when searching",
@@ -188,6 +193,7 @@ extends CommandGroupAdapter
     "<repository> Wildcard name or id of repository"
   };
 
+  @SuppressWarnings("unused")
   public int cmdDisable(Dictionary<String,?> opts, Reader in, PrintWriter out,
       Session session) {
     final String [] selection = (String[]) opts.get("repository");
@@ -211,9 +217,11 @@ extends CommandGroupAdapter
   // Enable command
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_ENABLE
   = "<repository> ...";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_ENABLE = new String[] {
     "Enable selected repository.",
     "Enables a repository so that it will be used when searching",
@@ -221,6 +229,7 @@ extends CommandGroupAdapter
     "<repository> Wildcard name or id of repository"
   };
 
+  @SuppressWarnings("unused")
   public int cmdEnable(Dictionary<String,?> opts, Reader in, PrintWriter out,
       Session session) {
     final String [] selection = (String[]) opts.get("repository");
@@ -244,9 +253,11 @@ extends CommandGroupAdapter
   // Install bundle command
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_INSTALL
   = "[-s] [-r] <symbolicname> [<versionRange>]";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_INSTALL = new String[] {
     "Install bundle resource.",
     "Installs first bundle resource that matches <symbolicname>",
@@ -257,6 +268,7 @@ extends CommandGroupAdapter
     "<versionRange> Optional bundle version range"
   };
 
+  @SuppressWarnings("unused")
   public int cmdInstall(Dictionary<String,?> opts, Reader in, PrintWriter out,
       Session session) {
     final String bsn = (String) opts.get("symbolicname");
@@ -306,9 +318,11 @@ extends CommandGroupAdapter
   // List command
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_LIST
   = "[-l] [<repository>] ...";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_LIST = new String[] {
     "List repositories. Mark with a '*' in the first",
     "column if a repository is enabled.",
@@ -316,6 +330,7 @@ extends CommandGroupAdapter
     "<repository> Name or id of repository"
   };
 
+  @SuppressWarnings("unused")
   public int cmdList(Dictionary<String,?> opts, Reader in, PrintWriter out,
       Session session) {
     final String [] selection = (String[]) opts.get("repository");
@@ -330,7 +345,7 @@ extends CommandGroupAdapter
       }
       return 1;
     } else {
-      printRepos(out, repos, null, verbose);
+      printRepos(out, repos, verbose);
       return 0;
     }
   }
@@ -339,9 +354,11 @@ extends CommandGroupAdapter
   // Rank command
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_RANK
   = "<rank> <repository> ...";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_RANK = new String[] {
     "Change repository ranking.",
     "The rank is used to can change the order in which repositories",
@@ -350,6 +367,7 @@ extends CommandGroupAdapter
     "<repository> Wildcard name or id of repository"
   };
 
+  @SuppressWarnings("unused")
   public int cmdRank(Dictionary<String,?> opts, Reader in, PrintWriter out,
       Session session) {
     final String rankStr = (String) opts.get("rank");
@@ -381,9 +399,11 @@ extends CommandGroupAdapter
   // Show command
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_SHOW
   = "[-t] <namespace> [<filter>]";
 
+  @SuppressWarnings("unused")
   public final static String[] HELP_SHOW = new String[] {
     "Show all capabilities and requirements for selected resources.",
     "-t          Terse output, only show namespace attribute.",
@@ -391,13 +411,13 @@ extends CommandGroupAdapter
     "<filter>    OSGi filter expression for selecting resources."
   };
 
+  @SuppressWarnings("unused")
   public int cmdShow(Dictionary<String,?> opts, Reader in, PrintWriter out,
       Session session) {
     final String namespace = (String) opts.get("namespace");
     final String filterStr = (String) opts.get("filter");
 
-    BasicRequirement requirement;
-    requirement = new BasicRequirement(namespace);
+    BasicRequirement requirement = new BasicRequirement(namespace);
     if (filterStr != null) {
       try {
         FrameworkUtil.createFilter(filterStr);
@@ -412,7 +432,7 @@ extends CommandGroupAdapter
       out.println("No matching resources found!");
       return 0;
     }
-    List<Resource> resources = new ArrayList<Resource>();
+    List<Resource> resources = new ArrayList<>();
     for (Capability c : cs) {
       resources.add(c.getResource());
     }
@@ -425,8 +445,8 @@ extends CommandGroupAdapter
   // Private methods
   //
 
-  private void printRepos(PrintWriter out, SortedSet<RepositoryInfo> rs, String heading, boolean verbose) {
-    out.println(heading != null ? heading : "E  Id Rank  Description");
+  private void printRepos(PrintWriter out, SortedSet<RepositoryInfo> rs, boolean verbose) {
+    out.println("E  Id Rank  Description");
     out.println("------------------------");
     final RepositoryManager rm = getRepositoryManager();
     for (RepositoryInfo ri : rs) {
@@ -472,21 +492,18 @@ extends CommandGroupAdapter
       if (verbose) {
         out.println("---------------");
         out.println("  Capabilities:");
-        final List<Capability> caps = new ArrayList<Capability>(r.getCapabilities(null));
-        Collections.sort(caps, new Comparator<Capability>() {
-          @SuppressWarnings("unchecked")
-          @Override
-          public int compare(Capability c1, Capability c2) {
-            final String ns = c1.getNamespace();
-            int res = ns.compareTo(c2.getNamespace());
-            if (res == 0) {
-              Object a1 = c1.getAttributes().get(ns);
-              if (a1 instanceof Comparable) {
-                res = ((Comparable<Object>)a1).compareTo(c2.getAttributes().get(ns));
-              }
+        final List<Capability> caps = new ArrayList<>(r.getCapabilities(null));
+        caps.sort((c1, c2) -> {
+          final String ns = c1.getNamespace();
+          int res = ns.compareTo(c2.getNamespace());
+          if (res == 0) {
+            Object a1 = c1.getAttributes().get(ns);
+            if (a1 instanceof Comparable) {
+              //noinspection unchecked
+              res = ((Comparable<Object>) a1).compareTo(c2.getAttributes().get(ns));
             }
-            return res;
           }
+          return res;
         });
         String oldNs = null;
         for (Capability rc : caps) {
@@ -501,21 +518,18 @@ extends CommandGroupAdapter
           printMap(out, rc.getDirectives(), "       ", " := ");
         }
         out.println("  Requirements:");
-        final List<Requirement> reqs = new ArrayList<Requirement>(r.getRequirements(null));
-        Collections.sort(reqs, new Comparator<Requirement>() {
-          @SuppressWarnings("unchecked")
-          @Override
-          public int compare(Requirement r1, Requirement r2) {
-            final String ns = r1.getNamespace();
-            int res = ns.compareTo(r2.getNamespace());
-            if (res == 0) {
-              Object a1 = r1.getAttributes().get(ns);
-              if (a1 instanceof Comparable) {
-                res = ((Comparable<Object>)a1).compareTo(r2.getAttributes().get(ns));
-              }
+        final List<Requirement> reqs = new ArrayList<>(r.getRequirements(null));
+        reqs.sort((r1, r2) -> {
+          final String ns = r1.getNamespace();
+          int res = ns.compareTo(r2.getNamespace());
+          if (res == 0) {
+            Object a1 = r1.getAttributes().get(ns);
+            if (a1 instanceof Comparable) {
+              //noinspection unchecked
+              res = ((Comparable<Object>) a1).compareTo(r2.getAttributes().get(ns));
             }
-            return res;
           }
+          return res;
         });
         oldNs = null;
         for (Requirement rr : r.getRequirements(null)) {
@@ -534,8 +548,9 @@ extends CommandGroupAdapter
     }
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void printMap(PrintWriter out, Map<String,?> m, String prefix, String div) {
-    for (Entry<String,?> e : m.entrySet()) {
+    for (Entry<String, ?> e : m.entrySet()) {
       out.print(prefix);
       out.print(e.getKey());
       out.print(div);
@@ -584,7 +599,7 @@ extends CommandGroupAdapter
               continue;
             }
           } catch (NumberFormatException _noNum) {
-            if (desc == null || desc.indexOf(s) == -1) {
+            if (desc == null || !desc.contains(s)) {
               continue;
             }
           }
@@ -597,10 +612,6 @@ extends CommandGroupAdapter
       }
     }
     return res;
-  }
-
-  private String showBundle(Bundle b) {
-    return Util.shortName(b) + " (#" + b.getBundleId() + ")";
   }
 
 }

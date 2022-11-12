@@ -139,6 +139,7 @@ OSGi Compendium Specification
 ### Repository-Commands 7.0.0
 
 * Fixed bug in repository list command, not possible to pass repository parameter.
+* Internal code cleanup.
 
 ### Wire Admin Service 7.0.0
 

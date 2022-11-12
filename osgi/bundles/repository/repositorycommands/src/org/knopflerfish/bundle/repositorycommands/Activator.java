@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ public class Activator
   {
     // Register framework commands
     CommandGroup cg = new RepositoryCommandGroup(bc);
-    Dictionary<String, String> props = new Hashtable<String, String>();
+    Dictionary<String, String> props = new Hashtable<>();
     props.put("groupName", cg.getGroupName());
     bc.registerService(COMMAND_GROUP, cg, props);
   }
