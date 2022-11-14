@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2013, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,10 @@
 
 package org.knopflerfish.bundle.repository_desktop;
 
-import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -58,6 +55,8 @@ import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 public abstract class DefaultSwingBundleDisplayer
   implements SwingBundleDisplayer, SelectionAware, BundleSelectionListener
 {
+  protected final Set<JComponent> components = new HashSet<>();
+
   final String name;
   String desc;
   boolean bDetail;
@@ -79,20 +78,15 @@ public abstract class DefaultSwingBundleDisplayer
     this.bDetail = bDetail;
   }
 
-  protected Bundle[] getBundleArray()
-  {
-    return getAllBundlesSortedByName().toArray(new Bundle[0]);
-  }
-
-  public ServiceRegistration<SwingBundleDisplayer> register()
+  public void register()
   {
     if (reg != null) {
-      return reg;
+      return;
     }
 
     open();
 
-    final Dictionary<String, Object> props = new Hashtable<String, Object>();
+    final Dictionary<String, Object> props = new Hashtable<>();
     props.put(SwingBundleDisplayer.PROP_NAME, getName());
     props.put(SwingBundleDisplayer.PROP_DESCRIPTION, getDescription());
     props.put(SwingBundleDisplayer.PROP_ISDETAIL, isDetail()
@@ -101,8 +95,6 @@ public abstract class DefaultSwingBundleDisplayer
 
     // Register this displayer service in the local framework.
     reg = Activator.bc.registerService(SwingBundleDisplayer.class, this, props);
-
-    return reg;
   }
 
   public void unregister()
@@ -151,7 +143,7 @@ public abstract class DefaultSwingBundleDisplayer
     synchronized (components) {
       // Must clone components to avoid concurrent modification since dispose
       // will remove items from components.
-      for (final JComponent comp : new HashSet<JComponent>(components)) {
+      for (final JComponent comp : new HashSet<>(components)) {
         disposeJComponent(comp);
       }
       components.clear(); // Should be a noop since disposeJComponent shall
@@ -168,6 +160,7 @@ public abstract class DefaultSwingBundleDisplayer
    *          One of the bundles in the new selection. Ask the selection model
    *          to get all.
    */
+  @SuppressWarnings("JavaDoc")
   protected void valueChangedLazy(long bid)
   {
     repaintComponents();
@@ -206,24 +199,6 @@ public abstract class DefaultSwingBundleDisplayer
     valueChangedLazy(lastBID);
   }
 
-  static private Bundle[] getBundles()
-  {
-    final BundleContext tbc = getTargetBundleContext();
-    final Bundle[] bl = tbc == null ? null : tbc.getBundles();
-    return bl;
-  }
-
-  public static SortedSet<Bundle> getAllBundlesSortedByName()
-  {
-    final Bundle[] bl = getBundles();
-    final SortedSet<Bundle> set =
-      new TreeSet<Bundle>(Util.bundleNameComparator);
-    if (bl != null) {
-      set.addAll(Arrays.asList(bl));
-    }
-    return set;
-  }
-
   @Override
   public void setBundleSelectionModel(BundleSelectionModel model)
   {
@@ -238,8 +213,6 @@ public abstract class DefaultSwingBundleDisplayer
   {
     return bundleSelModel;
   }
-
-  Set<JComponent> components = new HashSet<JComponent>();
 
   @Override
   public JComponent createJComponent()
@@ -288,11 +261,6 @@ public abstract class DefaultSwingBundleDisplayer
     if (DefaultSwingBundleDisplayer.bc != bc) {
       DefaultSwingBundleDisplayer.bc = bc;
     }
-  }
-
-  static protected BundleContext getTargetBundleContext()
-  {
-    return bc;
   }
 
   @Override

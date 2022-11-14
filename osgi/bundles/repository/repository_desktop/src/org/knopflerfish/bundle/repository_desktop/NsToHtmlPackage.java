@@ -72,8 +72,7 @@ public class NsToHtmlPackage
     final StringBuilder sb = new StringBuilder(50);
 
     // Make a modifiable clone of the capability attributes.
-    final Map<String, Object> attrs
-      = new HashMap<String, Object>(capability.getAttributes());
+    final Map<String, Object> attrs = new HashMap<>(capability.getAttributes());
 
     sb.append(attrs.remove(BundleRevision.PACKAGE_NAMESPACE));
 

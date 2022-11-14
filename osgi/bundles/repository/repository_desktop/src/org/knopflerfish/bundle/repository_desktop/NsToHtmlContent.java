@@ -61,8 +61,7 @@ public class NsToHtmlContent
     // mime, url, size, sha
 
     // Make a modifiable clone of the attributes.
-    final Map<String, Object> attrs =
-      new HashMap<String, Object>(capability.getAttributes());
+    final Map<String, Object> attrs = new HashMap<>(capability.getAttributes());
 
     final StringBuilder sb = new StringBuilder(50);
 

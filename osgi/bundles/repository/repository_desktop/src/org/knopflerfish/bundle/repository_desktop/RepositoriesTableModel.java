@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,11 +81,11 @@ public class RepositoriesTableModel
         if (newValue != null) {
           switch (column) {
           case 1:
-            final int rank = ((Integer) newValue).intValue();
+            final int rank = (Integer) newValue;
             repoMgr.setRepositoryRank(ri, rank);
             break;
           case 2:
-            final boolean enabled = ((Boolean) newValue).booleanValue();
+            final boolean enabled = (Boolean) newValue;
             repoMgr.setRepositoryEnabled(ri, enabled);
             break;
           }
@@ -138,7 +138,7 @@ public class RepositoriesTableModel
     case 1:
       final Integer rank = (Integer) super.getValueAt(row, column);
       if (rank == null) {
-        return new Integer(ri.getRank());
+        return ri.getRank();
       } else {
         return rank;
       }

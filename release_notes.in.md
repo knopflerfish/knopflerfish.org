@@ -369,6 +369,10 @@ Knopflerfish Services
 
 * Internally use StringBuilder instead of StringBuffer.
 
+### Repository Desktop 7.0.0
+
+* Internal code cleanup.
+
 
 Test bundles
 ----------------------------------------------------------------------

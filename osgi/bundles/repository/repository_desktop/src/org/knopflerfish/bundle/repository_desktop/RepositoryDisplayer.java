@@ -39,14 +39,12 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -80,9 +78,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -122,7 +117,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
   // Repository manager services tracker
   private final ServiceTracker<RepositoryManager, RepositoryManager> repoManagerTracker;
 
-  static Map<String, NsToHtml> ns2html = new HashMap<String, NsToHtml>();
+  static Map<String, NsToHtml> ns2html = new HashMap<>();
   static {
     NsToHtml nth = new NsToHtmlBundle();
     ns2html.put(nth.getNs(), nth);
@@ -169,7 +164,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
   static final int SORT_HOST = 1;
   static final int SORT_CATEGORY = 2;
   static final int SORT_VENDOR = 3;
-  static final int SORT_APIVENDOR = 4;
+  // static final int SORT_APIVENDOR = 4;
   static final int SORT_STATUS = 5;
 
   static int[] SORT_ARRAY = new int[] { SORT_NONE, SORT_HOST, SORT_CATEGORY,
@@ -193,7 +188,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
         true);
 
     repoManagerTracker =
-        new ServiceTracker<RepositoryManager, RepositoryManager>(
+        new ServiceTracker<>(
             bc,
             RepositoryManager.class,
             this);
@@ -226,6 +221,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
   protected void valueChangedLazy(long bid)
   {
     // Currently this displayer only support a single selection...
+    //noinspection StatementWithEmptyBody
     if (bundleSelModel.isSelected(currentSelection)) {
       // The bundle we have selected is still amongst the selected bundles;
       // nothing to do.
@@ -281,7 +277,6 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
     for (final JComponent component : components) {
       final JRepositoryAdmin repositoryAdmin = (JRepositoryAdmin) component;
       repositoryAdmin.refreshList();
-      ;
     }
   }
 
@@ -312,6 +307,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
    * @param sortCategory
    *          The type of category to derive.
    * @return
+   *          The category string.
    */
   private String deriveCatagory(final Resource resource, final int sortCategory)
   {
@@ -383,12 +379,6 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
       }
 
       @Override
-      public String getIconURL()
-      {
-        return null;
-      }
-
-      @Override
       public String toString()
       {
         return name;
@@ -405,43 +395,34 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
       {
         final StringBuilder sb = new StringBuilder();
 
-        if (repositoryAdmin.repositoryErr != null
-            && repositoryAdmin.repositoryErr.length() > 0) {
-          Util.startFont(sb);
-          sb.append("<pre>");
-          sb.append(repositoryAdmin.repositoryErr);
-          sb.append("</pre>");
-          sb.append("</font>");
-        } else {
-          Util.startFont(sb);
+        Util.startFont(sb);
 
-          sb.append("<p><b>Repositories</b></p><ul>");
-          final RepositoryManager repoMgr = repoManagerTracker.getService();
-          if (repoMgr != null) {
-            final Set<RepositoryInfo> ris = repoMgr.getAllRepositories();
-            for (final RepositoryInfo ri : ris) {
-              final ServiceReference<Repository> sr = ri.getServiceReference();
-              sb.append("<li><p>");
-              toHTML(sb, sr, Constants.SERVICE_DESCRIPTION, "");
-              toHTML(sb, sr, Constants.SERVICE_PID, "PID: ");
-              toHTML(sb, sr, Repository.URL, "URLs: ");
-              sb.append("</p>");
-            }
-            sb.append("</ul>");
-
-            sb.append("<p>");
-            sb.append("Total number of bundles: ").append(JRepositoryAdmin.this.locationMap.size());
+        sb.append("<p><b>Repositories</b></p><ul>");
+        final RepositoryManager repoMgr = repoManagerTracker.getService();
+        if (repoMgr != null) {
+          final Set<RepositoryInfo> ris = repoMgr.getAllRepositories();
+          for (final RepositoryInfo ri : ris) {
+            final ServiceReference<Repository> sr = ri.getServiceReference();
+            sb.append("<li><p>");
+            toHTML(sb, sr, Constants.SERVICE_DESCRIPTION, "");
+            toHTML(sb, sr, Constants.SERVICE_PID, "PID: ");
+            toHTML(sb, sr, Repository.URL, "URLs: ");
             sb.append("</p>");
-
-            appendHelp(sb);
-          } else {
-            sb.append("<p><em>No</em> repositories available.</p>");
-            sb.append("<p>Press the settings button (rightmost button under "
-                + "the repository tree) to add repositories.</p>");
           }
+          sb.append("</ul>");
 
-          sb.append("</font>");
+          sb.append("<p>");
+          sb.append("Total number of bundles: ").append(JRepositoryAdmin.this.locationMap.size());
+          sb.append("</p>");
+
+          appendHelp(sb);
+        } else {
+          sb.append("<p><em>No</em> repositories available.</p>");
+          sb.append("<p>Press the settings button (rightmost button under "
+              + "the repository tree) to add repositories.</p>");
         }
+
+        sb.append("</font>");
         return sb.toString();
       }
 
@@ -474,12 +455,6 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
       public CategoryNode(String category)
       {
         this.category = category;
-      }
-
-      @Override
-      public String getIconURL()
-      {
-        return null;
       }
 
       @Override
@@ -529,14 +504,12 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
       boolean bBusy;
       Resource resource;
       // Sorted cache of capabilities provided by the given resource
-      SortedMap<String, Set<Capability>> ns2caps =
-          new TreeMap<String, Set<Capability>>();
+      SortedMap<String, Set<Capability>> ns2caps = new TreeMap<>();
       final Set<Capability> idCaps;
       final Set<Capability> kfExtraCaps;
 
       // Sorted cache of requirements required by the given resource
-      SortedMap<String, Set<Requirement>> ns2reqs =
-          new TreeMap<String, Set<Requirement>>();
+      SortedMap<String, Set<Requirement>> ns2reqs = new TreeMap<>();
 
       public RepositoryNode(Resource resource)
       {
@@ -550,11 +523,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
 
         for (final Capability capability : resource.getCapabilities(null)) {
           final String ns = capability.getNamespace();
-          Set<Capability> caps = ns2caps.get(ns);
-          if (caps == null) {
-            caps = new HashSet<Capability>();
-            ns2caps.put(ns, caps);
-          }
+          Set<Capability> caps = ns2caps.computeIfAbsent(ns, k -> new HashSet<>());
           caps.add(capability);
         }
         idCaps = ns2caps.remove(IdentityNamespace.IDENTITY_NAMESPACE);
@@ -562,11 +531,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
 
         for (final Requirement requirement : resource.getRequirements(null)) {
           final String ns = requirement.getNamespace();
-          Set<Requirement> reqs = ns2reqs.get(ns);
-          if (reqs == null) {
-            reqs = new HashSet<Requirement>();
-            ns2reqs.put(ns, reqs);
-          }
+          Set<Requirement> reqs = ns2reqs.computeIfAbsent(ns, k -> new HashSet<>());
           reqs.add(requirement);
         }
 
@@ -613,7 +578,6 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
         return name;
       }
 
-      @Override
       public String getIconURL()
       {
         String iconURL = Util.getResourceIcon(resource);
@@ -638,7 +602,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
               iconURL = "!/" + iconURL.substring(1);
             }
             iconURL = "jar:" + Util.getLocation(resource) + iconURL;
-          } else if (-1 == iconURL.indexOf(":")) {
+          } else if (!iconURL.contains(":")) {
             iconURL = "jar:" + Util.getLocation(resource) + "!/" + iconURL;
           }
         }
@@ -662,7 +626,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
           for (final Capability idCap : idCaps) {
             // Make a copy of the map so that we can remove processed entries.
             final SortedMap<String, Object> attrs =
-                new TreeMap<String, Object>(idCap.getAttributes());
+                new TreeMap<>(idCap.getAttributes());
 
             // These attributes are presented in the title.
             attrs.remove(IdentityNamespace.IDENTITY_NAMESPACE);
@@ -780,7 +744,6 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
     JButton installButton;
     JButton refreshButton;
     JButton startButton;
-    JButton updateButton;
     JTextPane html;
     JScrollPane htmlScroll;
 
@@ -804,8 +767,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
     // For resources without any content URL we use the
     // value of the mandatory attribute osgi.content in the osgi.content
     // name-space.
-    Map<String, RepositoryNode> locationMap =
-        new HashMap<String, RepositoryNode>();
+    final Map<String, RepositoryNode> locationMap = new HashMap<>();
 
     public JRepositoryAdmin()
     {
@@ -860,8 +822,6 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
               if (STR_LOADING.equals(topNode.name)) {
                 setIcon(reloadIcon);
               }
-            } else {
-              // setIcon(null);
             }
             setToolTipText(tt);
           } catch (final Exception ignored) {
@@ -871,6 +831,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
 
         // TODO: Use resource specific icons when available.
         // Map<String,Icon> bundleIconCache = new HashMap<String, Icon>();
+        @SuppressWarnings("unused")
         private Icon getBundleIcon(String iconURL)
         {
           // if (iconURL == null) {
@@ -894,16 +855,12 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
       resourceTree.setCellRenderer(renderer);
 
       // call setSelected() when user selects nodes/leafs in the tree
-      resourceTree.addTreeSelectionListener(new TreeSelectionListener() {
-        @Override
-        public void valueChanged(TreeSelectionEvent e)
-        {
-          final TreePath[] sel = resourceTree.getSelectionPaths();
-          if (sel != null && sel.length == 1) {
-            setSelected((TreeNode) sel[0].getLastPathComponent());
-          } else {
-            setSelected(null);
-          }
+      resourceTree.addTreeSelectionListener(e -> {
+        final TreePath[] sel = resourceTree.getSelectionPaths();
+        if (sel != null && sel.length == 1) {
+          setSelected((TreeNode) sel[0].getLastPathComponent());
+        } else {
+          setSelected(null);
         }
       });
 
@@ -916,19 +873,15 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
 
       html.setEditable(false);
 
-      html.addHyperlinkListener(new HyperlinkListener() {
-        @Override
-        public void hyperlinkUpdate(HyperlinkEvent ev)
-        {
-          if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-            final URL url = ev.getURL();
-            Activator.log.info("Link : " + url + " activated");
-            try {
-              Util.openExternalURL(url);
-            } catch (final Exception e) {
-              Activator.log.warn("Failed to open external url=" + url
-                  + " reason: " + e);
-            }
+      html.addHyperlinkListener(ev -> {
+        if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+          final URL url = ev.getURL();
+          Activator.log.info("Link : " + url + " activated");
+          try {
+            Util.openExternalURL(url);
+          } catch (final Exception e) {
+            Activator.log.warn("Failed to open external url=" + url
+                + " reason: " + e);
           }
         }
       });
@@ -948,47 +901,25 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
 
       final JButton repoButton = new JButton(settingsIcon);
       repoButton.setToolTipText("Configure repository URLs");
-      repoButton.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent ev)
-        {
-          showSettingsDialog();
-        }
-      });
+      repoButton.addActionListener(ev -> showSettingsDialog());
 
       installButton = new JButton(installIcon);
       installButton.setToolTipText("Install from repository");
       ActionListener installAction;
-      installButton.addActionListener(installAction = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent ev)
-        {
-          installOrStart(selectedRepositoryNode, false);
-        }
-      });
+      installButton.addActionListener(installAction = ev ->
+          installOrStart(selectedRepositoryNode, false));
       installButton.setEnabled(false);
 
       startButton = new JButton(startIcon);
       startButton.setToolTipText("Install and start from repository");
       ActionListener startAction;
-      startButton.addActionListener(startAction = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent ev)
-        {
-          installOrStart(selectedRepositoryNode, true);
-        }
-      });
+      startButton.addActionListener(startAction = ev ->
+          installOrStart(selectedRepositoryNode, true));
       startButton.setEnabled(false);
 
       refreshButton = new JButton(reloadIcon);
       refreshButton.setToolTipText("Refresh repository list");
-      refreshButton.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent ev)
-        {
-          refreshList();
-        }
-      });
+      refreshButton.addActionListener(ev -> refreshList());
 
       resourcePanel = new JPanel(new BorderLayout());
       resourcePanel.add(htmlScroll, BorderLayout.CENTER);
@@ -1088,7 +1019,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
           selectedBundle = null;
         }
         updateTreeSelection(null);
-      } catch (final Exception e) {
+      } catch (final Exception ignored) {
       }
     }
 
@@ -1115,21 +1046,6 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
     }
 
     /**
-     * Return the resource that the given bundle originates from is any.
-     */
-    Resource getResource(Bundle b)
-    {
-      for (final RepositoryNode rn : locationMap.values()) {
-        final Resource resource = rn.getResource();
-        final String rLoc = Util.getLocation(resource);
-        if (b.getLocation().equals(rLoc)) {
-          return resource;
-        }
-      }
-      return null;
-    }
-
-    /**
      * Create the sort selection button, with items defined in
      * SORT_ARRAY/SORT_NAMES
      */
@@ -1145,13 +1061,9 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
         final JCheckBoxMenuItem item = new JCheckBoxMenuItem(SORT_NAMES[i]);
         final int cat = SORT_ARRAY[i];
         item.setState(cat == sortCategory);
-        item.addActionListener(new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent ev)
-          {
-            sortCategory = cat;
-            refreshList();
-          }
+        item.addActionListener(ev -> {
+          sortCategory = cat;
+          refreshList();
         });
         sortPopupMenu.add(item);
         group.add(item);
@@ -1184,8 +1096,6 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
      * Flag indicating is an install operation is in progress or not.
      */
     boolean bBusy = false;
-
-    private String repositoryErr;
 
     /**
      * Install or install+start a bundle specified by a {@link RepositoryNode}.
@@ -1249,19 +1159,12 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
                 options, options[0]);
 
         if (n == 0) { // Update
-          InputStream in = null;
-          try {
-            in = ((RepositoryContent) node.getResource()).getContent();
+          try (InputStream in = ((RepositoryContent) node.getResource()).getContent()) {
             node.getBundle().update(in);
             node.appendLog("Updated from "
                 + Util.getLocation(node.getResource()) + "\n");
           } catch (final Exception e) {
             node.appendLog("Update failed: " + e + "\n");
-          } finally {
-            try {
-              in.close();
-            } catch (final Exception ignored) {
-            }
           }
           return;
         }
@@ -1283,7 +1186,8 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
             String msg =
                 "Do you want to resolve the selected resource\n"
                     + "and install the following dependencies:\n";
-            for(Resource dependency : resolved) {
+            for (Resource dependency : resolved) {
+              //noinspection StringConcatenationInLoop
               msg += dependency.getCapabilities(ContentNamespace.CONTENT_NAMESPACE)
                   .get(0).getAttributes()
                   .get(ContentNamespace.CAPABILITY_URL_ATTRIBUTE) + "\n";
@@ -1304,16 +1208,14 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
 
         node.setInstalled(getBundle(resource));
 
-        for(String m : ir.userFeedback) {
+        for (String m : ir.userFeedback) {
+          //noinspection StringConcatenationInLoop
           message += m + "\n";
         }
 
 
-        final boolean bOK = true; // resolve and install went OK.
-        if (bOK) {
-          if (sortCategory == SORT_STATUS) {
-            refreshList();
-          }
+        if (sortCategory == SORT_STATUS) {
+          refreshList();
         }
       } catch (final Exception ei) {
         message += "Installation failed: " + ei.getMessage();
@@ -1331,76 +1233,66 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
      */
     synchronized void refreshList()
     {
-      final Thread t = new Thread() {
-        @Override
-        public void run()
-        {
-          // Protect against synchronous refresh operations.
-          synchronized (locationMap) {
-            locationMap.clear();
-            setRootText(STR_LOADING);
+      final Thread t = new Thread(() -> {
+        // Protect against synchronous refresh operations.
+        synchronized (locationMap) {
+          locationMap.clear();
+          setRootText(STR_LOADING);
 
-            rootNode = new TopNode(STR_TOPNAME, JRepositoryAdmin.this);
-            treeModel = new DefaultTreeModel(rootNode);
+          rootNode = new TopNode(STR_TOPNAME, JRepositoryAdmin.this);
+          treeModel = new DefaultTreeModel(rootNode);
 
-            // String (category) -> Set (Resource)
-            final Map<String, Set<Resource>> categories =
-                new TreeMap<String, Set<Resource>>(new Comparator<String>() {
-                  @Override
-                  public int compare(String s1, String s2)
-                  {
-                    return s1.compareToIgnoreCase(s2);
-                  }
-                });
+          // String (category) -> Set (Resource)
+          final Map<String, Set<Resource>> categories =
+              new TreeMap<>(String::compareToIgnoreCase);
 
-            // move all resource into a sorted
-            // category map of sets
-            // First find all downloadable resources in all repos.
-            final Set<Resource> resources = new HashSet<Resource>();
-            final Requirement downloadableReq =
-                new DownloadableBundleRequirement();
-            final RepositoryManager repoMgr = repoManagerTracker.getService();
-            if (repoMgr != null) {
-              final List<Capability> capabilities =
-                  repoManagerTracker.getService().findProviders(downloadableReq);
-              for (final Capability capability : capabilities) {
-                resources.add(capability.getResource());
-              }
+          // move all resource into a sorted
+          // category map of sets
+          // First find all downloadable resources in all repos.
+          final Set<Resource> resources = new HashSet<>();
+          final Requirement downloadableReq =
+              new DownloadableBundleRequirement();
+          final RepositoryManager repoMgr = repoManagerTracker.getService();
+          if (repoMgr != null) {
+            final List<Capability> capabilities =
+                repoManagerTracker.getService().findProviders(downloadableReq);
+            for (final Capability capability : capabilities) {
+              resources.add(capability.getResource());
             }
-            // Categorize each resource
-            for (final Resource resource : resources) {
-              final String category = deriveCatagory(resource, sortCategory);
-
-              Set<Resource> set = categories.get(category);
-              if (set == null) {
-                set = new TreeSet<Resource>(new ResourceComparator());
-                categories.put(category, set);
-              }
-              set.add(resource);
-            }
-
-            for (final Entry<String, Set<Resource>> entry : categories
-                .entrySet()) {
-              final String category = entry.getKey();
-              final DefaultMutableTreeNode categoryNode =
-                  new CategoryNode(category);
-
-              for (final Resource resource : entry.getValue()) {
-                final RepositoryNode resourceNode =
-                    new RepositoryNode(resource);
-                categoryNode.add(resourceNode);
-                final String loc = Util.getLocation(resource);
-                if (loc != null) {
-                  locationMap.put(loc, resourceNode);
-                }
-              }
-              rootNode.add(categoryNode);
-            }
-
-            updateTreeSelection(treeModel);
           }
+          // Categorize each resource
+          for (final Resource resource : resources) {
+            final String category = deriveCatagory(resource, sortCategory);
+
+            Set<Resource> set = categories.get(category);
+            if (set == null) {
+              set = new TreeSet<>(new ResourceComparator());
+              categories.put(category, set);
+            }
+            set.add(resource);
+          }
+
+          for (final Entry<String, Set<Resource>> entry : categories
+              .entrySet()) {
+            final String category = entry.getKey();
+            final DefaultMutableTreeNode categoryNode =
+                new CategoryNode(category);
+
+            for (final Resource resource : entry.getValue()) {
+              final RepositoryNode resourceNode =
+                  new RepositoryNode(resource);
+              categoryNode.add(resourceNode);
+              final String loc = Util.getLocation(resource);
+              if (loc != null) {
+                locationMap.put(loc, resourceNode);
+              }
+            }
+            rootNode.add(categoryNode);
+          }
+
+          updateTreeSelection(treeModel);
         }
-      };
+      });
       t.start();
     }
 
@@ -1413,79 +1305,37 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
      */
     void updateTreeSelection(final TreeModel model)
     {
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run()
-        {
-          // Get the currently selected bundle to show and select the node for.
-          final Bundle selectedBundle = JRepositoryAdmin.this.selectedBundle;
+      SwingUtilities.invokeLater(() -> {
+        // Get the currently selected bundle to show and select the node for.
+        final Bundle selectedBundle = JRepositoryAdmin.this.selectedBundle;
 
-          // Make the new model active.
-          if (model != null) {
-            resourceTree.setModel(model);
+        // Make the new model active.
+        if (model != null) {
+          resourceTree.setModel(model);
+        }
+        final TreeModel treeModel = resourceTree.getModel();
+
+        final RepositoryNode bundleNode =
+            selectedBundle != null ? getRepositoryNode(selectedBundle) : null;
+
+        TreePath tp = null;
+        if (bundleNode != null) {
+          if (bundleNode != selectedRepositoryNode) {
+            tp = new TreePath(bundleNode.getPath());
           }
-          final TreeModel treeModel = resourceTree.getModel();
+        } else {
+          // No node for the selected bundle, select the root node.
+          tp =
+              new TreePath(((DefaultMutableTreeNode) treeModel.getRoot())
+                  .getPath());
+        }
 
-          final RepositoryNode bundleNode =
-              selectedBundle != null ? getRepositoryNode(selectedBundle) : null;
-
-              TreePath tp = null;
-              if (bundleNode != null) {
-                if (bundleNode != selectedRepositoryNode) {
-                  tp = new TreePath(bundleNode.getPath());
-                }
-              } else {
-                // No node for the selected bundle, select the root node.
-                tp =
-                    new TreePath(((DefaultMutableTreeNode) treeModel.getRoot())
-                        .getPath());
-              }
-
-              if (tp != null) {
-                resourceTree.expandPath(tp);
-                resourceTree.setSelectionPath(tp);
-                resourceTree.scrollPathToVisible(tp);
-              }
+        if (tp != null) {
+          resourceTree.expandPath(tp);
+          resourceTree.setSelectionPath(tp);
+          resourceTree.scrollPathToVisible(tp);
         }
       });
-    }
-
-    /**
-     * Assert that the URLs seem to be valid ULRs.
-     *
-     * @throws RuntimeException
-     *           if any of the strings in <tt>urls</tt> fails to resolve to
-     *           valid URL.
-     */
-    void assertRepoURLs(String[] urls)
-    {
-      if (urls == null) {
-        throw new RuntimeException("No URLs set");
-      }
-
-      final StringBuilder sb = new StringBuilder();
-      int nConnectionErrs = 0;
-
-      // for each of the strings, try to create an URL and
-      // do an initial connect()
-      for (final String url2 : urls) {
-        URLConnection conn = null;
-        try {
-          final URL url = new URL(url2);
-          conn = url.openConnection();
-          conn.connect();
-        } catch (final Exception e) {
-          sb.append(" " + url2 + ": " + e);
-          sb.append("\n");
-          nConnectionErrs++;
-        } finally {
-          // close?
-        }
-      }
-      if (nConnectionErrs > 0) {
-        final String msg = "URL connection errors:\n" + sb.toString();
-        throw new RuntimeException(msg);
-      }
     }
 
     /**
@@ -1494,18 +1344,12 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
     void setRootText(final String s)
     {
       try {
-        SwingUtilities.invokeAndWait(new Runnable() {
-          @Override
-          public void run()
-          {
-            resourceTree
-            .setModel(new DefaultTreeModel(
-                new TopNode(
-                    s,
-                    JRepositoryAdmin.this)));
-          }
-        });
-      } catch (final Exception e) {
+        SwingUtilities.invokeAndWait(() -> resourceTree
+        .setModel(new DefaultTreeModel(
+            new TopNode(
+                s,
+                JRepositoryAdmin.this))));
+      } catch (final Exception ignored) {
       }
     }
 
@@ -1576,7 +1420,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
      */
     void setSelected(TreeNode node)
     {
-      if (node != null && (node instanceof RepositoryNode)) {
+      if (node instanceof RepositoryNode) {
         selectedRepositoryNode = (RepositoryNode) node;
         final Bundle b = selectedRepositoryNode.getBundle();
         if (b != null) {
@@ -1596,7 +1440,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
       sb.append("<table border=\"0\" width=\"100%\">\n");
       sb.append("<tr>");
 
-      if (node != null && (node instanceof HTMLAble)) {
+      if (node instanceof HTMLAble) {
         final HTMLAble htmlNode = (HTMLAble) node;
         sb.append("<td valign=\"top\" bgcolor=\"#eeeeee\">");
 
@@ -1615,15 +1459,12 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
         // sb.append("<img align=\"left\" src=\"" + iconURL + "\">");
         // sb.append("</td>");
         // }
-
-      } else {
-        sb.append("");
       }
 
       sb.append("</tr>\n");
       sb.append("</table>\n");
 
-      if (node != null && (node instanceof HTMLAble)) {
+      if (node instanceof HTMLAble) {
         final HTMLAble htmlNode = (HTMLAble) node;
         sb.append(htmlNode.toHTML());
       } else {
@@ -1647,20 +1488,16 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
     {
       html.setText(s);
 
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run()
-        {
-          try {
-            final JViewport vp = htmlScroll.getViewport();
-            if (vp != null) {
-              vp.setViewPosition(new Point(0, 0));
-              htmlScroll.setViewport(vp);
-            }
-            html.repaint();
-          } catch (final Exception e) {
-            e.printStackTrace();
+      SwingUtilities.invokeLater(() -> {
+        try {
+          final JViewport vp = htmlScroll.getViewport();
+          if (vp != null) {
+            vp.setViewPosition(new Point(0, 0));
+            htmlScroll.setViewport(vp);
           }
+          html.repaint();
+        } catch (final Exception e) {
+          e.printStackTrace();
         }
       });
     }
@@ -1678,9 +1515,8 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
    * @param bid
    *          The bundle to select.
    *
-   * @return {@code true} is the selection was changed by this call.
    */
-  boolean selectBid(long bid)
+  void selectBid(long bid)
   {
     if (!getBundleSelectionModel().isSelected(bid)) {
       if (getBundleSelectionModel().getSelectionCount() > 0) {
@@ -1689,9 +1525,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
         selectionChangeInProgress = false;
       }
       getBundleSelectionModel().setSelected(bid, true);
-      return true;
     }
-    return false;
   }
 
   void appendHelp(StringBuilder sb)
@@ -1717,11 +1551,9 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
    */
   interface HTMLAble
   {
-    public String getTitle();
+    String getTitle();
 
-    public String toHTML();
-
-    public String getIconURL();
+    String toHTML();
   }
 
   /**
@@ -1731,7 +1563,7 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
    * Sort first by case-insensitive name, then by version
    * </p>
    */
-  class ResourceComparator
+  static class ResourceComparator
   implements Comparator<Resource>
   {
     @Override
@@ -1755,12 +1587,10 @@ implements ServiceTrackerCustomizer<RepositoryManager, RepositoryManager>
               n = loc1.compareTo(loc2);
             } else if (loc1 == null) {
               n = -1;
-            } else {
-              n = loc2 == null ? 0 : 1;
             }
           }
         }
-      } catch (final Exception e) {
+      } catch (final Exception ignored) {
       }
       return n;
     }

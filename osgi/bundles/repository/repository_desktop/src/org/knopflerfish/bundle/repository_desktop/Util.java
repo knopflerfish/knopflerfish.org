@@ -40,7 +40,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.net.URL;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -109,7 +108,7 @@ public class Util
       resource.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE);
     if (idCaps.size() != 1) {
       Activator.log.error("Found " + idCaps.size()
-                          + " identity capabilites expected one: " + idCaps);
+                          + " identity capabilities expected one: " + idCaps);
       return resource.toString();
     }
     final Capability idCap = idCaps.get(0);
@@ -126,7 +125,7 @@ public class Util
       resource.getCapabilities(IdentityNamespace.IDENTITY_NAMESPACE);
     if (idCaps.size() != 1) {
       Activator.log.error("Found " + idCaps.size()
-                          + " identity capabilites expected one: " + idCaps);
+                          + " identity capabilities expected one: " + idCaps);
       return Version.emptyVersion;
     }
     final Capability idCap = idCaps.get(0);
@@ -160,30 +159,6 @@ public class Util
   }
 
   /**
-   * Get the MIME-type of a repository resource.
-   *
-   * @param resource
-   *          The resource to get the MIME type for.
-   *
-   * @return Resource MIME type or {@code null} if no MIME-type available.
-   */
-  public static String getResourceMime(Resource resource)
-  {
-    String res = null;
-    for (final Capability cap : resource
-        .getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
-      final Map<String, Object> attrs = cap.getAttributes();
-      final String mime =
-        (String) attrs.get(ContentNamespace.CAPABILITY_MIME_ATTRIBUTE);
-      if (mime != null) {
-        res = mime;
-        break;
-      }
-    }
-    return res;
-  }
-
-  /**
    * Get the URL of a repository resource.
    *
    * @param resource
@@ -204,32 +179,9 @@ public class Util
           res = new URL(url);
           break;
         } catch (final Exception e) {
-          Activator.log.warn("Failed to parse reosurce URL '" + url + "' for "
+          Activator.log.warn("Failed to parse resource URL '" + url + "' for "
                              + resource, e);
         }
-      }
-    }
-    return res;
-  }
-
-  /**
-   * Get the size in bytes of a repository resource.
-   *
-   * @param resource
-   *          The resource to get the size of.
-   *
-   * @return Resource size in byte or {@code -1} if no size available.
-   */
-  public static long getResourceSize(Resource resource)
-  {
-    long res = -1;
-    for (final Capability cap : resource
-        .getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
-      final Map<String, Object> attrs = cap.getAttributes();
-      final Long size =
-        (Long) attrs.get(ContentNamespace.CAPABILITY_SIZE_ATTRIBUTE);
-      if (size != null) {
-        res = size.longValue();
       }
     }
     return res;
@@ -309,7 +261,7 @@ public class Util
     return null;
   }
 
-  static final Set<String> supportedMimeTypes = new TreeSet<String>();
+  static final Set<String> supportedMimeTypes = new TreeSet<>();
   static {
     supportedMimeTypes.add(DownloadableBundleRequirement.MIME_BUNDLE);
     supportedMimeTypes.add(DownloadableBundleRequirement.MIME_BUNDLE_ALT);
@@ -331,6 +283,7 @@ public class Util
     for (final Capability cap : resource
         .getCapabilities(ContentNamespace.CONTENT_NAMESPACE)) {
       final Map<String, Object> attrs = cap.getAttributes();
+      //noinspection SuspiciousMethodCalls
       if (supportedMimeTypes.contains(attrs
           .get(ContentNamespace.CAPABILITY_MIME_ATTRIBUTE))) {
         final String url =
@@ -341,27 +294,6 @@ public class Util
       }
     }
     return null;
-  }
-
-  /**
-   * Convert a resource type constant to a short string.
-   *
-   * @param resourceType
-   *          The type to convert.
-   * @return A string object with one of the texts "bundle", "fragment" or
-   *         "unknown".
-   *
-   */
-  public static String resourceTypeToString(String resourceType)
-  {
-    if (IdentityNamespace.TYPE_BUNDLE.equals(resourceType)) {
-      return "bundle";
-    } else if (IdentityNamespace.TYPE_FRAGMENT.equals(resourceType)) {
-      return "fragment";
-    } else if (IdentityNamespace.TYPE_UNKNOWN.equals(resourceType)) {
-      return "unknown";
-    }
-    return "unknown";
   }
 
   /**
@@ -399,7 +331,7 @@ public class Util
 
     start = filter.indexOf(attribute, end);
 
-    return start == -1 ? value : (String) null;
+    return start == -1 ? value : null;
   }
 
   /**
@@ -433,7 +365,7 @@ public class Util
    * @param sb
    *          The buffer to append the resulting interval to.
    * @param requirement
-   *          The rquirement to extract and present the resolution directiv
+   *          The requirement to extract and present the resolution directlv
    *          from.
    */
   public static void appendResolution(final StringBuilder sb,
@@ -442,6 +374,7 @@ public class Util
     final String resolution =
       requirement.getDirectives().get(Constants.RESOLUTION_DIRECTIVE);
     if (resolution != null && resolution.length() > 0) {
+      //noinspection StatementWithEmptyBody
       if (resolution.equals(Constants.RESOLUTION_MANDATORY)) {
         // Default, don't print
       } else {
@@ -464,7 +397,7 @@ public class Util
       try {
         new URL(s);
         return "<a href=\"" + s + "\">" + s + "</a>";
-      } catch (final Exception e) {
+      } catch (final Exception ignored) {
       }
       return s;
     } else if (obj.getClass().isArray()) {
@@ -514,6 +447,7 @@ public class Util
    * @param s1
    *          The text to present.
    */
+  @SuppressWarnings("SameParameterValue")
   static void toHTMLtrError_2(final StringBuilder sb, final String s1)
   {
     if (s1 != null && s1.length() > 0) {
@@ -730,7 +664,7 @@ public class Util
   {
     final String os = System.getProperty("os.name");
     if (os != null) {
-      return -1 != os.toLowerCase().indexOf("win");
+      return os.toLowerCase().contains("win");
     }
     return false;
   }
@@ -762,68 +696,9 @@ public class Util
         while (null != line) {
           line = br.readLine();
         }
-      } catch (final IOException _ioe) {
+      } catch (final IOException ignored) {
       }
     }
   }
-
-  public static String shortLocation(String s)
-  {
-    int ix = s.lastIndexOf("/");
-
-    // handle eclipse extended location directory syntax
-    if (s.endsWith("/")) {
-      ix = s.lastIndexOf("/", ix - 1);
-    }
-
-    if (ix == -1) {
-      ix = s.lastIndexOf("\\");
-    }
-    if (ix != -1) {
-      return s.substring(ix + 1);
-    }
-    return s;
-  }
-
-  public static String getHeader(Bundle b, String name)
-  {
-    return getHeader(b, name, null);
-  }
-
-  public static String getHeader(Bundle b, String name, String def)
-  {
-    final String s = b != null ? (String) b.getHeaders().get(name) : def;
-
-    return s;
-  }
-
-  public static String getBundleName(Bundle b)
-  {
-    String s = getHeader(b, "Bundle-Name", "");
-    if (s == null || "".equals(s) || s.startsWith("%")) {
-      s = shortLocation(b.getLocation());
-    }
-
-    return s;
-  }
-
-  public static Comparator<Bundle> bundleNameComparator =
-    new Comparator<Bundle>() {
-      @Override
-      public int compare(Bundle b1, Bundle b2)
-      {
-        if (b1 == b2) {
-          return 0;
-        }
-        if (b1 == null) {
-          return -1;
-        }
-        if (b2 == null) {
-          return 1;
-        }
-
-        return getBundleName(b1).compareToIgnoreCase(getBundleName(b2));
-      }
-    };
 
 }
