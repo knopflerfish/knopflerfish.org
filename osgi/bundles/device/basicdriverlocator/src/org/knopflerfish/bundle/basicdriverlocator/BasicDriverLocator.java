@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,21 +73,15 @@ import org.knopflerfish.service.log.LogRef;
 public class BasicDriverLocator
   implements DriverLocator
 {
-
-  /** Context service is running in */
-  BundleContext bc = null;
-
-  String dbResourceName = "/data/driverDB.props";
+  private static final String DB_RESOURCE_NAME = "/data/driverDB.props";
 
   // Utility class for logging
-  LogRef log;
+  private LogRef log;
 
-  String jarbase = "";
+  private String jarbase;
 
   BasicDriverLocator(BundleContext bc)
   {
-    this.bc = bc;
-
     // Try to get log service and handle it's life cycle
     log = new LogRef(bc);
 
@@ -120,15 +114,16 @@ public class BasicDriverLocator
     final Hashtable<String, DriverInfo> drivers = loadDriverDB();
 
     final DriverInfo di = drivers.get(id);
-    InputStream stream = null;
 
     if (di == null) {
       log.warn("No id" + id);
       throw new IOException("No driver id '" + id + "'");
     }
+
+    InputStream stream;
     try {
       String strURL = di.url;
-      if (strURL.indexOf(":") == -1) {
+      if (!strURL.contains(":")) {
         strURL = jarbase + strURL;
       }
 
@@ -154,7 +149,7 @@ public class BasicDriverLocator
    */
   Hashtable<String, DriverInfo> loadDriverDB()
   {
-    final Hashtable<String, DriverInfo> d = new Hashtable<String, DriverInfo>();
+    final Hashtable<String, DriverInfo> d = new Hashtable<>();
     InputStream instream = null;
 
     try {
@@ -164,15 +159,15 @@ public class BasicDriverLocator
       // If property exists, try to open URL, otherwise use internal
       // props.
       if (dbURL != null && !dbURL.equals("")) {
-        if (dbURL.indexOf(":") == -1) {
+        if (!dbURL.contains(":")) {
           dbURL = jarbase + dbURL;
         }
         final URL url = new URL(dbURL);
         log.info("read external props file: " + dbURL);
         instream = url.openStream();
       } else {
-        log.info("read internal props file: " + dbResourceName);
-        instream = getClass().getResourceAsStream(dbResourceName);
+        log.info("read internal props file: " + DB_RESOURCE_NAME);
+        instream = getClass().getResourceAsStream(DB_RESOURCE_NAME);
       }
 
       final Properties db = new Properties();
@@ -217,7 +212,7 @@ public class BasicDriverLocator
    */
   String[] match(Hashtable<String, DriverInfo> drivers, @SuppressWarnings("rawtypes") Dictionary dict)
   {
-    final Vector<String> r = new Vector<String>();
+    final Vector<String> r = new Vector<>();
 
     for (final Enumeration<DriverInfo> e = drivers.elements(); e.hasMoreElements();) {
       final DriverInfo di = e.nextElement();
@@ -281,12 +276,9 @@ class DriverInfo
    */
   boolean match(@SuppressWarnings("rawtypes") Dictionary props)
   {
-    final boolean b =
-      cmp(category, (String) props.get("category"))
-          && cmp(product, (String) props.get("product"))
-          && cmp(vendor, (String) props.get("vendor"));
-
-    return b;
+    return cmp(category, (String) props.get("category"))
+        && cmp(product, (String) props.get("product"))
+        && cmp(vendor, (String) props.get("vendor"));
   }
 
   /**

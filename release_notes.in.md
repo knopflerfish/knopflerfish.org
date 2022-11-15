@@ -286,6 +286,10 @@ OSGi Compendium Specification
 Knopflerfish Services
 ----------------------------------------------------------------------
 
+### basicdriverlocator 7.0.0
+
+* Internal code cleanup.
+
 ### CM-Desktop 7.0.0
 
 * Internal code cleanup.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,6 @@ public class Activator
    * Bundle is started by framework.
    */
   public void start(BundleContext bc)
-      throws Exception
   {
     basicLocator = new BasicDriverLocator(bc);
 
@@ -64,7 +63,6 @@ public class Activator
    * Bundle is stopped by framework.
    */
   public void stop(BundleContext bc)
-      throws Exception
   {
     // Cleanup of registered service is done automatically by framework.
   }
