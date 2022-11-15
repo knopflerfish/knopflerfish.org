@@ -8,10 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import org.osgi.service.log.LogService;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
+
+import org.knopflerfish.service.log.LogRef;
 
 // Separate activator, interface and implementation classes
 // should be used but to keep the number of source files
@@ -19,10 +19,10 @@ import org.osgi.framework.ServiceReference;
 public class UserService implements BundleActivator {
   private static String fileName = "/tmp/osgiuser";
   
-  private BundleContext bc;
+  private LogRef log;
   
   public void start(BundleContext bc) {
-    this.bc = bc;
+    log = new LogRef(bc);
     bc.registerService(UserService.class.getName(), this, null);
   }
 
@@ -41,9 +41,9 @@ public class UserService implements BundleActivator {
         OutputStream os = new FileOutputStream(f);
         os.write(name.getBytes(StandardCharsets.UTF_8));
         os.close();
-        log(LogService.LOG_INFO, "User " + name + " logged in");
+        log.info("User " + name + " logged in");
       } catch (IOException ioe) {
-        log(LogService.LOG_WARNING, "Problem logging user in: " + ioe);
+        log.warn("Problem logging user in: " + ioe);
       }
       return null;
     });
@@ -58,24 +58,12 @@ public class UserService implements BundleActivator {
       }
 
       if (f.delete()) {
-        log(LogService.LOG_INFO, "User logged out");
+        log.info("User logged out");
       } else {
-        log(LogService.LOG_WARNING, "Problem logging user out");
+        log.warn("Problem logging user out");
       }
       return null;
     });
-  }
-
-  private void log(int level, String message) {
-    ServiceReference<?> sRef =
-      bc.getServiceReference(LogService.class.getName());
-    if (sRef != null) {
-      LogService log = (LogService) bc.getService(sRef);
-      if (log != null) {
-        log.log(level, message);
-      }
-      bc.ungetService(sRef);
-    }
   }
 
 }

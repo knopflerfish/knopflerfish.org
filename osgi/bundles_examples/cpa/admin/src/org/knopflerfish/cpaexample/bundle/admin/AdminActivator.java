@@ -10,6 +10,7 @@ import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 
+@SuppressWarnings("unused")
 public class AdminActivator implements BundleActivator {
   /*
   // initial version, for tested bundles without local permission
@@ -26,13 +27,11 @@ public class AdminActivator implements BundleActivator {
     "allow { [org.osgi.service.condpermadmin.BundleLocationCondition \"file:/opt/kf/totest/cpaexample_caller*\"] (java.security.AllPermission) } \"allToCaller\""
   };
 
-  public void start(BundleContext bc) throws BundleException
-  {
-    ServiceReference sRef =
-      bc.getServiceReference(ConditionalPermissionAdmin.class.getName());
+  public void start(BundleContext bc) throws BundleException {
+    ServiceReference<ConditionalPermissionAdmin> sRef =
+        bc.getServiceReference(ConditionalPermissionAdmin.class);
     if (sRef != null) {
-      ConditionalPermissionAdmin cpa =
-        (ConditionalPermissionAdmin) bc.getService(sRef);
+      ConditionalPermissionAdmin cpa = bc.getService(sRef);
      
       installPolicies(cpa, ENCODED_PINFO);
     } else {
@@ -41,16 +40,15 @@ public class AdminActivator implements BundleActivator {
     }
   }
 
-  public void stop(BundleContext context)
-  {
+  public void stop(BundleContext context) {
   }
     
+  @SuppressWarnings("SameParameterValue")
   void installPolicies(ConditionalPermissionAdmin cpa, String[] pInfos) {
     ConditionalPermissionUpdate cpu = cpa.newConditionalPermissionUpdate();
-    List piList = cpu.getConditionalPermissionInfos();
-    
-    for (int i = 0; i < pInfos.length; i++) {
-      String pInfo = pInfos[i];
+    List<ConditionalPermissionInfo> piList = cpu.getConditionalPermissionInfos();
+
+    for (String pInfo : pInfos) {
       ConditionalPermissionInfo cpi = cpa.newConditionalPermissionInfo(pInfo);
       piList.add(cpi);
     }

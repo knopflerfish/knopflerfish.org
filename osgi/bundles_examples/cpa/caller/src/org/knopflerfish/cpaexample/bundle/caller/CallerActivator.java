@@ -1,20 +1,17 @@
 package org.knopflerfish.cpaexample.bundle.caller;
 
-import java.io.IOException;
-
 import org.knopflerfish.cpaexample.service.user.UserService;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-
+@SuppressWarnings("unused")
 public class CallerActivator implements BundleActivator {
-  public void start(BundleContext bc) throws IOException
-  {
-    ServiceReference sRef =
-      bc.getServiceReference(UserService.class.getName());
+  public void start(BundleContext bc) {
+    ServiceReference<UserService> sRef =
+        bc.getServiceReference(UserService.class);
     if (sRef != null) {
-      UserService us = (UserService) bc.getService(sRef);
+      UserService us = bc.getService(sRef);
       if (us != null) {
         us.login("joek");
       }
@@ -22,12 +19,11 @@ public class CallerActivator implements BundleActivator {
     }
   }
 
-  public void stop(BundleContext bc) throws IOException
-  {
-    ServiceReference sRef =
-      bc.getServiceReference(UserService.class.getName());
+  public void stop(BundleContext bc) {
+    ServiceReference<UserService> sRef =
+      bc.getServiceReference(UserService.class);
     if (sRef != null) {
-      UserService us = (UserService) bc.getService(sRef);
+      UserService us = bc.getService(sRef);
       if (us != null) {
         us.logout();
       }
