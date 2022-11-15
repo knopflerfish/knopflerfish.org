@@ -43,14 +43,14 @@ public class Activator implements BundleActivator {
   ServiceRegistration<ResourceAnalyzer> sr;
 
   @Override
-  public void start(BundleContext context) throws Exception {
+  public void start(BundleContext context) {
     System.out.println("STARTED!!!");
     sr = context.registerService(ResourceAnalyzer.class, new KnopflerfishExtentions(), null);
     
   }
 
   @Override
-  public void stop(BundleContext context) throws Exception {
+  public void stop(BundleContext context) {
     System.out.println("STOPPED!!!");
     if(sr != null) sr.unregister();
     sr = null;

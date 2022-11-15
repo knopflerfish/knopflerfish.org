@@ -352,6 +352,10 @@ Knopflerfish Services
 * Test index show the different test runs to make it more clear which
   tests are executed when. 
 
+### KF Resource Analyzer Extensions 7.0.0
+
+* Internal code cleanup.
+
 ### KF Resource Analyzer Extensions 1.1.0
 
 * Internally use StringBuilder instead of StringBuffer.

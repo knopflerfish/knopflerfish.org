@@ -120,7 +120,7 @@ public class KnopflerfishExtentions implements ResourceAnalyzer {
 					}
 					sb.append(he.getKey());
 				}
-			} catch (IllegalArgumentException iae) {
+			} catch (IllegalArgumentException ignored) {
 
 			}
 			return sb.toString();

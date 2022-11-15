@@ -70,7 +70,7 @@ public class Util {
    */
   public static Set<String> parseEnumeration(String d, String s)
   {
-    final HashSet<String> result = new HashSet<String>();
+    final HashSet<String> result = new HashSet<>();
     if (s != null) {
       final AttributeTokenizer at = new AttributeTokenizer(s);
       do {
@@ -86,7 +86,7 @@ public class Util {
                                              + at.getRest());
         }
         result.add(key);
-      } while (!at.getEnd());
+      } while (at.hasMoreData());
       return result;
     } else {
       return null;
@@ -134,7 +134,7 @@ public class Util {
                                                       boolean unique,
                                                       boolean single_entry)
   {
-    final List<HeaderEntry> res = new ArrayList<Util.HeaderEntry>();
+    final List<HeaderEntry> res = new ArrayList<>();
 
     if (s != null) {
       final AttributeTokenizer at = new AttributeTokenizer(s);
@@ -194,7 +194,7 @@ public class Util {
               @SuppressWarnings("unchecked")
               List<Object> oldValues = (List<Object>) old;
               if (oldValues == null) {
-                oldValues = new ArrayList<Object>();
+                oldValues = new ArrayList<>();
                 he.attributes.put(param, oldValues);
               }
               oldValues.add(value);
@@ -207,11 +207,11 @@ public class Util {
           throw new IllegalArgumentException("Definition, " + a
               + ", expected end of entry at: " + at.getRest());
         }
-        if (single_entry && !at.getEnd()) {
+        if (single_entry && at.hasMoreData()) {
           throw new IllegalArgumentException("Definition, " + a
               + ", expected end of single entry at: " + at.getRest());
         }
-      } while (!at.getEnd());
+      } while (at.hasMoreData());
     }
 
     return res;
@@ -238,37 +238,31 @@ public class Util {
     Object res;
 
     type = type == null ? STRING_TYPE : type.intern();
-    if (STRING_TYPE == type) {
+    if (STRING_TYPE.equals(type)) {
       res = value;
-    } else if (LONG_TYPE == type) {
+    } else if (LONG_TYPE.equals(type)) {
       try {
         res = new Long(value.trim());
       } catch (final Exception e) {
-        throw (IllegalArgumentException) new
-        IllegalArgumentException("Definition, " +a
-                                 +", expected value of type Long but found '"
-                                 +value +"' for attribute '"
-                                 +param + "'.").initCause(e);
+        throw new IllegalArgumentException(
+            "Definition, " + a +", expected value of type Long but found '"
+                + value + "' for attribute '" + param + "'.", e);
       }
-    } else if (DOUBLE_TYPE == type) {
+    } else if (DOUBLE_TYPE.equals(type)) {
       try {
         res = new Double(value.trim());
       } catch (final Exception e) {
-        throw (IllegalArgumentException) new
-        IllegalArgumentException("Definition, " +a
-                                 +", expected value of type Double but found '"
-                                 +value +"' for attribute '"
-                                 +param + "'.").initCause(e);
+        throw new IllegalArgumentException(
+            "Definition, " + a + ", expected value of type Double but found '"
+                + value + "' for attribute '" + param + "'.", e);
       }
-    } else if (VERSION_TYPE == type) {
+    } else if (VERSION_TYPE.equals(type)) {
       try {
         res = new Version(value);
       } catch (final Exception e) {
-        throw (IllegalArgumentException) new
-        IllegalArgumentException("Definition, " +a
-                                 +", expected value of type Version but found '"
-                                 +value +"' for attribute '"
-                                 +param + "'.").initCause(e);
+        throw new IllegalArgumentException(
+            "Definition, " + a + ", expected value of type Version but found '"
+                + value + "' for attribute '" + param + "'.", e);
       }
     } else if (type.startsWith(LIST_TYPE)) {
       String elemType = type.substring(LIST_TYPE.length()).trim();
@@ -288,16 +282,16 @@ public class Util {
       }
 
       try {
-        final List<String> elements = splitWords(value, ',', STRING_TYPE!=elemType);
-        final List<Object> l = new ArrayList<Object>(elements.size());
+        final List<String> elements = splitWords(value, ',', !STRING_TYPE.equals(elemType));
+        final List<Object> l = new ArrayList<>(elements.size());
         for (final String elem : elements) {
           l.add(toValue(a, param, elemType, elem));
         }
         res = l;
       } catch (final Exception e) {
-        throw (IllegalArgumentException) new IllegalArgumentException
-          ("Definition, " + a + ", expected '" + type + "' value but found '"
-              + value + "' for attribute '" + param + "'.").initCause(e);
+        throw new IllegalArgumentException(
+            "Definition, " + a + ", expected '" + type + "' value but found '"
+                + value + "' for attribute '" + param + "'.", e);
       }
     } else {
         throw new IllegalArgumentException("Definition, " +a
@@ -360,7 +354,7 @@ public class Util {
                                      String whiteSpace,
                                      char citChar) {
     boolean bCit = false; // true when inside citation chars.
-    final Vector<String> v = new Vector<String>(); // (String) individual words after splitting
+    final Vector<String> v = new Vector<>(); // (String) individual words after splitting
     StringBuilder buf = new StringBuilder();
     int i = 0;
 
@@ -421,7 +415,7 @@ public class Util {
                                         char sepChar,
                                         boolean trim)
   {
-    final List<String> res = new ArrayList<String>();
+    final List<String> res = new ArrayList<>();
     final StringBuilder buf = new StringBuilder();
     int pos = 0;
     final int length = s.length();
@@ -722,14 +716,14 @@ public class Util {
     }
 
 
-    boolean getEnd() {
+    boolean hasMoreData() {
       final int save = pos;
       skipWhite();
       if (pos == length) {
-        return true;
+        return false;
       } else {
         pos = save;
-        return false;
+        return true;
       }
     }
 
@@ -760,13 +754,10 @@ public class Util {
   {
     final String headerName;
     final boolean singleKey;
-    final List<String> keys = new ArrayList<String>();
-    final Map<String, Object> attributes = new HashMap<String, Object>();
-    final Map<String, String> directives = new HashMap<String, String>();
+    final List<String> keys = new ArrayList<>();
+    final Map<String, Object> attributes = new HashMap<>();
+    final Map<String, String> directives = new HashMap<>();
 
-    /**
-     * @param singleKey
-     */
     HeaderEntry(String headerName, boolean singleKey)
     {
       this.headerName = headerName;
