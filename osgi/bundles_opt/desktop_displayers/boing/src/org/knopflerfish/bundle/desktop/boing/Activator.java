@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,54 +34,46 @@
 
 package org.knopflerfish.bundle.desktop.boing;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.log.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 
-import java.util.Hashtable;
-import org.knopflerfish.service.desktop.*;
+import org.knopflerfish.service.log.LogRef;
 
 public class Activator implements BundleActivator {
 
-  static public LogRef        log;
+  static public LogRef log;
   static public BundleContext bc;
 
+  private BoingDisplayer disp;
+  private BoingDisplayer disp2;
 
-  BoingDisplayer disp;
-  BoingDisplayer disp2;
-  
-  public void start(BundleContext _bc) {
-    this.bc  = _bc;
-    this.log = new LogRef(bc);
+  public void start(BundleContext bc) {
+    Activator.bc = bc;
+    Activator.log = new LogRef(Activator.bc);
 
     // bundle displayers
-    disp = new BoingDisplayer(bc, true);
+    disp = new BoingDisplayer(Activator.bc, true);
     disp.open();
     disp.register();
 
     // bundle displayers
-    disp2 = new BoingDisplayer(bc, false);
-    disp2.bClear = true;
-    disp2.bLabel = false;
-    disp2.w = 120;
-    disp2.h = 120;
-
+    disp2 = new BoingDisplayer(Activator.bc, false, true, false, 120, 120);
     disp2.open();
     disp2.register();
-    
   }
 
   public void stop(BundleContext bc) {
     try {
-      if(log != null) {
-	log = null;
+      if (log != null) {
+        log = null;
       }
 
       disp.close();
       disp2.close();
 
-      this.bc = null;
+      Activator.bc = null;
     } catch (Exception e) {
-      e.printStackTrace();
+      log.warn("Exception in stop", e);
     }
   }
 

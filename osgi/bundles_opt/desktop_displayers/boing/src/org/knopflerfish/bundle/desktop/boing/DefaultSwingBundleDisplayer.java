@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,71 +34,62 @@
 
 package org.knopflerfish.bundle.desktop.boing;
 
-import org.osgi.framework.*;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Set;
 
-import org.knopflerfish.service.desktop.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
-import java.util.*;
+import org.knopflerfish.service.desktop.BundleSelectionListener;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
+import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 
 public abstract class DefaultSwingBundleDisplayer
-  implements 
-    SwingBundleDisplayer,
-    BundleSelectionListener
-{
+    implements SwingBundleDisplayer, BundleSelectionListener {
 
-  String               name;
-  String               desc;
-  boolean              bDetail;
+  private String name;
+  private String desc;
+  private boolean bDetail;
 
-  BundleContext        bc;
-  boolean              bAlive = false;
-  BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
-  ServiceRegistration  reg  = null;
+  protected BundleContext bc;
+  protected BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
+  private ServiceRegistration<SwingBundleDisplayer> reg = null;
 
   boolean bUseListeners = true;
 
   public DefaultSwingBundleDisplayer(BundleContext bc,
-				     String        name,
-				     String        desc,
-				     boolean       bDetail) {
-    this.bc      = bc;
-    this.name    = name;
-    this.desc    = desc;
+                                     String name,
+                                     String desc,
+                                     boolean bDetail) {
+    this.bc = bc;
+    this.name = name;
+    this.desc = desc;
     this.bDetail = bDetail;
   }
 
-
   public void register() {
-    if(reg != null) {
+    if (reg != null) {
       return;
     }
 
     open();
-    
-    Hashtable props = new Hashtable();
-    props.put(SwingBundleDisplayer.PROP_NAME,        getName());
+
+    Hashtable<String, Object> props = new Hashtable<>();
+    props.put(SwingBundleDisplayer.PROP_NAME, getName());
     props.put(SwingBundleDisplayer.PROP_DESCRIPTION, getDescription());
-    props.put(SwingBundleDisplayer.PROP_ISDETAIL,    
-	      isDetail() 
-	      ? Boolean.TRUE 
-	      : Boolean.FALSE);
-    
-    reg = bc.registerService(SwingBundleDisplayer.class.getName(),
-			     this,
-			     props);
-  }
+    props.put(SwingBundleDisplayer.PROP_ISDETAIL,
+        isDetail()
+            ? Boolean.TRUE
+            : Boolean.FALSE);
 
-  public void unregister() {
-    if(reg == null) {
-      return;
-    }
-
-    reg.unregister();
-    reg = null;
+    reg = bc.registerService(SwingBundleDisplayer.class,
+        this,
+        props);
   }
 
   public String getName() {
@@ -108,31 +99,24 @@ public abstract class DefaultSwingBundleDisplayer
   public String getDescription() {
     return desc;
   }
+
   public boolean isDetail() {
     return bDetail;
   }
 
   public void showBundle(Bundle b) {
-      // NYI
+    // NYI
   }
-
 
   public abstract JComponent newJComponent();
 
   public void open() {
-    bAlive = true;
-
     bundleSelModel.addBundleSelectionListener(this);
-
   }
 
-
-
   public void close() {
-    bAlive = false;
-
-    if(bundleSelModel != null) {
-      bundleSelModel.removeBundleSelectionListener(this); 
+    if (bundleSelModel != null) {
+      bundleSelModel.removeBundleSelectionListener(this);
     }
 
     closeComponents();
@@ -143,16 +127,15 @@ public abstract class DefaultSwingBundleDisplayer
     repaintComponents();
   }
 
-
   public void setBundleSelectionModel(BundleSelectionModel model) {
-    if(bundleSelModel != null) {
-      bundleSelModel.removeBundleSelectionListener(this); 
+    if (bundleSelModel != null) {
+      bundleSelModel.removeBundleSelectionListener(this);
     }
     bundleSelModel = model;
     bundleSelModel.addBundleSelectionListener(this);
   }
 
-  Set components = new HashSet();
+  Set<JComponent> components = new HashSet<>();
 
   public JComponent createJComponent() {
     JComponent comp = newJComponent();
@@ -161,13 +144,12 @@ public abstract class DefaultSwingBundleDisplayer
     return comp;
   }
 
-  public void  disposeJComponent(JComponent comp) {
+  public void disposeJComponent(JComponent comp) {
     components.remove(comp);
   }
 
   void closeComponents() {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
+    for (JComponent comp : components) {
       closeComponent(comp);
     }
   }
@@ -177,22 +159,21 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
   void repaintComponents() {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
+    for (JComponent comp : components) {
       comp.invalidate();
       comp.repaint();
     }
   }
 
-  public Icon       getLargeIcon() {
+  public Icon getLargeIcon() {
     return null;
   }
 
-  public Icon       getSmallIcon() {
+  public Icon getSmallIcon() {
     return null;
   }
 
-  public void       setTargetBundleContext(BundleContext bc) {
+  public void setTargetBundleContext(BundleContext bc) {
     // NYI
   }
 }
