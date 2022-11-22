@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,11 @@
 
 package org.knopflerfish.bundle.classpatcher;
 
-
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.Properties;
 
 import java.io.File;
@@ -52,12 +50,11 @@ import java.io.OutputStream;
 import java.net.URL;
 
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Filter;
 import org.osgi.framework.wiring.BundleWiring;
@@ -81,7 +78,7 @@ import org.osgi.framework.wiring.BundleWiring;
 public class ClassPatcher {
 
   // Map<BundleClassLoader,ClassPatcher>
-  static protected Map               patchers = new HashMap();
+  protected static final Map<Bundle, ClassPatcher> patchers = new HashMap<>();
 
   protected        Bundle patchedBundle;
   private Dictionary<String, String> manifestHeaders;
@@ -89,7 +86,7 @@ public class ClassPatcher {
   // Dictionary used for LDAP matching on which patches to apply
   // This dictionary will contain all manifest headers, plus
   // current class name, method name etc
-  protected Hashtable matchProps = null;
+  protected Hashtable<String, Object> matchProps = null;
 
   // property names used in LDAP matching
   public static final String PROP_CLASSNAME    = "classname";
@@ -102,10 +99,9 @@ public class ClassPatcher {
   protected Filter patchesFilter = null;
   protected boolean  bDumpClasses  = false;
 
-  // MethodInfo -> MethodInfo
   // These are the (per bundle) method wrappers
   // to be applied.
-  protected Map      wrappers      = new HashMap();
+  protected Map<MethodInfo, MethodInfo> wrappers = new HashMap<>();
 
   protected ClassPatcher(Bundle b) {
     this.patchedBundle = b;
@@ -114,7 +110,7 @@ public class ClassPatcher {
 
   static public ClassPatcher getInstance(Bundle b) {
     synchronized (patchers) {
-      ClassPatcher cp = (ClassPatcher)patchers.get(b);
+      ClassPatcher cp = patchers.get(b);
       if(cp == null) {
         cp = new ClassPatcher(b);
         patchers.put(b, cp);
@@ -123,12 +119,14 @@ public class ClassPatcher {
     }
   }
 
+  @SuppressWarnings("SameParameterValue")
   private String getAttribute(String s) {
     if(manifestHeaders == null) {
       manifestHeaders = patchedBundle.getHeaders();
     }
     return manifestHeaders.get(s);
   }
+
   protected void init() {
     bDumpClasses = Activator.dumpClasses();
     String urlS = getAttribute("Bundle-ClassPatcher-Config");
@@ -166,7 +164,7 @@ public class ClassPatcher {
       ClassReader  cr    = new ClassReader(classBytes);
       ClassWriter  cw    = new BundleClassWriter(ClassWriter.COMPUTE_MAXS,
                                                  patchedBundle.adapt(BundleWiring.class).getClassLoader());
-      ClassAdapter trans = new ClassAdapterPatcher(cw,
+      ClassVisitor trans = new ClassAdapterPatcher(cw,
                                                    className.replace('.', '/'),
                                                    patchedBundle.adapt(BundleWiring.class).getClassLoader(),
                                                    patchedBundle.getBundleId(),
@@ -181,8 +179,11 @@ public class ClassPatcher {
       }
       classBytes = newBytes;
     } catch (Exception e) {
-      throw new RuntimeException("Failed to patch " + className + "/"
-                                 + patchedBundle.adapt(BundleWiring.class).getClassLoader() +": " +e);
+      throw new RuntimeException(
+          "Failed to patch " + className + "/" +
+              patchedBundle.adapt(BundleWiring.class).getClassLoader(),
+          e
+      );
     }
     return classBytes;
   }
@@ -193,7 +194,6 @@ public class ClassPatcher {
   protected void loadWrappers(String urlS) {
     URL url = null;
 
-    InputStream is = null;
     try {
       if(urlS.startsWith("!!")) {
         url = ClassPatcher.class.getResource(urlS.substring(2));
@@ -202,12 +202,16 @@ public class ClassPatcher {
       } else {
         url = new URL(urlS);
       }
-      is = url.openStream();
-      loadWrappersFromInputStream(is);
+
+      if (url == null) {
+        Activator.debug.println("Failed to find URL to load patches conf from");
+      } else {
+        try (InputStream is = url.openStream()) {
+          loadWrappersFromInputStream(is);
+        }
+      }
     } catch (Exception e) {
       Activator.debug.printStackTrace("Failed to load patches conf from " + url, e);
-    } finally {
-      try { is.close(); } catch (Exception ignored) { }
     }
   }
 
@@ -224,28 +228,29 @@ public class ClassPatcher {
       }
     }
 
-    for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
-      String key = (String)it.next();
-      if(key.startsWith(PRE)) {
+    for (Object object : props.keySet()) {
+      String key = (String) object;
+      if (key.startsWith(PRE)) {
         int ix = key.lastIndexOf(".from");
-        if(ix != -1) {
+        if (ix != -1) {
           String id = key.substring(PRE.length(), ix);
-          String from = (String)props.get(PRE + id + ".from");
-          String to   = (String)props.get(PRE + id + ".to");
+          String from = (String) props.get(PRE + id + ".from");
+          String to   = (String) props.get(PRE + id + ".to");
 
-          if(to == null) {
-            if(Activator.debugEnabled()) {
+          if (to == null) {
+            if (Activator.debugEnabled()) {
               Activator.debug.println("No key=" + (PRE + id + ".to"));
             }
             continue;
           }
 
-          addPatch(from,
-                   to,
-                   "true".equals(props.get(PRE + id + ".active")),
-                   "true".equals(props.get(PRE + id + ".static")),
-                   (String)props.get(PRE + id + ".filter")
-                   );
+          addPatch(
+              from,
+              to,
+              "true".equals(props.get(PRE + id + ".active")),
+              "true".equals(props.get(PRE + id + ".static")),
+              (String) props.get(PRE + id + ".filter")
+          );
         }
       }
     }
@@ -294,7 +299,7 @@ public class ClassPatcher {
       return;
     }
 
-    MethodInfo mi     = new MethodInfo(owner, name, desc, bStatic);
+    MethodInfo mi = new MethodInfo(owner, name, desc, bStatic, false); //TODO? isInterface
     if(filter != null) {
       try {
         mi.filter = Activator.bc.createFilter(filter);
@@ -317,6 +322,7 @@ public class ClassPatcher {
     MethodInfo target = new MethodInfo(targetOwner,
                                        targetName,
                                        targetDesc,
+                                       false,
                                        false);
 
     target.key = mi;
@@ -325,17 +331,17 @@ public class ClassPatcher {
 
   protected void dumpInfo() {
     boolean bFirst = true;
-    for(Iterator it = wrappers.keySet().iterator(); it.hasNext(); ) {
-      MethodInfo from = (MethodInfo)it.next();
-      MethodInfo mi   = (MethodInfo)wrappers.get(from);
-      if(mi.nPatches > 0) {
-        if(bFirst) {
+    for (Map.Entry<MethodInfo, MethodInfo> entry : wrappers.entrySet()) {
+      MethodInfo from = entry.getKey();
+      MethodInfo mi = entry.getValue();
+      if (mi.nPatches > 0) {
+        if (bFirst) {
           Activator.debug.println("Patches in " + mi.className);
           bFirst = false;
         }
         Activator.debug.println(" " + mi.nPatches + " " +
-                                (mi.nPatches == 1 ? "occurance " : "occurances") +
-                                " of " + from.owner + "." + from.name);
+            (mi.nPatches == 1 ? "occurrence " : "occurrences") +
+            " of " + from.owner + "." + from.name);
       }
       mi.nPatches = 0;
       mi.className = "";
@@ -343,25 +349,24 @@ public class ClassPatcher {
   }
 
   MethodInfo findMethodInfo(MethodInfo from) {
-    MethodInfo mi = (MethodInfo)wrappers.get(from);
-    return mi;
+    return wrappers.get(from);
   }
 
 
   // Initialize matchProps member with manifest headers +
   // bundle location and id
   protected void makeMatchProps() {
-    matchProps = new Hashtable();
+    matchProps = new Hashtable<>();
     Dictionary<String, String> d = patchedBundle.getHeaders();
 
-    for(Enumeration e = d.keys(); e.hasMoreElements(); ) {
-      Object key = e.nextElement();
+    for(Enumeration<String> e = d.keys(); e.hasMoreElements(); ) {
+      String key = e.nextElement();
       Object val = d.get(key);
       matchProps.put(key, val);
     }
 
-    matchProps.put(PROP_LOCATION,  patchedBundle.getLocation());
-    matchProps.put(PROP_BID,       new Long(patchedBundle.getBundleId()));
+    matchProps.put(PROP_LOCATION, patchedBundle.getLocation());
+    matchProps.put(PROP_BID,      patchedBundle.getBundleId());
   }
 
 
@@ -369,7 +374,6 @@ public class ClassPatcher {
    * Dump a byte array to a .class file
    */
   protected void dumpClassBytes(String className, byte[] classBytes) {
-    OutputStream os = null;
     try {
       String dirName = Activator.getDumpClassesDir();
       File dir = new File(dirName);
@@ -382,24 +386,24 @@ public class ClassPatcher {
         classFileName = classFileName.substring(ix+1) + ".class";
         dir = new File(dir, classDir);
       }
+      //noinspection ResultOfMethodCallIgnored
       dir.mkdirs();
       file = new File(dir, classFileName);
       if(Activator.debugEnabled()) {
         Activator.debug.println("dump " + className + " to " + file.getAbsolutePath());
       }
-      os = new FileOutputStream(file);
-      os.write(classBytes);
-      os.flush();
+      try (OutputStream os = new FileOutputStream(file)) {
+        os.write(classBytes);
+        os.flush();
+      }
     } catch (Exception e) {
       Activator.debug.printStackTrace("Failed to dump class=" + className, e);
-    } finally {
-      try { os.close(); } catch (Exception ignored) { }
     }
   }
 }
 
 
-class ClassAdapterPatcher extends ClassAdapter {
+class ClassAdapterPatcher extends ClassVisitor {
   ClassLoader       cl;
   long              bid;
   String            className;
@@ -421,7 +425,7 @@ class ClassAdapterPatcher extends ClassAdapter {
                       ClassLoader cl,
                       long              bid,
                       ClassPatcher      cp) {
-    super(cv);
+    super(Opcodes.ASM9, cv);
     this.className = className;
     this.cl       = cl;
     this.bid       = bid;
@@ -446,7 +450,7 @@ class ClassAdapterPatcher extends ClassAdapter {
                        FIELD_BID,
                        "J",
                        null,
-                       new Long(bid));
+                       bid);
     }
 
     super.visitEnd();
@@ -472,16 +476,18 @@ class ClassAdapterPatcher extends ClassAdapter {
   }
 }
 
-class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
+class ReplaceMethodAdapter extends MethodVisitor implements Opcodes {
   ClassAdapterPatcher ca;
 
   public ReplaceMethodAdapter(MethodVisitor mv, ClassAdapterPatcher ca) {
-    super(mv);
+    super(Opcodes.ASM9, mv);
     this.ca = ca;
   }
 
-  public void visitMethodInsn(int opcode, String owner, String name, String desc) {
-    MethodInfo from0 = new MethodInfo(owner, name, desc, false);
+  public void visitMethodInsn(
+      int opcode, String owner, String name, String desc, boolean isInterface
+  ) {
+    MethodInfo from0 = new MethodInfo(owner, name, desc, false, false);
     MethodInfo mi    = ca.cp.findMethodInfo(from0);
 
     if(mi != null) {
@@ -490,9 +496,9 @@ class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
       if(from.filter != null) {
         ca.cp.matchProps.put(ClassPatcher.PROP_METHODNAME, ca.currentMethodName);
         ca.cp.matchProps.put(ClassPatcher.PROP_METHODDESC, ca.currentMethodDesc);
-        ca.cp.matchProps.put(ClassPatcher.PROP_METHODACCESS, new Integer(ca.currentMethodAccess));
+        ca.cp.matchProps.put(ClassPatcher.PROP_METHODACCESS, ca.currentMethodAccess);
         if(!from.filter.match(ca.cp.matchProps)) {
-          super.visitMethodInsn(opcode, owner, name, desc);
+          super.visitMethodInsn(opcode, owner, name, desc, isInterface);
           return;
         }
       }
@@ -505,7 +511,7 @@ class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
       }
       wrapMethod(mi);
     } else {
-      super.visitMethodInsn(opcode, owner, name, desc);
+      super.visitMethodInsn(opcode, owner, name, desc, isInterface);
     }
   }
 
@@ -530,7 +536,7 @@ class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
     }
 
     // call wrapper method
-    super.visitMethodInsn(INVOKESTATIC, mi.owner, mi.name, mi.desc);
+    super.visitMethodInsn(INVOKESTATIC, mi.owner, mi.name, mi.desc, mi.isInterface);
 
     // some housekeeping for statistics purposes
     mi.className = ca.className;
@@ -581,6 +587,7 @@ class MethodInfo {
   String     name;
   String     desc;
   boolean    bStatic;
+  boolean    isInterface;
   int        nPatches;
   String     className = "";
   MethodInfo key;
@@ -589,11 +596,13 @@ class MethodInfo {
   MethodInfo(String owner,
              String name,
              String desc,
-             boolean bStatic) {
+             boolean bStatic,
+             boolean isInterface) {
     this.owner    = owner;
     this.name     = name;
     this.desc     = desc;
     this.bStatic  = bStatic;
+    this.isInterface = isInterface;
   }
 
   public int hashCode() {
@@ -639,7 +648,7 @@ class BundleClassWriter extends ClassWriter {
   // it's copied from org.objectweb.asm.ClassWriter.java
   protected String getCommonSuperClass(final String type1, final String type2)
   {
-    Class c, d;
+    Class<?> c, d;
     try {
       c = Class.forName(type1.replace('/', '.'), true, classLoader);
       d = Class.forName(type2.replace('/', '.'), true, classLoader);

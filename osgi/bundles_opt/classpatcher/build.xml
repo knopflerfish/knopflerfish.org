@@ -17,15 +17,18 @@
   <!-- Dex disabled, not applicable on Android -->
   <property name="no.dex" value="true"/>
 
+  <property name="api.pattern"
+            value="org/knopflerfish/bundle/**"/>
+
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
 
   <path id="bundle.compile.path">
-    <pathelement location="resources/asm-6.2.jar"/>
+    <pathelement location="resources/asm-9.3.jar"/>
   </path>
 
   <target name="bundle.custom.pre">
-    <copy file="${topdir}/resources/asm-6.2.jar"
+    <copy file="${topdir}/../ant/lib/asm-9.3.jar"
           todir="${proj.dir}/resources"/>
   </target>
   

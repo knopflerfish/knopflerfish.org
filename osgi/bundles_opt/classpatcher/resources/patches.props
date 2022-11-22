@@ -37,7 +37,7 @@ patch.0.static=true
 
 patch.1.from=java/lang/System.exit(I)V
 patch.1.to=org/knopflerfish/bundle/classpatcher/ClassPatcherWrappers.systemExitWrapper
-patch.1.active=false
+patch.1.active=true
 patch.1.static=true
 
 patch.2.from=java/lang/Class.forName(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;

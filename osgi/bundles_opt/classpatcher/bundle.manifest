@@ -13,16 +13,18 @@ Bundle-License: http://opensource.org/licenses/BSD-3-Clause;
 Bundle-GitURL: https://github.com/knopflerfish/knopflerfish.org/tree/master
  /osgi/bundles_opt/classpatcher/
 Bundle-Activator: org.knopflerfish.bundle.classpatcher.Activator
-Bundle-Classpath: .,asm-6.2.jar
+Bundle-Classpath: .,asm-9.3.jar
 api-Provide-Capability: [bundle.emptystring]
 Provide-Capability: osgi.service;
- objectClass:List<String>="org.osgi.framework.hooks.weaving.WeavingHook"
+ objectClass:List<String>="org.osgi.framework.hooks.weaving.WeavingHook,
+                           org.knopflerfish.bundle.classpatcher.ClassPatcherWeavingHook"
 Import-Package: java.io,
                 java.lang,
                 java.lang.reflect,
                 java.net,
                 java.security,
                 java.util,
+                java.util.regex,
                 org.osgi.framework; version="[1.9,2)",
                 org.osgi.framework.hooks.weaving; version="[1.0,2)",
                 org.osgi.framework.wiring; version="[1.0,2)"
