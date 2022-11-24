@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,30 +35,24 @@
 package org.knopflerfish.bundle.framework_test;
 
 import java.io.PrintStream;
-import java.util.Hashtable;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
 
 public class RegListenThread implements Runnable, org.osgi.framework.ServiceListener {
   BundleContext       bc;
   PrintStream         out;
-  Thread              t1;
-  ServiceRegistration sr;
-  Hashtable           props;
-  int                 ID     = 2;
   boolean             status = false;
 
-  public RegListenThread(BundleContext bc, PrintStream out) throws Exception {
+  public RegListenThread(BundleContext bc, PrintStream out) {
     this.bc  = bc;
     this.out = out;
     bc.addServiceListener(this);
   }
 
   public synchronized void stop() {
-    // out.println("Shutdow of thread " + String.valueOf(ID));
+    // out.println("Shutdown of thread " + String.valueOf(ID));
     bc.removeServiceListener(this);
   }
 
@@ -75,7 +69,7 @@ public class RegListenThread implements Runnable, org.osgi.framework.ServiceList
   }
 
   public synchronized void serviceChanged(ServiceEvent se) {
-    ServiceReference srlocal = se.getServiceReference();
+    ServiceReference<?> sr = se.getServiceReference();
     try {
       Thread.sleep(500); // sleep for longer time that the registering thread sleeps
                          // as we need to be hanging here to create 
@@ -87,6 +81,6 @@ public class RegListenThread implements Runnable, org.osgi.framework.ServiceList
       status = false;
     }
 
-    bc.getService(srlocal);
+    bc.getService(sr);
   }
 }

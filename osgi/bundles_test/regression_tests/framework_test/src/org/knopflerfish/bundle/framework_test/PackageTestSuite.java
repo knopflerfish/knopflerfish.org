@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2011, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@
 package org.knopflerfish.bundle.framework_test;
 
 import java.io.PrintStream;
-import java.util.Properties;
-import java.util.Vector;
 
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -45,9 +43,6 @@ import org.knopflerfish.service.framework_test.FrameworkTest;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.BundleListener;
-import org.osgi.framework.FrameworkListener;
-import org.osgi.framework.ServiceListener;
 import org.osgi.framework.Version;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
@@ -65,16 +60,6 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   Bundle buPT1;
   Bundle buPT2;
   Bundle buPT3;
-
-  // the three event listeners
-  FrameworkListener fListen;
-  BundleListener bListen;
-  ServiceListener sListen;
-
-  Properties props = System.getProperties();
-  String lineseparator = props.getProperty("line.separator");
-  Vector events = new Vector();			// vector for events from test bundles
-  Vector expevents = new Vector();		// comparision vector
 
   PrintStream out = System.out;
 
@@ -104,7 +89,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   }
  
 
-  class FWTestCase extends TestCase {
+  static class FWTestCase extends TestCase {
 
     public String getName() {
       String name = getClass().getName();
@@ -140,9 +125,11 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
 	buPT2,
 	buPT3
       };
-      for(int i = 0; i < bundles.length; i++) {
-	try {  bundles[i].uninstall();  } 
-	catch (Exception ignored) { }      
+      for (Bundle bundle : bundles) {
+        try {
+          bundle.uninstall();
+        } catch (Exception ignored) {
+        }
       }
 
       // Package version test bundles
@@ -156,6 +143,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME300A =  {
     "Install bundlePT1 and see that it can import from bundleA_test"
   };
@@ -186,6 +174,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME305A =  {
     "Install bundlePT2 and see that it can import from bundleA_test"
   };
@@ -215,6 +204,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME310A =  {
     "Install bundlePT3 and see that it can import from bundleA_test"
   };
@@ -247,6 +237,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME320A =  {
     "Optional import test. BundleA exports package A version 1.0 and B",
     "BundleA1 exports package A version 1.5.2.",
@@ -306,6 +297,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME325A =  {
     "Optional import test. BundleA exports package version 1.0",
     "then start bundleI that imports 1.5 or better optionally. Check that",
@@ -368,9 +360,10 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   // Help methods
   //
 
+  @SuppressWarnings("SameParameterValue")
   private String checkImport(BundleContext bc, String pkg, Version ver, Bundle[] eibs)
   {
-      PackageAdmin packService = null;
+      PackageAdmin packService;
 
       try {
 	packService = (PackageAdmin) bc.getService(bc.getServiceReference(packServiceName));
@@ -398,23 +391,23 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
           } 
         }
       }
-      for (int i = 0; i < eibs.length; i++) {
-        if (eibs[i] != null) {
-          return "Missing importer: " + eibs[i].getLocation();
-        }
+    for (Bundle eib : eibs) {
+      if (eib != null) {
+        return "Missing importer: " + eib.getLocation();
       }
-      for (int j = 0; j < ibs.length; j++) {
-        if (ibs[j] != null) {
-          return "Unexpected importer: " + ibs[j].getLocation();
-        }
+    }
+    for (Bundle ib : ibs) {
+      if (ib != null) {
+        return "Unexpected importer: " + ib.getLocation();
       }
+    }
       return null;
   }
 
 
   private void refreshPackages(BundleContext bc, Bundle [] bs)
   {
-      PackageAdmin packService = null;
+      PackageAdmin packService;
 
       try {
 	packService = (PackageAdmin) bc.getService(bc.getServiceReference(packServiceName));

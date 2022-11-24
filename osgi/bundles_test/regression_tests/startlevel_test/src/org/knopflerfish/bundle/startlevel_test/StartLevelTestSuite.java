@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,18 @@
 
 package org.knopflerfish.bundle.startlevel_test;
 
-import java.util.*;
-import java.io.*;
-import java.math.*;
-import java.net.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.io.PrintStream;
+import java.util.Vector;
 
-import org.osgi.framework.*;
+import junit.framework.TestSuite;
 
-import junit.framework.*;
-import org.osgi.service.packageadmin.*;
-import org.osgi.service.startlevel.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.SynchronousBundleListener;
+import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.service.startlevel.StartLevel;
 
 public class StartLevelTestSuite extends TestSuite {
 
@@ -75,7 +75,7 @@ public class StartLevelTestSuite extends TestSuite {
     addTest(new Cleanup());
   }
 
-
+  @SuppressWarnings("unused")
   public final static String [] HELP_STARTLVL100A =  {
     "Install bundleA_test, bundleB_test, bundleC_test and bundleD_test",
     "Start with help start level service and check correct order",
@@ -85,7 +85,7 @@ public class StartLevelTestSuite extends TestSuite {
   class StartLevel100a extends FWTestCase {
 
     public void runTest() throws Throwable {
-      boolean pass = true;
+      boolean pass;
 
       out.println("### framework test bundle :STARTLVL100A start");
 
@@ -213,7 +213,7 @@ public class StartLevelTestSuite extends TestSuite {
 
   class Setup extends FWTestCase {
 
-    public void runTest() throws Throwable {
+    public void runTest() {
       syncBListen = new SyncBundleListener();
       try {
         bc.addBundleListener(syncBListen);
@@ -221,15 +221,16 @@ public class StartLevelTestSuite extends TestSuite {
         fail("start level test bundle "+ ise + " :SETUP:FAIL");
       }
 
-      ServiceReference sr = bc.getServiceReference(PackageAdmin.class.getName());
-      assertNotNull("PackageAdmin reference cannot be null", sr);
-      pa = (PackageAdmin) bc.getService(bc.getServiceReference(PackageAdmin.class.getName()));
+      ServiceReference<PackageAdmin> packageAdminRef = bc.getServiceReference(PackageAdmin.class);
+      assertNotNull("PackageAdmin reference cannot be null", packageAdminRef);
+
+      pa = bc.getService(packageAdminRef);
       assertNotNull("PackageAdmin service cannot be null", pa);
 
-      sr = bc.getServiceReference(StartLevel.class.getName());
-      assertNotNull("StartLevel reference cannot be null", sr);
+      ServiceReference<StartLevel> startLevelRef = bc.getServiceReference(StartLevel.class);
+      assertNotNull("StartLevel reference cannot be null", startLevelRef);
 
-      sl = (StartLevel)bc.getService(sr);
+      sl = bc.getService(startLevelRef);
       assertNotNull("StartLevel service cannot be null", sl);
 
       baseLevel = sl.getStartLevel();
@@ -260,7 +261,7 @@ public class StartLevelTestSuite extends TestSuite {
   }
 
   class SyncBundleListener implements SynchronousBundleListener {
-    Vector/*<BundleEvent>*/ events = new Vector();
+    Vector<BundleEvent> events = new Vector<>();
 
     public void bundleChanged (BundleEvent evt) {
       if (evt.getType() == BundleEvent.STARTED
@@ -287,7 +288,7 @@ public class StartLevelTestSuite extends TestSuite {
       }
       if (events.size() == expevents.length) {
         for (int i = 0; i< events.size() ; i++) {
-          BundleEvent be = (BundleEvent) events.elementAt(i);
+          BundleEvent be = events.elementAt(i);
           if (!(be.getBundle().equals(expevents[i].getBundle())
                 && be.getType() == expevents[i].getType())) {
             res = false;
@@ -299,12 +300,12 @@ public class StartLevelTestSuite extends TestSuite {
       if (!res) {
         out.println("Real events");
         for (int i = 0; i < events.size() ; i++) {
-          BundleEvent be = (BundleEvent) events.elementAt(i);
+          BundleEvent be = events.elementAt(i);
           out.println("Event " + be.getBundle() + ", Type " + be.getType());
         }
         out.println("Expected events");
-        for (int i = 0; i < expevents.length ; i++) {
-          out.println("Event " + expevents[i].getBundle() + ", Type " + expevents[i].getType());
+        for (BundleEvent expevent : expevents) {
+          out.println("Event " + expevent.getBundle() + ", Type " + expevent.getType());
         }
       }
       return res;

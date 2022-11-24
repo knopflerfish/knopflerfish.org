@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,15 @@
 
 package org.knopflerfish.bundle.bundleP_test;
 
-import java.util.*;
-import java.io.*;
-import java.lang.reflect.*;
-import java.security.*;
-import org.knopflerfish.service.bundleP_test.*;
-import org.osgi.framework.*;
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+
+import org.knopflerfish.service.bundleP_test.BundleP;
 
 /*
    This bundle is used to check parts of the functionality of the framework
@@ -49,8 +52,8 @@ import org.osgi.framework.*;
 
 public class BundP implements BundleP {
   BundleContext bc;
-  String []serviceDescription = {"org.knopflerfish.service.bundleP_test.BundleP"};
-  ServiceRegistration sreg;
+  String[] serviceDescription = {"org.knopflerfish.service.bundleP_test.BundleP"};
+  ServiceRegistration<?> sreg;
 
   public BundP (BundleContext bc) {
     this.bc = bc;
@@ -64,13 +67,8 @@ public class BundP implements BundleP {
     }  
     // try to get a file handle and try if the file exist
     File f1 = new File("/tmp/testfile4");
-    boolean exi = false;
-    if (f1 != null) {
-       exi = f1.exists();
-       putValue("constructor, bundleP_test File reference: " + exi ,1);
-    } else {
-       putValue("constructor, bundleP_test File reference: " + exi ,1);
-    }
+    boolean exi = f1.exists();
+    putValue("constructor, bundleP_test File reference: " + exi ,1);
   }
 
   public void unreg() {
@@ -78,18 +76,18 @@ public class BundP implements BundleP {
   }
 
   private void putValue (String methodName, int value) {
-    ServiceReference sr = bc.getServiceReference("org.knopflerfish.service.framework_test.FrameworkTest");
+    ServiceReference<?> sr = bc.getServiceReference("org.knopflerfish.service.framework_test.FrameworkTest");
 
-    Integer i1 = new Integer(value);
     Method m;
-    Class c, parameters[];
+    Class<?> c;
+    Class<?>[] parameters;
 
     Object obj1 = bc.getService(sr);
 
     Object[] arguments = new Object[3];
     arguments[0] = "org.knopflerfish.bundle.bundleP_test.BundP";
     arguments[1] = methodName;
-    arguments[2] = i1;
+    arguments[2] = value;
 
     c = obj1.getClass();
     parameters = new Class[3];

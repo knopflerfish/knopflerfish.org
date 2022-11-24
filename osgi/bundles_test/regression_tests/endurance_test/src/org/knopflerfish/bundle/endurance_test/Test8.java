@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +38,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.util.tracker.ServiceTracker;
 
-import org.knopflerfish.service.bundleEnd7_test.*;
-import org.knopflerfish.service.bundleEnd101_test.*;
-import org.knopflerfish.service.bundleEnd102_test.*;
+import org.knopflerfish.service.bundleEnd101_test.Control101;
+import org.knopflerfish.service.bundleEnd102_test.Control102;
+import org.knopflerfish.service.bundleEnd7_test.Control;
 
 class Test8 implements EnduranceTest {
   private Bundle b1;

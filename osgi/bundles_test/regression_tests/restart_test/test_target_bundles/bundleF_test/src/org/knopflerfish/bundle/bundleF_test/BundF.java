@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,9 @@
 
 package org.knopflerfish.bundle.bundleF_test;
 
-import org.knopflerfish.service.bundleF_test.*;
-import org.osgi.framework.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.knopflerfish.service.bundleF_test.BundleF;
 
 /*
    This bundle is used to check parts of the functionality of the framework
@@ -45,7 +46,7 @@ import org.osgi.framework.*;
 public class BundF implements BundleF {
   BundleContext bc;
   String serviceDescription = "org.knopflerfish.service.bundleF_test.BundleF";
-  ServiceRegistration sreg;
+  ServiceRegistration<?> sreg;
 
   public BundF (BundleContext bc) {
     this.bc = bc;

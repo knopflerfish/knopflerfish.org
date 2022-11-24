@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2010, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,11 @@
 
 package org.knopflerfish.bundle.restart_test;
 
-import java.util.*;
-import java.io.*;
-import org.osgi.framework.*;
+import java.util.Map;
+import java.util.Properties;
 
-import org.osgi.service.startlevel.*;
+import org.osgi.framework.Bundle;
+import org.osgi.service.startlevel.StartLevel;
 
 class State extends Properties {
   static String B     = "bundle_";
@@ -74,12 +74,11 @@ class State extends Properties {
   }
 
   void assertBundles(Bundle[] bl) throws Exception {
-    for(Enumeration e = keys(); e.hasMoreElements(); ) {
-      String key = (String)e.nextElement();
-      String val = (String)get(key);
-      
-      if(key.endsWith(UUID)) {
-	String uuid = val;
+    for (Map.Entry<Object, Object> entry : this.entrySet()) {
+      String key = (String) entry.getKey();
+
+      if (key.endsWith(UUID)) {
+	String uuid = (String) entry.getValue();
 	//	System.out.println("key=" + key + ", val=" + val);
 
 	int ix = key.indexOf("_", B.length() + 1);
@@ -95,31 +94,30 @@ class State extends Properties {
     System.out.println("assertBundle uuid=" + uuid + ", n=" + n);
     int state   = Integer.parseInt((String)get(B + n + STATE));
     int level   = Integer.parseInt((String)get(B + n + STARTLEVEL));
-    String loc  = (String)get(B + n + LOC);
-    
-    for(int i = 0; i < bl.length; i++) {
-      if(uuid.equals(bl[i].getHeaders().get(BUNDLE_UUID))) {
-	//	System.out.println(get(B + n + STATE));
-	
-	if(state != bl[i].getState()) {
-	  throw new Exception("FAILED: bundle UUID=" + uuid + 
-			      ", expected state " + state + 
-			      ", found " + bl[i].getState());
-	}
-	
+
+    for (Bundle bundle : bl) {
+      if (uuid.equals(bundle.getHeaders().get(BUNDLE_UUID))) {
+        //	System.out.println(get(B + n + STATE));
+
+        if (state != bundle.getState()) {
+          throw new Exception("FAILED: bundle UUID=" + uuid +
+              ", expected state " + state +
+              ", found " + bundle.getState());
+        }
+
         if (state != Bundle.UNINSTALLED) {
-          if(level != sl.getBundleStartLevel(bl[i])) {
-            throw new Exception("FAILED: bundle UUID=" + uuid + 
-                                ", expected level " + level + 
-                                ", found " + sl.getBundleStartLevel(bl[i]));
+          if (level != sl.getBundleStartLevel(bundle)) {
+            throw new Exception("FAILED: bundle UUID=" + uuid +
+                ", expected level " + level +
+                ", found " + sl.getBundleStartLevel(bundle));
           }
         }
-	
-	System.out.println("PASSED uuid=" + uuid);
-	return;
+
+        System.out.println("PASSED uuid=" + uuid);
+        return;
       }
     }
-    if(state == Bundle.UNINSTALLED) {
+    if (state == Bundle.UNINSTALLED) {
       System.out.println("PASSED: no UUID since uninstalled");
     } else {
       System.out.println("FAILED: no bundle with UUID=" + uuid);

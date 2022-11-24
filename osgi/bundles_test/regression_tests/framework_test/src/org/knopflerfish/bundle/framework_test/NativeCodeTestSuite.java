@@ -87,9 +87,11 @@ public class NativeCodeTestSuite extends TestSuite {
       Bundle[] bundles = new Bundle[] {
           buN ,
       };
-      for(int i = 0; i < bundles.length; i++) {
-        try {  bundles[i].uninstall();  } 
-        catch (Exception ignored) { }      
+      for (Bundle bundle : bundles) {
+        try {
+          bundle.uninstall();
+        } catch (Exception ignored) {
+        }
       }
 
       buN = null;
@@ -105,11 +107,11 @@ public class NativeCodeTestSuite extends TestSuite {
 
   class Frame0135a extends FWTestCase {
     public void runTest() throws Throwable {
-      Dictionary opts = new Hashtable();
-      String processor = (String) opts.get("processor");
-      String osname    = (String) opts.get("osname");
-      String osversion = (String) opts.get("osversion");
-      String language  = (String) opts.get("language");
+      Dictionary<String, String> opts = new Hashtable<>();
+      String processor = opts.get("processor");
+      String osname    = opts.get("osname");
+      String osversion = opts.get("osversion");
+      String language  = opts.get("language");
 
       // at present only the processor and osname are used
       StringBuilder b1 = new StringBuilder(test_url_base+"bundleN-"+ processor + "-" + osname);
@@ -144,20 +146,19 @@ public class NativeCodeTestSuite extends TestSuite {
         teststatus = false;
       }
 
-      if (teststatus == true) {
+      if (teststatus) {
         // Get the service reference and a service from the native bundle
-        ServiceReference srnative = bc.getServiceReference("org.knopflerfish.service.nativetest.NativeTest");
+        ServiceReference<?> srnative = bc.getServiceReference("org.knopflerfish.service.nativetest.NativeTest");
         if (srnative != null) {
-          @SuppressWarnings("unchecked")
           Object o = bc.getService(srnative);
           if (o != null) { 
             // now for some reflection exercises
             String expectedString = "Hello world";
-            String nativeString = null;
+            String nativeString;
 
             Method m;
-            Class<? extends Object> c;
-            Class parameters[];
+            Class<?> c;
+            Class<?>[] parameters;
 
             // out.println("servref  = "+ sr);
             // out.println("object = "+ obj1);
@@ -197,7 +198,7 @@ public class NativeCodeTestSuite extends TestSuite {
         }
       }
 
-      if (teststatus == true && buN.getState() == Bundle.ACTIVE) {
+      if (teststatus && buN.getState() == Bundle.ACTIVE) {
         out.println("### framework test bundle :FRAME135A:PASS");
       }
       else {

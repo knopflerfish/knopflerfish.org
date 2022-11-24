@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,11 @@
 
 package org.knopflerfish.bundle.bundleC_test;
 
-import java.util.*;
-import org.osgi.framework.*;
-import org.knopflerfish.service.bundleC_test.*;
+import java.util.Hashtable;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 
 /*
    The start method tries to install the bundle(s) needed to do the test
@@ -51,15 +53,15 @@ import org.knopflerfish.service.bundleC_test.*;
 public class BundleActivator implements org.osgi.framework.BundleActivator {
   BundleContext bc;
   BundC s;
-  ServiceReference sr1;
+  ServiceReference<?> sr1;
   String []serviceDescription = {"org.knopflerfish.service.bundleC_test.BundleC", "java.lang.Object"};
-  ServiceRegistration sreg;
+  ServiceRegistration<?> sreg;
 
   public void start(BundleContext bc) {
     this.bc = bc;
     s = new BundC(bc);
 
-    Hashtable dict = new Hashtable();
+    Hashtable<String, Object> dict = new Hashtable<>();
     dict.put ("key1","value1");
     dict.put ("key2","value2");
     try {

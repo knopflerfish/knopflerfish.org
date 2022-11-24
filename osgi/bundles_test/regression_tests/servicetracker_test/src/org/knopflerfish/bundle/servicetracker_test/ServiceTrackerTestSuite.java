@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,21 @@
 
 package org.knopflerfish.bundle.servicetracker_test;
 
-import java.util.*;
-import java.io.*;
-import java.math.*;
-import java.net.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
-import org.osgi.framework.*;
-import junit.framework.*;
-import org.osgi.util.tracker.*;
+import junit.framework.TestSuite;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
 
 
 public class ServiceTrackerTestSuite extends TestSuite {
@@ -67,24 +72,26 @@ public class ServiceTrackerTestSuite extends TestSuite {
     addTest(new Cleanup());
   }
 
-  class Setup extends FWTestCase {
-    public void runTest() throws Throwable {
+  static class Setup extends FWTestCase {
+    public void runTest() {
     }
   }
 
-  class Cleanup extends FWTestCase {
-    public void runTest() throws Throwable {
+  static class Cleanup extends FWTestCase {
+    public void runTest() {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String USAGE_ST010A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_ST010A =  {
     "Test of Service Tracker class"
   };
 
   class St010a extends FWTestCase {
-    public void runTest() throws Throwable {
-      boolean pass = true;
+    public void runTest() {
 
       // load and start bundleS_test, that may be prodded to
       // register/unregister some services. At start it registers one
@@ -92,26 +99,19 @@ public class ServiceTrackerTestSuite extends TestSuite {
 
       buS = null;
 
-      boolean teststatus = true;
       try {
         buS = Util.installBundle(bc, "bundleS_test-1.0.0.jar");
         buS.start();
-        teststatus = true;
         out.println("started service bundle");
       }
-      catch (BundleException bexcS) {
-        teststatus = false;
+      catch (BundleException | SecurityException bexcS) {
         fail("Frame test bundle "+ bexcS +" :SERVICETRACKER010A:FAIL");
-      }
-      catch (SecurityException secS) {
-        teststatus = false;
-        fail("Frame test bundle "+ secS +" :SERVICETRACKER010A:FAIL");
       }
 
       // 1. Create a ServiceTracker with ServiceTrackerCustomizer == null
 
       String s1 = "org.knopflerfish.service.bundleS_test.BundleS";
-      ServiceReference servref = bc.getServiceReference(s1+"0");
+      ServiceReference<?> servref = bc.getServiceReference(s1+"0");
 
       assertNotNull("Must have a registered service of class " + s1+"0",
                     servref);
@@ -121,7 +121,6 @@ public class ServiceTrackerTestSuite extends TestSuite {
       // 2. Check the size method with an unopened service tracker
 
       if (st1.size() != 0) {
-        pass = false;
         fail("size method returned " + st1.size() +" , expected 0 :SERVICETRACKER010A:FAIL");
       }
 
@@ -131,23 +130,20 @@ public class ServiceTrackerTestSuite extends TestSuite {
 
       st1.open();
       String expName  = "org.knopflerfish.bundle.bundleS_test.BundS";
-      ServiceReference sa2[] = st1.getServiceReferences();
+      ServiceReference<?>[] sa2 = st1.getServiceReferences();
 
       if (sa2.length == 1) {
         String name = bc.getService(sa2[0]).getClass().getName();
         if (!name.equals(expName)) {
-          pass = false;
           fail("Service referenced class name: got " + name + " expected " + expName + " :SERVICETRACKER010A:FAIL");
         }
         // fail("Class name: " + name);
       } else {
         fail("Got " + sa2.length + " service references, expected 1 :SERVICETRACKER010A:FAIL");
-        pass = false;
       }
 
       // 4. Check the size method, now when the servicetracker is open
       if (st1.size() != 1) {
-        pass = false;
         fail("size method returned " + st1.size() +" , expected 1 :SERVICETRACKER010A:FAIL");
       }
 
@@ -156,14 +152,13 @@ public class ServiceTrackerTestSuite extends TestSuite {
 
       // 6. Check the size method, now when the servicetracker is closed
       if (st1.size() != 0) {
-        pass = false;
         fail("size method returned " + st1.size() +" , expected 0, after service tracker close() :SERVICETRACKER010A:FAIL");
       }
 
       // 7. Check if we still track anything , we should get null
       sa2 = st1.getServiceReferences();
       if (sa2 != null) {
-        fail("Service references still tracked: got " + sa2 + " expected null :SERVICETRACKER010A:FAIL");
+        fail("Service references still tracked: got " + Arrays.toString(sa2) + " expected null :SERVICETRACKER010A:FAIL");
       }
 
       // 8. A new Servicetracker, this time with a filter for the object
@@ -173,7 +168,6 @@ public class ServiceTrackerTestSuite extends TestSuite {
         f1 = bc.createFilter(fs);
       }
       catch (InvalidSyntaxException ise ) {
-        pass = false;
         fail("Illegal filter syntax, Frame test bundle :SERVICETRACKER010A:FAIL");
       }
 
@@ -190,16 +184,14 @@ public class ServiceTrackerTestSuite extends TestSuite {
       sa2 = st1.getServiceReferences();
 
       if (sa2.length == 2) {
-        for (int i = 0;  i < sa2.length ; i++) {
-          String name = bc.getService(sa2[i]).getClass().getName();
+        for (ServiceReference<?> serviceReference : sa2) {
+          String name = bc.getService(serviceReference).getClass().getName();
           if (!name.equals(expName)) {
-            pass = false;
             fail("Service referenced class name: got " + name + " expected " + expName + " :SERVICETRACKER010A:FAIL");
           }
         }
       } else {
         fail("Got " + sa2.length + " service references, expected 2 :SERVICETRACKER010A:FAIL");
-        pass = false;
       }
 
       // 10. Get bundleS to register one more service and see if it appears
@@ -208,16 +200,14 @@ public class ServiceTrackerTestSuite extends TestSuite {
       sa2 = st1.getServiceReferences();
 
       if (sa2.length == 3) {
-        for (int i = 0;  i < sa2.length ; i++) {
-          String name = bc.getService(sa2[i]).getClass().getName();
+        for (ServiceReference<?> serviceReference : sa2) {
+          String name = bc.getService(serviceReference).getClass().getName();
           if (!name.equals(expName)) {
-            pass = false;
             fail("Service referenced class name: got " + name + " expected " + expName + " :SERVICETRACKER010A:FAIL");
           }
         }
       } else {
         fail("Got " + sa2.length + " service references, expected 3 :SERVICETRACKER010A:FAIL");
-        pass = false;
       }
 
       // 11. Get bundleS to register one more service and see if it appears
@@ -226,16 +216,14 @@ public class ServiceTrackerTestSuite extends TestSuite {
       sa2 = st1.getServiceReferences();
 
       if (sa2.length == 4) {
-        for (int i = 0;  i < sa2.length ; i++) {
-          String name = bc.getService(sa2[i]).getClass().getName();
+        for (ServiceReference<?> serviceReference : sa2) {
+          String name = bc.getService(serviceReference).getClass().getName();
           if (!name.equals(expName)) {
-            pass = false;
             fail("Service referenced class name: got " + name + " expected " + expName + " :SERVICETRACKER010A:FAIL");
           }
         }
       } else {
         fail("Got " + sa2.length + " service references, expected 4 :SERVICETRACKER010A:FAIL");
-        pass = false;
       }
 
       // 12. Get bundleS to unregister one service and see if it disappears
@@ -244,32 +232,28 @@ public class ServiceTrackerTestSuite extends TestSuite {
       sa2 = st1.getServiceReferences();
 
       if (sa2.length == 3) {
-        for (int i = 0;  i < sa2.length ; i++) {
-          String name = bc.getService(sa2[i]).getClass().getName();
+        for (ServiceReference<?> serviceReference : sa2) {
+          String name = bc.getService(serviceReference).getClass().getName();
           if (!name.equals(expName)) {
-            pass = false;
             fail("Service referenced class name: got " + name + " expected " + expName + " after service unregistration :SERVICETRACKER010A:FAIL");
           }
         }
       } else {
         fail("Got " + sa2.length + " service references, expected 3 :SERVICETRACKER010A:FAIL");
-        pass = false;
       }
 
       // 13. Get the highest ranking service reference, it should have ranking 7
 
-      ServiceReference h1 = st1.getServiceReference();
+      ServiceReference<?> h1 = st1.getServiceReference();
       Integer rank = (Integer) h1.getProperty(Constants.SERVICE_RANKING);
-      if (rank.intValue() != 7) {
+      if (rank != 7) {
         fail("Service rank was: " + rank.toString() + " expected 7 :SERVICETRACKER010A:FAIL");
-        pass = false;
       }
 
       // 14. Get the service of the highest ranked service reference
 
       Object o1 = st1.getService(h1);
       if (o1 == null ) {
-        pass = false;
         fail("Attempt to get service object " + o1 + " failed  :SERVICETRACKER010A:FAIL");
       }
 
@@ -277,11 +261,9 @@ public class ServiceTrackerTestSuite extends TestSuite {
 
       Object o3 = st1.getService();
       if (o3 == null ) {
-        pass = false;
         fail("Attempt to get service object " + o3 + " failed  :SERVICETRACKER010A:FAIL");
       } else {
         if (o1 != o3) {
-          pass = false;
           fail("The two methods to get the highest ranked service differ:" + o1 + o3 + "  :SERVICETRACKER010A:FAIL");
         }
       }
@@ -293,7 +275,6 @@ public class ServiceTrackerTestSuite extends TestSuite {
 
       Object o2 = st1.getService(h1);
       if (o2 != null ) {
-        pass = false;
         fail("Attempt to get service object " + o2 + " succeded unexpectedly  :SERVICETRACKER010A:FAIL");
       }
 
@@ -302,11 +283,9 @@ public class ServiceTrackerTestSuite extends TestSuite {
       Object [] ts1 = st1.getServices();
       if (ts1 != null) {
         if (ts1.length != 2) {
-          pass = false;
           fail("Expected 2 objects, got: " + ts1.length + " :SERVICETRACKER010A:FAIL" );
         }
       } else {
-        pass = false;
         fail("No arry of tracked services found :SERVICETRACKER010A:FAIL" );
       }
 
@@ -316,13 +295,12 @@ public class ServiceTrackerTestSuite extends TestSuite {
       serviceControl (servref, "1", "register",  "7");
       h1 = st1.getServiceReference();
 
-      ServiceReference [] sa3 = st1.getServiceReferences();
+      ServiceReference<?>[] sa3 = st1.getServiceReferences();
 
       if (sa3.length != 3) {
-        for (int i = 0;  i < sa3.length ; i++) {
-          String name = bc.getService(sa3[i]).getClass().getName();
+        for (ServiceReference<?> serviceReference : sa3) {
+          String name = bc.getService(serviceReference).getClass().getName();
           if (!name.equals(expName)) {
-            pass = false;
             fail("Service referenced class name: got " + name + " expected " + expName + " after service unregistration :SERVICETRACKER010A:FAIL");
           }
         }
@@ -335,10 +313,9 @@ public class ServiceTrackerTestSuite extends TestSuite {
       sa2 = st1.getServiceReferences();
 
       if (sa2.length != 2) {
-        for (int i = 0;  i < sa2.length ; i++) {
-          String name = bc.getService(sa2[i]).getClass().getName();
+        for (ServiceReference<?> serviceReference : sa2) {
+          String name = bc.getService(serviceReference).getClass().getName();
           if (!name.equals(expName)) {
-            pass = false;
             fail("Service referenced class name: got " + name + " expected " + expName + " after service unregistration :SERVICETRACKER010A:FAIL");
           }
         }
@@ -354,10 +331,9 @@ public class ServiceTrackerTestSuite extends TestSuite {
       sa3 = st1.getServiceReferences();
 
       if (sa3.length != 3) {
-        for (int i = 0;  i < sa3.length ; i++) {
-          String name = bc.getService(sa3[i]).getClass().getName();
+        for (ServiceReference<?> serviceReference : sa3) {
+          String name = bc.getService(serviceReference).getClass().getName();
           if (!name.equals(expName)) {
-            pass = false;
             fail("Service referenced class name: got " + name + " expected " + expName + " after service unregistration :SERVICETRACKER010A:FAIL");
           }
         }
@@ -367,7 +343,7 @@ public class ServiceTrackerTestSuite extends TestSuite {
 
       // 19. Test the removedService method, remove a service reference
 
-      ServiceReference sr3 = st1.getServiceReference();
+      ServiceReference<?> sr3 = st1.getServiceReference();
       Object s5 = st1.getService(sr3);
 
       st1.removedService(sr3, s5);
@@ -375,10 +351,9 @@ public class ServiceTrackerTestSuite extends TestSuite {
       sa3 = st1.getServiceReferences();
 
       if (sa3.length != 3) {
-        for (int i = 0;  i < sa3.length ; i++) {
-          String name = bc.getService(sa3[i]).getClass().getName();
+        for (ServiceReference<?> serviceReference : sa3) {
+          String name = bc.getService(serviceReference).getClass().getName();
           if (!name.equals(expName)) {
-            pass = false;
             fail("Service referenced class name: got " + name + " expected " + expName + " after call of removedService() :SERVICETRACKER010A:FAIL");
           }
         }
@@ -393,19 +368,13 @@ public class ServiceTrackerTestSuite extends TestSuite {
         o9 = st1.waitForService(50);
       }
       catch (InterruptedException ie) {
-        pass = false;
         fail("Got unexpected " + ie + " in waitForService method :SERVICETRACKER010A:FAIL");
       }
       if (o9 == null) {
-        pass = false;
         fail("Got null object from waitForService method :SERVICETRACKER010A:FAIL");
       }
 
-      if (pass == true) {
-        out.println("### Frame test bundle :ST010A:PASS");
-      } else {
-        fail("### Frame test bundle :ST010A:FAIL");
-      }
+      out.println("### Frame test bundle :ST010A:PASS");
     }
   }
 
@@ -416,9 +385,10 @@ public class ServiceTrackerTestSuite extends TestSuite {
   // to access test service methods via reflection
   // service registration control
 
-  private void serviceControl(ServiceReference sr, String service, String operation, String rank) {
+  private void serviceControl(ServiceReference<?> sr, String service, String operation, String rank) {
     Method m;
-    Class c, parameters[];
+    Class<?> c;
+    Class<?>[] parameters;
 
     Object obj1 = bc.getService(sr);
     // System.out.println("servref  = "+ sr);

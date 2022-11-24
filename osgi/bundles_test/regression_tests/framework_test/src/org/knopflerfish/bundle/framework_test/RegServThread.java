@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,20 +44,20 @@ public class RegServThread implements Runnable {
   BundleContext bc;
   PrintStream out;
   boolean ever; 
-  ServiceRegistration sr;
-  Hashtable props;
+  ServiceRegistration<RegServThread> sr;
+  Hashtable<String, Object> props;
   int ID = 1;
   boolean status = false;
 
-  public RegServThread(BundleContext bc, PrintStream out) throws Exception {
+  public RegServThread(BundleContext bc, PrintStream out) {
     this.bc = bc;
     this.out = out;  
     this.ever = true;
 
-    props = new Hashtable();
+    props = new Hashtable<>();
     props.put("ID", String.valueOf(ID));
 
-    sr = bc.registerService(RegServThread.class.getName(), this, props);
+    sr = bc.registerService(RegServThread.class, this, props);
     if (sr == null) {
       out.println("### Frame test bundle :FRAME210A, service registration failed, sr == null, in RegServThread");
       status = false;
@@ -65,7 +65,7 @@ public class RegServThread implements Runnable {
   }
 
   public synchronized void stop() {
-    // out.println("Shutdow of thread " + String.valueOf(ID));
+    // out.println("Shutdown of thread " + String.valueOf(ID));
     ever = false;
   }
 
@@ -74,7 +74,6 @@ public class RegServThread implements Runnable {
   }
 
   public void run() {
-    int i = 0;
     try {
       Thread.sleep(200);
     }
@@ -89,7 +88,6 @@ public class RegServThread implements Runnable {
       // }
       try {
         Thread.sleep(200);
-        i++;
         sr.setProperties(props);
         status = true;
       }

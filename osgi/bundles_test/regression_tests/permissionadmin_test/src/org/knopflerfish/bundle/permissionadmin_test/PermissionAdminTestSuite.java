@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,19 +34,30 @@
 
 package org.knopflerfish.bundle.permissionadmin_test;
 
-import java.util.*;
-import java.io.*;
-import java.math.*;
-import java.net.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.Permission;
+import java.security.PermissionCollection;
+import java.util.Properties;
+import java.util.Vector;
 
-import org.osgi.framework.*;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
-import org.osgi.service.packageadmin.*;
-import org.osgi.service.permissionadmin.*;
-
-import junit.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServicePermission;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.permissionadmin.PermissionAdmin;
+import org.osgi.service.permissionadmin.PermissionInfo;
 
 public class PermissionAdminTestSuite extends TestSuite  {
   BundleContext bc;
@@ -75,8 +86,8 @@ public class PermissionAdminTestSuite extends TestSuite  {
 
   String     test_url_base;
 
-  Vector     events    = new Vector();  // vector for events from test bundles
-  Vector     expevents = new Vector();	// comparision vector
+  Vector<devEvent> events    = new Vector<>();  // vector for events from test bundles
+  Vector<devEvent> expevents = new Vector<>();	// comparision vector
 
   PrintStream out = System.out;
 
@@ -98,7 +109,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
   }
 
  
-  class FWTestCase extends TestCase {
+  static class FWTestCase extends TestCase {
     public String getName() {
       String name = getClass().getName();
       int ix = name.lastIndexOf("$");
@@ -113,7 +124,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
   }
 
   class Cleanup extends FWTestCase {
-    public void runTest() throws Throwable {
+    public void runTest() {
       Bundle[] bundles = new Bundle[] {
 	buP,
 	buU ,
@@ -124,8 +135,8 @@ public class PermissionAdminTestSuite extends TestSuite  {
 	buY ,
 	buZ ,
       };
-      for(int i = 0; i < bundles.length; i++) {
-	try {  bundles[i].uninstall();  } 
+      for(Bundle bundle : bundles) {
+	try {  bundle.uninstall();  }
 	catch (Exception ignored) { }      
       }
 
@@ -157,7 +168,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
 
   // Also install all possible listeners
   class Setup extends FWTestCase {
-    public void runTest() throws Throwable {
+    public void runTest() {
       fListen = new FrameworkListener();
       try {
 	bc.addFrameworkListener(fListen);
@@ -188,7 +199,10 @@ public class PermissionAdminTestSuite extends TestSuite  {
   //     The testbundle U has no permission to register its service and should 
   //     not be registered
 
+  @SuppressWarnings("unused")
   public final static String USAGE_FRAME090A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME090A =  {
     "Install and start bundleU_test, to check that it is unable to register its own service",
     "to see that the Permissions work.",
@@ -197,33 +211,25 @@ public class PermissionAdminTestSuite extends TestSuite  {
   };
 
   class Frame090a extends FWTestCase {
-    public void runTest() throws Throwable {
+    public void runTest() {
       buU = null;
-      boolean teststatus = true;
       clearEvents();
       try {
 	buU = Util.installBundle(bc, "bundleU_test-1.0.0.jar");
 	buU.start();
-	teststatus = true;
       }
-      catch (BundleException bexcA) {
+      catch (BundleException | SecurityException bexcA) {
 	fail("framework test bundle "+ bexcA +" :FRAME090A:FAIL");
-	teststatus = false;
       }
-      catch (SecurityException secA) {
-	fail("framework test bundle "+ secA +" :FRAME090A:FAIL");
-	teststatus = false;
-      }
-      
+
       // Check that a service reference does not exist
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleU_test.BundleU");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleU_test.BundleU");
       if (sr1 != null) {
 	fail("framework test bundle, found unexpected service from test bundle U found :FRAME090A:FAIL");
-	teststatus = false;
       }
       
       // check the listeners for events, expect none 
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.STARTED, false, ServiceEvent.REGISTERED, buU, sr1);
+      boolean lStat = checkListenerEvents(false , 0, true , BundleEvent.STARTED, false, ServiceEvent.REGISTERED, buU, sr1);
       
       // get the permissions of bundle buU and check if they are as expected
       ServicePermission get = new ServicePermission("*", ServicePermission.GET);
@@ -233,13 +239,12 @@ public class PermissionAdminTestSuite extends TestSuite  {
       boolean p2 = buU.hasPermission(register);
       // out.println("framework test bundle : p1, p2" + p1 + ",  "+  p2);
       
-      if (!(p1 == true && p2 == false)) {
-	teststatus = false;
-	out.println("framework test bundle permissions of test bundleU not as expected");
+      if (!(p1 && !p2)) {
+        out.println("framework test bundle permissions of test bundleU not as expected");
 	fail("framework test bundle: GET is " + p1 +" should be true, REGISTER is " + p2 + ",  should be false");
       }
       
-      if (teststatus == true && buU.getState() == Bundle.ACTIVE && lStat == true) {
+      if (buU.getState() == Bundle.ACTIVE && lStat) {
 	out.println("### framework test bundle :FRAME090A:PASS");
       }
       else {
@@ -253,7 +258,10 @@ public class PermissionAdminTestSuite extends TestSuite  {
   //     unable to get the log service,
   //     able to get the test service
   //    
+  @SuppressWarnings("unused")
   public final static String USAGE_FRAME095A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME095A =  {
     "Install and start bundleV_test, to check that it is:",
     "able to register its own service",
@@ -262,34 +270,29 @@ public class PermissionAdminTestSuite extends TestSuite  {
   };
 
   class Frame095a extends FWTestCase {
-    public void runTest() throws Throwable {
+    public void runTest() {
       buV = null;
-      boolean teststatus = true;
+      boolean teststatus;
       try {
 	buV = Util.installBundle(bc, "bundleV_test-1.0.0.jar");
 	buV.start();
 	teststatus = true;
       }
-      catch (BundleException bexcA) {
+      catch (BundleException | SecurityException bexcA) {
 	bexcA.printStackTrace();
 	fail("framework test bundle "+ bexcA +" :FRAME095A:FAIL");
 	teststatus = false;
       }
-      catch (SecurityException secA) {
-	secA.printStackTrace();
-	fail("framework test bundle "+ secA +" :FRAME095A:FAIL");
-	teststatus = false;
-      }
-      
+
       // Check that a service reference does exist
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleV_test.BundleV");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleV_test.BundleV");
       if (sr1 == null) {
 	fail("framework test bundle, did not found expected service from test bundle V found :FRAME095:FAIL");
 	teststatus = false;
       }
       
       // check the listeners for events, expect registration
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buV, sr1);
+      boolean lStat = checkListenerEvents(false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buV, sr1);
       
       // get the permissions of bundle buV and check if they are as expected
       ServicePermission get = new ServicePermission("org.knopflerfish.service.framework_test.FrameworkTest", ServicePermission.GET);
@@ -305,12 +308,13 @@ public class PermissionAdminTestSuite extends TestSuite  {
       }
       
       // now give the bundleV a servicereference via reflection
-      ServiceReference sr = bc.getServiceReference("org.knopflerfish.service.bundleV_test.BundleV");
+      ServiceReference<?> sr = bc.getServiceReference("org.knopflerfish.service.bundleV_test.BundleV");
       Object srl = bc.getServiceReference("org.osgi.service.log.LogService");
       
       Method m;
-      Class c, parameters[];
-      
+      Class<?> c;
+      Class<?>[] parameters;
+
       Object obj1 = bc.getService(sr);
       // out.println("servref  = "+ sr);
       // out.println("object = "+ obj1);
@@ -322,16 +326,16 @@ public class PermissionAdminTestSuite extends TestSuite  {
       parameters = new Class[1];
       //
       Method [] mxx = c.getDeclaredMethods();
-      for (int y=0;y <mxx.length; y++) {
-	// out.println("Methods in obj1 " + mxx[y].getName());
-	if (mxx[y].getName().endsWith("tryService")) {
-	  // out.println("Methods in obj1 " + mxx[y].getName());
-	  Class [] cxx = mxx[y].getParameterTypes();
-	  for (int z=0; z < cxx.length; z++) {
-	    // out.println("Parameter Classes in obj1 " + cxx[z].getName());
-	    if (cxx[z].getName().endsWith("org.osgi.framework.ServiceReference")) {
-	      // out.println("Selected Parameter Classes in obj1 " + cxx[z].toString());
-	      parameters[0] = cxx[z]; 
+      for (Method method : mxx) {
+	// out.println("Methods in obj1 " + method.getName());
+	if (method.getName().endsWith("tryService")) {
+	  // out.println("Methods in obj1 " + method.getName());
+	  Class<?>[] cxx = method.getParameterTypes();
+	  for (Class<?> type : cxx) {
+	    // out.println("Parameter Classes in obj1 " + type.getName());
+	    if (type.getName().endsWith("org.osgi.framework.ServiceReference")) {
+	      // out.println("Selected Parameter Classes in obj1 " + type.toString());
+	      parameters[0] = type;
 	    }
 	  }
 	}
@@ -360,7 +364,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
 	out.println("Unexpected " +  thr);
       }
       
-      if (!(p1 == true && p2 == true)) {
+      if (!(p1 && p2)) {
 	teststatus = false;
 	out.println("framework test bundle permissions of test bundleV not as expected");
 	fail("framework test bundle: GET is " + p1 +" should be true, REGISTER is " + p2 + ",  should be true");
@@ -384,14 +388,14 @@ public class PermissionAdminTestSuite extends TestSuite  {
 	teststatus = false;
 	out.println("Real events");
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
+	  devEvent dee = events.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
 	}
 	out.println("Expected events");
 	for (int i = 0; i< expevents.size() ; i++) {
-	  devEvent dee = (devEvent) expevents.elementAt(i);
+	  devEvent dee = expevents.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
@@ -400,8 +404,8 @@ public class PermissionAdminTestSuite extends TestSuite  {
       else {
 	
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
-	  devEvent exp = (devEvent) expevents.elementAt(i);
+	  devEvent dee = events.elementAt(i);
+	  devEvent exp = expevents.elementAt(i);
 	  if (!(dee.getDevice().equals(exp.getDevice()) && dee.getMethod().equals(exp.getMethod()) && dee.getValue() == exp.getValue())) {
 	    out.println("Event no = " + i);
 	    if (!(dee.getDevice().equals(exp.getDevice()))) {
@@ -422,7 +426,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       events.removeAllElements();
       expevents.removeAllElements();
       
-      if (teststatus == true && buV.getState() == Bundle.ACTIVE && lStat == true) {
+      if (teststatus && buV.getState() == Bundle.ACTIVE && lStat) {
 	out.println("### framework test bundle :FRAME095A:PASS");
       }
       else {
@@ -435,7 +439,10 @@ public class PermissionAdminTestSuite extends TestSuite  {
   //     bundleX_test, which should be ok 
   //     bundleY_test, which should fail 
   //
+  @SuppressWarnings("unused")
   public final static String USAGE_FRAME100A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME100A =  {
     "Install and start bundleW_test, to check that it is:",
     "able to install bundleX_test, which should be ok",
@@ -443,38 +450,34 @@ public class PermissionAdminTestSuite extends TestSuite  {
   };
 
   class Frame0100a extends FWTestCase {
-    public void runTest() throws Throwable {
+    public void runTest() {
       buW = null;
-      boolean teststatus = true;
+      boolean teststatus;
       try {
 	buW = Util.installBundle(bc, "bundleW_test-1.0.0.jar");
 	buW.start();
 	teststatus = true;
       }
-      catch (BundleException bexcA) {
+      catch (BundleException | SecurityException bexcA) {
 	fail("framework test bundle "+ bexcA +" :FRAME100A:FAIL");
 	teststatus = false;
       }
-      catch (SecurityException secA) {
-	fail("framework test bundle "+ secA +" :FRAME100A:FAIL");
-	teststatus = false;
-      }
-      
+
       // Check that a service reference does exist
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleW_test.BundleW");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleW_test.BundleW");
       if (sr1 == null) {
 	fail("framework test bundle, did not found expected service from test bundle W found :FRAME100A:FAIL");
 	teststatus = false;
       }
       
       // check the listeners for events, expect registration
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buW, sr1);
+      boolean lStat = checkListenerEvents(false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buW, sr1);
       
       // now give the bundleW a jar file to load, via reflection
-      ServiceReference sr = bc.getServiceReference("org.knopflerfish.service.bundleW_test.BundleW");
-      bundleLoad (out, sr, "bundleX_test");
-      bundleLoad (out, sr, "bundleY_test");
-      bundleLoad (out, sr, "bundleZ_test");
+      ServiceReference<?> sr = bc.getServiceReference("org.knopflerfish.service.bundleW_test.BundleW");
+      bundleLoad (sr, "bundleX_test");
+      bundleLoad (sr, "bundleY_test");
+      bundleLoad (sr, "bundleZ_test");
       /* 
       // list all events 
       for (int i = 0; i< events.size() ; i++) {
@@ -498,14 +501,14 @@ public class PermissionAdminTestSuite extends TestSuite  {
 	teststatus = false;
 	out.println("Real events");
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
+	  devEvent dee = events.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
 	}
 	out.println("Expected events");
 	for (int i = 0; i< expevents.size() ; i++) {
-	  devEvent dee = (devEvent) expevents.elementAt(i);
+	  devEvent dee = expevents.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
@@ -513,8 +516,8 @@ public class PermissionAdminTestSuite extends TestSuite  {
       }
       else {
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
-	  devEvent exp = (devEvent) expevents.elementAt(i);
+	  devEvent dee = events.elementAt(i);
+	  devEvent exp = expevents.elementAt(i);
 	  if (!(dee.getDevice().equals(exp.getDevice()) && dee.getMethod().equals(exp.getMethod()) && dee.getValue() == exp.getValue())) {
 	    out.println("Event no = " + i);
 	    if (!(dee.getDevice().equals(exp.getDevice()))) {
@@ -534,7 +537,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       events.removeAllElements();
       expevents.removeAllElements();
       
-      if (teststatus == true && buW.getState() == Bundle.ACTIVE && lStat == true) {
+      if (teststatus && buW.getState() == Bundle.ACTIVE && lStat) {
 	out.println("### framework test bundle :FRAME100A:PASS");
       }
       else {
@@ -548,7 +551,10 @@ public class PermissionAdminTestSuite extends TestSuite  {
   //     that should cause SecurityExceptions in W1
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_FRAME105A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME105A =  {
     "Install and start bundleW1_test, to check that it is:",
     "possible to install and start.",
@@ -557,9 +563,9 @@ public class PermissionAdminTestSuite extends TestSuite  {
   };
 
   class Frame0105a extends FWTestCase {
-    public void runTest() throws Throwable {
+    public void runTest() {
       buW1 = null;
-      boolean teststatus = true;
+      boolean teststatus;
       clearEvents();
       try {
 	buW1 = Util.installBundle(bc, "bundleW1_test-1.0.0.jar");
@@ -576,7 +582,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       }
       
       // check the listeners for events, expect registration
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.INSTALLED, false, ServiceEvent.REGISTERED, buW1, null);
+      boolean lStat = checkListenerEvents(false , 0, true , BundleEvent.INSTALLED, false, ServiceEvent.REGISTERED, buW1, null);
       
       try {
 	buW1.start();
@@ -592,19 +598,19 @@ public class PermissionAdminTestSuite extends TestSuite  {
       }
       
       // Check that a service reference does exist
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleW1_test.BundleW1");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleW1_test.BundleW1");
       if (sr1 == null) {
 	fail("framework test bundleW1, unexpected service from test bundle W1 found :FRAME105A:FAIL");
 	teststatus = false;
       }
-      boolean lStat2 = checkListenerEvents(out, false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buW1, sr1);
+      boolean lStat2 = checkListenerEvents(false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buW1, sr1);
       
       // now give the bundleW1 jar files to load, via reflection
-      ServiceReference sr = bc.getServiceReference("org.knopflerfish.service.bundleW1_test.BundleW1");
+      ServiceReference<?> sr = bc.getServiceReference("org.knopflerfish.service.bundleW1_test.BundleW1");
       if (sr != null ) {
-	bundleLoad (out, sr, "bundleX_test");
-	bundleLoad (out, sr, "bundleY_test");
-	bundleLoad (out, sr, "bundleZ_test");
+	bundleLoad (sr, "bundleX_test");
+	bundleLoad (sr, "bundleY_test");
+	bundleLoad (sr, "bundleZ_test");
       }
       
       
@@ -630,14 +636,14 @@ public class PermissionAdminTestSuite extends TestSuite  {
 	teststatus = false;
 	out.println("Real events");
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
+	  devEvent dee = events.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
 	}
 	out.println("Expected events");
 	for (int i = 0; i< expevents.size() ; i++) {
-	  devEvent dee = (devEvent) expevents.elementAt(i);
+	  devEvent dee = expevents.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
@@ -645,8 +651,8 @@ public class PermissionAdminTestSuite extends TestSuite  {
       }
       else {
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
-	  devEvent exp = (devEvent) expevents.elementAt(i);
+	  devEvent dee = events.elementAt(i);
+	  devEvent exp = expevents.elementAt(i);
 	  if (!(dee.getDevice().equals(exp.getDevice()) && dee.getMethod().equals(exp.getMethod()) && dee.getValue() == exp.getValue())) {
 	    out.println("Event no = " + i);
 	    if (!(dee.getDevice().equals(exp.getDevice()))) {
@@ -666,7 +672,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       events.removeAllElements();
       expevents.removeAllElements();
       
-      if (teststatus == true && buW1.getState() == Bundle.ACTIVE && lStat == true && lStat2 == true) {
+      if (teststatus && buW1.getState() == Bundle.ACTIVE && lStat && lStat2) {
 	out.println("### framework test bundle :FRAME105A:PASS");
       }
       else {
@@ -676,22 +682,22 @@ public class PermissionAdminTestSuite extends TestSuite  {
   }
   
   // 205A. Simple test of the PermissionAdmin interface
-  
+
+  @SuppressWarnings("unused")
   public final static String USAGE_FRAME205A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME205A =  {
     "Try to get a permission admin service",
     "do simple introspection checks of this test bundle"
   };
   
   class Frame0205a extends FWTestCase {
-    public void runTest() throws Throwable {
+    public void runTest() {
       boolean teststatus = true;
       String permissionServiceName = "org.osgi.service.permissionadmin.PermissionAdmin";
-      String expectedExportedPackageName = "org.knopflerfish.service.framework_test";
-      String expectedVersion = "1.0";
       PermissionAdmin permissionService = null;
-      Bundle fw_test = bc.getBundle();    // this bundle
-      
+
       // Try to create an instace of class PermissionInfo and test its methods
       
       String pType = "org.knopflerfish.bundle.framework_test.PermissionTest";
@@ -738,7 +744,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
 	int hcode2 = pinfo1.hashCode();
 	
 	if (hcode1 != hcode2) {
-	  fail("hashCode method got: " + String.valueOf(hcode1) + " expected " + String.valueOf(hcode2) +" FRAME205A:FAIL");
+	  fail("hashCode method got: " + hcode1 + " expected " + hcode2 +" FRAME205A:FAIL");
 	  teststatus  = false;
 	}
 	
@@ -769,8 +775,8 @@ public class PermissionAdminTestSuite extends TestSuite  {
 	  if (pinfo == null) {
 	    fail("No default permission set, got null, FRAME205A:FAIL");
 	  } else {
-	    for (int i = 0 ; i < pinfo.length; i++) {
-	      printPermission(out, pinfo[i]);
+	    for (PermissionInfo permissionInfo : pinfo) {
+	      printPermission(permissionInfo);
 	    }
 	  }
 	  // out.println("Got service " + permissionServiceName + " in FRAME205A");
@@ -805,16 +811,14 @@ public class PermissionAdminTestSuite extends TestSuite  {
       String filename = "/tmp/testfile4";
       byte [] testdata = {1,2,3,4,5};
       File testFile = new File (filename);
-      if (testFile != null ) {
-	try {
-	  FileOutputStream fout = new FileOutputStream (testFile);
-	  fout.write(testdata);
-	  fout.close();
-	}
-	catch (IOException ioe) {
-	  teststatus = false;
-	  fail("framework test bundle, I/O error on write " + ioe + " in FRAME205A:FAIL");
-	}
+      try {
+	FileOutputStream fout = new FileOutputStream (testFile);
+	fout.write(testdata);
+	fout.close();
+      }
+      catch (IOException ioe) {
+	teststatus = false;
+	fail("framework test bundle, I/O error on write " + ioe + " in FRAME205A:FAIL");
       }
       
       
@@ -828,7 +832,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       PermissionInfo pi5 = new PermissionInfo("org.osgi.framework.ServicePermission", "*", "get,register");
       PermissionInfo pi6 = new PermissionInfo("java.io.FilePermission", filename, "read");
       
-      PermissionInfo pa[] = new PermissionInfo[] {pi1, pi2, pi3, pi4, pi5 ,pi6};
+      PermissionInfo[] pa = new PermissionInfo[] {pi1, pi2, pi3, pi4, pi5 ,pi6};
       
       try {
 	permissionService.setPermissions(test_url_base+"bundleP_test-1.0.0.jar", pa);
@@ -850,22 +854,18 @@ public class PermissionAdminTestSuite extends TestSuite  {
 	buP = bc.installBundle (test_url_base+"bundleP_test-1.0.0.jar");
 	buP.start();
       }
-      catch (BundleException bexcA) {
+      catch (BundleException | SecurityException bexcA) {
 	fail("Start of bundleP_test exception: "+ bexcA +" :FRAME0205A:FAIL");
 	teststatus = false;
       }
-      catch (SecurityException secA) {
-	fail("Start of bundleP_test exception: "+ secA +" :FRAME0205A:FAIL");
-	teststatus = false;
-      }
-      
+
       // check that the events from bundleP_test match the expected sequence of events
       // their metods called the correct number of times and in the right sequence
       
       expevents.addElement(new devEvent("org.knopflerfish.bundle.bundleP_test.BundP", "constructor, bundleP_test Service reference != null", 0));
       expevents.addElement(new devEvent("org.knopflerfish.bundle.bundleP_test.BundP", "constructor, bundleP_test File reference: true", 1));
-      boolean event = checkEvents(out, expevents, events);
-      if (event != true) {
+      boolean event = checkEvents(expevents, events);
+      if (!event) {
 	fail("Mismatch between expected and real events FRAME205A:FAIL");
 	teststatus = false;
       }
@@ -877,15 +877,11 @@ public class PermissionAdminTestSuite extends TestSuite  {
       try {
 	buP.stop();
       }
-      catch (BundleException bexcA) {
+      catch (BundleException | SecurityException bexcA) {
 	fail("Stop of bundleP_test exception: "+ bexcA +" :FRAME0205A:FAIL");
 	teststatus = false;
       }
-      catch (SecurityException secA) {
-	fail("Stop of bundleP_test exception: "+ secA +" :FRAME0205A:FAIL");
-	teststatus = false;
-      }
-      
+
       // change its permisssions, so that it should not succeed to register itself
       pi1 = new PermissionInfo("java.util.PropertyPermission", "org.knopflerfish.*", "read");
       pi2 = new PermissionInfo("java.util.PropertyPermission", "org.osgi.*", "read");
@@ -949,7 +945,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       
       testFile.delete();
       
-      if (teststatus == true) {
+      if (teststatus) {
 	out.println("### framework test bundle :FRAME205A:PASS");
       } else {
 	fail("### framework test bundle :FRAME205A:FAIL");
@@ -959,10 +955,11 @@ public class PermissionAdminTestSuite extends TestSuite  {
   
   
     // Check that the expected events has reached the listeners and reset the events in the listeners
-  private boolean checkListenerEvents(Object _out, boolean fwexp, int fwtype, boolean buexp, int butype, boolean sexp, int stype, Bundle bunX, ServiceReference servX ) {
+  @SuppressWarnings("SameParameterValue")
+  private boolean checkListenerEvents(boolean fwexp, int fwtype, boolean buexp, int butype, boolean sexp, int stype, Bundle bunX, ServiceReference<?> servX) {
     boolean listenState = true;	// assume everything will work
 
-    if (fwexp == true) {
+    if (fwexp) {
       if (fListen.getEvent() != null) {
 	if (fListen.getEvent().getType() != fwtype || fListen.getEvent().getBundle() != bunX) {
 	  System.out.println("framework test bundle, wrong type of framework event/bundle : " +  fListen.getEvent().getType());
@@ -991,7 +988,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
       }
     }
 
-    if (buexp == true) {
+    if (buexp) {
       if (bListen.getEvent() != null) {
 	if (bListen.getEvent().getType() != butype || bListen.getEvent().getBundle() != bunX) {
 	  System.out.println("framework test bundle, wrong type of bundle event/bundle: " +  bListen.getEvent().getType());
@@ -1013,7 +1010,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
     }
 
 
-    if (sexp == true) {
+    if (sexp) {
       if (sListen.getEvent() != null) {
 	if (servX != null) {
 	  if (sListen.getEvent().getType() != stype || servX != sListen.getEvent().getServiceReference() ) {
@@ -1072,9 +1069,10 @@ public class PermissionAdminTestSuite extends TestSuite  {
 
 
   // to access test service methods via reflection 
-  private void bundleLoad (Object _out, ServiceReference sr, String bundle) {
+  private void bundleLoad(ServiceReference<?> sr, String bundle) {
     Method m;
-    Class c, parameters[];
+    Class<?> c;
+    Class<?>[] parameters;
 
     Object obj1 = bc.getService(sr);
     // System.out.println("servref  = "+ sr);
@@ -1114,18 +1112,12 @@ public class PermissionAdminTestSuite extends TestSuite  {
     events.addElement(new devEvent(device, method, value));
   }
 
-  class devEvent {
+  static class devEvent {
     String dev;
     String met;
     int val;
 
     public devEvent (String dev, String met , Integer val) {
-      this.dev = dev;
-      this.met = met;
-      this.val = val.intValue();
-    }
-
-    public devEvent (String dev, String met , int val) {
       this.dev = dev;
       this.met = met;
       this.val = val;
@@ -1145,20 +1137,20 @@ public class PermissionAdminTestSuite extends TestSuite  {
 
   }
 
-  private boolean checkEvents(Object _out, Vector expevents, Vector events) {
+  private boolean checkEvents(Vector<devEvent> expevents, Vector<devEvent> events) {
     boolean state = true;
     if (events.size() != expevents.size()) {
       state = false;
       out.println("Real events");
       for (int i = 0; i< events.size() ; i++) {
-	devEvent dee = (devEvent) events.elementAt(i);
+	devEvent dee = events.elementAt(i);
 	out.print("Bundle " + dee.getDevice());
 	out.print(" Method " + dee.getMethod());
 	out.println(" Value " + dee.getValue());
       }
       out.println("Expected events");
       for (int i = 0; i< expevents.size() ; i++) {
-	devEvent dee = (devEvent) expevents.elementAt(i);
+	devEvent dee = expevents.elementAt(i);
 	out.print("Bundle " + dee.getDevice());
 	out.print(" Method " + dee.getMethod());
 	out.println(" Value " + dee.getValue());
@@ -1166,8 +1158,8 @@ public class PermissionAdminTestSuite extends TestSuite  {
     }
     else {
       for (int i = 0; i< events.size() ; i++) {
-	devEvent dee = (devEvent) events.elementAt(i);
-	devEvent exp = (devEvent) expevents.elementAt(i);
+	devEvent dee = events.elementAt(i);
+	devEvent exp = expevents.elementAt(i);
 	if (!(dee.getDevice().equals(exp.getDevice()) && dee.getMethod().equals(exp.getMethod()) && dee.getValue() == exp.getValue())) {
 	  out.println("Event no = " + i);
 	  if (!(dee.getDevice().equals(exp.getDevice()))) {
@@ -1188,7 +1180,8 @@ public class PermissionAdminTestSuite extends TestSuite  {
 
   // General printout of PermissionInfo
 
-  private void printPermission(Object _out, PermissionInfo pi) {
+  private void printPermission(PermissionInfo pi) {
+    //noinspection StringBufferReplaceableByString
     StringBuilder sb1 = new StringBuilder();
 
     sb1.append("ENCODED: ");
@@ -1211,13 +1204,13 @@ public class PermissionAdminTestSuite extends TestSuite  {
 
   // Condensed printout of PermissionInfo
 
-  private void printPermissionShort (Object _out, PermissionInfo pi) {
+  private void printPermissionShort(PermissionInfo pi) {
     out.println("  ENCODED: " + pi.getEncoded());
   }
 
   // Check that the expected implications occur 
-  public boolean implyCheck (Object _out, boolean expected, Permission p1, Permission p2) {
-    boolean result = true;
+  public boolean implyCheck(boolean expected, Permission p1, Permission p2) {
+    boolean result;
     if (p1.implies(p2) == expected) {
       result = true;
     } else {
@@ -1232,8 +1225,8 @@ public class PermissionAdminTestSuite extends TestSuite  {
     return result;
   }
 
-  public boolean implyCheck (Object _out, boolean expected, PermissionCollection p1, Permission p2) {
-    boolean result = true;
+  public boolean implyCheck(boolean expected, PermissionCollection p1, Permission p2) {
+    boolean result;
     if (p1.implies(p2) == expected) {
       result = true;
     } else {
@@ -1254,7 +1247,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
 
   // So that other bundles in the test may get the base url
 
-  class FrameworkListener implements org.osgi.framework.FrameworkListener {
+  static class FrameworkListener implements org.osgi.framework.FrameworkListener {
     FrameworkEvent fwe;
     public void frameworkEvent(FrameworkEvent evt) {
       this.fwe = evt;
@@ -1268,7 +1261,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
     }
   }
   
-  class ServiceListener implements org.osgi.framework.ServiceListener {
+  static class ServiceListener implements org.osgi.framework.ServiceListener {
     ServiceEvent serve = null;
     public void serviceChanged(ServiceEvent evt) {
       this.serve = evt;
@@ -1283,7 +1276,7 @@ public class PermissionAdminTestSuite extends TestSuite  {
     
   }
   
-  class BundleListener implements org.osgi.framework.BundleListener {
+  static class BundleListener implements org.osgi.framework.BundleListener {
     BundleEvent bunEvent = null;
     
     public void bundleChanged (BundleEvent evt) {

@@ -80,14 +80,14 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
     /* add the setup */
     addTest(new Setup());
     /* add the event consumer to the test suite */
-    EventConsumer eventConsumer = new EventConsumer(bundleContext,
-                                                    scenario1_topics,
+    EventConsumer eventConsumer = new EventConsumer(
+        scenario1_topics,
                                                     "Scenario 1 EventConsumer",
                                                     1);
     addTest(eventConsumer);
     /* add the event publisher to the test suite */
     addTest(new EventPublisher(bundleContext, "Scenario 1 EventPublisher",
-                               1, MESSAGES_SENT));
+        1, MESSAGES_SENT));
     /* add the cleanup class */
     addTest(new Cleanup(eventConsumer));
 
@@ -98,7 +98,7 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
    *
    *@author Magnus Klack
    */
-  class Setup extends TestCase {
+  static class Setup extends TestCase {
     public Setup(){
 
     }
@@ -151,11 +151,7 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
    *
    * @author Magnus Klack
    */
-  class EventPublisher extends TestCase {
-
-    /** A reference to a service */
-    private ServiceReference serviceReference;
-
+  static class EventPublisher extends TestCase {
     /** The admin which delivers the events */
     private EventAdmin eventAdmin;
 
@@ -177,21 +173,16 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
 
     public void runTest() throws Throwable {
       /* Claims the reference of the EventAdmin Service */
-      serviceReference = bundleContext
-        .getServiceReference(EventAdmin.class.getName());
+      ServiceReference<EventAdmin> serviceReference = bundleContext
+          .getServiceReference(EventAdmin.class);
 
       /* assert that a reference is aquired */
       assertNotNull(getName()
                     + " Should be able to get reference to EventAdmin service",
-                    serviceReference);
-      /* check the service reference */
-      if (serviceReference == null) {
-        /* set fail */
-        fail(getName() + " service reference should not be null");
-      }
+          serviceReference);
 
       /* get the service  */
-      eventAdmin = (EventAdmin) bundleContext
+      eventAdmin = bundleContext
         .getService(serviceReference);
 
       /* assert that service is available */
@@ -199,29 +190,19 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
                     + " Should be able to get instance to EventAdmin object",
                     eventAdmin);
 
-      /* check if null */
-      if (eventAdmin == null) {
-        /* set a fail */
-        fail(getName() + " event admin should not be null");
-      }
-
       /* create an anonymous thread */
-      Thread synchDeliver = new Thread() {
-          public void run() {
-            /* deliver the messages */
-            for (int i = 0; i < messageTosend; i++) {
-              /* a Hash table to store message in */
-              Dictionary message = new Hashtable();
-              /* put some properties into the messages */
-              message.put("Synchronus message",new Integer(i));
-              /* send the message */
-              eventAdmin.sendEvent(new Event("com/acme/timer", message));
+      Thread synchDeliver = new Thread(() -> {
+        /* deliver the messages */
+        for (int i = 0; i < messageTosend; i++) {
+          /* a Hash table to store message in */
+          Dictionary<String, Object> message = new Hashtable<>();
+          /* put some properties into the messages */
+          message.put("Synchronus message", i);
+          /* send the message */
+          eventAdmin.sendEvent(new Event("com/acme/timer", message));
 
-            }
-          }
-
-
-        };
+        }
+      });
 
       /* print that the test has started */
       System.out.println("Testing synchronus delivery");
@@ -231,22 +212,17 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
       /* wait until thread is dead */
       synchDeliver.join();
 
-      Thread asynchDeliver = new Thread() {
-          public void run() {
+      Thread asynchDeliver = new Thread(() -> {
+        for (int i = 0; i < messageTosend; i++) {
+          /* create the hashtable */
+          Dictionary<String, Object> message = new Hashtable<>();
+          /* create the message */
+          message.put("Asynchronus message", i);
+          /* Sends a synchronous event to the admin */
+          eventAdmin.postEvent(new Event("com/acme/timer", message));
 
-            for (int i = 0; i < messageTosend; i++) {
-              /* create the hasht table */
-              Dictionary message = new Hashtable();
-              /* create the message */
-              message.put("Asynchronus message",new Integer(i));
-              /* Sends a synchronous event to the admin */
-              eventAdmin.postEvent(new Event("com/acme/timer", message));
-
-            }
-          }
-
-
-        };
+        }
+      });
       /* print that the test has started */
       System.out.println("Testing asynchronus delivery");
       /* start the test */
@@ -270,7 +246,7 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
    */
   class EventConsumer extends TestCase implements EventHandler {
     /** class variable for service registration */
-    private ServiceRegistration serviceRegistration;
+    private ServiceRegistration<EventHandler> serviceRegistration;
 
     /** class variable indicating the topics */
     private String[] topicsToConsume;
@@ -291,12 +267,8 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
 
     /**
      * Constructor creates a consumer service
-     *
-     * @param bundleContext
-     * @param topics
      */
-    public EventConsumer(BundleContext bundleContext, String[] topics,
-                         String name, int id) {
+    public EventConsumer(String[] topics, String name, int id) {
       /* call super class */
       super(name + ":" + id);
       /* assign the consume topics */
@@ -314,21 +286,16 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
       asynchMessageExpectedNumber=0;
 
       /* create the hashtable to put properties in */
-      Dictionary props = new Hashtable();
+      Dictionary<String, Object> props = new Hashtable<>();
       /* put service.pid property in hashtable */
       props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
       /* register the service */
       serviceRegistration = bundleContext
-        .registerService(EventHandler.class.getName(), this, props);
+        .registerService(EventHandler.class, this, props);
 
       assertNotNull(getName()
                     + " service registration should not be null",
                     serviceRegistration);
-
-      if (serviceRegistration == null) {
-        fail("Could not get Service Registration ");
-      }
-
     }
 
     public void cleanup() throws Throwable {
@@ -344,7 +311,7 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
                  MESSAGES_SENT == asynchMessageExpectedNumber);
     }
 
-    public void reset(){
+    public void reset() {
       numOfasynchMessages=0;
       numOfsynchMessages=0;
       synchMessageExpectedNumber=0;
@@ -366,7 +333,7 @@ public class Scenario1TestSuite extends TestSuite implements Scenario1 {
           = new TopicPermission("com/acme/*","subscribe");
 
         assertTrue(getName() +"Should not recevice this topic:"
-                   +(String)event.getProperty(EventConstants.EVENT_TOPIC),
+                   + event.getProperty(EventConstants.EVENT_TOPIC),
                    actualPermission.implies(permissionAquired));
 
         Object message;

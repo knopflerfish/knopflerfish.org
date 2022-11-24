@@ -1,15 +1,35 @@
 /*
- * @(#)Activator.java        1.0 2005/06/28
- *
- * Copyright (c) 2003-2005 Gatespace telematics AB
- * Otterhallegatan 2, 41670,Gothenburgh, Sweden.
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
- * This software is the confidential and proprietary information of
- * Gatespace telematics AB. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Gatespace telematics AB.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.knopflerfish.bundle.eventadmin_test;
 
@@ -17,7 +37,6 @@ import java.util.Hashtable;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
 import org.knopflerfish.bundle.eventadmin_test.scenario1.impl.Scenario1TestSuite;
 import org.knopflerfish.bundle.eventadmin_test.scenario2.impl.Scenario2TestSuite;
@@ -36,7 +55,7 @@ import org.knopflerfish.bundle.eventadmin_test.scenario14.impl.Scenario14TestSui
 import junit.framework.*;
 
 /**
- * Entry class for the Scenario 1 test case specified in test specifiacation for
+ * Entry class for the Scenario 1 test case specified in test specification for
  * EventAdmin service feature.
  *
  * IMPORTANT! This test require the eventadmin service to be installed and
@@ -52,7 +71,7 @@ public class Activator implements BundleActivator {
      * @param context
      *            the bundle context, i.e, the handle to framework
      */
-    public void start(BundleContext context) throws Exception {
+    public void start(BundleContext context) {
         /* create the All tests suite */
          TestSuite testSuiteAllTests = new TestSuite("EventAdminTestSuite");
 
@@ -84,11 +103,11 @@ public class Activator implements BundleActivator {
         testSuiteAllTests.addTest(testSuiteScenario14);
 
         /* create the hashtable to put properties in */
-        Hashtable props = new Hashtable();
+        Hashtable<String, Object> props = new Hashtable<>();
         /* put service.pid property in hashtable */
         props.put("service.pid", testSuiteAllTests.getName());
         /* register service with the suite for all tests */
-        ServiceRegistration serviceRegistration = context.registerService(
+        context.registerService(
                 TestSuite.class.getName(), testSuiteAllTests, props);
 
     }
@@ -99,6 +118,6 @@ public class Activator implements BundleActivator {
      * @param context
      *            the bundle context
      */
-    public void stop(BundleContext context) throws Exception {
+    public void stop(BundleContext context) {
     }
 }

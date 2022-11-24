@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,10 @@
  */
 package org.knopflerfish.bundle.eventadmin_test.scenario4.impl;
 
-import java.util.Calendar;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
@@ -95,15 +93,15 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
     addTest(new Setup());
     /* add the event consumers to the test suite */
     EventConsumer[] eventConsumer = new EventConsumer[] {
-      new EventConsumer(bundleContext, scenario4_topics1,
+      new EventConsumer(scenario4_topics1,
                         1, 1, scenario4_filter1, "Scenario 4 EventConsumer1", 4),
-      new EventConsumer(bundleContext, scenario4_topics1,
+      new EventConsumer(scenario4_topics1,
                         2, 2, scenario4_filter2, "Scenario 4 EventConsumer2", 4),
-      new EventConsumer(bundleContext, scenario4_topics1,
+      new EventConsumer(scenario4_topics1,
                         0, 0, scenario4_filter3, "Scenario 4 EventConsumer3", 4),
-      new EventConsumer(bundleContext, scenario4_topics1,
+      new EventConsumer(scenario4_topics1,
                         3, 3, scenario4_filter4, "Scenario 4 EventConsumer4", 4),
-      new EventConsumer(bundleContext, scenario4_topics1,
+      new EventConsumer(scenario4_topics1,
                         2, 2, scenario4_filter5, "Scenario 4 EventConsumer5", 4) };
     addTest(eventConsumer[0]);
     addTest(eventConsumer[1]);
@@ -113,11 +111,11 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 
     /* add the event publisher to the test suite */
     addTest(new EventPublisher(bundleContext, "Scenario 4 EventPublisher1",
-                               "com/acme/timer", keysAndProps1, 4, 1));
+        "com/acme/timer", keysAndProps1, 4, 1));
     addTest(new EventPublisher(bundleContext, "Scenario 4 EventPublisher2",
-                               "com/acme/timer", keysAndProps2, 4, 1));
+        "com/acme/timer", keysAndProps2, 4, 1));
     addTest(new EventPublisher(bundleContext, "Scenario 4 EventPublisher3",
-                               "com/acme/timer", keysAndProps3, 4, 1));
+        "com/acme/timer", keysAndProps3, 4, 1));
     /* add the cleanup class */
     addTest(new Cleanup(eventConsumer));
   }
@@ -127,7 +125,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
    *
    *@author Magnus Klack
    */
-  class Setup extends TestCase {
+  static class Setup extends TestCase {
     public Setup(){
 
     }
@@ -160,9 +158,9 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
     }
     public void runTest() throws Throwable {
       Throwable error = null;
-      for (int i=0; i<eventConsumer.length; i++) {
+      for (EventConsumer consumer : eventConsumer) {
         try {
-          eventConsumer[i].cleanup();
+          consumer.cleanup();
         } catch (Throwable e) {
           error = e;
         }
@@ -183,20 +181,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
   }
 
 
-  class EventPublisher extends TestCase {
-
-    /** A reference to a service */
-    private ServiceReference serviceReference;
-
-    /** The admin which delivers the events */
-    private EventAdmin eventAdmin;
-
-    /** A calendar used to get the system time */
-    private Calendar calendar;
-
-    /** a variable indicating if the publisher is running */
-    private boolean running;
-
+  static class EventPublisher extends TestCase {
     /** class variable holding bundle context */
     private BundleContext bundleContext;
 
@@ -225,30 +210,22 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 
     public void runTest() throws Throwable {
       /* Claims the reference of the EventAdmin Service */
-      serviceReference = bundleContext
-        .getServiceReference(EventAdmin.class.getName());
+      ServiceReference<EventAdmin> serviceReference = bundleContext
+          .getServiceReference(EventAdmin.class);
 
       /* assert that a reference is aquired */
       assertNotNull(getName()
                     + " Should be able to get reference to EventAdmin service",
-                    serviceReference);
+          serviceReference);
 
-      if (serviceReference == null) {
-        fail(getName() + " service reference should not be null");
-      }
+      EventAdmin eventAdmin = bundleContext.getService(serviceReference);
 
-      eventAdmin = (EventAdmin) bundleContext
-        .getService(serviceReference);
-
-      assertNotNull(getName()
-                    + " Should be able to get instance to EventAdmin object");
-
-      if (eventAdmin == null) {
-        fail(getName() + " event admin should not be null");
-      }
+      assertNotNull(
+          getName() + " Should be able to get instance to EventAdmin object",
+          eventAdmin);
 
       /* a Hash table to store message in */
-      Dictionary message = new Hashtable();
+      Dictionary<String, Object> message = new Hashtable<>();
       for(int j = 0; j < propertiesToSend.length; j += 2) {
         /*fill the propstable*/
         System.out.println("Adding the following to the propsTable:" + propertiesToSend[j] + " and " + propertiesToSend[j+1]);
@@ -256,7 +233,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
       }
 
       for (int i = 0; i < messageTosend; i++) {
-        message.put("Synchronus message",new Integer(i));
+        message.put("Synchronus message", i);
         /* test print out */
         System.out.println(getName() + " sending a Synchronus event with message:" +
                            message.toString() + "and the topic:" + topicToSend);
@@ -266,7 +243,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 
 
       /* a Hash table to store message in */
-      message = new Hashtable();
+      message = new Hashtable<>();
       for(int j = 0; j < propertiesToSend.length;  j += 2) {
         /*fill the propstable*/
         System.out.println("Adding the following to the propsTable:" + propertiesToSend[j] + " and " + propertiesToSend[j+1]);
@@ -274,7 +251,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
       }
 
       for (int i = 0; i < messageTosend; i++) {
-        message.put("Asynchronus message",new Integer(i));
+        message.put("Asynchronus message", i);
         /* test print out */
         System.out.println(getName() + " sending an Asynchronus event with message:" +
                            message.toString() + "and the topic:" + topicToSend);
@@ -287,10 +264,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 
   class EventConsumer extends TestCase implements EventHandler {
     /** class variable for service registration */
-    private ServiceRegistration serviceRegistration;
-
-    /** class variable indicating the instance name */
-    private int instanceId;
+    private ServiceRegistration<EventHandler> serviceRegistration;
 
     /** class variable indicating the topics */
     private String[] topicsToConsume;
@@ -317,17 +291,12 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
 
     /**
      * Constructor creates a consumer service
-     *
-     * @param bundleContext
-     * @param topics
      */
-    public EventConsumer(BundleContext bundleContext, String[] topics,
+    public EventConsumer(String[] topics,
                          int numSyncMsg, int numAsyncMsg, String filter, String name,
                          int id) {
       /* call super class */
       super(name + ":" + id);
-      /* assign the instance id */
-      instanceId = id;
       /* assign the consume topics */
       topicsToConsume = topics;
       /* assign the consume filter */
@@ -344,7 +313,7 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
       synchMessages=0;
       unidentMessages=0;
       /* create the hashtable to put properties in */
-      Dictionary props = new Hashtable();
+      Dictionary<String, Object> props = new Hashtable<>();
       /* put service.pid property in hashtable */
       props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
       /*if the filter to consume isn't null */
@@ -354,16 +323,11 @@ public class Scenario4TestSuite extends TestSuite implements Scenario4 {
       }
 
       /* register the service */
-      serviceRegistration = bundleContext.registerService(
-                                                          EventHandler.class.getName(), this, props);
+      serviceRegistration = bundleContext.registerService(EventHandler.class, this, props);
 
       assertNotNull(getName()
                     + " service registration should not be null",
                     serviceRegistration);
-
-      if (serviceRegistration == null) {
-        fail("Could not get Service Registration ");
-      }
     }
 
     public void cleanup() throws Throwable {

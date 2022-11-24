@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,15 +33,20 @@
  */
 
 package org.knopflerfish.bundle.bundleEnd7_test;
+
 import java.util.Hashtable;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.bundleEnd7_test.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+
+import org.knopflerfish.service.bundleEnd7_test.Control;
+import org.knopflerfish.service.bundleEnd7_test.PhonyFactoryService7;
+import org.knopflerfish.service.bundleEnd7_test.PhonyService7;
 
 class ControlImpl implements Control {
   private BundleContext bc;
-  private ServiceRegistration reg;
-  private ServiceRegistration factReg;
+  private ServiceRegistration<PhonyService7> reg;
+  private ServiceRegistration<PhonyFactoryService7> factReg;
 
   ControlImpl(BundleContext bc) {
     this.bc = bc;
@@ -49,8 +54,8 @@ class ControlImpl implements Control {
   
   public void register() {
     reg = 
-      bc.registerService(PhonyService7.class.getName(), 
-          new PhonyService7(), new Hashtable());
+      bc.registerService(PhonyService7.class,
+          new PhonyService7(), new Hashtable<>());
   }
 
   public void unregister() {
@@ -58,8 +63,8 @@ class ControlImpl implements Control {
   }
   
   public void registerFactory() {
-    factReg = bc.registerService(PhonyFactoryService7.class.getName(),
-        new PhonyFactoryService7(), new Hashtable());
+    factReg = bc.registerService(PhonyFactoryService7.class,
+        new PhonyFactoryService7(), new Hashtable<>());
   }
   
   public void unregisterFactory() {

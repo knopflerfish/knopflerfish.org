@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,7 @@
 
 package org.knopflerfish.bundle.bundleA_test;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.bundleA_test.*;
+import org.osgi.framework.BundleContext;
 
 /*
    The start method tries to install the bundle(s) needed to do the test
@@ -49,7 +48,6 @@ import org.knopflerfish.service.bundleA_test.*;
 
 public class BundleActivator implements org.osgi.framework.BundleActivator {
   // String thisServiceName = "org.knopflerfish.service.bundleA.BundleA";
-  ServiceRegistration sr;
   BundleContext bc;
   BundA s;
 

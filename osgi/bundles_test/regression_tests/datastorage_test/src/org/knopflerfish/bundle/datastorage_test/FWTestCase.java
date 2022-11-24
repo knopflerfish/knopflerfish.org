@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,17 @@
 
 package org.knopflerfish.bundle.datastorage_test;
 
-import junit.framework.*;
+import junit.framework.TestCase;
 
 public class FWTestCase
-  extends TestCase
-{
+    extends TestCase {
   public String getName() {
     String name = getClass().getName();
     int ix = name.lastIndexOf("$");
-    if(ix == -1) {
+    if (ix == -1) {
       ix = name.lastIndexOf(".");
     }
-    if(ix != -1) {
+    if (ix != -1) {
       name = name.substring(ix + 1);
     }
     return name;

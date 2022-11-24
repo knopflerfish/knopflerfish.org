@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 KNOPFLERFISH project
+ * Copyright (c) 2015-2022 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,7 @@ import org.knopflerfish.bundle.http_servlet_test.HttpTestServlet;
 import junit.framework.TestCase;
 
 /**
- * Test suite for verifying correctnes of HTTP POST bodies
- * 
+ * Test suite for verifying correctness of HTTP POST bodies
  */
 public class PostRequestTests extends TestCase {
   private HttpServletRequest request;
@@ -66,7 +65,7 @@ public class PostRequestTests extends TestCase {
       
       ByteArrayOutputStream baos = new ByteArrayOutputStream(len);
       
-      byte buf[] = new byte[256];
+      byte[] buf = new byte[256];
       int n;
       int toRead = len;
       

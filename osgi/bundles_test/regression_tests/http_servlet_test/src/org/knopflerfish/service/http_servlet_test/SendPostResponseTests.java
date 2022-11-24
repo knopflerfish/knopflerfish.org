@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 KNOPFLERFISH project
+ * Copyright (c) 2015-2022 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,8 +51,6 @@ import org.knopflerfish.bundle.http_servlet_test.HttpTestServlet;
 public class SendPostResponseTests extends TestCase
 {
   private HttpServletResponse response;
-  boolean isCommitted = false;
-  int bufferSize;
 
   public SendPostResponseTests() {
     super();

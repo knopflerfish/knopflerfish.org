@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,18 +33,20 @@
  */
 
 package org.knopflerfish.bundle.bundleEnd102_test;
+
 import java.util.Hashtable;
 
-import org.osgi.framework.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 
-import org.knopflerfish.service.bundleEnd102_test.*;
+import org.knopflerfish.service.bundleEnd102_test.Control102;
 
 public class Activator implements BundleActivator {
   
-  public void start(BundleContext bc) throws Exception {
+  public void start(BundleContext bc) {
     bc.registerService(Control102.class.getName(), 
                        new Control102Impl(bc), 
-                       new Hashtable());
+                       new Hashtable<>());
   }
 
   public void stop(BundleContext bc) {

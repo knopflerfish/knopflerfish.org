@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,11 +40,11 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.ServiceReference;
 
-import org.knopflerfish.service.bundleEnd7_test.*;
+import org.knopflerfish.service.bundleEnd7_test.Control;
 
 class Test7 implements EnduranceTest {
 
-  private static int NUM_LISTENERS = 1000;
+  private static final int NUM_LISTENERS = 1000;
   private BundleContext bc;
   private Bundle bundle;
   
@@ -53,7 +53,7 @@ class Test7 implements EnduranceTest {
   }
   
   public void prepare() {
-    ServiceReference ref = bc.getServiceReference(Control.class.getName());
+    ServiceReference<Control> ref = bc.getServiceReference(Control.class);
     bundle = ref.getBundle();
   }
   

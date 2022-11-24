@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,13 @@
 
 package org.knopflerfish.bundle.startlevel_test;
 
-import java.util.*;
-import java.io.*;
-import java.net.*;
-import org.osgi.framework.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
 /**
  * Misc static utility methods.
@@ -75,7 +78,6 @@ public class Util {
    *
    * @param bc context owning both resources and to install bundle from
    * @param resource resource name of bundle jar file
-   * @return the installed bundle
    * @throws BundleException if no such resource is found or if
    *                         installation fails.
    */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,26 +34,25 @@
 
 package org.knopflerfish.bundle.datastorage_test;
 
-import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
+
+import junit.framework.Assert;
+import junit.framework.TestSuite;
 
 import com.google.gson.reflect.TypeToken;
 
-import org.osgi.framework.*;
-
-import org.knopflerfish.service.datastorage.DataStorage;
 import org.knopflerfish.service.datastorage.DataStorageNode;
 import org.knopflerfish.service.datastorage.DataStorageService;
-// import org.knopflerfish.service.datastorage.JsonNode;
 import org.knopflerfish.service.datastorage.JsonStorage;
 import org.knopflerfish.service.datastorage.JsonStorageNode;
 import org.knopflerfish.service.datastorage.JsonGenericStorageNode;
 
-import junit.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 public class DatastorageTestSuite
   extends TestSuite
@@ -62,8 +61,6 @@ public class DatastorageTestSuite
   BundleContext bc;
   ServiceReference<DataStorageService> dataStorageSR;
   DataStorageService storageService;
-
-  final PrintStream out = System.out;
 
   public DatastorageTestSuite(BundleContext bc) {
     super ("DataStorageTestSuite");
@@ -83,9 +80,7 @@ public class DatastorageTestSuite
 
   // Get the Preferences Service.
   class Setup extends FWTestCase {
-    public void runTest()
-      throws Throwable
-    {
+    public void runTest() {
       assertNotNull("No bundle context...", bc);
 
       dataStorageSR =   bc.getServiceReference(DataStorageService.class);
@@ -98,9 +93,7 @@ public class DatastorageTestSuite
 
   // Unget the Preferences Service.
   class Cleanup extends FWTestCase {
-    public void runTest()
-      throws Throwable
-    {
+    public void runTest() {
       storageService = null;
       if (dataStorageSR != null)
         bc.ungetService(dataStorageSR);
@@ -110,7 +103,7 @@ public class DatastorageTestSuite
 
   public class DataStorageTestCreateRead extends FWTestCase {
 
-    public void runTest() throws Throwable  {
+    public void runTest() {
       assertNotNull(storageService);
 
       final JsonStorage jsonStorage = storageService.getJsonStorage();
@@ -133,7 +126,7 @@ public class DatastorageTestSuite
 
   public class DataStorageNodeTests extends FWTestCase {
 
-    public void runTest() throws Throwable  {
+    public void runTest() {
       assertNotNull(storageService);
 
       final JsonStorage jsonStorage = storageService.getJsonStorage();
@@ -162,7 +155,7 @@ public class DatastorageTestSuite
       assertEquals(testDTO.value, t2.value);
       
       // Test for children and removing them
-      HashMap<String, String> expectedChildren = new HashMap<String,String>();
+      HashMap<String, String> expectedChildren = new HashMap<>();
       expectedChildren.put("fish", "fish");
       expectedChildren.put("knopfler", "knopfler");
       testChildren(jn1, expectedChildren);
@@ -180,7 +173,7 @@ public class DatastorageTestSuite
   
   public class JsonNodeTestsCreate extends FWTestCase {
 
-    public void runTest() throws Throwable  {
+    public void runTest() {
       assertNotNull(storageService);
       
       final JsonStorage jsonStorage = storageService.getJsonStorage();
@@ -192,7 +185,6 @@ public class DatastorageTestSuite
       JsonStorageNode<SimpleDTO> jn2 = jsonStorage.getNode("/foo/bar2/simple", SimpleDTO.class);
       assertNotNull(jn2);
 
-      Type genericDTOType = new TypeToken<GenericDTO>() {}.getType();
       JsonStorageNode<GenericDTO> jn3 = jsonStorage.getNode("/foo/bar2/generic", GenericDTO.class);
       assertNotNull(jn3);
       
@@ -203,8 +195,8 @@ public class DatastorageTestSuite
       
       GenericDTO genericDTO = new GenericDTO();
       genericDTO.id = 1999;
-      genericDTO.mappings = new HashMap<String, Integer>();
-      genericDTO.mappings.put("alfa", new Integer(1));
+      genericDTO.mappings = new HashMap<>();
+      genericDTO.mappings.put("alfa", 1);
       genericDTO.desc = "A little generic DTO";
       
     
@@ -218,7 +210,7 @@ public class DatastorageTestSuite
   
   public class JsonNodeTestsRead extends FWTestCase {
 
-    public void runTest() throws Throwable  {
+    public void runTest() {
       assertNotNull(storageService);
       
       final JsonStorage jsonStorage = storageService.getJsonStorage();
@@ -236,7 +228,6 @@ public class DatastorageTestSuite
       assertEquals("simple", testDTO.value);
       
       GenericDTO genericDTO;
-      Type genericDTOType = new TypeToken<GenericDTO>() {}.getType();
       genericDTO = jn3.get();
       
       assertEquals(1999, genericDTO.id);
@@ -248,7 +239,7 @@ public class DatastorageTestSuite
   
   public class JsonNodeTestsListOfDTO extends FWTestCase {
 
-    public void runTest() throws Throwable  {
+    public void runTest() {
       assertNotNull(storageService);
       
       final JsonStorage jsonStorage = storageService.getJsonStorage();
@@ -259,7 +250,7 @@ public class DatastorageTestSuite
       JsonGenericStorageNode<ArrayList<SimpleDTO>> jnode = jsonStorage.getNode("/foo/dtolist", dtoListType);
       assertNotNull(jnode);
 
-      ArrayList<SimpleDTO> dtolist = new ArrayList<SimpleDTO>();
+      ArrayList<SimpleDTO> dtolist = new ArrayList<>();
       
       for (int i = 0; i < 5; i++) {
         dtolist.add(getSimpleDTO(i, "value - " + i));

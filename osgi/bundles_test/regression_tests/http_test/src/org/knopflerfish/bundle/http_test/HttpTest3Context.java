@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,25 +34,12 @@
 
 package org.knopflerfish.bundle.http_test;
 
-import org.knopflerfish.service.http_test.*;
+import java.net.URL;
 
-import java.util.*;
-import java.net.*;
-import org.osgi.framework.*;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import javax.servlet.http.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.osgi.service.http.*;
 import org.osgi.service.http.HttpContext;
 
 public class HttpTest3Context implements HttpContext {
-  String name;
   boolean security = true;
-
-  public HttpTest3Context () { }
 
   public String getMimeType(String name) {
     return null;  
@@ -67,7 +54,7 @@ public class HttpTest3Context implements HttpContext {
 
   public boolean handleSecurity(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) {
     /* Set response status */
-    if (security == false) {
+    if (!security) {
        response.setStatus(403);
     }
     return security;

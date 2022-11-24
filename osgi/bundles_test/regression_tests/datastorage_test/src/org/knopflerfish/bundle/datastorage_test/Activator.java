@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,12 @@
 
 package org.knopflerfish.bundle.datastorage_test;
 
-import java.util.*;
-import org.osgi.framework.*;
+import java.util.Hashtable;
+
 import junit.framework.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 public class Activator
   implements BundleActivator

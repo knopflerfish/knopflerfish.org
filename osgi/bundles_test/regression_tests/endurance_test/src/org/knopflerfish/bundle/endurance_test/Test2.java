@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,8 +56,8 @@ class Test2 implements EnduranceTest {
   }
 
   public boolean runTest() {
-    ServiceReference ref = 
-      bc.getServiceReference("org.knopflerfish.service.bundleEnd5_test.PhonyService");
+    ServiceReference<?> ref =
+        bc.getServiceReference("org.knopflerfish.service.bundleEnd5_test.PhonyService");
     bc.getService(ref);
     bc.ungetService(ref);
     return true;

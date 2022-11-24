@@ -66,8 +66,6 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
 
   PrintStream out = System.out;
 
-  static final String buB_package = "test_rb.B";
-
   public RequireBundleTestSuite (BundleContext bc) {
     super("RequireBundleTestSuite");
     this.bc = bc;
@@ -83,7 +81,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
-  class FWTestCase extends TestCase {
+  static class FWTestCase extends TestCase {
 
     public String getName() {
       String name = getClass().getName();
@@ -101,9 +99,9 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
   class Setup extends FWTestCase {
     public void runTest() throws Throwable {
       // Looks up the package admin service and installs the test target bundles
-      ServiceReference paSR = bc.getServiceReference
-        (org.osgi.service.packageadmin.PackageAdmin.class.getName());
-      PackageAdmin pa = (PackageAdmin)bc.getService(paSR);
+      ServiceReference<PackageAdmin> paSR = bc.getServiceReference
+        (org.osgi.service.packageadmin.PackageAdmin.class);
+      PackageAdmin pa = bc.getService(paSR);
       if (pa == null) {
         fail("Failed to get PackageAdmin service");
       }
@@ -140,9 +138,11 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
         buD,
         buCc
       };
-      for(int i = 0; i < bundles.length; i++) {
-        try {  bundles[i].uninstall();  }
-        catch (Exception ignored) { }
+      for (Bundle bundle : bundles) {
+        try {
+          bundle.uninstall();
+        } catch (Exception ignored) {
+        }
       }
 
       buA = null;
@@ -154,6 +154,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME400A =  {
     "Check that the require bundle directives visibility and resolution works"
   };
@@ -181,6 +182,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME410A =  {
     "Split packages via require bundle directive."
   };
@@ -208,22 +210,21 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
       // Check that bC has registered 3 services instanciating
       // classes via both the require-bundle packages and the imported
       // package from bC that is split over bC and bD.
-      Map expected = new HashMap();
+      Map<String, String> expected = new HashMap<>();
       expected.put("C.C","Class test_rb.C.C from bundle C.");
       expected.put("C.D","Class test_rb.C.D from bundle D.");
       expected.put("D.D","Class test_rb.D.D from bundle D.");
       try {
-        ServiceReference[] srs
+        ServiceReference<?>[] srs
           = bc.getServiceReferences(Object.class.getName(),
                                     "(test_rb=*)");
         assertEquals("Found correct number of services",3,srs.length);
-        for (int i=0; i<srs.length; i++) {
-          ServiceReference sr = srs[i];
-          String name   = (String) sr.getProperty("test_rb");
-          String value  = (String) sr.getProperty("toString");
-          String answer = (String) expected.remove(name);
-          String msg    = "Value of toString for "+name
-            +" expected '" +answer +"' was '" +value +"'.";
+        for (ServiceReference<?> sr : srs) {
+          String name = (String) sr.getProperty("test_rb");
+          String value = (String) sr.getProperty("toString");
+          String answer = expected.remove(name);
+          String msg = "Value of toString for " + name
+              + " expected '" + answer + "' was '" + value + "'.";
           assertEquals(msg, answer, value);
         }
         out.println("Unused expected keys: " +expected);
@@ -236,6 +237,7 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME420A =  {
     "Refresh of required bundle."
   };
@@ -261,9 +263,9 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
       }
 
       try {
-        ServiceReference paSR = bc.getServiceReference
-          (org.osgi.service.packageadmin.PackageAdmin.class.getName());
-        PackageAdmin pa = (PackageAdmin)bc.getService(paSR);
+        ServiceReference<PackageAdmin> paSR = bc.getServiceReference
+          (org.osgi.service.packageadmin.PackageAdmin.class);
+        PackageAdmin pa = bc.getService(paSR);
         if (pa == null) {
           fail("Failed to get PackageAdmin service");
         }
@@ -289,20 +291,19 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
         assertTrue("RequiredBundle removal pending",!rbs[0].isRemovalPending());
         Bundle[] dUsers = rbs[0].getRequiringBundles();
         StringBuilder sb = new StringBuilder(buD +" is required by ");
-        for (int i=0; i<dUsers.length; i++) {
-          sb.append(" ").append(dUsers[i].toString());
+        for (Bundle dUser : dUsers) {
+          sb.append(" ").append(dUser.toString());
         }
         out.println(sb.toString());
         assertEquals("Number of bundles requiring D",2,dUsers.length);
         bc.ungetService(paSR);
-        pa = null;
 
         // Update the required bundle, D, check that there are two
         // packages exported marked as pending removal.
         out.println("Updating " +buD);
         Util.updateBundle(bc, buD, "rb_D_api-0.1.0.jar");
         // Must always fetch a new PackageAdmin after an update!
-        pa = (PackageAdmin)bc.getService(paSR);
+        pa = bc.getService(paSR);
         if (pa == null) {
           fail("Failed to get PackageAdmin service");
         }
@@ -329,8 +330,8 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
                    !rbs[0].isRemovalPending());
         dUsers = rbs[0].getRequiringBundles();
         sb = new StringBuilder(buD +" is required by ");
-        for (int i=0; i<dUsers.length; i++) {
-          sb.append(" ").append(dUsers[i].toString());
+        for (Bundle dUser : dUsers) {
+          sb.append(" ").append(dUser.toString());
         }
         out.println(sb.toString());
         assertEquals("Number of bundles requiring D after update",
@@ -340,16 +341,15 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
         out.println("Calling PackageAdmin.refresh().");
         pa.refreshPackages(null);
         bc.ungetService(paSR);
-        pa = null;
         // Note: PackageAdmin.refresh() will return immediately, i.e.,
-        // before the refresh operation is completed. Thus a litle
+        // before the refresh operation is completed. Thus a little
         // sleep here since there is no explicit event signaling the
         // completion of the refresh operation.
-        Thread.currentThread().sleep(1000);
+        Thread.sleep(1000);
 
         // Check that the old packages are gone.
         // Must allways fetch a new PackageAdmin after a refresh!
-        pa = (PackageAdmin)bc.getService(paSR);
+        pa = bc.getService(paSR);
         if (pa == null) {
           fail("Failed to get PackageAdmin service");
         }
@@ -377,15 +377,13 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
                    !rbs[0].isRemovalPending());
         dUsers = rbs[0].getRequiringBundles();
         sb = new StringBuilder(buD +" is required by ");
-        for (int i=0; i<dUsers.length; i++) {
-          sb.append(" ").append(dUsers[i].toString());
+        for (Bundle dUser : dUsers) {
+          sb.append(" ").append(dUser.toString());
         }
         out.println(sb.toString());
         assertEquals("Number of bundles requiring D after refresh",
                      2,dUsers.length);
         bc.ungetService(paSR);
-        pa = null;
-
       } catch (Exception e) {
         e.printStackTrace();
         fail("framework test bundle "+ e +" :FRAME420A:FAIL");
@@ -409,13 +407,13 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
    */
   private String checkExports(BundleContext bc, Bundle b, String[] expPkgs)
   {
-    ServiceReference paSR = null;
-    PackageAdmin pa = null;
+    ServiceReference<PackageAdmin> paSR;
+    PackageAdmin pa;
 
     try {
       paSR = bc.getServiceReference
-        (org.osgi.service.packageadmin.PackageAdmin.class.getName());
-      pa = (PackageAdmin) bc.getService(paSR);
+        (org.osgi.service.packageadmin.PackageAdmin.class);
+      pa = bc.getService(paSR);
       if (pa == null) {
         return "No package-amdin service available";
       }
@@ -429,18 +427,17 @@ public class RequireBundleTestSuite extends TestSuite implements FrameworkTest {
     if (bExpPkgs==null && expPkgs.length>0) {
       return "No packages exported from bundle " +b.getBundleId();
     } else if (bExpPkgs!=null) {
-      Set expPkgSet = new HashSet(Arrays.asList(expPkgs));
+      Set<String> expPkgSet = new HashSet<>(Arrays.asList(expPkgs));
       out.println("Expected exports: " +expPkgSet);
       out.println("Actual exports:   " +Arrays.asList(bExpPkgs));
-      for (int i=0; i<bExpPkgs.length; i++) {
-        ExportedPackage epkg = bExpPkgs[i];
+      for (ExportedPackage epkg : bExpPkgs) {
         if (!expPkgSet.remove(epkg.getName())) {
-          return "Unexpected exported package: "+epkg.getName();
+          return "Unexpected exported package: " + epkg.getName();
         }
       }
-      return expPkgSet.size()>0
-        ? ("Missing exports: " + expPkgSet)
-        : (String) null;
+      return expPkgSet.size() > 0
+        ? "Missing exports: " + expPkgSet
+        : null;
     }
     return null;
   }

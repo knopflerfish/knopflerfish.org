@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, 2013, KNOPFLERFISH project
+ * Copyright (c) 2009-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,20 +34,32 @@
 
 package org.knopflerfish.bundle.condpermadmin_test;
 
-import java.util.*;
-import java.io.*;
-import java.math.*;
-import java.net.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.io.PrintStream;
+import java.security.AccessControlContext;
+import java.security.AccessControlException;
+import java.security.Permission;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.PropertyPermission;
 
-import org.osgi.framework.*;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
-import org.osgi.service.packageadmin.*;
-import org.osgi.service.permissionadmin.*;
-import org.osgi.service.condpermadmin.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.condpermadmin.ConditionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
+import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
+import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.service.permissionadmin.PermissionAdmin;
+import org.osgi.service.permissionadmin.PermissionInfo;
 
-import junit.framework.*;
+import static org.osgi.service.condpermadmin.ConditionalPermissionInfo.ALLOW;
 
 public class CondPermAdminTestSuite extends TestSuite  {
 
@@ -73,13 +85,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
   ConditionalPermissionAdmin cpaService = null;
   PackageAdmin packService = null;
 
-  Properties props = System.getProperties();
-  String     lineseparator = props.getProperty("line.separator");
-
   String     test_url_base;
-
-  Vector     events    = new Vector();  // vector for events from test bundles
-  Vector     expevents = new Vector();  // comparision vector
 
   PrintStream out = System.out;
 
@@ -135,7 +141,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
      * @return the requested service
      */
     public Object getService(String serviceName, String entity) {
-      ServiceReference serviceRef = bc.getServiceReference(serviceName);
+      ServiceReference<?> serviceRef = bc.getServiceReference(serviceName);
       if (serviceRef == null) {
         fail("Got null service reference, " + serviceName + ":" + entity + ":FAIL");
       }
@@ -179,8 +185,8 @@ public class CondPermAdminTestSuite extends TestSuite  {
       if (paService != null) {
         try {
           Bundle [] bs = bc.getBundles();
-          for (int i = 0; i < bs.length; i++) {
-            paService.setPermissions(bs[i].getLocation(), null);
+          for (Bundle b : bs) {
+            paService.setPermissions(b.getLocation(), null);
           }
 
         } catch (Throwable tt) {
@@ -194,7 +200,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
 
   // Also install all possible listeners
   class Setup extends FWTestCase {
-    public void runTest() throws Throwable {
+    public void runTest() {
       fListen = new FrameworkListener();
       try {
         bc.addFrameworkListener(fListen);
@@ -206,11 +212,11 @@ public class CondPermAdminTestSuite extends TestSuite  {
       paService = (PermissionAdmin) getService(PA_SERVICE_NAME, "SETUP");
 
       try {
-        PermissionInfo pa[] = new PermissionInfo[]
+        PermissionInfo[] pa = new PermissionInfo[]
           { new PermissionInfo("(java.security.AllPermission)") };
         Bundle [] bs = bc.getBundles();
-        for (int i = 0; i < bs.length; i++) {
-          paService.setPermissions(bs[i].getLocation(), pa);
+        for (Bundle b : bs) {
+          paService.setPermissions(b.getLocation(), pa);
         }
 
       } catch (Throwable tt) {
@@ -227,58 +233,48 @@ public class CondPermAdminTestSuite extends TestSuite  {
 
   // 100-series tests CPA Service.
 
+  @SuppressWarnings("unused")
   public final static String USAGE_CONDPERM100A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_CONDPERM100A =  {
     "Tests of ConditionalPermissionAdmin.getAccessControlContext",
     "Test different patterns and combinatitions."
   };
 
   class Condperm100a extends FWTestCase {
-    public void runTest() throws Throwable {
-      boolean teststatus = true;
-      ConditionInfo ci1, ci2, ci3, cibl;
-      PermissionInfo pi1, pi2, pi3, pi4, pi5;
-      Permission p1, p2, p3, p4, p5;
-      AccessControlContext acc;
+    public void runTest() {
+      ConditionInfo ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, c=SE"});
+      ConditionInfo ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, o=big, c=*"});
+      ConditionInfo ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"cn=hello, o=SMALL, c=FR"});
+      ConditionInfo cibl = new ConditionInfo(BUNDLE_LOCATION_CONDITION, new String[] {"http:*"});
 
-      ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, c=SE"});
-      ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, o=big, c=*"});
-      ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"cn=hello, o=SMALL, c=FR"});
-      cibl = new ConditionInfo(BUNDLE_LOCATION_CONDITION, new String[] {"http:*"});
+      PermissionInfo pi1 = new PermissionInfo("java.util.PropertyPermission", "org.knopflerfish.*", "read");
+      PermissionInfo pi2 = new PermissionInfo("java.util.PropertyPermission", "org.osgi.*", "read");
+      PermissionInfo pi3 = new PermissionInfo("org.osgi.framework.PackagePermission", "org.osgi.framework", "import");
+      PermissionInfo pi4 = new PermissionInfo("org.osgi.framework.PackagePermission", "org.osgi.framework", "export");
 
-      pi1 = new PermissionInfo("java.util.PropertyPermission", "org.knopflerfish.*", "read");
-      pi2 = new PermissionInfo("java.util.PropertyPermission", "org.osgi.*", "read");
-      pi3 = new PermissionInfo("org.osgi.framework.PackagePermission", "org.osgi.framework", "import");
-      pi4 = new PermissionInfo("org.osgi.framework.PackagePermission", "org.osgi.framework", "export");
-      pi5 = new PermissionInfo("org.osgi.framework.ServicePermission", "*", "get, register");
-
-      p1 = new PropertyPermission("org.knopflerfish.*", "read");
-      p2 = new PropertyPermission("org.osgi.*", "read");
-      p3 = new PackagePermission("org.osgi.framework", "import");
-      p4 = new PackagePermission("org.osgi.framework", "export");
-      p5 = new ServicePermission("*", ServicePermission.GET);
+      Permission p1 = new PropertyPermission("org.knopflerfish.*", "read");
+      Permission p2 = new PropertyPermission("org.osgi.*", "read");
 
       cpaService.setConditionalPermissionInfo("CPATEST100_1", new ConditionInfo[] {ci1}, new PermissionInfo[] {pi1});
       cpaService.setConditionalPermissionInfo("CPATEST100_2", new ConditionInfo[] {ci2}, new PermissionInfo[] {pi2});
       cpaService.setConditionalPermissionInfo("CPATEST100_3", new ConditionInfo[] {ci3}, new PermissionInfo[] {pi3});
       cpaService.setConditionalPermissionInfo("CPATEST100_4", new ConditionInfo[] {ci1, cibl}, new PermissionInfo[] {pi4});
-      acc = cpaService.getAccessControlContext(new String [] { "cn=X, o=small, c=SE" });
+      AccessControlContext acc = cpaService.getAccessControlContext(new String[]{"cn=X, o=small, c=SE"});
       try {
         acc.checkPermission(p1);
       } catch (Throwable t) {
         t.printStackTrace();
         fail("Permission check of " + p1 + " failed, threw " + t + " :CONDPERM100A:FAIL");
-        teststatus  = false;
       }
       try {
         acc.checkPermission(p2);
         fail("Permission check of " + p2 + " passed :CONDPERM100A:FAIL");
-        teststatus  = false;
       } catch (AccessControlException _ignore) {
         // Expected
       } catch (Throwable t) {
         fail("Permission check of " + p2 + " throw "+ t + " :CONDPERM100A:FAIL");
-        teststatus  = false;
       }
 
       cpaService.getConditionalPermissionInfo("CPATEST100_1").delete();
@@ -286,76 +282,66 @@ public class CondPermAdminTestSuite extends TestSuite  {
       cpaService.getConditionalPermissionInfo("CPATEST100_3").delete();
       cpaService.getConditionalPermissionInfo("CPATEST100_4").delete();
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :CONDPERM100A:PASS");
-      } else {
-        fail("### framework test bundle :CONDPERM100A:FAIL");
-      }
+      out.println("### framework test bundle :CONDPERM100A:PASS");
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String USAGE_CONDPERM110A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_CONDPERM110A =  {
     "Tests of ConditionalPermissionAdmin.getAccessControlContext using new ConditionalPermissionUpdate",
     "Test different patterns and combinatitions."
   };
 
   class Condperm110a extends FWTestCase {
-    public void runTest() throws Throwable {
-      boolean teststatus = true;
-      ConditionInfo ci1, ci2, ci3, cibl;
-      PermissionInfo pi1, pi2, pi3, pi4;
-      Permission p1, p2;
-      AccessControlContext acc;
+    public void runTest() {
+      ConditionInfo ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, c=SE"});
+      ConditionInfo ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, o=big, c=*"});
+      ConditionInfo ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"cn=hello, o=SMALL, c=FR"});
+      ConditionInfo cibl = new ConditionInfo(BUNDLE_LOCATION_CONDITION, new String[] {"http:*"});
 
-      ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, c=SE"});
-      ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, o=big, c=*"});
-      ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"cn=hello, o=SMALL, c=FR"});
-      cibl = new ConditionInfo(BUNDLE_LOCATION_CONDITION, new String[] {"http:*"});
+      PermissionInfo pi1 = new PermissionInfo("java.util.PropertyPermission", "org.knopflerfish.*", "read");
+      PermissionInfo pi2 = new PermissionInfo("java.util.PropertyPermission", "org.osgi.*", "read");
+      PermissionInfo pi3 = new PermissionInfo("org.osgi.framework.PackagePermission", "org.osgi.framework", "import");
+      PermissionInfo pi4 = new PermissionInfo("org.osgi.framework.PackagePermission", "org.osgi.framework", "export");
 
-      pi1 = new PermissionInfo("java.util.PropertyPermission", "org.knopflerfish.*", "read");
-      pi2 = new PermissionInfo("java.util.PropertyPermission", "org.osgi.*", "read");
-      pi3 = new PermissionInfo("org.osgi.framework.PackagePermission", "org.osgi.framework", "import");
-      pi4 = new PermissionInfo("org.osgi.framework.PackagePermission", "org.osgi.framework", "export");
-
-      p1 = new PropertyPermission("org.knopflerfish.*", "read");
-      p2 = new PropertyPermission("org.osgi.*", "read");
+      Permission p1 = new PropertyPermission("org.knopflerfish.*", "read");
+      Permission p2 = new PropertyPermission("org.osgi.*", "read");
 
       ConditionalPermissionUpdate update = cpaService.newConditionalPermissionUpdate();
       List<ConditionalPermissionInfo> cpis = update.getConditionalPermissionInfos();
       assertEquals("Empty conditional permission list", 0, cpis.size());
-      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1}, new PermissionInfo[] {pi1}, ConditionalPermissionInfo.ALLOW));
-      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci2}, new PermissionInfo[] {pi2}, ConditionalPermissionInfo.ALLOW));
-      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3}, new PermissionInfo[] {pi3}, ConditionalPermissionInfo.ALLOW));
-      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
-      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1}, new PermissionInfo[] {pi1}, ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci2}, new PermissionInfo[] {pi2}, ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3}, new PermissionInfo[] {pi3}, ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1, cibl}, new PermissionInfo[] {pi4}, ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3, cibl}, new PermissionInfo[] {pi4}, ALLOW));
       assertTrue("First commit", update.commit());
-      acc = cpaService.getAccessControlContext(new String [] { "cn=X, o=small, c=SE" });
+      AccessControlContext acc = cpaService.getAccessControlContext(new String[]{"cn=X, o=small, c=SE"});
       try {
         acc.checkPermission(p1);
       } catch (Throwable t) {
         t.printStackTrace();
         fail("Permission check of " + p1 + " failed, threw " + t + " :CONDPERM110A:FAIL");
-        teststatus  = false;
       }
       try {
         acc.checkPermission(p2);
         fail("Permission check of " + p2 + " passed :CONDPERM110A:FAIL");
-        teststatus  = false;
       } catch (AccessControlException _ignore) {
         // Expected
       } catch (Throwable t) {
         fail("Permission check of " + p2 + " throw "+ t + " :CONDPERM110A:FAIL");
-        teststatus  = false;
       }
 
       update = cpaService.newConditionalPermissionUpdate();
       cpis = update.getConditionalPermissionInfos();
       assertEquals("Full conditional permission list", 5, cpis.size());
-      cpis.add(0,cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1}, new PermissionInfo[] {pi1}, ConditionalPermissionInfo.ALLOW));
-      cpis.set(2, cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci2}, new PermissionInfo[] {pi2}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(0,cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1}, new PermissionInfo[] {pi1}, ALLOW));
+      cpis.set(2, cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci2}, new PermissionInfo[] {pi2}, ALLOW));
 //      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3}, new PermissionInfo[] {pi3}, ConditionalPermissionInfo.ALLOW));
-      cpis.set(4,cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
+      cpis.set(4,cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1, cibl}, new PermissionInfo[] {pi4}, ALLOW));
 //      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
       assertTrue("Second commit", update.commit());
       update = cpaService.newConditionalPermissionUpdate();
@@ -369,28 +355,25 @@ public class CondPermAdminTestSuite extends TestSuite  {
       } catch (Throwable t) {
         t.printStackTrace();
         fail("Permission check of " + p1 + " failed, threw " + t + " :CONDPERM110A:FAIL");
-        teststatus  = false;
       }
       try {
         acc.checkPermission(p2);
         fail("Permission check of " + p2 + " passed :CONDPERM110A:FAIL");
-        teststatus  = false;
       } catch (AccessControlException _ignore) {
         // Expected
       } catch (Throwable t) {
         fail("Permission check of " + p2 + " throw "+ t + " :CONDPERM110A:FAIL");
-        teststatus  = false;
       }
 
       update = cpaService.newConditionalPermissionUpdate();
       cpis = update.getConditionalPermissionInfos();
       assertEquals("Full conditional permission list", 5, cpis.size());
       cpis.clear();
-      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1}, new PermissionInfo[] {pi1}, ConditionalPermissionInfo.ALLOW));
-      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci2}, new PermissionInfo[] {pi2}, ConditionalPermissionInfo.ALLOW));
-      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3}, new PermissionInfo[] {pi3}, ConditionalPermissionInfo.ALLOW));
-      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
-      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3, cibl}, new PermissionInfo[] {pi4}, ConditionalPermissionInfo.ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1}, new PermissionInfo[] {pi1}, ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci2}, new PermissionInfo[] {pi2}, ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3}, new PermissionInfo[] {pi3}, ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci1, cibl}, new PermissionInfo[] {pi4}, ALLOW));
+      cpis.add(cpaService.newConditionalPermissionInfo(null, new ConditionInfo[] {ci3, cibl}, new PermissionInfo[] {pi4}, ALLOW));
       assertTrue("Fourth commit", update.commit());
       acc = cpaService.getAccessControlContext(new String [] { "cn=X, o=small, c=SE" });
       try {
@@ -398,17 +381,14 @@ public class CondPermAdminTestSuite extends TestSuite  {
       } catch (Throwable t) {
         t.printStackTrace();
         fail("Permission check of " + p1 + " failed, threw " + t + " :CONDPERM110A:FAIL");
-        teststatus  = false;
       }
       try {
         acc.checkPermission(p2);
         fail("Permission check of " + p2 + " passed :CONDPERM110A:FAIL");
-        teststatus  = false;
       } catch (AccessControlException _ignore) {
         // Expected
       } catch (Throwable t) {
         fail("Permission check of " + p2 + " throw "+ t + " :CONDPERM110A:FAIL");
-        teststatus  = false;
       }
 
       update = cpaService.newConditionalPermissionUpdate();
@@ -417,17 +397,16 @@ public class CondPermAdminTestSuite extends TestSuite  {
       cpis.clear();
       assertTrue("Third commit", update.commit());
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :CONDPERM110A:PASS");
-      } else {
-        fail("### framework test bundle :CONDPERM110A:FAIL");
-      }
+      out.println("### framework test bundle :CONDPERM110A:PASS");
     }
   }
 
   // 200-series tests BundleSignerCondition.
 
+  @SuppressWarnings("unused")
   public final static String USAGE_CONDPERM200A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_CONDPERM200A =  {
     "Tests of BundleSignerCondition matching bundles.",
     "Test different patterns and combinatitions."
@@ -435,24 +414,19 @@ public class CondPermAdminTestSuite extends TestSuite  {
 
   class Condperm200a extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      ConditionInfo ci1, ci2, ci3;
-      PermissionInfo pi1, pi2, pi3, pi4, pi5;
-      AccessControlContext acc;
+      ConditionInfo ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
+          new String[] {"*, c=*"});
+      ConditionInfo ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
+          new String[] {"*, c=KF"});
+      ConditionInfo ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
+          new String[] {"*, c=SE"});
 
-      ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
-                              new String[] {"*, c=*"});
-      ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
-                              new String[] {"*, c=KF"});
-      ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
-                              new String[] {"*, c=SE"});
-
-      pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
-                               "org.osgi.framework", "import");
-      pi2 = new PermissionInfo("org.osgi.framework.PackagePermission",
-                               P1_SERVICE_NAME, "import");
-      pi3 = new PermissionInfo("org.osgi.framework.PackagePermission",
-                               P1_SERVICE_NAME, "export");
+      PermissionInfo pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
+          "org.osgi.framework", "import");
+      PermissionInfo pi2 = new PermissionInfo("org.osgi.framework.PackagePermission",
+          P1_SERVICE_NAME, "import");
+      PermissionInfo pi3 = new PermissionInfo("org.osgi.framework.PackagePermission",
+          P1_SERVICE_NAME, "export");
 
       cpaService.setConditionalPermissionInfo("CPATEST200_1",
                                               new ConditionInfo[] {ci1},
@@ -470,18 +444,15 @@ public class CondPermAdminTestSuite extends TestSuite  {
         buP2 = Util.installBundle(bc, "bundleP2_test-1.0.0.jar");
       } catch (Exception e) {
         fail("install framework test bundle "+ e +" :CONDPERM200A:FAIL");
-        teststatus = false;
       }
 
       try {
         buP2.start();
         fail("started test bundle P2! :CONDPERM200A:FAIL");
-        teststatus = false;
-      } catch (BundleException e) {
-        teststatus = true;
+      } catch (BundleException ignored) {
+        // Expected
       } catch (Exception e) {
         fail("framework test bundle start "+ e +" :CONDPERM200A:FAIL");
-        teststatus = false;
       }
 
       // Grant P1 export permissions and see that P2 starts.
@@ -491,10 +462,8 @@ public class CondPermAdminTestSuite extends TestSuite  {
 
       try {
         buP2.start();
-        teststatus = true;
       } catch (Exception e) {
         fail("framework test bundle "+ e +" :CONDPERM200A:FAIL");
-        teststatus = false;
       }
 
       buP2.uninstall();
@@ -506,16 +475,14 @@ public class CondPermAdminTestSuite extends TestSuite  {
       cpaService.getConditionalPermissionInfo("CPATEST200_2").delete();
       cpaService.getConditionalPermissionInfo("CPATEST200_3").delete();
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :CONDPERM200A:PASS");
-      } else {
-        fail("### framework test bundle :CONDPERM200A:FAIL");
-      }
+      out.println("### framework test bundle :CONDPERM200A:PASS");
     }
   }
 
-
+  @SuppressWarnings("unused")
   public final static String USAGE_CONDPERM210A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_CONDPERM210A =  {
     "Tests of BundleSignerCondition matching bundles.",
     "Test different patterns and combinatitions."
@@ -523,26 +490,21 @@ public class CondPermAdminTestSuite extends TestSuite  {
 
   class Condperm210a extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      ConditionInfo ci1, ci2, ci3, ci4;
-      PermissionInfo pi1, pi2, pi3;
-      AccessControlContext acc;
+      ConditionInfo ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
+          new String[] {"*, c=KF"});
+      ConditionInfo ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
+          new String[] {"*, c=SE"});
+      ConditionInfo ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
+          new String[] {"*, st=*, c=*"});
+      ConditionInfo ci4 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
+          new String[] {"cn=test dude, ou=*, o=*, l=*, c=se ; -"});
 
-      ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
-                              new String[] {"*, c=KF"});
-      ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
-                              new String[] {"*, c=SE"});
-      ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
-                              new String[] {"*, st=*, c=*"});
-      ci4 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
-                              new String[] {"cn=test dude, ou=*, o=*, l=*, c=se ; -"});
-
-      pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
-                               "org.osgi.framework", "import");
-      pi2 = new PermissionInfo("org.osgi.framework.PackagePermission",
-                               P1_SERVICE_NAME, "import");
-      pi3 = new PermissionInfo("org.osgi.framework.PackagePermission",
-                               P1_SERVICE_NAME, "export");
+      PermissionInfo pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
+          "org.osgi.framework", "import");
+      PermissionInfo pi2 = new PermissionInfo("org.osgi.framework.PackagePermission",
+          P1_SERVICE_NAME, "import");
+      PermissionInfo pi3 = new PermissionInfo("org.osgi.framework.PackagePermission",
+          P1_SERVICE_NAME, "export");
 
       cpaService.setConditionalPermissionInfo("CPATEST210_1",
                                               new ConditionInfo[] {},
@@ -564,21 +526,18 @@ public class CondPermAdminTestSuite extends TestSuite  {
         buP3 = Util.installBundle(bc, "bundleP3_test-1.0.0.jar");
       } catch (Exception e) {
         fail("install framework test bundle "+ e +" :CONDPERM210A:FAIL");
-        teststatus = false;
       }
 
       try {
         buP2.start();
       } catch (Exception e) {
         fail("start P2 framework test bundle "+ e +" :CONDPERM210A:FAIL");
-        teststatus = false;
       }
 
       try {
         buP3.start();
       } catch (Exception e) {
         fail("start P3 framework test bundle "+ e +" :CONDPERM210A:FAIL");
-        teststatus = false;
       }
 
       ExportedPackage ep = packService.getExportedPackage(P1_SERVICE_NAME);
@@ -591,8 +550,8 @@ public class CondPermAdminTestSuite extends TestSuite  {
       }
       Bundle [] bs = ep.getImportingBundles();
       boolean correctImport = false;
-      for (int i = 0; i < bs.length; i++) {
-        if (bs[i] == buP2) {
+      for (Bundle b : bs) {
+        if (b == buP2) {
           correctImport = true;
           break;
         }
@@ -631,16 +590,14 @@ public class CondPermAdminTestSuite extends TestSuite  {
       cpaService.getConditionalPermissionInfo("CPATEST210_3").delete();
       cpaService.getConditionalPermissionInfo("CPATEST210_4").delete();
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :CONDPERM210A:PASS");
-      } else {
-        fail("### framework test bundle :CONDPERM210A:FAIL");
-      }
+      out.println("### framework test bundle :CONDPERM210A:PASS");
     }
   }
 
-
+  @SuppressWarnings("unused")
   public final static String USAGE_CONDPERM220A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_CONDPERM220A =  {
     "Tests of BundleSignerCondition matching bundles.",
     "Test certificate chains."
@@ -648,26 +605,21 @@ public class CondPermAdminTestSuite extends TestSuite  {
 
   class Condperm220a extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      ConditionInfo ci1, ci2, ci3, ci4;
-      PermissionInfo pi1, pi2, pi3;
-      AccessControlContext acc;
-
-      ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
+      ConditionInfo ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
           {"*; *, cn=CA Dude, ou=Test, o=*, l=*, c=se"});
-      ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
+      ConditionInfo ci2 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
           {"CN=TEST DUDE,ou=*,o=*,l=*,c=SE; *, o=Knopflerfish, l=Gbg, C=SE"});
-      ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
+      ConditionInfo ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
           {"CN=Goalie Dude, ou=test, o=*, l=*, c=SE;*, l=Trosa, C=SE; *, l=GBG, C=SE"});
-      ci4 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
+      ConditionInfo ci4 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]
           {"-; cn=CA Dude, ou=Test, o=Knopflerfish, l=GBG, C=SE"});
 
-      pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
-                               "org.osgi.framework", "import");
-      pi2 = new PermissionInfo("org.osgi.framework.PackagePermission",
-                               P1_SERVICE_NAME, "import,export");
-      pi3 = new PermissionInfo("org.osgi.framework.PackagePermission",
-                               P1_SERVICE_NAME, "import");
+      PermissionInfo pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
+          "org.osgi.framework", "import");
+      PermissionInfo pi2 = new PermissionInfo("org.osgi.framework.PackagePermission",
+          P1_SERVICE_NAME, "import,export");
+      PermissionInfo pi3 = new PermissionInfo("org.osgi.framework.PackagePermission",
+          P1_SERVICE_NAME, "import");
 
       cpaService.setConditionalPermissionInfo("CPATEST220_1",
                                               new ConditionInfo[] {ci1},
@@ -686,28 +638,22 @@ public class CondPermAdminTestSuite extends TestSuite  {
       } catch (Exception e) {
         e.printStackTrace();
         fail("install framework test bundle "+ e +" :CONDPERM220A:FAIL");
-        teststatus = false;
       }
 
       try {
         buP3.start();
-        teststatus = true;
       } catch (Exception e) {
         e.printStackTrace();
         fail("framework test bundle "+ e +" :CONDPERM220A:FAIL");
-        teststatus = false;
       }
 
       try {
         buP4.start();
         fail("started test bundleP4! :CONDPERM220A:FAIL");
-        teststatus = false;
       } catch (BundleException e) {
-        teststatus = true;
       } catch (Exception e) {
         e.printStackTrace();
         fail("framework test bundle start "+ e +" :CONDPERM220A:FAIL");
-        teststatus = false;
       }
 
       try {
@@ -717,7 +663,6 @@ public class CondPermAdminTestSuite extends TestSuite  {
       } catch (Exception e) {
         e.printStackTrace();
         fail("install framework test bundle 2 "+ e +" :CONDPERM220A:FAIL");
-        teststatus = false;
       }
 
       // Update import permissions and see that P3 & P4 starts.
@@ -726,20 +671,16 @@ public class CondPermAdminTestSuite extends TestSuite  {
                                               new PermissionInfo[] {pi1});
       try {
         buP3.start();
-        teststatus = true;
       } catch (Exception e) {
         e.printStackTrace();
         fail("framework test bundle 2 "+ e +" :CONDPERM220A:FAIL");
-        teststatus = false;
       }
 
       try {
         buP4.start();
-        teststatus = true;
       } catch (Exception e) {
         e.printStackTrace();
         fail("framework test bundle 3 "+ e +" :CONDPERM220A:FAIL");
-        teststatus = false;
       }
 
       buP3.uninstall();
@@ -751,16 +692,14 @@ public class CondPermAdminTestSuite extends TestSuite  {
       cpaService.getConditionalPermissionInfo("CPATEST220_2").delete();
       cpaService.getConditionalPermissionInfo("CPATEST220_3").delete();
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :CONDPERM220A:PASS");
-      } else {
-        fail("### framework test bundle :CONDPERM220A:FAIL");
-      }
+      out.println("### framework test bundle :CONDPERM220A:PASS");
     }
   }
 
-
+  @SuppressWarnings("unused")
   public final static String USAGE_CONDPERM230A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_CONDPERM230A =  {
     "Tests of BundleSignerCondition matching bundles.",
     "Test that unvalid certificate are rejected."
@@ -768,15 +707,10 @@ public class CondPermAdminTestSuite extends TestSuite  {
 
   class Condperm230a extends FWTestCase {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-      ConditionInfo ci1, ci2, ci3, ci4;
-      PermissionInfo pi1, pi2, pi3;
-      AccessControlContext acc;
+      ConditionInfo ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[]{"*, c=*"});
 
-      ci1 = new ConditionInfo(BUNDLE_SIGNER_CONDITION, new String[] {"*, c=*"});
-
-      pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
-                               "org.osgi.framework", "import");
+      PermissionInfo pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
+          "org.osgi.framework", "import");
 
       cpaService.setConditionalPermissionInfo("CPATEST230_1",
                                               new ConditionInfo[] {ci1},
@@ -787,15 +721,13 @@ public class CondPermAdminTestSuite extends TestSuite  {
         buP5 = Util.installBundle(bc, "bundleP5_test-1.0.0.jar");
       } catch (Exception e) {
         fail("install framework test bundle "+ e +" :CONDPERM230A:FAIL");
-        teststatus = false;
       }
 
       try {
         buP5.start();
         fail("started test bundleP5! :CONDPERM230A:FAIL");
-        teststatus = false;
-      } catch (BundleException e) {
-        teststatus = true;
+      } catch (BundleException ignored) {
+        // Expected
       }
 
       buP5.uninstall();
@@ -803,17 +735,13 @@ public class CondPermAdminTestSuite extends TestSuite  {
 
       cpaService.getConditionalPermissionInfo("CPATEST230_1").delete();
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :CONDPERM230A:PASS");
-      } else {
-        fail("### framework test bundle :CONDPERM230A:FAIL");
-      }
+      out.println("### framework test bundle :CONDPERM230A:PASS");
     }
   }
 
 
-  class FrameworkListener implements org.osgi.framework.FrameworkListener {
-    ArrayList fe = new ArrayList();
+  static class FrameworkListener implements org.osgi.framework.FrameworkListener {
+    ArrayList<FrameworkEvent> fe = new ArrayList<>();
 
     synchronized public void frameworkEvent(FrameworkEvent evt) {
       fe.add(evt);
@@ -827,7 +755,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
             wait(2000);
           } catch (InterruptedException ignore) { }
         } else {
-          return (FrameworkEvent)fe.remove(0);
+          return fe.remove(0);
         }
       }
       return null;

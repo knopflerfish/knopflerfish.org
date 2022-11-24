@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,16 @@
 
 package org.knopflerfish.bundle.restart_test;
 
-import java.util.*;
-import java.io.*;
-import java.math.*;
-import java.net.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.PrintStream;
 
-import org.osgi.framework.*;
+import junit.framework.TestSuite;
 
-import junit.framework.*;
-import org.osgi.service.startlevel.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.startlevel.StartLevel;
 
 public class RestartTestSuite extends TestSuite {
   BundleContext bc;
@@ -86,10 +85,10 @@ public class RestartTestSuite extends TestSuite {
 
       assertTrue(Activator.STATE_FILENAME + " must exists", f.exists());
 
-      ServiceReference sr = bc.getServiceReference(StartLevel.class.getName());
+      ServiceReference<StartLevel> sr = bc.getServiceReference(StartLevel.class);
       assertNotNull("StartLevel references cannot be null", sr);
 
-      sl = (StartLevel)bc.getService(sr);
+      sl = bc.getService(sr);
 
       assertNotNull("StartLevel service cannot be null", sr);
 
@@ -101,8 +100,8 @@ public class RestartTestSuite extends TestSuite {
     }
   }
 
-  class Cleanup extends FWTestCase {
-    public void runTest() throws Throwable {
+  static class Cleanup extends FWTestCase {
+    public void runTest() {
     }
   }
 }

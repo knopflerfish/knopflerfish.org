@@ -36,14 +36,12 @@ package org.knopflerfish.bundle.framework_test;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.SocketPermission;
 import java.net.URL;
 import java.net.URLConnection;
@@ -55,6 +53,7 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
 
@@ -119,10 +118,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   ServiceListener sListen;
 
   Properties props = System.getProperties();
-  String lineseparator = props.getProperty("line.separator");
   String test_url_base;
-  Vector events = new Vector();                 // vector for events from test bundles
-  Vector expevents = new Vector();              // comparision vector
+  Vector<devEvent> events = new Vector<>();                 // vector for events from test bundles
 
 
   PrintStream out = System.out;
@@ -137,7 +134,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
     try {
       eventDelay = Long.getLong("org.knopflerfish.framework_tests.eventdelay",
-                                new Long(eventDelay)).longValue();
+          new Long(eventDelay));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -211,6 +208,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     return  "https://github.com/knopflerfish/knopflerfish.org/tree/master/osgi/bundles_test/regression_tests/framework_test/readme.txt";
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME005A =  {
     "Verify information from the getHeaders() method",
   };
@@ -219,36 +217,36 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME005A start");
-      Dictionary ai = bu.getHeaders();
+      Dictionary<String, String> ai = bu.getHeaders();
 
       // check expected headers
 
       String k =  "Bundle-ContactAddress";
-      String info = (String) ai.get(k);
+      String info = ai.get(k);
       assertEquals("bad Bundle-ContactAddress", "http://www.knopflerfish.org", info);
 
       k =  "Bundle-Description";
-      info = (String) ai.get(k);
+      info = ai.get(k);
       assertEquals("bad Bundle-Description", "Test bundle for framework", info);
 
       k =  "Bundle-DocURL";
-      info = (String) ai.get(k);
+      info = ai.get(k);
       assertEquals("bad Bundle-DocURL", "http://www.knopflerfish.org", info);
 
       k =  "Bundle-Name";
-      info = (String) ai.get(k);
+      info = ai.get(k);
       assertEquals("bad Bundle-Name", "framework_test", info);
 
       k =  "Bundle-Vendor";
-      info = (String) ai.get(k);
+      info = ai.get(k);
       assertEquals("bad Bundle-Vendor", "Knopflerfish/Makewave AB", info);
 
       k =  "Bundle-Version";
-      info = (String) ai.get(k);
+      info = ai.get(k);
       assertEquals("bad Bundle-Version", "1.1.0", info);
 
       k =  "Bundle-ManifestVersion";
-      info = (String) ai.get(k);
+      info = ai.get(k);
       assertEquals("bad " + k, "2", info);
 
 
@@ -261,6 +259,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME007A =  {
     "Extract all information from the getProperty in the BundleContext interface "
   };
@@ -277,10 +276,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         Constants.FRAMEWORK_LANGUAGE,
       };
 
-      for(int i = 0; i < NNList.length; i++) {
-        String k = NNList[i];
+      for (String k : NNList) {
         String v = bc.getProperty(k);
-        if(v == null) {
+        if (v == null) {
           fail("'" + k + "' not set");
         }
       }
@@ -292,19 +290,19 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION,
       };
 
-      for( int i = 0; i < TFList.length; i++) {
-        String k = TFList[i];
+      for (String k : TFList) {
         String v = bc.getProperty(k);
-        if(v == null) {
+        if (v == null) {
           fail("'" + k + "' not set");
         }
-        if(!("true".equals(v) || "false".equals(v))) {
+        if (!("true".equals(v) || "false".equals(v))) {
           fail("'" + k + "' is '" + v + "', expected 'true' or 'false'");
         }
       }
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME010A =  {
     "Get context id, location and status of the bundle"
   };
@@ -397,9 +395,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         buAl3 ,
         buAl4 ,
       };
-      for(int i = 0; i < bundles.length; i++) {
-        try {  bundles[i].uninstall();  }
-        catch (Exception ignored) { }
+      for (Bundle bundle : bundles) {
+        try {
+          bundle.uninstall();
+        } catch (Exception ignored) {
+        }
       }
 
 
@@ -449,6 +449,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME018A = {
     "Test result of getService(null). Should throw NPE",
   };
@@ -458,8 +459,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME018A start");
       try {
-        Object obj = null;
-        obj = bc.getService(null);
+        Object obj = bc.getService(null);
         fail("### FRAME018A:FAIL Got service object=" + obj + ", excpected NullPointerException");
       } catch (NullPointerException e) {
         out.println("### FRAME018A:PASS: got NPE=" + e);
@@ -471,6 +471,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME019A = {
     "Try bundle:// syntax, if present in FW, by installing bundleA_test",
     "This test is also valid if ",
@@ -507,13 +508,14 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           if(bA != null) {
             bA.uninstall();
           }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         clearEvents();
       }
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME020A =  {
     "Load bundleA_test and check that it exists and that its expected service does not exist",
     "Also check that the expected events in the framework occurs"
@@ -523,41 +525,33 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME020A start");
       buA = null;
-      boolean teststatus = true;
       try {
         buA = Util.installBundle(bc, "bundleA_test-1.0.0.jar");
-        teststatus = true;
       }
-      catch (BundleException bexcA) {
+      catch (BundleException | SecurityException bexcA) {
         fail("framework test bundle "+ bexcA +" :FRAME020A:FAIL");
-        teststatus = false;
-      }
-      catch (SecurityException secA) {
-        fail("framework test bundle "+ secA +" :FRAME020A:FAIL");
-        teststatus = false;
       }
 
       //Localization tests
-      Dictionary dict = buA.getHeaders();
+      Dictionary<String, String> dict = buA.getHeaders();
       if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleA_test")){
           fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have right value:FRAME020A:FAIL");
       }
 
 
       // Check that no service reference exist yet.
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
       if (sr1 != null) {
         fail("framework test bundle, service from test bundle A unexpectedly found :FRAME020A:FAIL");
-        teststatus = false;
       }
 
       // check the listeners for events, expect only a bundle event,
       // of type installation
       boolean lStat
-        = checkListenerEvents(out, false , 0, true , BundleEvent.INSTALLED,
+        = checkListenerEvents(false , 0, true , BundleEvent.INSTALLED,
                               false, 0, buA, sr1);
 
-      if (teststatus == true && buA.getState() == Bundle.INSTALLED && lStat == true) {
+      if (buA.getState() == Bundle.INSTALLED && lStat) {
         out.println("### framework test bundle :FRAME020A:PASS");
       }
       else {
@@ -567,6 +561,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME025B =  {
     "Start bundleA_test and check that it gets state ACTIVE",
     "and that the service it registers exist"
@@ -575,7 +570,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame025b extends FWTestCase {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME025B start");
-      boolean ungetStat = false;
 
       try {
         buA.start();
@@ -595,7 +589,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
 
       // Check if testbundleA registered the expected service
-      ServiceReference sr1
+      ServiceReference<?> sr1
         = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
       if (sr1 == null) {
         fail("framework test bundle, "
@@ -641,6 +635,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME030B =  {
     "Stop bundleA_test and check that it gets state RESOLVED"
   };
@@ -648,7 +643,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame030b extends FWTestCase {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME030B start");
-      ServiceReference sr1
+      ServiceReference<?> sr1
         = bc.getServiceReference("org.knopflerfish.service.bundleA_test.BundleA");
 
       try {
@@ -683,6 +678,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME035B =  {
     "Uninstall bundleA_test and check that it gets state UNINSTALLED"
   };
@@ -722,6 +718,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME038B =  {
     "Install a non existent file, check that the right exception is thrown"
   };
@@ -783,23 +780,23 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
 
       // Check that no service reference exist.
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleD_test.BundleD");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleD_test.BundleD");
       if (sr1 != null) {
         fail("framework test bundle, service from test bundle D unexpectedly found :FRAME040A:FAIL");
         teststatus = false;
       }
 
-      if (exception == false) {
+      if (!exception) {
         teststatus = false;
       }
 
       // check the listeners for events, expect only a bundle event,
       // of type installation
       boolean lStat
-        = checkListenerEvents(out, false, 0, false , 0, false, 0, buD, null);
+        = checkListenerEvents(false, 0, false , 0, false, 0, buD, null);
 
       out.println("FRAME040A: lStat=" + lStat);
-      if (teststatus == true && buD == null && lStat == true) {
+      if (teststatus && buD == null && lStat) {
         out.println("### framework test bundle :FRAME040A:PASS");
       }
       else {
@@ -808,6 +805,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME041A =  {
     "Install bundleD1_test, which has a broken manifest file,",
     "an empty import statement and check",
@@ -840,22 +838,22 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
 
       // Check that no service reference exist.
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleD1_test.BundleD1");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleD1_test.BundleD1");
       if (sr1 != null) {
         fail("framework test bundle, service from test bundle D1 unexpectedly found :FRAME041A:FAIL");
         teststatus = false;
       }
 
-      if (exception == false) {
+      if (!exception) {
         teststatus = false;
       }
 
       // check the listeners for events, expect only a bundle event,
       // of type installation
       boolean lStat
-        = checkListenerEvents(out, false, 0, false , 0, false, 0, buD, null);
+        = checkListenerEvents(false, 0, false , 0, false, 0, buD, null);
 
-      if (teststatus == true && buD == null && lStat == true) {
+      if (teststatus && buD == null && lStat) {
         out.println("### framework test bundle :FRAME041A:PASS");
       }
       else {
@@ -865,6 +863,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME045A =  {
     "Add a service listener with a broken LDAP filter to get an exception"
   };
@@ -889,6 +888,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME050A =  {
     "Loads and starts bundleB_test, checks that it gets the state ACTIVE.",
     "Checks that it implements the Configurable interface."
@@ -897,42 +897,25 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame050a extends FWTestCase {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME050A start");
-      boolean teststatus = true;
       try {
         buB = Util.installBundle(bc, "bundleB_test-1.0.0.jar");
         buB.start();
-        teststatus = true;
       }
-      catch (BundleException bexcB) {
-        fail("framework test bundle "+ bexcB +" :FRAME050A:FAIL");
-        teststatus = false;
-        bexcB.printStackTrace();
+      catch (BundleException | SecurityException | IllegalStateException e) {
+        e.printStackTrace();
+        fail("framework test bundle "+ e +" :FRAME050A:FAIL");
       }
-      catch (SecurityException secB) {
-        fail("framework test bundle "+ secB +" :FRAME050A:FAIL");
-        teststatus = false;
-        secB.printStackTrace();
-      }
-      catch (IllegalStateException ise) {
-        fail("framework test bundle "+ ise +" :FRAME050A:FAIL");
-        teststatus = false;
-        ise.printStackTrace();
-      }
-
-
 
       // Check if testbundleB registered the expected service
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleB_test.BundleB");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleB_test.BundleB");
       if (sr1 == null) {
         fail("framework test bundle, expected service not found :FRAME050A:FAIL");
-        teststatus = false;
       } else {
         Object o1 = bc.getService(sr1);
         // out.println("o1 = " + o1);
 
         if (!(o1 instanceof Configurable)) {
           fail("framework test bundle, service does not support Configurable :FRAME050A:FAIL");
-          teststatus = false;
         }
         else {
           // out.println("framework test bundle got service ref");
@@ -940,7 +923,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           // out.println("c1 = " + c1);
           Object o2 = c1.getConfigurationObject();
           if (o2 != c1) {
-            teststatus = false;
             fail("framework test bundle, configuration object is not the same as service object :FRAME050A:FAIL");
           }
           // out.println("o2 = " + o2 + " bundle = " + buB);
@@ -948,17 +930,16 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         }
       }
       // Check that the dictionary from the bundle seems to be ok, keys[1-4], value[1-4]
-      String keys [] = sr1.getPropertyKeys();
+      String[] keys = sr1.getPropertyKeys();
       for (int k=0; k< keys.length; k++) {
         if (keys[k].equals("key"+k)) {
           if (!(sr1.getProperty(keys[k]).equals("value"+k))) {
-            teststatus = false;
             fail("framework test bundle, key/value mismatch in propety list :FRAME050A:FAIL");
           }
         }
       }
 
-      if (teststatus == true && buB.getState() == Bundle.ACTIVE) {
+      if (buB.getState() == Bundle.ACTIVE) {
         out.println("### framework test bundle :FRAME050A:PASS");
       }
       else {
@@ -967,6 +948,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME055A =  {
     "Load and start bundleC_test, checks that it gets the state ACTIVE.",
     "Checks that it is available under more than one name.",
@@ -977,89 +959,71 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame055a extends FWTestCase {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME055A start");
-      boolean teststatus = true;
       try {
         buC = Util.installBundle(bc, "bundleC_test-1.0.0.jar");
         buC.start();
-        teststatus = true;
       }
-      catch (BundleException bexcB) {
-        teststatus = false;
-        bexcB.printStackTrace();
-        fail("framework test bundle "+ bexcB +" :FRAME055A:FAIL");
-      }
-      catch (SecurityException secB) {
-        teststatus = false;
-        secB.printStackTrace();
-        fail("framework test bundle "+ secB +" :FRAME055A:FAIL");
-      }
-      catch (IllegalStateException ise) {
-        teststatus = false;
-        ise.printStackTrace();
-        fail("framework test bundle "+ ise +" :FRAME055A:FAIL");
+      catch (BundleException | SecurityException | IllegalStateException e) {
+        e.printStackTrace();
+        fail("framework test bundle "+ e +" :FRAME055A:FAIL");
       }
 
 
-      Dictionary dict = buC.getHeaders();
+      Dictionary<String, String> dict = buC.getHeaders();
       if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleC_test")){
           fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have right value:FRAME055A:FAIL");
       }
 
 
       // Check if testbundleC registered the expected service
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleC_test.BundleC");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleC_test.BundleC");
       if (sr1 == null) {
-        teststatus = false;
         fail("framework test bundle, expected service not found :FRAME055A:FAIL");
       }
       else {
         // get objectClass service name array
         int hits = 0;
         String [] packnames = (String[]) sr1.getProperty("objectClass");
-        for (int j = 0; j< packnames.length; j++) {
-          if (packnames[j].equals("org.knopflerfish.service.bundleC_test.BundleC")) {
+        for (String packname : packnames) {
+          if (packname.equals("org.knopflerfish.service.bundleC_test.BundleC")) {
             hits++;
           }
-          if (packnames[j].equals("java.lang.Object")) {
+          if (packname.equals("java.lang.Object")) {
             hits++;
           }
         }
         if (hits !=2) {
-          teststatus = false;
           fail("framework test bundle, expected service not registered under the two expected names :FRAME055A:FAIL");
         }
       }
 
       // Check if testbundleC registered the expected service with java.lang.Object as well
 
-      ServiceReference sref [] = null;
+      ServiceReference<?>[] sref = null;
       try {
         sref = bc.getServiceReferences("java.lang.Object",null);
         if (sref == null) {
           fail("framework test bundle, expected service not found :FRAME055A:FAIL");
-          teststatus = false;
         }
         else {
           // get objectClass service name array
           int hits = 0;
           String [] packnames = (String[]) sr1.getProperty("objectClass");
-          for (int j = 0; j< packnames.length; j++) {
-            if (packnames[j].equals("org.knopflerfish.service.bundleC_test.BundleC")) {
+          for (String packname : packnames) {
+            if (packname.equals("org.knopflerfish.service.bundleC_test.BundleC")) {
               hits++;
             }
-            if (packnames[j].equals("java.lang.Object")) {
+            if (packname.equals("java.lang.Object")) {
               hits++;
             }
           }
           if (hits !=2) {
-            teststatus = false;
             fail("framework test bundle, expected service not registered under the two expected names :FRAME055A:FAIL");
           }
         }
       }
       catch (InvalidSyntaxException ise) {
         fail("framework test bundle, invalid syntax in LDAP filter :" + ise + " :FRAME055A:FAIL");
-        teststatus = false;
       }
 
       // 11a. check the getProperty after registration, something should come back
@@ -1067,20 +1031,63 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       boolean h1 = false;
       boolean h2 = false;
-      if (sref != null) {
-        for (int i = 0; i< sref.length; i++) {
-          String sn1[] = (String[]) sref[i].getProperty("objectClass");
-          for (int j = 0; j < sn1.length; j++) {
-            if (sn1[j].equals("org.knopflerfish.service.bundleC_test.BundleC")) {
-              String keys[] = sref[i].getPropertyKeys();
-              if (keys != null) {
-                for (int k = 0; k< keys.length; k++) {
-                  try {
-                    String s1 = (String) sref[i].getProperty(keys[k]);
-                    if (s1.equals("value1")) {h1 = true;}
-                    if (s1.equals("value2")) {h2 = true;}
+      for (ServiceReference<?> serviceReference : sref) {
+        String[] sn1 = (String[]) serviceReference.getProperty("objectClass");
+        for (String s : sn1) {
+          if (s.equals("org.knopflerfish.service.bundleC_test.BundleC")) {
+            String[] keys = serviceReference.getPropertyKeys();
+            if (keys != null) {
+              for (String key : keys) {
+                try {
+                  String s1 = (String) serviceReference.getProperty(key);
+                  if (s1.equals("value1")) {
+                    h1 = true;
                   }
-                  catch (Exception e1) {
+                  if (s1.equals("value2")) {
+                    h2 = true;
+                  }
+                } catch (Exception e1) {
+                  // out.println("framework test bundle exception " + e1 );
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (! (h1 && h2)) {
+        fail("framework test bundle, expected property values from registered bundleC_test not found :FRAME055A:FAIL");
+      }
+
+      try {
+        buC.stop();
+      } catch (Throwable e) {
+        fail("framework test bundle, exception in stop method :" + e + " :FRAME055A:FAIL");
+      }
+
+      // 11a. check the getProperty after unregistration, something should come back
+      // Check that both keys i the service still have their expected values
+
+      h1 = false;
+      h2 = false;
+
+      for (ServiceReference<?> serviceReference : sref) {
+        String[] sn1 = (String[]) serviceReference.getProperty("objectClass");
+        if (sn1 != null) {
+          for (String s : sn1) {
+            if (s.equals("org.knopflerfish.service.bundleC_test.BundleC")) {
+              String[] keys = serviceReference.getPropertyKeys();
+              if (keys != null) {
+                for (String key : keys) {
+                  try {
+                    String s1 = (String) serviceReference.getProperty(key);
+                    if (s1.equals("value1")) {
+                      h1 = true;
+                    }
+                    if (s1.equals("value2")) {
+                      h2 = true;
+                    }
+                  } catch (Exception e1) {
                     // out.println("framework test bundle exception " + e1 );
                   }
                 }
@@ -1090,61 +1097,12 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         }
       }
 
-      if (! (h1 == true && h2 == true)) {
-        teststatus = false;
-        fail("framework test bundle, expected property values from registered bundleC_test not found :FRAME055A:FAIL");
-      }
-
-      try {
-        buC.stop();
-      }
-      catch (BundleException bexp) {
-        teststatus = false;
-        fail("framework test bundle, exception in stop method :" + bexp + " :FRAME055A:FAIL");
-      }
-      catch (Throwable thr) {
-        teststatus = false;
-        fail("framework test bundle, exception in stop method :" + thr + " :FRAME055A:FAIL");
-      }
-
-      // 11a. check the getProperty after unregistration, something should come back
-      // Check that both keys i the service still have their expected values
-
-      h1 = false;
-      h2 = false;
-
-      if (sref != null) {
-        for (int i = 0; i< sref.length; i++) {
-          String sn1[] = (String[]) sref[i].getProperty("objectClass");
-          if (sn1 != null) {
-            for (int j = 0; j < sn1.length; j++) {
-              if (sn1[j].equals("org.knopflerfish.service.bundleC_test.BundleC")) {
-                String keys[] = sref[i].getPropertyKeys();
-                if (keys != null) {
-                  for (int k = 0; k< keys.length; k++) {
-                    try {
-                      String s1 = (String) sref[i].getProperty(keys[k]);
-                      if (s1.equals("value1")) {h1 = true;}
-                      if (s1.equals("value2")) {h2 = true;}
-                    }
-                    catch (Exception e1) {
-                      // out.println("framework test bundle exception " + e1 );
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      if (!(h1 == true && h2 == true)) {
-        teststatus = false;
+      if (!(h1 && h2)) {
         fail("framework test bundle, expected property values from unregistered bundleC_test not found :FRAME055A:FAIL");
       }
 
       out.println("framework test bundle, buC.getState() = " + buC.getState());
-      if (teststatus == true && buC.getState() == Bundle.RESOLVED) {
+      if (buC.getState() == Bundle.RESOLVED) {
         out.println("### framework test bundle :FRAME055A:PASS");
       }
       else {
@@ -1153,6 +1111,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME060A =  {
     "Gets the configurable object from testbundle B,",
     "update its properties and check that a ServiceEvent occurs.",
@@ -1168,15 +1127,15 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       boolean lStat = false;
       boolean lStat2 = false;
 
-      ServiceRegistration servRegB = null;
+      ServiceRegistration<?> servRegB;
       Method m;
-      Class c, parameters[];
-      ServiceRegistration ServReg;
+      Class<?> serviceClass;
+      Class<?>[] parameterClasses;
       // clear the listeners
-      clearEvents();    // get rid of all prevoius events
+      clearEvents();    // get rid of all previous events
 
 
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleB_test.BundleB");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleB_test.BundleB");
       if (sr1 == null) {
         fail("framework test bundle, expected service not found :FRAME060A:FAIL");
         teststatus = false;
@@ -1190,20 +1149,20 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           teststatus = false;
         }
         else {
-          Hashtable h1 = new  Hashtable();
+          Hashtable<String, String> h1 = new Hashtable<>();
           h1.put ("key1","value7");
           h1.put ("key2","value8");
 
           // now for some reflection exercises
 
           Object[] arguments = new Object[1];
-          c = o1.getClass();
-          parameters = new Class[1];
-          parameters[0] = h1.getClass(); //  new Class[0];
+          serviceClass = o1.getClass();
+          parameterClasses = new Class[1];
+          parameterClasses[0] = h1.getClass(); //  new Class[0];
           arguments[0] = h1;
           try {
-            m = c.getMethod("setServReg", parameters);
-            servRegB = (ServiceRegistration) m.invoke(o1, arguments);
+            m = serviceClass.getMethod("setServReg", parameterClasses);
+            m.invoke(o1, arguments);
             // System.out.println("servRegB= " + servRegB);
           }
           catch (IllegalAccessException ia) {
@@ -1220,7 +1179,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
           // Check that the dictionary from the bundle seems to be ok, keys[1-2], value[7-8]
 
-          String keys [] = sr1.getPropertyKeys();
+          String[] keys = sr1.getPropertyKeys();
           for (int k=0; k< keys.length; k++) {
             // out.println("key=" + keys[k] +" val= " + sr1.getProperty(keys[k]));
             int l = k + 6;
@@ -1233,17 +1192,17 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           }
           // check the listeners for events, in this case service event MODIFIED
           lStat
-            = checkListenerEvents(out, false,0,  false,0,  true,
+            = checkListenerEvents(false,0,  false,0,  true,
                                   ServiceEvent.MODIFIED,  buB, sr1);
           clearEvents();
 
           // now to get the service reference as well for some manipulation
           arguments = new Object [0];
-          parameters = new Class [0];
+          parameterClasses = new Class [0];
           try {
-            m = c.getMethod("getServReg", parameters);
-            servRegB = (ServiceRegistration) m.invoke(o1, arguments);
-            ServiceReference sri = servRegB.getReference();
+            m = serviceClass.getMethod("getServReg", parameterClasses);
+            servRegB = (ServiceRegistration<?>) m.invoke(o1, arguments);
+            ServiceReference<?> sri = servRegB.getReference();
             if (sri.getBundle() != buB) {
               teststatus = false;
               fail("framework test bundle, bundle not as expected :FRAME060A:FAIL");
@@ -1264,13 +1223,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           }
 
           lStat2
-            = checkListenerEvents(out, false,0,  false,0,  true,
+            = checkListenerEvents(false,0,  false,0,  true,
                                   ServiceEvent.UNREGISTERING,  buB, sr1);
 
         }
       }
 
-      if (teststatus == true && buB.getState() == Bundle.ACTIVE && lStat == true && lStat2 == true) {
+      if (teststatus && buB.getState() == Bundle.ACTIVE && lStat && lStat2) {
         out.println("### framework test bundle :FRAME060A:PASS");
       }
       else {
@@ -1279,6 +1238,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME065B =  {
     "Load and try to start bundleE_test, ",
     "It should be possible to load , but should not be possible to start",
@@ -1292,10 +1252,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         buE = Util.installBundle(bc, "bundleE_test-1.0.0.jar");
         clearEvents();
-      } catch (BundleException bexcA) {
-        fail("framework test bundle "+ bexcA +" :FRAME065B:FAIL");
-      } catch (SecurityException secA) {
-        fail("framework test bundle "+ secA +" :FRAME065B:FAIL");
+      } catch (BundleException | SecurityException e) {
+        fail("framework test bundle "+ e +" :FRAME065B:FAIL");
       }
 
       // now try and start it, which should generate a BundleException
@@ -1314,18 +1272,14 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           fail("framework test bundle, unexpected nested exception " +t1
                +" :FRAME065B:FAIL");
         }
-      } catch (IllegalStateException ise) {
-        System.out.println("framework test bundle, unexpected exception "+ise );
-        ise.printStackTrace();
-        fail("framework test bundle "+ ise +" :FRAME065B:FAIL");
-      } catch (SecurityException sec) {
-        System.out.println("framework test bundle, unexpected exception "+sec );
-        sec.printStackTrace();
-        fail("framework test bundle "+ sec +" :FRAME065B:FAIL");
+      } catch (IllegalStateException | SecurityException e) {
+        System.out.println("framework test bundle, unexpected exception "+e );
+        e.printStackTrace();
+        fail("framework test bundle "+ e +" :FRAME065B:FAIL");
       }
       // check the events, BundleEvent.RESOLVED, STARTING, STOPPING
       // and STOPPED should have happened.
-      final BundleEvent buEvts[] = new BundleEvent[]{
+      final BundleEvent[] buEvts = new BundleEvent[]{
         new BundleEvent(BundleEvent.RESOLVED, buE),
         new BundleEvent(BundleEvent.STOPPED, buE)
       };
@@ -1347,8 +1301,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
              +":FRAME065B:FAIL");
       }
 
-      final Dictionary dict = buE.getHeaders();
-      final String bsn = (String) dict.get(Constants.BUNDLE_SYMBOLICNAME);
+      final Dictionary<String, String> dict = buE.getHeaders();
+      final String bsn = dict.get(Constants.BUNDLE_SYMBOLICNAME);
       final String bsnE = "org.knopflerfish.bundle.bundleE_test";
       if(!bsn.equals(bsnE)){
         fail("framework test bundle, " +Constants.BUNDLE_SYMBOLICNAME
@@ -1360,6 +1314,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME068A =  {
     "Tests accessing multiple resources inside the test bundle itself",
     "using ClassLoader.getResource"
@@ -1407,7 +1362,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           fail("bundle.loadclass failed");
       }
       //existing directory
-      Enumeration enume = bc.getBundle().getEntryPaths("/");
+      Enumeration<String> enume = bc.getBundle().getEntryPaths("/");
       assertNotNull("GetEntryPaths did not retrieve the correct number "
                     +"of elements, /", enume);
       out.println("bc.getBundle().getEntryPaths(\"/\")");
@@ -1502,10 +1457,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // Try to get the top level URLs of the bundle and check them
       {
         out.println("bc.getBundle().getResources(\"/\") -> ");
-        Enumeration e = bc.getBundle().getResources("/");
+        Enumeration<URL> e = bc.getBundle().getResources("/");
         assertNotNull("bc.getBundle().getResources(\"/\")", e);
         while(e.hasMoreElements()) {
-          url = (URL)e.nextElement();
+          url = e.nextElement();
           out.println("\t" +url);
           assertNotNull("Bundle root URL", url);
         }
@@ -1530,16 +1485,17 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     int countResources(String name) throws Exception {
       return countResources(name, true);
     }
-    int countResources(String name, boolean verbose ) throws Exception {
+    @SuppressWarnings("SameParameterValue")
+    int countResources(String name, boolean verbose) throws Exception {
       Bundle bundle = bc.getBundle();
       int n = 0;
-      Enumeration e = bundle.getResources(name);
+      Enumeration<URL> e = bundle.getResources(name);
       if (verbose) {
         out.println("bc.getBundle().getResources(\"" + name +"\") -> ");
       }
       if(e == null) return 0;
       while(e.hasMoreElements()) {
-        URL url = (URL)e.nextElement();
+        URL url = e.nextElement();
         if (verbose) { out.println("\t" +url); }
         assertURLExists(url);
         n++;
@@ -1547,7 +1503,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       return n;
     }
 
-    void testRes(String name, int count) throws Exception {
+    void testRes(String name) throws Exception {
       out.println("testRes(" + name + ")");
       ClassLoader cl = getClass().getClassLoader();
       URL url1 = cl.getResource(name);
@@ -1559,8 +1515,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       assertURLExists(url2);
 
       int n = 1;
-      for(Enumeration e = cl.getResources(name); e.hasMoreElements(); ) {
-        URL url = (URL)e.nextElement();
+      for(Enumeration<URL> e = cl.getResources(name); e.hasMoreElements(); ) {
+        URL url = e.nextElement();
         out.println("  " + n + "              = " + url);
         assertURLExists(url);
         n++;
@@ -1569,18 +1525,15 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
 
     void assertURLExists(URL url) throws Exception {
-      InputStream is = null;
+      assertNotNull("URL should be non-null", url);
 
-      try {
-        is = url.openStream();
+      try (InputStream is = url.openStream()) {
         assertNotNull("URL " + url + " should give a non-null stream", is);
-        return;
-      } finally {
-        try { is.close(); } catch (Exception ignored) {  }
       }
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME069A =  {
     "Tests contents of multiple resources inside the test bundle itself",
     "using ClassLoader.getResource"
@@ -1589,7 +1542,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame069a extends FWTestCase {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME069A start");
-      Hashtable texts = new Hashtable();
+      Hashtable<String, Boolean> texts = new Hashtable<>();
       texts.put("This is a resource in the bundle's res2.jar internal jar file",
                 Boolean.FALSE);
       texts.put("This is a resource in the bundle's res1.jar internal jar file",
@@ -1599,7 +1552,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       verifyContent("/fw_test_multi.txt", texts);
 
-      texts = new Hashtable();
+      texts = new Hashtable<>();
       texts.put("This is a single resource in the bundle's res2.jar internal jar file.",
                 Boolean.FALSE);
 
@@ -1608,11 +1561,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME069A:PASS");
     }
 
-    void verifyContent(String name, Hashtable texts) throws Exception {
+    void verifyContent(String name, Hashtable<String, Boolean> texts) throws Exception {
       ClassLoader cl = getClass().getClassLoader();
-      for(Enumeration e = cl.getResources(name);
+      for(Enumeration<URL> e = cl.getResources(name);
           e.hasMoreElements();) {
-        URL url = (URL)e.nextElement();
+        URL url = e.nextElement();
         out.println("Loading text from "+url);
         String s = new String(Util.loadURL(url));
         if(!texts.containsKey(s)) {
@@ -1620,17 +1573,16 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         }
         texts.put(s, Boolean.TRUE);
       }
-      for(Enumeration e = texts.keys(); e.hasMoreElements();) {
-        String  s = (String)e.nextElement();
-        Boolean b = (Boolean)texts.get(s);
-        if(!b.booleanValue()) {
-          fail("Checking resource name '" + name + "', did not find content '" + s + "'");
+      for (Map.Entry<String, Boolean> entry : texts.entrySet()) {
+        if (!entry.getValue()) {
+          fail("Checking resource name '" + name + "', did not find content '" + entry.getKey() + "'");
         }
       }
     }
 
  }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME070A =  {
     "Reinstalls and the updates testbundle_A.",
     "The version is checked to see if an update has been made."
@@ -1639,8 +1591,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame070a extends FWTestCase {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME070A start");
-      boolean teststatus = true;
-      boolean catchstatus = true;
       String jarA = "bundleA_test-1.0.0.jar";
       String jarA1 = "bundleA1_test-1.0.1.jar";
       InputStream fis;
@@ -1651,22 +1601,16 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       try {
         buA = Util.installBundle(bc, jarA);
-        teststatus = true;
       }
-      catch (BundleException bexcA) {
-        fail("framework test bundle "+ bexcA +" :FRAME070A:FAIL");
-        teststatus = false;
-      }
-      catch (SecurityException secA) {
-        fail("framework test bundle "+ secA +" :FRAME070A:FAIL");
-        teststatus = false;
+      catch (BundleException | SecurityException e) {
+        fail("framework test bundle "+ e +" :FRAME070A:FAIL");
       }
 
-      Dictionary ai = buA.getHeaders();
+      Dictionary<String, String> ai = buA.getHeaders();
 
       if(false) {
         // debugging
-        for (Enumeration e = ai.keys(); e.hasMoreElements();) {
+        for (Enumeration<String> e = ai.keys(); e.hasMoreElements();) {
           Object key = e.nextElement();
           Object value = ai.get(key);
           String s =  key.toString();
@@ -1675,7 +1619,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         }
       }
 
-      versionA = (String) ai.get("Bundle-Version");
+      versionA = ai.get("Bundle-Version");
 
       clearEvents();
       out.println("Before version = " + versionA);
@@ -1694,7 +1638,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       //                TODO rework, does not always work
 
-          long lastModified = buA.getLastModified();
+          //long lastModified = buA.getLastModified();
 
           buA.update(fis);
           /*
@@ -1703,28 +1647,17 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           }*/
         }
         catch (BundleException be ) {
-          teststatus = false;
           fail("framework test bundle, update without new bundle source :FRAME070A:FAIL");
         }
-      }
-      catch (MalformedURLException murk) {
-        teststatus = false;
-        fail("framework test bundle, update file not found " + murk+ " :FRAME070A:FAIL");
-      }
-      catch (FileNotFoundException fnf) {
-        teststatus = false;
-        fail("framework test bundle, update file not found " + fnf+ " :FRAME070A:FAIL");
-      }
-      catch (IOException ioe) {
-        teststatus = false;
-        fail("framework test bundle, update file not found " + ioe+ " :FRAME070A:FAIL");
+      } catch (IOException e) {
+        fail("framework test bundle, update file not found " + e + " :FRAME070A:FAIL");
       }
 
-      Dictionary a1i = buA.getHeaders();
+      Dictionary<String, String> a1i = buA.getHeaders();
 
       if(false) {
         // debugging
-        for (Enumeration e = a1i.keys(); e.hasMoreElements();) {
+        for (Enumeration<String> e = a1i.keys(); e.hasMoreElements();) {
           Object key = e.nextElement();
           Object value = a1i.get(key);
           String s =  key.toString();
@@ -1734,33 +1667,26 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
 
       a1i = buA.getHeaders();
-      versionA1 = (String) a1i.get("Bundle-Version");
+      versionA1 = a1i.get("Bundle-Version");
 
       out.println("After  version = " + versionA1);
 
       // check the events, none should have happened
-      boolean lStat
-        = checkListenerEvents(out, false, 0, true, BundleEvent.UPDATED,
-                              false, 0, buA, null);
+      checkListenerEvents(false, 0, true, BundleEvent.UPDATED,
+                          false, 0, buA, null);
 
       if (versionA1.equals(versionA)) {
-        teststatus = false;
         fail("framework test bundle, update of bundle failed, version info unchanged :FRAME070A:Fail");
       }
 
-
-      if (teststatus == true ) {
-        out.println("### framework test bundle :FRAME070A:PASS");
-      }
-      else {
-        fail("### framework test bundle :FRAME070A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME070A:PASS");
     }
   }
 
   // 15. Uninstall a the testbundle B and then try to start and stop it
   // In both cases exceptions should be thrown.
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME075A =  {
     "Uninstall bundleB_test and the try to start and stop it.",
     "In both cases exceptions should be thrown."
@@ -1769,7 +1695,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame075a extends FWTestCase {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME075A start");
-      boolean teststatus = true;
+      boolean teststatus;
       boolean exep1 = false;
       boolean exep2 = false;
 
@@ -1777,7 +1703,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         buB.uninstall();
       }
       catch (BundleException be) {
-        teststatus = false;
         fail("framework test bundle, uninstall of bundleB failed:" + be +" :FRAME075A:FAIL");
       }
 
@@ -1790,7 +1715,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         buB.start();
       }
       catch (BundleException be) {
-        teststatus =  false;
         fail("framework test bundle, got unexpected exception " + be + "at start :FRAME075A:FAIL");
       }
       catch (IllegalStateException ise) {
@@ -1798,7 +1722,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         // out.println("Got expected exception" + ise);
       }
       catch (SecurityException sec) {
-        teststatus = false;
         fail("framework test bundle, got unexpected exception " + sec + " :FRAME075A:FAIL");
       }
 
@@ -1811,7 +1734,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         buB.stop();
       }
       catch (BundleException be) {
-        teststatus =  false;
         fail("framework test bundle, got unexpected exception " + be + "at stop :FRAME075A:FAIL");
       }
       catch (IllegalStateException ise) {
@@ -1819,7 +1741,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         // out.println("Got expected exception" + ise);
       }
       catch (SecurityException sec) {
-        teststatus = false;
         fail("framework test bundle, got unexpected exception " + sec + " :FRAME075A:FAIL");
       }
 
@@ -1829,9 +1750,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
 
       // System.err.println("teststatus=" + teststatus + " exep1= " + exep1 + " exep2= " + exep2);
-      teststatus = teststatus && exep1 && exep2;
+      teststatus = exep1 && exep2;
 
-      if (teststatus == true ) {
+      if (teststatus) {
         out.println("### framework test bundle :FRAME075A:PASS");
       }
       else {
@@ -1843,6 +1764,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 16. Install and start testbundle F and then try to and stop it
   // In this case a bundeException is expected
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME080A =  {
     "Installs and starts bundleF_test and then try to and stop it.",
     "A BundleException is expected."
@@ -1857,16 +1779,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         buF = Util.installBundle(bc, "bundleF_test-1.0.0.jar");
       }
-      catch (BundleException bexcA) {
-        fail("framework test bundle "+ bexcA +" :FRAME080A:FAIL");
-        teststatus = false;
-      }
-      catch (SecurityException secA) {
-        fail("framework test bundle "+ secA +" :FRAME080A:FAIL");
-        teststatus = false;
+      catch (BundleException | SecurityException e) {
+        fail("framework test bundle "+ e +" :FRAME080A:FAIL");
       }
 
-      Dictionary dict = buF.getHeaders("fr_CA");
+      Dictionary<String, String> dict = buF.getHeaders("fr_CA");
       if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleF_test")){
           fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have correct value:FRAME080A:FAIL");
       }
@@ -1886,23 +1803,18 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         buF.start();
       }
       catch (BundleException bexcA) {
-        fail("framework test bundle, unexpected exception "+ bexcA +" :FRAME080A:FAIL");
         teststatus = false;
         bexcA.printStackTrace();
+        fail("framework test bundle, unexpected exception "+ bexcA +" :FRAME080A:FAIL");
       }
-      catch (IllegalStateException ise) {
-        fail("framework test bundle "+ ise +" :FRAME080A:FAIL");
+      catch (IllegalStateException | SecurityException e) {
         teststatus = false;
-        ise.printStackTrace();
-      }
-      catch (SecurityException sec) {
-        fail("framework test bundle "+ sec +" :FRAME080A:FAIL");
-        teststatus = false;
-        sec.printStackTrace();
+        e.printStackTrace();
+        fail("framework test bundle "+ e +" :FRAME080A:FAIL");
       }
       // now for the test of a stop that should casue an exception
 
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleF_test.BundleF");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleF_test.BundleF");
 
       clearEvents ();
       try {
@@ -1912,7 +1824,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         Throwable t1 = be.getNestedException();
         if (t1.getMessage().equals("BundleF stop")) {
           catchstatus = true;
-          // out.println("Got expected exception" + be);
+          out.println("Got expected exception" + be);
         }
         else {
           catchstatus = false;
@@ -1934,15 +1846,15 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       // check the events,
       boolean lStat
-        = checkListenerEvents(out, false, 0, true, BundleEvent.STOPPED,
+        = checkListenerEvents(false, 0, true, BundleEvent.STOPPED,
                               true, ServiceEvent.UNREGISTERING, buF, sr1);
       // out.println("lStat = "+ lStat);
 
-      if (catchstatus == false) {
+      if (!catchstatus) {
         teststatus = false;
       }
 
-      if (teststatus == true && lStat == true ) {
+      if (teststatus && lStat) {
         out.println("### framework test bundle :FRAME080A:PASS");
       }
       else {
@@ -1954,6 +1866,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 17. Install and start testbundle H, a service factory and test that the methods
   //     in that interface works.
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME085B =  {
     "Installs and starts bundleH_test, a service factory",
     "and tests that the methods in that API works."
@@ -1983,26 +1896,26 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         fail("framework test bundle "+ sec +" :FRAME085B:FAIL");
       }
 
-      Dictionary dict = buH.getHeaders("en_US");
+      Dictionary<String, String> dict = buH.getHeaders("en_US");
 
       assertEquals(Constants.BUNDLE_SYMBOLICNAME,
                    "org.knopflerfish.bundle.bundleH_test",
-                   (String) dict.get(Constants.BUNDLE_SYMBOLICNAME));
+                   dict.get(Constants.BUNDLE_SYMBOLICNAME));
 
       assertEquals(Constants.BUNDLE_DESCRIPTION,
                    "Test bundle for framework, bundleH_test",
-                   (String) dict.get(Constants.BUNDLE_DESCRIPTION));
+                   dict.get(Constants.BUNDLE_DESCRIPTION));
 
       assertEquals(Constants.BUNDLE_NAME,
                    "bundle_H",
-                   (String) dict.get(Constants.BUNDLE_NAME));
+                   dict.get(Constants.BUNDLE_NAME));
 
       assertEquals(Constants.BUNDLE_VERSION,
                    "2.0.0",
-                   (String) dict.get(Constants.BUNDLE_VERSION));
+                   dict.get(Constants.BUNDLE_VERSION));
 
       // Check that a service reference exist
-      final ServiceReference sr1 = bc
+      final ServiceReference<?> sr1 = bc
         .getServiceReference("org.knopflerfish.service.bundleH_test.BundleH");
       assertNotNull("Service shall be present.", sr1);
 
@@ -2056,6 +1969,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   //     then check if the framework removes all traces of the bundle
   //     as it registers one service itself before the bundle exception is thrown
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME110B =  {
     "Install and start bundleJ_test, which should throw an exception at start.",
     "then check if the framework removes all traces of the bundle",
@@ -2089,7 +2003,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
                  buJ.getState() == Bundle.RESOLVED);
 
       // Check that no service reference exist from the crashed bundle J.
-      ServiceReference sr1 = bc
+      ServiceReference<?> sr1 = bc
         .getServiceReference("org.knopflerfish.service.bundleJ_test.BundleJ");
       assertNull("Service from test bundle J unexpectedly found", sr1);
 
@@ -2119,6 +2033,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME115A =  {
     "Test getDataFile() method."
   };
@@ -2127,7 +2042,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME115A start");
 
-      boolean teststatus = true;
       String filename = "testfile_1";
       byte [] testdata = {1,2,3,4,5};
       File testFile = bc.getDataFile(filename);
@@ -2138,7 +2052,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           fout.close();
         }
         catch (IOException ioe) {
-          teststatus = false;
           fail("framework test bundle, I/O error on write in FRAME115A " + ioe);
         }
 
@@ -2151,19 +2064,16 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           if (incount == 5) {
             for (int i = 0; i< incount; i++ ) {
               if (indata[i] != testdata[i]) {
-                teststatus = false;
                 fail("framework test bundle FRAME115A, is " + indata [i] + ", should be " + testdata [i]);
               }
             }
           }
           else {
-            teststatus = false;
             fail("framework test bundle, I/O data error in FRAME115A");
             out.println("Should be 5 bytes, was " + incount );
           }
         }
         catch (IOException ioe) {
-          teststatus = false;
           fail("framework test bundle, I/O error on read in FRAME115A " + ioe);
         }
 
@@ -2171,24 +2081,19 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       else {
         // nothing to test
         fail("framework test bundle, no persistent data storage FRAME115A");
-        teststatus = true;
       }
 
       // Remove testfile_1
 
       testFile.delete();
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :FRAME115A:PASS");
-      }
-      else {
-        fail("### framework test bundle :FRAME115A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME115A:PASS");
     }
   }
 
   // 24. Test of the AdminPermission class
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME120A =  {
     "Test of the AdminPermission class"
   };
@@ -2202,7 +2107,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       AdminPermission ap1 = new AdminPermission();
       AdminPermission ap2 = null;
       SocketPermission sp1 = new SocketPermission("localhost:6666","listen"); // to test of cats among hermelins
-      Object testObject = new Object();
 
       // constructor and getName method check
       if (!ap1.getName().equals("*")) {
@@ -2220,7 +2124,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         teststatus = false;
       }
 
-      if (ap2 != null && !ap2.getName().equals("AdminPermission")) {
+      if (!ap2.getName().equals("AdminPermission")) {
         out.println("framework test bundle, Name of AdminPermission object is " + ap2.getName() + " in FRAME120A");
         out.println("framework test bundle, Name of AdminPermission object should be: AdminPermission");
         teststatus = false;
@@ -2246,8 +2150,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         teststatus = false;
       }
 
+      //noinspection EqualsBetweenInconvertibleTypes
       if (ap1.equals(sp1)) {
-        out.println("framework test bundle, equals method failed, returned "+ ap1.equals(sp1) + " should have been false,  FRAME120A");
+        out.println("framework test bundle, equals method failed, returned true should have been false,  FRAME120A");
         teststatus = false;
       }
 
@@ -2258,7 +2163,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       if (pc1 != null) {
         pc1.add (ap1);
-        boolean trig = false;
+        boolean trig;
         try { // add a permission that is not an AdminPermission
           pc1.add (sp1);
           trig = true;
@@ -2266,7 +2171,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         catch (RuntimeException ex1) {
           trig = false;
         }
-        if (trig == true) {
+        if (trig) {
           out.println("framework test bundle, add method on PermissionCollection failed, FRAME120A");
           out.println("permission with type different from AdminPermission succeded unexpectedly FRAME120A");
           teststatus = false;
@@ -2290,16 +2195,16 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
            necessary as the functionality is not possible to
            understand otherwise.
         */
-        for (Enumeration e = pc1.elements(); e.hasMoreElements(); ) {
+        for (Enumeration<Permission> e = pc1.elements(); e.hasMoreElements(); ) {
           AdminPermission ap4 = (AdminPermission) e.nextElement();
           // out.println("DEBUG framework test bundle, got AdminPermission " + ap4 +" FRAME120A");
           count++;
           if (ap4 != null) { hit1 = true;}
         }
-        if (hit1 != true || count != 1) {
+        if (!hit1 || count != 1) {
           teststatus = false;
           out.println("framework test bundle, elements method on PermissionCollection failed, FRAME120A");
-          if (hit1 != true) {
+          if (!hit1) {
             out.println("framework test bundle, no AdminPermission retrieved, FRAME120A");
           }
 
@@ -2307,13 +2212,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
             out.println("framework test bundle, number of entered objects: 1, number retrieved: " + count + " , FRAME120A");
           }
         }
-        if (pc1.isReadOnly() == true) {
+        if (pc1.isReadOnly()) {
           teststatus = false;
           out.println("framework test bundle, isReadOnly method on PermissionCollection is: "+pc1.isReadOnly() +" should be false, FRAME120A");
         }
 
         pc1.setReadOnly();
-        if (pc1.isReadOnly() == false) {
+        if (!pc1.isReadOnly()) {
           teststatus = false;
           out.println("framework test bundle, isReadOnly method on PermissionCollection is: "+pc1.isReadOnly() +" should be true, FRAME120A");
         }
@@ -2324,7 +2229,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         teststatus = false;
       }
 
-      if (teststatus == true) {
+      if (teststatus) {
         out.println("### framework test bundle :FRAME120A:PASS");
       }
       else {
@@ -2334,6 +2239,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
   // 25. Test of the PackagePermission class
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME125A =  {
     "Test of the PackagePermission class"
   };
@@ -2343,21 +2249,20 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME125A start");
       boolean teststatus = true;
       String validName  = "valid.name.test";
-      String validName1 = "valid.name.test1";
       String validName2 = "valid.name.test2";
       String invalidName = null;
-      String validAction = PackagePermission.EXPORT+","+PackagePermission.IMPORT;
+      String validAction = PackagePermission.EXPORT + "," + PackagePermission.IMPORT;
       String invalidAction = "apa";
 
-      PackagePermission pp1 = null;
-      PackagePermission pp2 = null;
-      PackagePermission pp3 = null;
-      PackagePermission pp4 = null;
+      PackagePermission pp1;
+      PackagePermission pp2;
+      PackagePermission pp3;
+      PackagePermission pp4;
 
       // constructor check
 
       try {
-        pp1 = new PackagePermission(validName,validAction);
+        new PackagePermission(validName,validAction);
       }
       catch (RuntimeException re) {
         out.println("framework test bundle, PackagePermission constructor("
@@ -2366,31 +2271,37 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
 
       try {
-        pp1 = new PackagePermission(invalidName,validAction);
+        new PackagePermission(invalidName,validAction);
         out.println("framework test bundle, PackagePermission constructor("
                     +invalidName +"," + validAction
                     +") succeded unexpected, in FRAME125A");
         teststatus = false;
       }
-      catch (RuntimeException re) { }
+      catch (RuntimeException re) {
+        // Expected
+      }
 
       try {
-        pp1 = new PackagePermission(validName,invalidAction);
+        new PackagePermission(validName,invalidAction);
         out.println("framework test bundle, PackagePermission constructor("
                     + validName +"," + invalidAction
                     + ") succeded unexpected, in FRAME125A");
         teststatus = false;
       }
-      catch (RuntimeException re) { }
+      catch (RuntimeException re) {
+        // Expected
+      }
 
       try {
-        pp1 = new PackagePermission(invalidName,invalidAction);
+        new PackagePermission(invalidName,invalidAction);
         out.println("framework test bundle, PackagePermission constructor("
                     + invalidName +"," + invalidAction
                     + ") succeded unexpected, in FRAME125A");
         teststatus = false;
       }
-      catch (RuntimeException re) { }
+      catch (RuntimeException re) {
+        // Expected
+      }
 
       // equals test
       pp1 = new PackagePermission(validName,validAction);
@@ -2503,49 +2414,48 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
 
       // implies test
-      boolean impstatus = true;
       pp1 = new PackagePermission(validName,PackagePermission.IMPORT);
       pp2 = new PackagePermission(validName,PackagePermission.EXPORT);
 
-      impstatus = impstatus && implyCheck (out, true,  pp2, pp1); // export implies import
-      impstatus = impstatus && implyCheck (out, false, pp1, pp2); // import does not imply export
+      boolean impstatus = implyCheck (true,  pp2, pp1); // export implies import
+      impstatus = impstatus && implyCheck (false, pp1, pp2); // import does not imply export
 
       pp1 = new PackagePermission("test1.*",PackagePermission.EXPORT);
       pp2 = new PackagePermission("test2.*",PackagePermission.EXPORT);
 
-      impstatus = impstatus && implyCheck (out, false, pp2, pp1); // different packet names, implication = false
-      impstatus = impstatus && implyCheck (out, false, pp1, pp2); // different packet names, implication = false
+      impstatus = impstatus && implyCheck (false, pp2, pp1); // different packet names, implication = false
+      impstatus = impstatus && implyCheck (false, pp1, pp2); // different packet names, implication = false
 
       pp1 = new PackagePermission("test1.*",PackagePermission.EXPORT);
       pp2 = new PackagePermission("test1.a",  PackagePermission.EXPORT);
 
-      impstatus = impstatus && implyCheck (out, false, pp2, pp1); // test1.a does not imply test1.*, implication = false
-      impstatus = impstatus && implyCheck (out, true,  pp1, pp2); // test1.* implies test1.a, implication = true
+      impstatus = impstatus && implyCheck (false, pp2, pp1); // test1.a does not imply test1.*, implication = false
+      impstatus = impstatus && implyCheck (true,  pp1, pp2); // test1.* implies test1.a, implication = true
 
       pp1 = new PackagePermission("test1.*",PackagePermission.EXPORT);
       pp2 = new PackagePermission("test1.a",PackagePermission.IMPORT);
       pp3 = new PackagePermission("test1.*",PackagePermission.IMPORT);
       pp4 = new PackagePermission("test1.a",PackagePermission.EXPORT);
 
-      impstatus = impstatus && implyCheck (out, true,  pp1, pp1); // test1.* & export implies        test1.* & export, implication = true
-      impstatus = impstatus && implyCheck (out, true,  pp1, pp2); // test1.* & export implies        test1.a & import, implication = true
-      impstatus = impstatus && implyCheck (out, true,  pp1, pp3); // test1.* & export implies        test1.* & import, implication = true
-      impstatus = impstatus && implyCheck (out, true,  pp1, pp4); // test1.* & export implies        test1.a & export, implication = true
+      impstatus = impstatus && implyCheck (true,  pp1, pp1); // test1.* & export implies        test1.* & export, implication = true
+      impstatus = impstatus && implyCheck (true,  pp1, pp2); // test1.* & export implies        test1.a & import, implication = true
+      impstatus = impstatus && implyCheck (true,  pp1, pp3); // test1.* & export implies        test1.* & import, implication = true
+      impstatus = impstatus && implyCheck (true,  pp1, pp4); // test1.* & export implies        test1.a & export, implication = true
 
-      impstatus = impstatus && implyCheck (out, false, pp2, pp1); // test1.a & import does not imply test1.* & export, implication = false
-      impstatus = impstatus && implyCheck (out, true,  pp2, pp2); // test1.a & import implies        test1.a & import, implication = true
-      impstatus = impstatus && implyCheck (out, false, pp2, pp3); // test1.a & import does not imply test1.* & import, implication = false
-      impstatus = impstatus && implyCheck (out, false, pp2, pp4); // test1.a & import does not imply test1.a & export, implication = false
+      impstatus = impstatus && implyCheck (false, pp2, pp1); // test1.a & import does not imply test1.* & export, implication = false
+      impstatus = impstatus && implyCheck (true,  pp2, pp2); // test1.a & import implies        test1.a & import, implication = true
+      impstatus = impstatus && implyCheck (false, pp2, pp3); // test1.a & import does not imply test1.* & import, implication = false
+      impstatus = impstatus && implyCheck (false, pp2, pp4); // test1.a & import does not imply test1.a & export, implication = false
 
-      impstatus = impstatus && implyCheck (out, false, pp3, pp1); // test1.* & import does not imply test1.* & export, implication = false
-      impstatus = impstatus && implyCheck (out, true,  pp3, pp2); // test1.* & import implies        test1.a & import, implication = true
-      impstatus = impstatus && implyCheck (out, true,  pp3, pp3); // test1.* & import implies        test1.* & import, implication = true
-      impstatus = impstatus && implyCheck (out, false, pp3, pp4); // test1.* & import does not imply test1.a & export, implication = false
+      impstatus = impstatus && implyCheck (false, pp3, pp1); // test1.* & import does not imply test1.* & export, implication = false
+      impstatus = impstatus && implyCheck (true,  pp3, pp2); // test1.* & import implies        test1.a & import, implication = true
+      impstatus = impstatus && implyCheck (true,  pp3, pp3); // test1.* & import implies        test1.* & import, implication = true
+      impstatus = impstatus && implyCheck (false, pp3, pp4); // test1.* & import does not imply test1.a & export, implication = false
 
-      impstatus = impstatus && implyCheck (out, false, pp4, pp1); // test1.a & export does not imply test1.* & export, implication = false
-      impstatus = impstatus && implyCheck (out, true,  pp4, pp2); // test1.a & export implies        test1.a & import, implication = true
-      impstatus = impstatus && implyCheck (out, false, pp4, pp3); // test1.a & export does not imply test1.* & import, implication = false
-      impstatus = impstatus && implyCheck (out, true,  pp4, pp4); // test1.a & export implies        test1.a & export, implication = true
+      impstatus = impstatus && implyCheck (false, pp4, pp1); // test1.a & export does not imply test1.* & export, implication = false
+      impstatus = impstatus && implyCheck (true,  pp4, pp2); // test1.a & export implies        test1.a & import, implication = true
+      impstatus = impstatus && implyCheck (false, pp4, pp3); // test1.a & export does not imply test1.* & import, implication = false
+      impstatus = impstatus && implyCheck (true,  pp4, pp4); // test1.a & export implies        test1.a & export, implication = true
 
       // newPermissionCollection tests
 
@@ -2569,7 +2479,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           pc1.add(pp7);
           pc1.add(pp8);
 
-          for (Enumeration e = pc1.elements(); e.hasMoreElements(); ) {
+          for (Enumeration<Permission> e = pc1.elements(); e.hasMoreElements(); ) {
             PackagePermission ptmp = (PackagePermission) e.nextElement();
             // out.println("DEBUG framework test bundle, got AdminPermission " + ptmp +" FRAME125A");
             count++;
@@ -2578,7 +2488,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
             if (ptmp == pp7) { b3 = true;}
             if (ptmp == pp8) { b4 = true;}
           }
-          if (count != 4 || b1 != true || b2 != true || b3 != true || b4 != true) {
+          if (count != 4 || !b1 || !b2 || !b3 || !b4) {
             teststatus = false;
             out.println("framework test bundle, elements method on PermissionCollection failed, FRAME125A");
 
@@ -2586,11 +2496,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
               out.println("framework test bundle, number of entered PackagePermissions: 4, number retrieved: " + count + " , FRAME125A");
             }
           }
-          boolean ipcstat = true;
-          ipcstat = ipcstat && implyCheck (out, true,  pc1, pp5); // test1.* & export implies        test1.* & export, implication = true
-          ipcstat = ipcstat && implyCheck (out, false, pc1, pp9); // test1.* & export does not imply test3.a & export, implication = false
+          boolean ipcstat = implyCheck (true,  pc1, pp5);    // test1.* & export implies        test1.* & export, implication = true
+          ipcstat = ipcstat && implyCheck (false, pc1, pp9); // test1.* & export does not imply test3.a & export, implication = false
 
-          if (ipcstat != true) {
+          if (!ipcstat) {
             teststatus = false;
           }
 
@@ -2606,7 +2515,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         out.println("framework test bundle, newPermissionsCollection method on PackagePermission returned null,FRAME125A");
       }
 
-      if (teststatus == true && impstatus == true) {
+      if (teststatus && impstatus) {
         out.println("### framework test bundle :FRAME125A:PASS");
       }
       else {
@@ -2617,6 +2526,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   // 26. Test of the ServicePermission class
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME130A =  {
     "Test of the ServicePermission class"
   };
@@ -2626,25 +2536,24 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME130A start");
       boolean teststatus = true;
       String validClass = "valid.class.name";
-      String validClass1 = "valid.class.name.1";
       String validClass2 = "valid.class.name.2";
       String invalidClass = null;
       String validAction = ServicePermission.GET+","+ServicePermission.REGISTER;
       String invalidAction = "skunk";
 
-      ServicePermission sp1 = null;
-      ServicePermission sp2 = null;
-      ServicePermission sp3 = null;
-      ServicePermission sp4 = null;
-      ServicePermission sp5 = null;
-      ServicePermission sp6 = null;
-      ServicePermission sp7 = null;
-      ServicePermission sp8 = null;
+      ServicePermission sp1;
+      ServicePermission sp2;
+      ServicePermission sp3;
+      ServicePermission sp4;
+      ServicePermission sp5;
+      ServicePermission sp6;
+      ServicePermission sp7;
+      ServicePermission sp8;
 
       // constructor check
 
       try {
-        sp1 = new ServicePermission (validClass,validAction);
+        new ServicePermission (validClass,validAction);
       }
       catch (RuntimeException re) {
         out.println("framework test bundle, ServicePermission constructor("+ validClass +"," + validAction + ") failed, in FRAME130A");
@@ -2652,25 +2561,31 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
 
       try {
-        sp1 = new ServicePermission(invalidClass,validAction);
+        new ServicePermission(invalidClass,validAction);
         out.println("framework test bundle, ServicePermission constructor("+ invalidClass +"," + validAction + ") succeded unexpected, in FRAME130A");
         teststatus = false;
       }
-      catch (RuntimeException re) { }
+      catch (RuntimeException re) {
+        // Expected
+      }
 
       try {
-        sp1 = new ServicePermission(validClass,invalidAction);
+        new ServicePermission(validClass,invalidAction);
         out.println("framework test bundle, ServicePermission constructor("+ validClass +"," + invalidAction + ") succeded unexpected, in FRAME130A");
         teststatus = false;
       }
-      catch (RuntimeException re) { }
+      catch (RuntimeException re) {
+        // Expected
+      }
 
       try {
-        sp1 = new ServicePermission(invalidClass,invalidAction);
+        new ServicePermission(invalidClass,invalidAction);
         out.println("framework test bundle, ServicePermission constructor("+ invalidClass +"," + invalidAction + ") succeded unexpected, in FRAME130A");
         teststatus = false;
       }
-      catch (RuntimeException re) { }
+      catch (RuntimeException re) {
+        // Expected
+      }
 
       // equals test
       sp1 = new ServicePermission(validClass,validAction);
@@ -2730,24 +2645,23 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       // implies test
 
-      boolean impstatus = true;
       sp1 = new ServicePermission(validClass,ServicePermission.GET);
       sp2 = new ServicePermission(validClass,ServicePermission.REGISTER);
 
-      impstatus = impstatus && implyCheck (out, false, sp2, sp1); // get does not imply register
-      impstatus = impstatus && implyCheck (out, false, sp1, sp2); // register does not imply get
+      boolean impstatus =      implyCheck (false, sp2, sp1); // get does not imply register
+      impstatus = impstatus && implyCheck (false, sp1, sp2); // register does not imply get
 
       sp1 = new ServicePermission("validClass1.*", ServicePermission.REGISTER+","+ServicePermission.GET);
       sp2 = new ServicePermission("validClass2.*", ServicePermission.REGISTER+","+ServicePermission.GET);
 
-      impstatus = impstatus && implyCheck (out, false, sp2, sp1); // different class names, implication = false
-      impstatus = impstatus && implyCheck (out, false, sp1, sp2); // different class names, implication = false
+      impstatus = impstatus && implyCheck (false, sp2, sp1); // different class names, implication = false
+      impstatus = impstatus && implyCheck (false, sp1, sp2); // different class names, implication = false
 
       sp1 = new ServicePermission("validClass1.*", ServicePermission.REGISTER+","+ServicePermission.GET);
       sp2 = new ServicePermission("validClass1.a", ServicePermission.REGISTER+","+ServicePermission.GET);
 
-      impstatus = impstatus && implyCheck (out, false, sp2, sp1); // validClass1.a does not imply validClass1.*, implication = false
-      impstatus = impstatus && implyCheck (out, true,  sp1, sp2); // validClass1.* implies validClass1.a, implication = true
+      impstatus = impstatus && implyCheck (false, sp2, sp1); // validClass1.a does not imply validClass1.*, implication = false
+      impstatus = impstatus && implyCheck (true,  sp1, sp2); // validClass1.* implies validClass1.a, implication = true
 
       sp1 = new ServicePermission("test1.*",ServicePermission.REGISTER);
       sp2 = new ServicePermission("test1.*",ServicePermission.GET);
@@ -2756,73 +2670,67 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       sp5 = new ServicePermission("test1.a",ServicePermission.GET);
       sp6 = new ServicePermission("test1.a",ServicePermission.REGISTER+","+ServicePermission.GET);
 
-      impstatus = impstatus && implyCheck (out, true,  sp1, sp1); // test1.* & register implies      test1.* & register,
-      impstatus = impstatus && implyCheck (out, false, sp1, sp2); // test1.* & register implies not  test1.* & get,
-      impstatus = impstatus && implyCheck (out, false, sp1, sp3); // test1.* & register implies not  test1.* & reg & get,
-      impstatus = impstatus && implyCheck (out, true,  sp1, sp4); // test1.* & register implies      test1.a & register,
-      impstatus = impstatus && implyCheck (out, false, sp1, sp5); // test1.* & register implies not  test1.a & get,
-      impstatus = impstatus && implyCheck (out, false, sp1, sp6); // test1.* & register implies not  test1.a & reg & g,
+      impstatus = impstatus && implyCheck (true,  sp1, sp1); // test1.* & register implies      test1.* & register,
+      impstatus = impstatus && implyCheck (false, sp1, sp2); // test1.* & register implies not  test1.* & get,
+      impstatus = impstatus && implyCheck (false, sp1, sp3); // test1.* & register implies not  test1.* & reg & get,
+      impstatus = impstatus && implyCheck (true,  sp1, sp4); // test1.* & register implies      test1.a & register,
+      impstatus = impstatus && implyCheck (false, sp1, sp5); // test1.* & register implies not  test1.a & get,
+      impstatus = impstatus && implyCheck (false, sp1, sp6); // test1.* & register implies not  test1.a & reg & g,
 
-      impstatus = impstatus && implyCheck (out, false, sp2, sp1); // test1.* & get      implies not  test1.* & register,
-      impstatus = impstatus && implyCheck (out, true,  sp2, sp2); // test1.* & get      implies      test1.* & get,
-      impstatus = impstatus && implyCheck (out, false, sp2, sp3); // test1.* & get      implies not  test1.* & reg & get,
-      impstatus = impstatus && implyCheck (out, false, sp2, sp4); // test1.* & get      implies      test1.a & register,
-      impstatus = impstatus && implyCheck (out, true,  sp2, sp5); // test1.* & get      implies      test1.a & get,
-      impstatus = impstatus && implyCheck (out, false, sp2, sp6); // test1.* & get      implies not  test1.a & reg & g,
+      impstatus = impstatus && implyCheck (false, sp2, sp1); // test1.* & get      implies not  test1.* & register,
+      impstatus = impstatus && implyCheck (true,  sp2, sp2); // test1.* & get      implies      test1.* & get,
+      impstatus = impstatus && implyCheck (false, sp2, sp3); // test1.* & get      implies not  test1.* & reg & get,
+      impstatus = impstatus && implyCheck (false, sp2, sp4); // test1.* & get      implies      test1.a & register,
+      impstatus = impstatus && implyCheck (true,  sp2, sp5); // test1.* & get      implies      test1.a & get,
+      impstatus = impstatus && implyCheck (false, sp2, sp6); // test1.* & get      implies not  test1.a & reg & g,
 
-      impstatus = impstatus && implyCheck (out, true, sp3, sp1); // test1.* & get&reg  implies      test1.* & register,
-      impstatus = impstatus && implyCheck (out, true, sp3, sp2); // test1.* & get&reg  implies      test1.* & get,
-      impstatus = impstatus && implyCheck (out, true, sp3, sp3); // test1.* & get&reg  implies      test1.* & reg & get,
-      impstatus = impstatus && implyCheck (out, true, sp3, sp4); // test1.* & get&reg  implies      test1.a & register,
-      impstatus = impstatus && implyCheck (out, true, sp3, sp5); // test1.* & get&reg  implies      test1.a & get,
-      impstatus = impstatus && implyCheck (out, true, sp3, sp6); // test1.* & get&reg  implies      test1.a & reg & g,
+      impstatus = impstatus && implyCheck (true, sp3, sp1); // test1.* & get&reg  implies      test1.* & register,
+      impstatus = impstatus && implyCheck (true, sp3, sp2); // test1.* & get&reg  implies      test1.* & get,
+      impstatus = impstatus && implyCheck (true, sp3, sp3); // test1.* & get&reg  implies      test1.* & reg & get,
+      impstatus = impstatus && implyCheck (true, sp3, sp4); // test1.* & get&reg  implies      test1.a & register,
+      impstatus = impstatus && implyCheck (true, sp3, sp5); // test1.* & get&reg  implies      test1.a & get,
+      impstatus = impstatus && implyCheck (true, sp3, sp6); // test1.* & get&reg  implies      test1.a & reg & g,
 
-      impstatus = impstatus && implyCheck (out, false, sp4, sp1); // test1.a & reg  implies not   test1.* & register,
-      impstatus = impstatus && implyCheck (out, false, sp4, sp2); // test1.a & reg  implies not   test1.* & get,
-      impstatus = impstatus && implyCheck (out, false, sp4, sp3); // test1.a & reg  implies not   test1.* & reg & get,
-      impstatus = impstatus && implyCheck (out, true,  sp4, sp4); // test1.a & reg  implies       test1.a & register,
-      impstatus = impstatus && implyCheck (out, false, sp4, sp5); // test1.a & reg  implies not   test1.a & get,
-      impstatus = impstatus && implyCheck (out, false, sp4, sp6); // test1.a & reg  implies not   test1.a & reg & g,
+      impstatus = impstatus && implyCheck (false, sp4, sp1); // test1.a & reg  implies not   test1.* & register,
+      impstatus = impstatus && implyCheck (false, sp4, sp2); // test1.a & reg  implies not   test1.* & get,
+      impstatus = impstatus && implyCheck (false, sp4, sp3); // test1.a & reg  implies not   test1.* & reg & get,
+      impstatus = impstatus && implyCheck (true,  sp4, sp4); // test1.a & reg  implies       test1.a & register,
+      impstatus = impstatus && implyCheck (false, sp4, sp5); // test1.a & reg  implies not   test1.a & get,
+      impstatus = impstatus && implyCheck (false, sp4, sp6); // test1.a & reg  implies not   test1.a & reg & g,
 
-      impstatus = impstatus && implyCheck (out, false, sp5, sp1); // test1.a & get  implies not   test1.* & register,
-      impstatus = impstatus && implyCheck (out, false, sp5, sp2); // test1.a & get  implies not   test1.* & get,
-      impstatus = impstatus && implyCheck (out, false, sp5, sp3); // test1.a & get  implies not   test1.* & reg & get,
-      impstatus = impstatus && implyCheck (out, false, sp5, sp4); // test1.a & get  implies not   test1.a & register,
-      impstatus = impstatus && implyCheck (out, true,  sp5, sp5); // test1.a & get  implies       test1.a & get,
-      impstatus = impstatus && implyCheck (out, false, sp5, sp6); // test1.a & get  implies not   test1.a & reg & g,
+      impstatus = impstatus && implyCheck (false, sp5, sp1); // test1.a & get  implies not   test1.* & register,
+      impstatus = impstatus && implyCheck (false, sp5, sp2); // test1.a & get  implies not   test1.* & get,
+      impstatus = impstatus && implyCheck (false, sp5, sp3); // test1.a & get  implies not   test1.* & reg & get,
+      impstatus = impstatus && implyCheck (false, sp5, sp4); // test1.a & get  implies not   test1.a & register,
+      impstatus = impstatus && implyCheck (true,  sp5, sp5); // test1.a & get  implies       test1.a & get,
+      impstatus = impstatus && implyCheck (false, sp5, sp6); // test1.a & get  implies not   test1.a & reg & g,
 
-      impstatus = impstatus && implyCheck (out, false, sp6, sp1); // test1.a & get & reg implies not   test1.* & register,
-      impstatus = impstatus && implyCheck (out, false, sp6, sp2); // test1.a & get & reg implies not   test1.* & get,
-      impstatus = impstatus && implyCheck (out, false, sp6, sp3); // test1.a & get & reg implies not   test1.* & reg & get,
-      impstatus = impstatus && implyCheck (out, true,  sp6, sp4); // test1.a & get & reg implies       test1.a & register,
-      impstatus = impstatus && implyCheck (out, true,  sp6, sp5); // test1.a & get & reg implies       test1.a & get,
-      impstatus = impstatus && implyCheck (out, true,  sp6, sp6); // test1.a & get & reg implies       test1.a & reg & g,
+      impstatus = impstatus && implyCheck (false, sp6, sp1); // test1.a & get & reg implies not   test1.* & register,
+      impstatus = impstatus && implyCheck (false, sp6, sp2); // test1.a & get & reg implies not   test1.* & get,
+      impstatus = impstatus && implyCheck (false, sp6, sp3); // test1.a & get & reg implies not   test1.* & reg & get,
+      impstatus = impstatus && implyCheck (true,  sp6, sp4); // test1.a & get & reg implies       test1.a & register,
+      impstatus = impstatus && implyCheck (true,  sp6, sp5); // test1.a & get & reg implies       test1.a & get,
+      impstatus = impstatus && implyCheck (true,  sp6, sp6); // test1.a & get & reg implies       test1.a & reg & g,
 
       sp7 = new ServicePermission("test2.a",ServicePermission.REGISTER+","+ServicePermission.GET);
       sp8 = new ServicePermission("*",ServicePermission.REGISTER+","+ServicePermission.GET);
 
-      impstatus = impstatus && implyCheck (out, false, sp7, sp1); // test2.a & get & reg implies not   test1.* & register,
-      impstatus = impstatus && implyCheck (out, false, sp7, sp2); // test2.a & get & reg implies not   test1.* & get,
-      impstatus = impstatus && implyCheck (out, false, sp7, sp3); // test2.a & get & reg implies not   test1.* & reg & get,
-      impstatus = impstatus && implyCheck (out, false, sp7, sp4); // test2.a & get & reg implies not   test1.a & register,
-      impstatus = impstatus && implyCheck (out, false, sp7, sp5); // test2.a & get & reg implies not   test1.a & get,
-      impstatus = impstatus && implyCheck (out, false, sp7, sp6); // test2.a & get & reg implies not   test1.a & reg & g,
+      impstatus = impstatus && implyCheck (false, sp7, sp1); // test2.a & get & reg implies not   test1.* & register,
+      impstatus = impstatus && implyCheck (false, sp7, sp2); // test2.a & get & reg implies not   test1.* & get,
+      impstatus = impstatus && implyCheck (false, sp7, sp3); // test2.a & get & reg implies not   test1.* & reg & get,
+      impstatus = impstatus && implyCheck (false, sp7, sp4); // test2.a & get & reg implies not   test1.a & register,
+      impstatus = impstatus && implyCheck (false, sp7, sp5); // test2.a & get & reg implies not   test1.a & get,
+      impstatus = impstatus && implyCheck (false, sp7, sp6); // test2.a & get & reg implies not   test1.a & reg & g,
 
-      impstatus = impstatus && implyCheck (out, true,  sp8, sp1); // * & get & reg implies       test1.* & register,
-      impstatus = impstatus && implyCheck (out, true,  sp8, sp2); // * & get & reg implies       test1.* & get,
-      impstatus = impstatus && implyCheck (out, true,  sp8, sp3); // * & get & reg implies       test1.* & reg & get,
-      impstatus = impstatus && implyCheck (out, true,  sp8, sp4); // * & get & reg implies       test1.a & register,
-      impstatus = impstatus && implyCheck (out, true,  sp8, sp5); // * & get & reg implies       test1.a & get,
-      impstatus = impstatus && implyCheck (out, true,  sp8, sp6); // * & get & reg implies       test1.a & reg & g,
+      impstatus = impstatus && implyCheck (true,  sp8, sp1); // * & get & reg implies       test1.* & register,
+      impstatus = impstatus && implyCheck (true,  sp8, sp2); // * & get & reg implies       test1.* & get,
+      impstatus = impstatus && implyCheck (true,  sp8, sp3); // * & get & reg implies       test1.* & reg & get,
+      impstatus = impstatus && implyCheck (true,  sp8, sp4); // * & get & reg implies       test1.a & register,
+      impstatus = impstatus && implyCheck (true,  sp8, sp5); // * & get & reg implies       test1.a & get,
+      impstatus = impstatus && implyCheck (true,  sp8, sp6); // * & get & reg implies       test1.a & reg & g,
 
       PermissionCollection pc1 = sp1.newPermissionCollection();
       if (pc1 != null) {
-        int count = 0;
-        boolean b1 = false;
-        boolean b2 = false;
-        boolean b3 = false;
-        boolean b4 = false;
-
         try {
           pc1.add(sp1);
           pc1.add(sp2);
@@ -2832,15 +2740,14 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           // the combination of these four servicepermissions should create
           // a servicecollection that implies the following
 
-          boolean ipcstat = true;
-          ipcstat = ipcstat && implyCheck (out, true,  pc1, sp1); // permission is in collection
-          ipcstat = ipcstat && implyCheck (out, true,  pc1, sp2); // permission is in collection
-          ipcstat = ipcstat && implyCheck (out, true,  pc1, sp3); // permission is in collection
-          ipcstat = ipcstat && implyCheck (out, true,  pc1, sp4); // permission is in collection
-          ipcstat = ipcstat && implyCheck (out, true,  pc1, sp5); // permission is in collection
-          ipcstat = ipcstat && implyCheck (out, false, pc1, sp7); // permission is not in collection
+          boolean ipcstat =    implyCheck (true,  pc1, sp1); // permission is in collection
+          ipcstat = ipcstat && implyCheck (true,  pc1, sp2); // permission is in collection
+          ipcstat = ipcstat && implyCheck (true,  pc1, sp3); // permission is in collection
+          ipcstat = ipcstat && implyCheck (true,  pc1, sp4); // permission is in collection
+          ipcstat = ipcstat && implyCheck (true,  pc1, sp5); // permission is in collection
+          ipcstat = ipcstat && implyCheck (false, pc1, sp7); // permission is not in collection
 
-          if (ipcstat != true) {
+          if (!ipcstat) {
             teststatus = false;
           }
 
@@ -2855,7 +2762,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         out.println("framework test bundle, newPermissionsCollection method on ServicePermission returned null,FRAME130A");
       }
 
-      if (teststatus == true && impstatus == true) {
+      if (teststatus && impstatus) {
         out.println("### framework test bundle :FRAME130A:PASS");
       }
       else {
@@ -2865,8 +2772,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
-
-
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME160A =  {
     "Test bundle resource retrieval."
   };
@@ -2874,7 +2780,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame160a extends FWTestCase {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME160A start");
-      boolean pass = true;
 
       Bundle buR = null;
       Bundle buR1 = null;
@@ -2883,29 +2788,23 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           buR = Util.installBundle(bc, "bundleR_test-1.1.0.jar");
         } catch (BundleException e) {
           out.println("Failed install R: " + e.getNestedException() + ", in FRAME160A");
-          pass = false;
         }
 
         try {
           buR1 = Util.installBundle(bc, "bundleR1_test-1.1.0.jar");
         } catch (BundleException e) {
-          pass = false;
           fail("Failed install R1: " + e.getNestedException() + ", in FRAME160A:FAIL");
         }
 
+        assertNotNull(buR);
         try {
           buR.start();
         } catch (BundleException e) {
           e.getNestedException().printStackTrace(out);
-          pass = false;
           fail("Failed start of R in FRAME160A:FAIL");
         }
 
-        if (pass == true) {
-          out.println("### framework test bundle :FRAME160A:PASS");
-        } else {
-          fail("### framework test bundle :FRAME160A:FAIL");
-        }
+        out.println("### framework test bundle :FRAME160A:PASS");
       } finally {
 
         if (buR != null) {
@@ -2922,6 +2821,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME161A =  {
     "Test bundle resource retrieval from boot class path; "
     +" a resource in-side the java package."
@@ -2965,6 +2865,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME162A =  {
     "Test bundle resource retrieval from boot class path; "
     +" a resource outside the java package that should not be found."
@@ -2990,6 +2891,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME163A =  {
     "Test bundle resource retrieval from boot class path; "
     +" a resource found via boot delegation."
@@ -3036,6 +2938,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME164A =  {
     "Test normalization of relative paths in bundle URLs created using "
     +" new URL(bundleUrl, 'relative path')."
@@ -3074,6 +2977,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME165A =  {
     "bundle.getResource(\"/META-INF\") and "
     +"bundle.getResource(\"/META-INF/\")"
@@ -3105,9 +3009,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
 
   boolean callReturned;
-  Integer doneSyncListener;
+  int doneSyncListener;
   String errorFrame170;
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME170A =  {
     "Test of ServiceReference.getUsingBundles() and SynchronousBundleListener."
   };
@@ -3116,7 +3021,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME170A start");
 
-      ServiceRegistration tsr = null;
+      ServiceRegistration<?> tsr = null;
       Bundle buQ = null;
       Bundle buQ1 = null;
       try {
@@ -3128,12 +3033,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         } catch (InterruptedException ignore) {}
         BundleListener bl1 = new BundleListener() {
             public void bundleChanged(BundleEvent be) {
-              if (doneSyncListener.intValue() == 0) {
+              if (doneSyncListener == 0) {
                 errorFrame170 = "Called BundleListener before SBL";
               }
-              synchronized (doneSyncListener) {
-                doneSyncListener = new Integer(doneSyncListener.intValue() + 1);
-              }
+              doneSyncListener++;
             }
           };
         bc.addBundleListener(bl1);
@@ -3144,30 +3047,27 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
               } else {
                 try {
                   Thread.sleep(1000);
-                } catch (InterruptedException ignore) {}
+                } catch (InterruptedException ignore) {
+                }
                 if (callReturned) {
                   errorFrame170 = "Returned from bundle operation before SBL was done";
                 }
               }
-              synchronized (doneSyncListener) {
-                doneSyncListener = new Integer(doneSyncListener.intValue() + 1);
-              }
+              doneSyncListener++;
             }
-          };
+        };
         bc.addBundleListener(bl2);
         BundleListener bl3 = new BundleListener() {
             public void bundleChanged(BundleEvent be) {
-              if (doneSyncListener.intValue() == 0) {
+              if (doneSyncListener == 0) {
                 errorFrame170 = "Called BundleListener before SBL";
               }
-              synchronized (doneSyncListener) {
-                doneSyncListener = new Integer(doneSyncListener.intValue() + 1);
-              }
+              doneSyncListener++;
             }
           };
         bc.addBundleListener(bl3);
 
-        doneSyncListener = new Integer(0);
+        doneSyncListener = 0;
         callReturned = false;
         errorFrame170 = null;
         try {
@@ -3180,7 +3080,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
             out.println(errorFrame170 + ", in FRAME170A");
             pass = false;
           }
-          if (doneSyncListener.intValue() != 3) {
+          if (doneSyncListener != 3) {
             out.println("Failed to call all bundleListeners (only " + doneSyncListener +
                         "), in FRAME170A");
             pass = false;
@@ -3202,7 +3102,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           fail("Failed to open Q1 url: " + e + ", in FRAME170A:FAIL");
         }
 
-        Hashtable props = new Hashtable();
+        Hashtable<String, Object> props = new Hashtable<>();
         props.put("bundleQ", "secret");
 
         try {
@@ -3215,10 +3115,12 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           pass = false;
           String ids = "" + tsr.getReference().getUsingBundles()[0].getBundleId();
           for (int i=1; i<tsr.getReference().getUsingBundles().length; i++) {
+            //noinspection StringConcatenationInLoop
             ids += "," + tsr.getReference().getUsingBundles()[i].getBundleId();
           }
           fail("Unknown bundle (" + ids + ") using service in FRAME170A:FAIL");
         }
+        assert buQ != null;
         try {
           buQ.start();
         } catch (BundleException e) {
@@ -3270,13 +3172,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         }
 
         // Check that we haven't called any bundle listeners
-        if (doneSyncListener.intValue() != 3) {
+        if (doneSyncListener != 3) {
           pass = false;
           fail("Called bundle listeners after removal (" + doneSyncListener +
                "), in FRAME170A:FAIL");
         }
 
-        if (pass == true) {
+        if (pass) {
           out.println("### framework test bundle :FRAME170A:PASS");
         } else {
           fail("### framework test bundle :FRAME170A:FAIL");
@@ -3287,10 +3189,14 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
           tsr.unregister();
         }
         try {
-          buQ.uninstall();
+          if (buQ != null) {
+            buQ.uninstall();
+          }
         } catch (BundleException ignore) { }
         try {
-          buQ1.uninstall();
+          if (buQ1 != null) {
+            buQ1.uninstall();
+          }
         } catch (BundleException ignore) { }
       }
 
@@ -3299,6 +3205,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   // 175A. Resource integrity when reading different resources of a bundle
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME175A =  {
     "Check of resource integrity when using intermixed reading of differenent resources from bundleR2_test."
   };
@@ -3308,24 +3215,18 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME175A start");
 
       buR2 = null;
-      boolean teststatus = true;
+      boolean teststatus;
       try {
         buR2 = Util.installBundle(bc, "bundleR2_test-1.0.0.jar");
         teststatus = true;
       }
-      catch (BundleException bexcA) {
+      catch (BundleException | SecurityException e) {
         teststatus = false;
-        fail("framework test bundle "+ bexcA +" :FRAME175A:FAIL");
-      }
-      catch (SecurityException secA) {
-        teststatus = false;
-        fail("framework test bundle "+ secA +" :FRAME175A:FAIL");
+        fail("framework test bundle "+ e +" :FRAME175A:FAIL");
       }
       // Now read resources A and B intermixed
       // A is 50 A:s , B is 50 B:s
-      int a_cnt1 = 0;
-      int a_cnt2 = 0;
-      int b_cnt = 0;
+      int a_cnt1;
       byte [] a1 = new byte[50];
       byte [] b1 = new byte[50];
       String A = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
@@ -3341,11 +3242,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
         URL u2 = buR2.getResource("org/knopflerfish/bundle/bundleR2_test/B");
         is2 = u2.openStream();
-        b_cnt = is2.read(b1, 0, 50);
+        is2.read(b1, 0, 50);
 
         // continue reading from is1 now, what do we get ??
 
-        a_cnt2 = is1.read(a1, a_cnt1, 50-a_cnt1);
+        is1.read(a1, a_cnt1, 50-a_cnt1);
       }
       catch (Throwable tt) {
         tt.printStackTrace();
@@ -3354,8 +3255,12 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
       finally {
         try {
-          is1.close();
-          is2.close();
+          if (is1 != null) {
+            is1.close();
+          }
+          if (is2 != null) {
+            is2.close();
+          }
         }
         catch (Throwable tt) {
           out.println("Failed to read close input streams" + " ,FRAME175A:FAIL");
@@ -3375,7 +3280,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       // check the resulting events
 
-      if (teststatus == true) {
+      if (teststatus) {
         out.println("### framework test bundle :FRAME175A:PASS");
       } else {
         fail("### framework test bundle :FRAME175A:FAIL");
@@ -3387,6 +3292,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 180. Resource integrity when reading different resources of a bundle
   //      on the top level in the namespace of the bundle.
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME180A =  {
     "Check of resource on top of bundle name space from bundleR3_test."
   };
@@ -3396,23 +3302,17 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME180A start");
 
       buR3 = null;
-      boolean teststatus = true;
+      boolean teststatus;
       try {
         buR3 = Util.installBundle(bc, "bundleR3_test-1.0.0.jar");
         teststatus = true;
       }
-      catch (BundleException bexcA) {
-        out.println("framework test bundle "+ bexcA +" :FRAME180A:FAIL");
-        teststatus = false;
-      }
-      catch (SecurityException secA) {
-        out.println("framework test bundle "+ secA +" :FRAME180A:FAIL");
+      catch (BundleException | SecurityException e) {
+        out.println("framework test bundle "+ e +" :FRAME180A:FAIL");
         teststatus = false;
       }
       // Now read resources A
       // A is 50 A:s
-      int a_cnt1 = 0;
-      int b_cnt = 0;
       byte [] a1 = new byte[50];
       String A = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
@@ -3421,7 +3321,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         URL u1 = buR3.getResource("/A");
         is1 = u1.openStream();
-        a_cnt1 = is1.read(a1);
+        is1.read(a1);
       }
       catch (Throwable tt) {
         out.println("Failed to read resource" + " ,FRAME180A:FAIL");
@@ -3448,7 +3348,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       // check the resulting events
 
-      if (teststatus == true) {
+      if (teststatus) {
         out.println("### framework test bundle :FRAME180A:PASS");
       } else {
         fail("### framework test bundle :FRAME180A:FAIL");
@@ -3459,6 +3359,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 181. Resource integrity when reading different resources of a bundle
   //      on the top level in the namespace of the bundle. (180 without leading / in resource name)
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME181A =  {
     "Check of resource on top of bundle name space from bundleR3_test."
   };
@@ -3468,23 +3369,17 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME181A start");
 
       buR3 = null;
-      boolean teststatus = true;
+      boolean teststatus;
       try {
         buR3 = Util.installBundle(bc, "bundleR3_test-1.0.0.jar");
         teststatus = true;
       }
-      catch (BundleException bexcA) {
-        out.println("framework test bundle "+ bexcA +" :FRAME181A:FAIL");
-        teststatus = false;
-      }
-      catch (SecurityException secA) {
-        out.println("framework test bundle "+ secA +" :FRAME181A:FAIL");
+      catch (BundleException | SecurityException e) {
+        out.println("framework test bundle "+ e +" :FRAME181A:FAIL");
         teststatus = false;
       }
       // Now read resources A
       // A is 50 A:s
-      int a_cnt1 = 0;
-      int b_cnt = 0;
       byte [] a1 = new byte[50];
       String A = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
@@ -3493,7 +3388,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         URL u1 = buR3.getResource("A");
         is1 = u1.openStream();
-        a_cnt1 = is1.read(a1);
+        is1.read(a1);
       }
       catch (Throwable tt) {
         out.println("Failed to read resource" + " ,FRAME181A:FAIL");
@@ -3520,7 +3415,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       // check the resulting events
 
-      if (teststatus == true) {
+      if (teststatus) {
         out.println("### framework test bundle :FRAME181A:PASS");
       } else {
         fail("### framework test bundle :FRAME181A:FAIL");
@@ -3531,6 +3426,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 185. Resource integrity when reading different resources of a bundle
   //      on the top level in the namespace of the bundle.
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME185A =  {
     "Check of resource on top of bundle name space from bundleR4_test,",
     "that has an unresolvable package imported"
@@ -3541,23 +3437,17 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME185A start");
 
       buR4 = null;
-      boolean teststatus = true;
+      boolean teststatus;
       try {
         buR4 = Util.installBundle(bc, "bundleR4_test-1.0.0.jar");
         teststatus = true;
       }
-      catch (BundleException bexcA) {
-        out.println("framework test bundle "+ bexcA +" :FRAME185A:FAIL");
-        teststatus = false;
-      }
-      catch (SecurityException secA) {
-        out.println("framework test bundle "+ secA +" :FRAME185A:FAIL");
+      catch (BundleException | SecurityException e) {
+        out.println("framework test bundle "+ e +" :FRAME185A:FAIL");
         teststatus = false;
       }
       // Now read resources A
       // A is 50 A:s
-      int a_cnt1 = 0;
-      int b_cnt = 0;
       byte [] a1 = new byte[50];
       String A = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
@@ -3566,7 +3456,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         URL u1 = buR4.getEntry("/A");
         is1 = u1.openStream();
-        a_cnt1 = is1.read(a1);
+        is1.read(a1);
       }
       catch (Throwable tt) {
         out.println("Failed to read resource" + " ,FRAME185A:FAIL");
@@ -3593,7 +3483,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       // check the resulting events
 
-      if (teststatus == true) {
+      if (teststatus) {
         out.println("### framework test bundle :FRAME185A:PASS");
       } else {
         fail("### framework test bundle :FRAME185A:FAIL");
@@ -3604,6 +3494,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   // 186. Resource integrity when reading different resources of a bundle
   //      on the top level in the namespace of the bundle. (185 without leading / in resource name)
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME186A =  {
     "Check of resource on top of bundle name space from bundleR4_test,",
     "that has an unresolvable package imported"
@@ -3614,23 +3505,14 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME186A start");
 
       buR4 = null;
-      boolean teststatus = true;
       try {
         buR4 = Util.installBundle(bc, "bundleR4_test-1.0.0.jar");
-        teststatus = true;
       }
-      catch (BundleException bexcA) {
-        teststatus = false;
-        fail("framework test bundle "+ bexcA +" :FRAME186A:FAIL");
-      }
-      catch (SecurityException secA) {
-        teststatus = false;
-        fail("framework test bundle "+ secA +" :FRAME186A:FAIL");
+      catch (BundleException | SecurityException e) {
+        fail("framework test bundle "+ e +" :FRAME186A:FAIL");
       }
       // Now read resources A
       // A is 50 A:s
-      int a_cnt1 = 0;
-      int b_cnt = 0;
       byte [] a1 = new byte[50];
       String A = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
@@ -3639,12 +3521,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         URL u1 = buR4.getEntry("A");
         is1 = u1.openStream();
-        a_cnt1 = is1.read(a1);
+        is1.read(a1);
       }
       catch (Throwable tt) {
         fail("Failed to read resource" + " ,FRAME186A:FAIL");
         tt.printStackTrace();
-        teststatus  = false;
       }
       finally {
         try {
@@ -3654,27 +3535,22 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         }
         catch (Throwable tt) {
           tt.printStackTrace();
-          teststatus  = false;
           fail("Failed to close input streams" + " ,FRAME186A:FAIL");
         }
       }
 
       if (A.compareTo(new String(a1)) != 0) {
-        teststatus = false;
         fail("framework test bundle expected: " + A  + "\n got: " + xlateData(a1) +" :FRAME186A:FAIL");
       }
 
       // check the resulting events
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :FRAME186A:PASS");
-      } else {
-        fail("### framework test bundle :FRAME186A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME186A:PASS");
     }
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME190A =  {
     "Check of resource access inside bundle name space from bundleR5_test and",
     "bundleR6_test, that bundleR5_test exports a resource that is accessed via ",
@@ -3686,32 +3562,19 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME190A start");
 
       buR5 = null;
-      boolean teststatus = true;
       try {
         buR5 = Util.installBundle(bc, "bundleR5_test-1.0.0.jar");
-        teststatus = true;
       }
-      catch (BundleException bexcA) {
-        fail("framework test bundle "+ bexcA +" :FRAME190A:FAIL");
-        teststatus = false;
-      }
-      catch (SecurityException secA) {
-        fail("framework test bundle "+ secA +" :FRAME190A:FAIL");
-        teststatus = false;
+      catch (BundleException | SecurityException e) {
+        fail("framework test bundle "+ e +" :FRAME190A:FAIL");
       }
 
       buR6 = null;
       try {
         buR6 = Util.installBundle(bc, "bundleR6_test-1.0.0.jar");
-        teststatus = teststatus && true;
       }
-      catch (BundleException bexcA) {
-        fail("framework test bundle "+ bexcA +" :FRAME190A:FAIL");
-        teststatus = false;
-      }
-      catch (SecurityException secA) {
-        fail("framework test bundle "+ secA +" :FRAME190A:FAIL");
-        teststatus = false;
+      catch (BundleException | SecurityException e) {
+        fail("framework test bundle "+ e +" :FRAME190A:FAIL");
       }
 
       // out.println("Bundle R5 state: " + buR5.getState());
@@ -3719,8 +3582,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // Now try to access resource in R5, which should give null
       // as bundle R5 is not resolved yet
       //
-      int a_cnt1 = 0;
-      int b_cnt = 0;
       byte [] a1 = new byte[50];
       String A = "R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5R5";
 
@@ -3733,17 +3594,15 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         // getResource doesn't do it. (yes there might be a timing p
         // problem here)
         if(buR6.getState() == Bundle.INSTALLED) {
-          URL u1 = null;;
+          URL u1 = null;
           try {
             u1 = buR6.getResource("/org/knopflerfish/bundle/bundleR5_test/R5");
           }
           catch (Throwable tt) {
             fail("Failed to read resource" + " ,FRAME190A:FAIL");
             tt.printStackTrace();
-            teststatus  = false;
           }
           if (u1 != null) {
-            teststatus  = false;
             fail("Unexpected access to resource in bundle R5 " + " ,FRAME190A:FAIL");
           }
         }
@@ -3755,7 +3614,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
       catch (BundleException be) {
         fail("Failed to start bundle R6 " + be.toString() +  " ,FRAME190A:FAIL");
-        teststatus  = false;
       }
 
       // out.println("Bundle R5 state: " + buR5.getState());
@@ -3764,12 +3622,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         URL u2 = buR6.getResource("/org/knopflerfish/bundle/bundleR5_test/R5");
         is1 = u2.openStream();
-        a_cnt1 = is1.read(a1);
+        is1.read(a1);
       }
       catch (Throwable tt) {
         fail("Failed to read resource '/org/knopflerfish/bundle/bundleR5_test/R5' via bundleR6_test" + " ,FRAME190A:FAIL");
         tt.printStackTrace();
-        teststatus  = false;
       }
       finally {
         try {
@@ -3780,23 +3637,17 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         catch (Throwable tt) {
           fail("Failed to close input streams" + " ,FRAME190A:FAIL");
           tt.printStackTrace();
-          teststatus  = false;
         }
       }
 
       if (A.compareTo(new String(a1)) != 0) {
-        teststatus = false;
         fail("framework test bundle expected: " + A  + "\n got: " + xlateData(a1) +" :FRAME190A:FAIL");
       }
 
 
       // check the resulting events
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :FRAME190A:PASS");
-      } else {
-        fail("### framework test bundle :FRAME190A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME190A:PASS");
     }
   }
 
@@ -3809,6 +3660,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   //      creating threads that register and unregister
   //      services in a syncronous way
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME210A =  {
     "Deadlock test when using synchronous serviceChange listener and updating different threads."
   };
@@ -3816,8 +3668,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   class Frame210a extends FWTestCase {
     public void runTest() throws Throwable {
       out.println("### framework test bundle :FRAME210A start");
-
-      boolean teststatus = true;
 
       RegServThread rst = null;
       RegListenThread rlt = null;
@@ -3827,7 +3677,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         rlt = new RegListenThread (bc,out);
       }
       catch (Exception ex) {
-        teststatus = false;
         fail("### framework test bundle :FRAME210A exception");
         ex.printStackTrace(out);
       }
@@ -3855,15 +3704,13 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       // Ask the listener thread if it succeded to make a synchroized serviceChange
 
-      if (rlt.getStatus() != true) {
-        teststatus = false;
+      if (!rlt.getStatus()) {
         fail("### framework test bundle :FRAME210A failed to execute sychnronized serviceChanged()");
       }
 
       // Ask the registering thread if it succeded to make a service update
 
-      if (rst.getStatus() != true) {
-        teststatus = false;
+      if (!rst.getStatus()) {
         fail("### framework test bundle :FRAME210A failed to execute sychnronized service update");
       }
 
@@ -3872,11 +3719,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       rst.stop();
       rlt.stop();
 
-      if (teststatus == true) {
-        out.println("### framework test bundle :FRAME210A:PASS");
-      } else {
-        fail("### framework test bundle :FRAME210A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME210A:PASS");
     }
   }
 
@@ -3885,7 +3728,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME211A start");
 
       //existing directory
-      Enumeration enume = buF.getEntryPaths("/");
+      Enumeration<String> enume = buF.getEntryPaths("/");
       if(enume == null ){
         fail("GetEntryPaths did not retrieve the correct number of elements");
       }
@@ -3953,7 +3796,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         }
       }
 
-      Dictionary dict = buF.getHeaders();
+      assert buF != null;
+      Dictionary<String, String> dict = buF.getHeaders();
       if(!dict.get(Constants.BUNDLE_SYMBOLICNAME).equals("org.knopflerfish.bundle.bundleF_test")){
         fail("framework test bundle, " +  Constants.BUNDLE_SYMBOLICNAME + " header does not have right value:FRAME211A:FAIL");
       }
@@ -3970,6 +3814,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   final static String SERVICE_CLASS_BUNDLE_A_LAZY
     = "org.knopflerfish.service.bundleA_lazy.BundleA";
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME260A =  {
     "Start bundleA_lazy according to its activation policy, check that ",
     "it gets state STARTING. Then start the bundle eagerly and check that ",
@@ -4020,7 +3865,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         Thread.sleep(eventDelay);
       } catch (Exception e) {
-        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+        fail("Thread.sleep() throw unexpected exception: " + e);
       }
 
       // Starting using lazy activation a second time should be ignored.
@@ -4047,11 +3892,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         Thread.sleep(eventDelay);
       } catch (Exception e) {
-        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+        fail("Thread.sleep() throw unexpected exception: " + e);
       }
 
       // Check that bundleA_lazy has not yet registered the expected service
-      ServiceReference sr1
+      ServiceReference<?> sr1
         = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
       assertNull("FRAME260A: expected service not registered.", sr1);
 
@@ -4140,6 +3985,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME265A =  {
     "Restart bundleA_lazy according to its activation policy, check that ",
     "it gets state STARTING. Then load a class from it, check that is started",
@@ -4177,11 +4023,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         Thread.sleep(eventDelay);
       } catch (Exception e) {
-        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+        fail("Thread.sleep() throw unexpected exception: " + e);
       }
 
       // Check that bundleA_lazy has not yet registered the expected service
-      ServiceReference sr1
+      ServiceReference<?> sr1
         = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
       assertNull("FRAME265A: expected service not registered.", sr1);
 
@@ -4189,7 +4035,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // from it.
       try {
         out.println("loading class, " +SERVICE_CLASS_BUNDLE_A_LAZY);
-        Class clz = buAl.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
+        Class<?> clz = buAl.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
         assertNotNull("Service interface class should be loaded.", clz);
         assertEquals("BundleA should be ACTIVE",
                    Bundle.ACTIVE, buAl.getState());
@@ -4264,6 +4110,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME270A =  {
     "Start newly installed bundleA_lazy according to its activation policy, ",
     "check that it gets state STARTING. Then load a class from it, check that ",
@@ -4321,11 +4168,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         Thread.sleep(eventDelay);
       } catch (Exception e) {
-        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+        fail("Thread.sleep() throw unexpected exception: " + e);
       }
 
       // Check that bundleA_lazy has not yet registered the expected service
-      ServiceReference sr1
+      ServiceReference<?> sr1
         = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
       assertNull("FRAME270A: expected service not registered.", sr1);
 
@@ -4333,7 +4180,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // from it.
       try {
         out.println("loading class, " +SERVICE_CLASS_BUNDLE_A_LAZY);
-        Class clz = buAl.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
+        Class<?> clz = buAl.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
         assertNotNull("Service interface class should be loaded.", clz);
         assertEquals("BundleA should be ACTIVE",
                      Bundle.ACTIVE, buAl.getState());
@@ -4411,6 +4258,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME275A =  {
     "Start newly installed bundleA_lazy according to its activation policy, ",
     "check that it gets state STARTING. Then load a class from it that shall ",
@@ -4461,11 +4309,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         Thread.sleep(eventDelay);
       } catch (Exception e) {
-        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+        fail("Thread.sleep() throw unexpected exception: " + e);
       }
 
       // Check that bundleA_lazy has not yet registered the expected service
-      ServiceReference sr1
+      ServiceReference<?> sr1
         = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
       assertNull("FRAME275A: expected service not registered.", sr1);
 
@@ -4476,7 +4324,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         out.println("### framework test bundle :FRAME275A "
                     +"loading non-activation triggering class");
         String cn = "org.knopflerfish.bundle.bundleA_lazy.BundleActivator";
-        Class clz = buAl2.loadClass(cn);
+        Class<?> clz = buAl2.loadClass(cn);
         assertNotNull("Service interface class should be loaded.", clz);
         assertEquals("BundleA should be STARTING",
                      Bundle.STARTING, buAl2.getState());
@@ -4496,7 +4344,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         out.println("loading class that shall trigger activation, "
                     +SERVICE_CLASS_BUNDLE_A_LAZY);
-        Class clz = buAl2.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
+        Class<?> clz = buAl2.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
         assertNotNull("Service interface class should be loaded.", clz);
         assertEquals("BundleA should be ACTIVE",
                      Bundle.ACTIVE, buAl2.getState());
@@ -4574,6 +4422,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME280A =  {
     "Start newly installed bundleA_lazy according to its activation policy, ",
     "check that it gets state STARTING. Then load a class from it that shall ",
@@ -4626,11 +4475,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         Thread.sleep(eventDelay);
       } catch (Exception e) {
-        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+        fail("Thread.sleep() throw unexpected exception: " + e);
       }
 
       // Check that bundleA_lazy has not yet registered the expected service
-      ServiceReference sr1
+      ServiceReference<?> sr1
         = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
       assertNull("FRAME280A: expected service not registered.", sr1);
 
@@ -4643,7 +4492,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         out.println("that triggers loading of a second class (the "
                     +"org.osgi.framework.BundleActivator class) "
                     +"which will trigger activation.");
-        Class clz = buAl3.loadClass(cn);
+        Class<?> clz = buAl3.loadClass(cn);
         assertNotNull("Service interface class should be loaded.", clz);
         assertEquals("BundleA should be ACTIVE",
                      Bundle.ACTIVE, buAl3.getState());
@@ -4721,6 +4570,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME285A =  {
     "Start newly installed bundleA_lazy according to its activation policy, ",
     "check that it gets state STARTING. Then load a class from it that shall ",
@@ -4772,11 +4622,11 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         Thread.sleep(eventDelay);
       } catch (Exception e) {
-        assertNull("Thread.sleep() throw unexpected exception: "+e, e);
+        fail("Thread.sleep() throw unexpected exception: " + e);
       }
 
       // Check that bundleA_lazy has not yet registered the expected service
-      ServiceReference sr1
+      ServiceReference<?> sr1
         = bc.getServiceReference(SERVICE_CLASS_BUNDLE_A_LAZY);
       assertNull("FRAME285A: expected service not registered.", sr1);
 
@@ -4786,7 +4636,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         String cn = "org.knopflerfish.bundle.bundleA_lazy.BundleActivator";
         out.println("loading non-activation triggering class, "+cn);
-        Class clz = buAl4.loadClass(cn);
+        Class<?> clz = buAl4.loadClass(cn);
         assertNotNull("Service interface class should be loaded.", clz);
         assertEquals("BundleA should be STARTING",
                      Bundle.STARTING, buAl4.getState());
@@ -4806,7 +4656,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         out.println("loading class that shall trigger activation, "
                     +SERVICE_CLASS_BUNDLE_A_LAZY);
-        Class clz = buAl4.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
+        Class<?> clz = buAl4.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
         assertNotNull("Service interface class should be loaded.", clz);
         assertEquals("BundleA should be ACTIVE",
                      Bundle.ACTIVE, buAl4.getState());
@@ -4884,6 +4734,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME290A =  {
     "Start bundleT_test that sleeps 3s in start, at the same time",
     "try to stop the bundle, we should get an exception and the",
@@ -4972,7 +4823,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   private String xlateData(byte [] b1) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < b1.length ; i++) {
-      if (-128 <= b1[i] && b1[i] < 0) {
+      if (b1[i] < 0) {
         sb.append(new String(b1, i, 1));
       }
       if (0 <= b1[i] && b1[i] < 32) {
@@ -4988,8 +4839,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
   // Check that the expected implications occur
-  public boolean implyCheck (Object _out, boolean expected, Permission p1, Permission p2) {
-    boolean result = true;
+  public boolean implyCheck(boolean expected, Permission p1, Permission p2) {
+    boolean result;
     if (p1.implies(p2) == expected) {
       result = true;
     } else {
@@ -5004,8 +4855,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     return result;
   }
 
-  public boolean implyCheck (Object _out, boolean expected, PermissionCollection p1, Permission p2) {
-    boolean result = true;
+  public boolean implyCheck(boolean expected, PermissionCollection p1, Permission p2) {
+    boolean result;
     if (p1.implies(p2) == expected) {
       result = true;
     } else {
@@ -5027,15 +4878,15 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   // Check that the expected events has reached the listeners and
   // reset the events in the listeners
-  private boolean checkListenerEvents(Object _out,
-                                      boolean fwexp,
+  @SuppressWarnings("SameParameterValue")
+  private boolean checkListenerEvents(boolean fwexp,
                                       int fwtype,
                                       boolean buexp,
                                       int butype,
                                       boolean sexp,
                                       int stype,
                                       Bundle bunX,
-                                      ServiceReference servX )
+                                      ServiceReference<?> servX)
   {
     FrameworkEvent[] fwEvts = new FrameworkEvent[fwexp ? 1 : 0];
     BundleEvent[]    buEvts = new BundleEvent[buexp ? 1 : 0];
@@ -5064,25 +4915,24 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       return false;
     }
 
-    final ArrayList fwEvtsReceived = fListen.getEvents();
+    final ArrayList<FrameworkEvent> fwEvtsReceived = fListen.getEvents();
     if (fwEvts.length != fwEvtsReceived.size()) {
       listenState = false;
       System.out.println("*** Framework event mismatch: expected "
                          +fwEvts.length +" event(s), found "
                          +fwEvtsReceived.size() +" event(s).");
-      final int max = fwEvts.length>fwEvtsReceived.size()
-        ? fwEvts.length : fwEvtsReceived.size();
+      final int max = Math.max(fwEvts.length, fwEvtsReceived.size());
       for (int i=0; i<max; i++) {
         final FrameworkEvent fwE = i<fwEvts.length ? fwEvts[i] : null;
         final FrameworkEvent fwR = i<fwEvtsReceived.size()
-          ? (FrameworkEvent) fwEvtsReceived.get(i) : null;
+          ? fwEvtsReceived.get(i) : null;
         System.out.println( "    " +FrameworkTestSuite.toString(fwE)
                             +" - " +FrameworkTestSuite.toString(fwR));
       }
     } else {
       for (int i=0; i<fwEvts.length; i++) {
         final FrameworkEvent feE = fwEvts[i];
-        final FrameworkEvent feR = (FrameworkEvent) fwEvtsReceived.get(i);
+        final FrameworkEvent feR = fwEvtsReceived.get(i);
         if (feE.getType() != feR.getType()
             || feE.getBundle() != feR.getBundle()) {
           listenState = false;
@@ -5094,25 +4944,24 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
     }
 
-    final ArrayList buEvtsReceived = bListen.getEvents();
+    final ArrayList<BundleEvent> buEvtsReceived = bListen.getEvents();
     if (buEvts.length != buEvtsReceived.size()) {
       listenState = false;
       System.out.println("*** Bundle event mismatch: expected "
                          +buEvts.length +" event(s), found "
                          +buEvtsReceived.size() +" event(s).");
-      final int max = buEvts.length > buEvtsReceived.size()
-        ? buEvts.length : buEvtsReceived.size();
+      final int max = Math.max(buEvts.length, buEvtsReceived.size());
       for (int i=0; i<max; i++) {
         final BundleEvent buE = i<buEvts.length ? buEvts[i] : null;
         final BundleEvent buR = i<buEvtsReceived.size()
-          ? (BundleEvent) buEvtsReceived.get(i) : null;
+          ? buEvtsReceived.get(i) : null;
         System.out.println( "    " +FrameworkTestSuite.toString(buE)
                             +" - " +FrameworkTestSuite.toString(buR));
       }
     } else {
       for (int i=0; i<buEvts.length; i++) {
         final BundleEvent buE = buEvts[i];
-        final BundleEvent buR = (BundleEvent) buEvtsReceived.get(i);
+        final BundleEvent buR = buEvtsReceived.get(i);
         if (buE.getType() != buR.getType()
             || buE.getBundle() != buR.getBundle()) {
           listenState = false;
@@ -5124,25 +4973,24 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       }
     }
 
-    final ArrayList seEvtsReceived = sListen.getEvents();
+    final ArrayList<ServiceEvent> seEvtsReceived = sListen.getEvents();
     if (seEvts.length != seEvtsReceived.size()) {
       listenState = false;
       System.out.println("*** Service event mismatch: expected "
                          +seEvts.length +" event(s), found "
                          +seEvtsReceived.size() +" event(s).");
-      final int max = seEvts.length > seEvtsReceived.size()
-        ? seEvts.length : seEvtsReceived.size();
+      final int max = Math.max(seEvts.length, seEvtsReceived.size());
       for (int i=0; i<max; i++) {
         final ServiceEvent seE = i<seEvts.length ? seEvts[i] : null;
         final ServiceEvent seR = i<seEvtsReceived.size()
-          ? (ServiceEvent) seEvtsReceived.get(i) : null;
+          ? seEvtsReceived.get(i) : null;
         System.out.println( "    " +FrameworkTestSuite.toString(seE)
                             +" - " +FrameworkTestSuite.toString(seR));
       }
     } else {
       for (int i=0; i<seEvts.length; i++) {
         final ServiceEvent seE = seEvts[i];
-        final ServiceEvent seR = (ServiceEvent) seEvtsReceived.get(i);
+        final ServiceEvent seR = seEvtsReceived.get(i);
         if (seE.getType() != seR.getType()
             || (seE.getServiceReference()!=null
                 && seE.getServiceReference() != seR.getServiceReference())) {
@@ -5163,11 +5011,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   // Check that the expected events has reached the listeners and
   // reset the events in the listeners
-  private boolean checkSyncListenerEvents(Object _out,
-                                          boolean buexp,
+  private boolean checkSyncListenerEvents(boolean buexp,
                                           int butype,
-                                          Bundle bunX,
-                                          ServiceReference servX )
+                                          Bundle bunX)
   {
     BundleEvent[]    buEvts = new BundleEvent[buexp ? 1 : 0];
 
@@ -5190,25 +5036,24 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       return false;
     }
 
-    final ArrayList buEvtsReceived = syncBListen.getEvents();
+    final ArrayList<BundleEvent> buEvtsReceived = syncBListen.getEvents();
     if (buEvts.length != buEvtsReceived.size()) {
       listenState = false;
       System.out.println("*** Sync bundle event mismatch: expected "
                          +buEvts.length +" event(s), found "
                          +buEvtsReceived.size() +" event(s).");
-      final int max = buEvts.length > buEvtsReceived.size()
-        ? buEvts.length : buEvtsReceived.size();
+      final int max = Math.max(buEvts.length, buEvtsReceived.size());
       for (int i=0; i<max; i++) {
         final BundleEvent buE = i<buEvts.length ? buEvts[i] : null;
         final BundleEvent buR = i<buEvtsReceived.size()
-          ? (BundleEvent) buEvtsReceived.get(i) : null;
+          ? buEvtsReceived.get(i) : null;
         System.out.println( "    " +FrameworkTestSuite.toString(buE)
                             +" - " +FrameworkTestSuite.toString(buR));
       }
     } else {
       for (int i=0; i<buEvts.length; i++) {
         final BundleEvent buE = buEvts[i];
-        final BundleEvent buR = (BundleEvent) buEvtsReceived.get(i);
+        final BundleEvent buR = buEvtsReceived.get(i);
         if (buE.getType() != buR.getType()
             || buE.getBundle() != buR.getBundle()) {
           listenState = false;
@@ -5241,9 +5086,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
   // to access test service methods via reflection
-  private void bundleLoad (Object _out, ServiceReference sr, String bundle) {
+  private void bundleLoad(ServiceReference<?> sr, String bundle) {
     Method m;
-    Class c, parameters[];
+    Class<?> c;
+    Class<?>[] parameters;
 
     Object obj1 = bc.getService(sr);
     // System.out.println("servref  = "+ sr);
@@ -5283,18 +5129,12 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     events.addElement(new devEvent(device, method, value));
   }
 
-  class devEvent {
+  static class devEvent {
     String dev;
     String met;
     int val;
 
-    public devEvent (String dev, String met , Integer val) {
-      this.dev = dev;
-      this.met = met;
-      this.val = val.intValue();
-    }
-
-    public devEvent (String dev, String met , int val) {
+    public devEvent (String dev, String met, int val) {
       this.dev = dev;
       this.met = met;
       this.val = val;
@@ -5314,20 +5154,20 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   }
 
-  private boolean checkEvents(Object _out, Vector expevents, Vector events) {
+  private boolean checkEvents(Vector<devEvent> expevents, Vector<devEvent> events) {
     boolean state = true;
     if (events.size() != expevents.size()) {
       state = false;
       out.println("Real events");
       for (int i = 0; i< events.size() ; i++) {
-        devEvent dee = (devEvent) events.elementAt(i);
+        devEvent dee = events.elementAt(i);
         out.print("Bundle " + dee.getDevice());
         out.print(" Method " + dee.getMethod());
         out.println(" Value " + dee.getValue());
       }
       out.println("Expected events");
       for (int i = 0; i< expevents.size() ; i++) {
-        devEvent dee = (devEvent) expevents.elementAt(i);
+        devEvent dee = expevents.elementAt(i);
         out.print("Bundle " + dee.getDevice());
         out.print(" Method " + dee.getMethod());
         out.println(" Value " + dee.getValue());
@@ -5335,8 +5175,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
     else {
       for (int i = 0; i< events.size() ; i++) {
-        devEvent dee = (devEvent) events.elementAt(i);
-        devEvent exp = (devEvent) expevents.elementAt(i);
+        devEvent dee = events.elementAt(i);
+        devEvent exp = expevents.elementAt(i);
         if (!(dee.getDevice().equals(exp.getDevice()) && dee.getMethod().equals(exp.getMethod()) && dee.getValue() == exp.getValue())) {
           out.println("Event no = " + i);
           if (!(dee.getDevice().equals(exp.getDevice()))) {
@@ -5369,18 +5209,18 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  class FrameworkListener implements org.osgi.framework.FrameworkListener {
-    ArrayList/*<FrameworkEvent>*/ events = new ArrayList();
+  static class FrameworkListener implements org.osgi.framework.FrameworkListener {
+    ArrayList<FrameworkEvent> events = new ArrayList<>();
     public void frameworkEvent(FrameworkEvent evt) {
       events.add(evt);
       System.out.println("FrameworkEvent: " +FrameworkTestSuite.toString(evt));
     }
     public FrameworkEvent getEvent() {
       return events.size()>0
-        ? (FrameworkEvent) events.get(events.size()-1)
-        : (FrameworkEvent) null;
+        ? events.get(events.size()-1)
+        : null;
     }
-    public ArrayList/*<FrameworkEvent>*/ getEvents() {
+    public ArrayList<FrameworkEvent> getEvents() {
       return events;
     }
     public void clearEvent() {
@@ -5388,18 +5228,18 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  class ServiceListener implements org.osgi.framework.ServiceListener {
-    ArrayList/*<ServiceEvent>*/ events = new ArrayList();
+  static class ServiceListener implements org.osgi.framework.ServiceListener {
+    ArrayList<ServiceEvent> events = new ArrayList<>();
     public void serviceChanged(ServiceEvent evt) {
       events.add(evt);
       System.out.println("ServiceEvent: " +FrameworkTestSuite.toString(evt));
     }
     public ServiceEvent getEvent() {
       return events.size()>0
-        ? (ServiceEvent) events.get(events.size()-1)
-        : (ServiceEvent) null;
+        ? events.get(events.size()-1)
+        : null;
     }
-    public ArrayList/*<ServiceEvent>*/ getEvents() {
+    public ArrayList<ServiceEvent> getEvents() {
       return events;
     }
     public void clearEvent() {
@@ -5407,8 +5247,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  class BundleListener implements org.osgi.framework.BundleListener {
-    ArrayList/*<BundleEvent>*/ events = new ArrayList();
+  static class BundleListener implements org.osgi.framework.BundleListener {
+    ArrayList<BundleEvent> events = new ArrayList<>();
 
     public void bundleChanged (BundleEvent evt) {
       events.add(evt);
@@ -5416,10 +5256,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
     public BundleEvent getEvent() {
       return events.size()>0
-        ? (BundleEvent) events.get(events.size()-1)
-        : (BundleEvent) null;
+        ? events.get(events.size()-1)
+        : null;
     }
-    public ArrayList/*<BundleEvent>*/ getEvents() {
+    public ArrayList<BundleEvent> getEvents() {
       return events;
     }
     public void clearEvent() {
@@ -5427,8 +5267,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
-  class SyncBundleListener implements SynchronousBundleListener {
-    ArrayList/*<BundleEvent>*/ events = new ArrayList();
+  static class SyncBundleListener implements SynchronousBundleListener {
+    ArrayList<BundleEvent> events = new ArrayList<>();
 
     public void bundleChanged (BundleEvent evt) {
       if (evt.getType() == BundleEvent.LAZY_ACTIVATION
@@ -5441,10 +5281,10 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
     public BundleEvent getEvent() {
       return events.size()>0
-        ? (BundleEvent) events.get(events.size()-1)
-        : (BundleEvent) null;
+        ? events.get(events.size()-1)
+        : null;
     }
-    public ArrayList/*<BundleEvent>*/ getEvents() {
+    public ArrayList<BundleEvent> getEvents() {
       return events;
     }
     public void clearEvent() {
@@ -5466,7 +5306,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   {
     if (null==se) return "  NONE  ";
 
-    final ServiceReference sr = se.getServiceReference();
+    final ServiceReference<?> sr = se.getServiceReference();
     // Some events will not have service reference in them...
     final Long sid = null!=sr
       ? (Long) sr.getProperty(Constants.SERVICE_ID) : new Long(-1);
@@ -5553,5 +5393,5 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         bexc.printStackTrace();
       }
     }
-  };
+  }
 }

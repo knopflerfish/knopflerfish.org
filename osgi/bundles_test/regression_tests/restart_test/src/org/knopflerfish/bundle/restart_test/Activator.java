@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,15 @@
 
 package org.knopflerfish.bundle.restart_test;
 
-import java.util.*;
-import org.osgi.framework.*;
-import junit.framework.*;
-import java.io.*;
+import java.io.File;
+import java.util.Hashtable;
 
-//TODO test persistency of bundle.lastModified()
+import junit.framework.TestSuite;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+
+//TODO test persistence of bundle.lastModified()
 
 public class Activator implements BundleActivator {
   
@@ -55,10 +58,9 @@ public class Activator implements BundleActivator {
 	suite = new RestartTestSuite(bc);
       }
       
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr 
-	= bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class.getName(), suite, props);
     }
   }
 

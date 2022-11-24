@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,8 @@
 
 package org.knopflerfish.bundle.http_test;
 
-import org.knopflerfish.service.http_test.*;
+import java.net.URL;
 
-import java.util.*;
-import java.net.*;
-import org.osgi.framework.*;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import javax.servlet.http.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.osgi.service.http.*;
 import org.osgi.service.http.HttpContext;
 
 public class HttpTest2Context implements HttpContext {
@@ -58,8 +48,7 @@ public class HttpTest2Context implements HttpContext {
   }
 
   public String getMimeType(String name) {
-    String mime = "text/html";
-    // return mime;
+    // return "text/html";
     return null;	// allow web server to select type
                         // Changed as Christer assumed that this could cause the 
                         // web server to misinterpret pages.
@@ -77,7 +66,7 @@ public class HttpTest2Context implements HttpContext {
         s2 = this.name + s1;
       }
       
-      System.out.println("");
+      System.out.println();
       System.out.println("Initial name = " + name );
       System.out.println("Substring = " + s1 );
       System.out.println("Final name = "+ s2);
@@ -96,7 +85,7 @@ public class HttpTest2Context implements HttpContext {
 
   public boolean handleSecurity(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) {
     /* Set response status */
-    if (security == false) {
+    if (!security) {
        response.setStatus(403);
     }
     return security;

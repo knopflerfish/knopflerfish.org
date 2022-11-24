@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,22 +33,23 @@
  */
 
 package org.knopflerfish.bundle.bundleEnd101_test;
-import java.util.Hashtable;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.bundleEnd101_test.*;
-import org.knopflerfish.service.bundleEnd7_test.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+
+import org.knopflerfish.service.bundleEnd101_test.Control101;
+import org.knopflerfish.service.bundleEnd7_test.PhonyFactoryService7;
 
 class Control101Impl implements Control101 {
   private BundleContext bc;
-  private ServiceRegistration reg;
 
   Control101Impl(BundleContext bc) {
     this.bc = bc;
   }
-  
+
+  @Override
   public void getPhonyFactoryService() {
-    ServiceReference ref = bc.getServiceReference(PhonyFactoryService7.class.getName());
+    ServiceReference<PhonyFactoryService7> ref = bc.getServiceReference(PhonyFactoryService7.class);
     bc.getService(ref);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,13 @@
  */
 
 package org.knopflerfish.bundle.bundleEnd1_test;
-import org.osgi.framework.*;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+
 public class Activator implements BundleActivator {
 
   public void start(BundleContext bc) {
-    
   }
 
   public void stop(BundleContext bc) {

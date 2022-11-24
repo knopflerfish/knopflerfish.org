@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,10 +96,10 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
   private EventConsumer[] eventConsumer;
 
   /** the publisher */
-  private EventPublisher eventPublisher;
+  private final EventPublisher eventPublisher;
 
   /** dummy object */
-  private Object dummySemaphore = new Object();
+  private final Object dummySemaphore = new Object();
 
   public Scenario6TestSuite(BundleContext context) {
     /* call superclass */
@@ -111,14 +111,14 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
     String[] topics = { "com/acme/timer" };
 
     /* create the publisher */
-    eventPublisher = new EventPublisher(bundleContext, "EventPublisher", 1,
-                                        "com/acme/timer");
+    eventPublisher = new EventPublisher(bundleContext,
+        "com/acme/timer");
 
     eventConsumer = new EventConsumer[] {
-      new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 1),
-      new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 2),
-      new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 3),
-      new EventConsumer(bundleContext, topics, "Scenario 6 Consumer", 4) };
+      new EventConsumer(topics, "Scenario 6 Consumer", 1),
+      new EventConsumer(topics, "Scenario 6 Consumer", 2),
+      new EventConsumer(topics, "Scenario 6 Consumer", 3),
+      new EventConsumer(topics, "Scenario 6 Consumer", 4) };
 
     /* add set up to the testsuite */
     addTest(new Setup());
@@ -142,7 +142,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
    *
    * @author Magnus Klack
    */
-  class Setup extends TestCase {
+  static class Setup extends TestCase {
     public void runTest() throws Throwable {
 
     }
@@ -173,9 +173,9 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
     }
     public void runTest() throws Throwable {
       Throwable error = null;
-      for (int i=0; i<eventConsumer.length; i++) {
+      for (EventConsumer consumer : eventConsumer) {
         try {
-          eventConsumer[i].cleanup();
+          consumer.cleanup();
         } catch (Throwable e) {
           error = e;
         }
@@ -220,8 +220,9 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
       /* registe consumer 2 */
       eventConsumer[1].register();
 
-      for (int i=0; i<eventConsumer.length; i++)
-        if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+      for (EventConsumer consumer : eventConsumer) {
+        if (consumer.getError() != null) throw consumer.getError();
+      }
 
       /*
        * set this will tell the publisher to save the last published
@@ -240,8 +241,9 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
         wait(2000);
       }
 
-      for (int i=0; i<eventConsumer.length; i++)
-        if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+      for (EventConsumer consumer : eventConsumer) {
+        if (consumer.getError() != null) throw consumer.getError();
+      }
 
       /* tell the publisher to stop register */
       synchronized(dummySemaphore){
@@ -259,8 +261,9 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
         wait(50);
       }
 
-      for (int i=0; i<eventConsumer.length; i++)
-        if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+      for (EventConsumer consumer : eventConsumer) {
+        if (consumer.getError() != null) throw consumer.getError();
+      }
 
       /* lock the publisher */
       synchronized (eventPublisher) {
@@ -277,8 +280,9 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
         shouldRegister = true;
       }
 
-      for (int i=0; i<eventConsumer.length; i++)
-        if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+      for (EventConsumer consumer : eventConsumer) {
+        if (consumer.getError() != null) throw consumer.getError();
+      }
 
       /* this will start the publication */
       eventPublisher.startSendAsynchronus();
@@ -290,16 +294,18 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
 
       }
 
-      for (int i=0; i<eventConsumer.length; i++)
-        if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+      for (EventConsumer consumer : eventConsumer) {
+        if (consumer.getError() != null) throw consumer.getError();
+      }
 
       /* tell the publisher to stop register */
       synchronized(dummySemaphore){
         shouldRegister = false;
       }
 
-      for (int i=0; i<eventConsumer.length; i++)
-        if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+      for (EventConsumer consumer : eventConsumer) {
+        if (consumer.getError() != null) throw consumer.getError();
+      }
 
       /* register the fourth consumer */
       eventConsumer[3].register(true, ASSERT_ASYNCHRONUS);
@@ -311,14 +317,16 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
         wait(10);
       }
 
-      for (int i=0; i<eventConsumer.length; i++)
-        if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+      for (EventConsumer consumer : eventConsumer) {
+        if (consumer.getError() != null) throw consumer.getError();
+      }
 
       /* stop the publisher */
       eventPublisher.stopSend();
 
-      for (int i=0; i<eventConsumer.length; i++)
-        if (eventConsumer[i].getError() != null) throw eventConsumer[i].getError();
+      for (EventConsumer consumer : eventConsumer) {
+        if (consumer.getError() != null) throw consumer.getError();
+      }
 
       /* print that the test is done */
       System.out.println("****************** All messages sent test done ***************");
@@ -340,14 +348,8 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
 
   private class EventPublisher {
 
-    /** A reference to a service */
-    private ServiceReference serviceReference;
-
     /** The admin which delivers the events */
     private EventAdmin eventAdmin;
-
-    /** class variable holding bundle context */
-    private BundleContext bundleContext;
 
     /** variable holding the topic to use */
     private String topicToSend;
@@ -355,20 +357,16 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
     /** variable indicating number of messages */
     private boolean running;
 
-    public EventPublisher(BundleContext context, String name, int id,
-                          String topic) {
-      /* assign bundleContext */
-      bundleContext = context;
+    public EventPublisher(BundleContext context, String topic) {
       /* assign topic */
       topicToSend = topic;
 
       /* Claims the reference of the EventAdmin Service */
-      serviceReference = bundleContext
-        .getServiceReference(EventAdmin.class.getName());
+      ServiceReference<EventAdmin> serviceReference = context
+          .getServiceReference(EventAdmin.class);
 
       /* get the service */
-      eventAdmin = (EventAdmin) bundleContext
-        .getService(serviceReference);
+      eventAdmin = context.getService(serviceReference);
     }
 
     /**
@@ -382,9 +380,9 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
             int i = 0;
             while (running && i<500) {
               /* a Hash table to store message in */
-              Dictionary message = new Hashtable();
+              Dictionary<String, Object> message = new Hashtable<>();
               /* put some properties into the messages */
-              message.put("Synchronus message", new Integer(i));
+              message.put("Synchronus message", i);
               /* print for the console */
               System.out.println(getName()
                                  + " sending a synchronus event with message:"
@@ -427,9 +425,9 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
             int i = 0;
             while (running && i<500) {
               /* a Hash table to store message in */
-              Dictionary message = new Hashtable();
+              Dictionary<String, Object> message = new Hashtable<>();
               /* put some properties into the messages */
-              message.put("Asynchronus message", new Integer(i));
+              message.put("Asynchronus message", i);
               /* print for the console */
               System.out.println(getName()
                                  + " sending a asynchronus event with message:"
@@ -469,10 +467,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
     /** this is the assert type constant */
     private int assertType;
 
-    /** variable holding the last published */
-    private int lastPublished;
-
-    private ServiceRegistration serviceRegistration;
+    private ServiceRegistration<EventHandler> serviceRegistration;
 
     private Throwable error = null;
 
@@ -480,8 +475,6 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
      * Constructor for the EventConsumer class this class will listen for
      * events and notify the Monitor class if changes have been made.
      *
-     * @param bundleContext
-     *            the bundle context
      * @param topics
      *            topic to listen to
      * @param name
@@ -489,8 +482,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
      * @param id
      *            the numeric id
      */
-    public EventConsumer(BundleContext bundleContext, String[] topics,
-                         String name, int id) {
+    public EventConsumer(String[] topics, String name, int id) {
       /* compose a name */
       displayName = name + ":" + id;
       /* assign the consume topics */
@@ -527,12 +519,12 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
       shouldAssert = value;
       assertType = type;
       /* create the hashtable to put properties in */
-      Dictionary props = new Hashtable();
+      Dictionary<String, Object> props = new Hashtable<>();
       /* put service.pid property in hashtable */
       props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
       /* register the service */
-      serviceRegistration = bundleContext.registerService(EventHandler.class.getName(), this,
-                                                          props);
+      serviceRegistration = bundleContext.registerService(
+          EventHandler.class, this, props);
       assertNotNull(displayName + " Can't get service", serviceRegistration);
 
     }
@@ -544,12 +536,12 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
       shouldAssert = false;
       assertType = 3;
       /* create the hashtable to put properties in */
-      Dictionary props = new Hashtable();
+      Dictionary<String, Object> props = new Hashtable<>();
       /* put service.pid property in hashtable */
       props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
       /* register the service */
-      serviceRegistration = bundleContext.registerService(EventHandler.class.getName(), this,
-                                                          props);
+      serviceRegistration = bundleContext.registerService(
+          EventHandler.class, this, props);
     }
 
     /**
@@ -560,6 +552,7 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
         /* try to get the message */
         Object message = event.getProperty("Synchronus message");
 
+        int lastPublished;
         /* check if message is null */
         if (message != null) {
           /* its an syncronous message */
@@ -570,24 +563,22 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
           if (shouldAssert && assertType == ASSERT_SYNCHRONUS ) {
             lastPublished = lastPublishedIDSynch;
             /* get the message number */
-            Integer aquiredNumber = (Integer)message;
-
-            assertNotNull("Aquired property should not be null",aquiredNumber);
+            int aquiredNumber = (Integer) message;
 
             /*
              * assert the value use last published variable sometimes +1
              * because of rendevouz fact
              */
-            boolean expected = (aquiredNumber.intValue() >=lastPublished-20);
+            boolean expected = (aquiredNumber >= lastPublished - 20);
 
-            if(! (lastPublished-20>aquiredNumber.intValue())){
-              expected = (aquiredNumber.intValue() >=lastPublished-15);
+            if(! (lastPublished - 20 > aquiredNumber)){
+              expected = (aquiredNumber >= lastPublished - 15);
             }
 
             /* if not expected */
             if(!expected){
               /* this can happen sometimes beacause of rendevouz */
-              expected = (aquiredNumber.intValue() ==lastPublished-1);
+              expected = (aquiredNumber == lastPublished - 1);
 
             }
 
@@ -614,21 +605,19 @@ public class Scenario6TestSuite extends TestSuite implements Scenario6 {
             if (shouldAssert && assertType == ASSERT_ASYNCHRONUS) {
               lastPublished = lastPublishedIDAsynch;
               /* get the message number */
-              Integer aquiredNumber = (Integer)message;
-              /* assert not null */
-              assertNotNull("Aquired property should not be null",aquiredNumber);
+              int aquiredNumber = (Integer) message;
 
               /* assert the value use last published variable */
-              boolean expected = (aquiredNumber.intValue()>=lastPublished-20);
+              boolean expected = (aquiredNumber >= lastPublished - 20);
 
-              if(! (lastPublished-20>aquiredNumber.intValue())){
-                expected = (aquiredNumber.intValue() >=lastPublished-15);
+              if(! (lastPublished - 20 > aquiredNumber)){
+                expected = (aquiredNumber >= lastPublished - 15);
               }
 
               /* check if expected */
               if(!expected){
                 /* this can happen sometimes because of rendevouz issues */
-                expected = (aquiredNumber.intValue() ==lastPublished-1);
+                expected = (aquiredNumber == lastPublished - 1);
 
               }
 

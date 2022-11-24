@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,13 @@
 
 package org.knopflerfish.bundle.component_test;
 
-import java.io.*;
-import java.net.*;
-import org.osgi.framework.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
 /**
  * Misc static utility methods. (Stolen from framework_test.)
@@ -46,7 +50,7 @@ class Util {
   /**
    * Install a bundle from a resource file.
    *
-   * @param bc context owning both resources and to install bundle from
+   * @param bc       context owning both resources and to install bundle from
    * @param resource resource name of bundle jar file
    * @return the installed bundle
    * @throws BundleException if no such resource is found or if
@@ -56,12 +60,12 @@ class Util {
     try {
       System.out.println("installBundle(" + resource + ")");
       URL url = bc.getBundle().getResource(resource);
-      if(url == null) {
-	throw new BundleException("No resource " + resource);
+      if (url == null) {
+        throw new BundleException("No resource " + resource);
       }
       InputStream in = url.openStream();
-      if(in == null) {
-	throw new BundleException("No resource " + resource);
+      if (in == null) {
+        throw new BundleException("No resource " + resource);
       }
       return bc.installBundle("internal:" + resource, in);
     } catch (IOException e) {

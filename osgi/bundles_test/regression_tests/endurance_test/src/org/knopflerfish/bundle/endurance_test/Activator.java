@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ public class Activator implements BundleActivator {
   }
 
 
-  public void stop(BundleContext context) throws Exception {
+  public void stop(BundleContext context) {
   }
   
   private class TestRunner implements Runnable {
@@ -94,64 +94,64 @@ public class Activator implements BundleActivator {
           
           // add new tests here.
       };
-      
-      for (int i = 0; i < tests.length; i++) {
 
-        int n = tests[i].getNoRuns();
+      for (EnduranceTest test : tests) {
+
+        int n = test.getNoRuns();
         int bestRun = -1;
         long bestTime = Long.MAX_VALUE;
-        
+
         int worstRun = -1;
         long worstTime = Long.MIN_VALUE;
-        
-        System.out.println("Starting test \"" + tests[i].testName() + "\"");
-        tests[i].prepare();
+
+        System.out.println("Starting test \"" + test.testName() + "\"");
+        test.prepare();
         long discUsage = discUsage(cacheDir);
         System.gc();
-        long totalTime = System.currentTimeMillis();        
+        long totalTime = System.currentTimeMillis();
         long freeBefore = Runtime.getRuntime().freeMemory();
         long totalBefore = Runtime.getRuntime().totalMemory();
 
         for (int o = 0; o < n; o++) {
           long tmp = System.currentTimeMillis();
-          
-          if (!tests[i].runTest()) {
-            out.println("FAILED TO RUN TEST " + tests[i].getClass().getName());
+
+          if (!test.runTest()) {
+            out.println("FAILED TO RUN TEST " + test.getClass().getName());
             break;
           }
-          
+
           long tmp2 = System.currentTimeMillis();
-          
+
           if (bestTime > tmp2 - tmp) {
             bestTime = tmp2 - tmp;
             bestRun = o;
           }
-          
+
           if (worstTime < tmp2 - tmp) {
             worstTime = tmp2 - tmp;
             worstRun = o;
-            
+
           }
         }
         totalTime = System.currentTimeMillis() - totalTime;
         System.gc();
         long freeAfter = Runtime.getRuntime().freeMemory();
         long totalAfter = Runtime.getRuntime().totalMemory();
-                
-        out.println("Results from test \"" + tests[i].testName() + "\" (executed " + tests[i].getNoRuns() + " times)");
+
+        out.println("Results from test \"" + test.testName() + "\" (executed " + test.getNoRuns() + " times)");
         out.println("Memory\t\tfree\t\ttotal\t\tused");
         out.println(" before:\t" + freeBefore / 1000 + "kB\t\t" + totalBefore / 1000 + "kB\t\t" + (totalBefore - freeBefore) / 1000 + "kB");
         out.println("  after:\t" + freeAfter / 1000 + "kB\t\t" + totalAfter / 1000 + "kB\t\t" + (totalAfter - freeAfter) / 1000 + "kB");
         out.println("Disc usage\tused");
-        out.println(" before:\t" + discUsage/1000 + "kB\t");
-        out.println("  after:\t" + discUsage(cacheDir)/1000 + "kB");
+        out.println(" before:\t" + discUsage / 1000 + "kB\t");
+        out.println("  after:\t" + discUsage(cacheDir) / 1000 + "kB");
         out.println("Time ");
         out.println("  best run:\t " + bestTime + "ms\trun:" + bestRun);
         out.println(" worst run:\t " + worstTime + "ms\trun:" + worstRun);
         out.println("Total time:\t " + totalTime + "ms");
         out.println();
-        
-        tests[i].cleanup();
+
+        test.cleanup();
       }
       
       if (System.getProperty("org.knopflerfish.bundle.endurance_test.halt_after_test", 
@@ -183,13 +183,14 @@ public class Activator implements BundleActivator {
     }
     
     File[] children = tmp.listFiles(filter);
-    
+    assert children != null; // tmp is a directory
+
     long acc = 0;
-    for (int i = 0; i < children.length; i++) {
-      if (children[i].isDirectory()) {
-        acc += discUsage(children[i].getPath());
+    for (File child : children) {
+      if (child.isDirectory()) {
+        acc += discUsage(child.getPath());
       } else {
-        acc += children[i].length();
+        acc += child.length();
       }
     }
     

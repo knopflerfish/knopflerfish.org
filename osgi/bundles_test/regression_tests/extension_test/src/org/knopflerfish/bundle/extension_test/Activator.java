@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ public class Activator implements BundleActivator {
   private static final String FAILED_TEST = "##### FAILED!";
   private BundleContext bc;
   
-  public void start(BundleContext bc) throws Exception {
+  public void start(BundleContext bc) {
     this.bc = bc;
     checkRestart();
 
@@ -69,7 +69,7 @@ public class Activator implements BundleActivator {
     System.out.println("In afterRestart!");
     
     try {
-      Class klass1 = Class.forName("org.knopflerfish.service.bundleExt1_test.BundleExt1Test");
+      Class<?> klass1 = Class.forName("org.knopflerfish.service.bundleExt1_test.BundleExt1Test");
       System.out.println("Checking if the boot class extension is loaded by the boot class loaders.");
       
       if (klass1.getClassLoader() == null) {
@@ -93,7 +93,7 @@ public class Activator implements BundleActivator {
         }
       }
       
-      Class klass2 = Class.forName("org.knopflerfish.service.bundleExt2_test.BundleExt2Test");
+      Class<?> klass2 = Class.forName("org.knopflerfish.service.bundleExt2_test.BundleExt2Test");
       System.out.println("Checking if the framework extension is loaded by the framework classloader.");
       if (bc.getBundle(0).getClass().getClassLoader() != klass2.getClassLoader()) {
         failed();
@@ -117,9 +117,10 @@ public class Activator implements BundleActivator {
   
   void beforeRestart() {
     System.out.println("In beforeRestart!");
-    ServiceTracker tracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
+    ServiceTracker<PackageAdmin, PackageAdmin> tracker = new ServiceTracker<>(
+        bc, PackageAdmin.class, null);
     tracker.open();
-    PackageAdmin pa = (PackageAdmin)tracker.getService();
+    PackageAdmin pa = tracker.getService();
     Bundle extensionBC = null;
     Bundle extensionFW = null;
     
@@ -150,17 +151,18 @@ public class Activator implements BundleActivator {
   }
   
 
-  public void stop(BundleContext bc) throws Exception {
+  public void stop(BundleContext bc) {
   }
   
   private void checkRestart() {
     File baseDir = bc.getDataFile("");
     
     File[] files = baseDir.listFiles();
-    
-    for (int i = 0; i < files.length; i++) {
-      if (RESTART_FLAG_FILE.equals(files[i].getName())) {
-        RESTARTED=true;
+    assert files != null;
+
+    for (File file : files) {
+      if (RESTART_FLAG_FILE.equals(file.getName())) {
+        RESTARTED = true;
       }
     }
   }

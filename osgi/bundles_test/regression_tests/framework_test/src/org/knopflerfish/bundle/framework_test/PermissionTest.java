@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ public class PermissionTest extends java.security.Permission {
     return action;
   }
 
+  @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
   public boolean equals(java.lang.Object o) {
     return true;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,11 +58,6 @@ public class Scenario14TestSuite extends TestSuite {
   /** the bundle context */
   private BundleContext bundleContext;
 
-  /** the display name */
-  private String name;
-
-  private Object semaphore= new Object();
-
   /**
    * Constructor
    *
@@ -83,16 +78,16 @@ public class Scenario14TestSuite extends TestSuite {
     String[] topic7 = {"*"};
 
     EventConsumer[] eventConsumer = new EventConsumer[] {
-      new EventConsumer(bundleContext,topic1 ,"EventConsumer", 1),
-      new EventConsumer(bundleContext,topic2 ,"EventConsumer", 2),
-      new EventConsumer(bundleContext,topic3 ,"EventConsumer", 3),
-      new EventConsumer(bundleContext,topic4 ,"EventConsumer", 4),
-      new EventConsumer(bundleContext,topic5 ,"EventConsumer", 5),
-      new EventConsumer(bundleContext,topic6 ,"EventConsumer", 6),
-      new EventConsumer(bundleContext,topic7 ,"EventConsumer", 7) };
+      new EventConsumer(topic1 ,"EventConsumer", 1),
+      new EventConsumer(topic2 ,"EventConsumer", 2),
+      new EventConsumer(topic3 ,"EventConsumer", 3),
+      new EventConsumer(topic4 ,"EventConsumer", 4),
+      new EventConsumer(topic5 ,"EventConsumer", 5),
+      new EventConsumer(topic6 ,"EventConsumer", 6),
+      new EventConsumer(topic7 ,"EventConsumer", 7) };
 
-    for (int i=0; i<eventConsumer.length; i++) {
-      addTest(eventConsumer[i]);
+    for (EventConsumer consumer : eventConsumer) {
+      addTest(consumer);
     }
 
     addTest(new Cleanup(eventConsumer));
@@ -117,16 +112,16 @@ public class Scenario14TestSuite extends TestSuite {
     }
     public void runTest() throws Throwable {
       EventPublisher p1 = new EventPublisher(bundleContext,
-                                             "com/acme/timer", "EventPublisher", 1);
+          "com/acme/timer", "EventPublisher", 1);
 
       EventPublisher p2 = new EventPublisher(bundleContext,
-                                             "com/acme/timer", "EventPublisher", 2);
+          "com/acme/timer", "EventPublisher", 2);
 
       EventPublisher p3 = new EventPublisher(bundleContext,
-                                             "com/acme/timer", "EventPublisher", 3);
+          "com/acme/timer", "EventPublisher", 3);
 
       EventPublisher p4 = new EventPublisher(bundleContext,
-                                             "com/Roland/timer", "EventPublisher", 4);
+          "com/Roland/timer", "EventPublisher", 4);
 
 
 
@@ -160,9 +155,9 @@ public class Scenario14TestSuite extends TestSuite {
     }
     public void runTest() throws Throwable {
       Throwable error = null;
-      for (int i=0; i<eventConsumer.length; i++) {
+      for (EventConsumer consumer : eventConsumer) {
         try {
-          eventConsumer[i].cleanup();
+          consumer.cleanup();
         } catch (Throwable e) {
           error = e;
         }
@@ -184,20 +179,12 @@ public class Scenario14TestSuite extends TestSuite {
 
 
 
-  private class EventPublisher extends Thread  {
-    /** A reference to a service */
-    private ServiceReference serviceReference;
+  private static class EventPublisher extends Thread  {
 
     /** The admin which delivers the events */
     private EventAdmin eventAdmin;
 
-    /** the private bundle context */
-    private BundleContext bundleContext;
-
     private String topicToPublish;
-
-    /** the running variable */
-    private boolean running=true;
 
     /** the id of the publisher */
     private int publisherId;
@@ -206,23 +193,17 @@ public class Scenario14TestSuite extends TestSuite {
     public EventPublisher(BundleContext context,String topic,String name,int id){
       /* call super class */
       super(name + ":" + id);
-      /* assign bundleContext */
-      bundleContext = context;
       /* assign the topic to publish */
       topicToPublish = topic;
       /* assign the publisherID */
       publisherId = id;
 
       /* Claims the reference of the EventAdmin Service */
-      serviceReference = bundleContext
-        .getServiceReference(EventAdmin.class.getName());
-
+      ServiceReference<EventAdmin> serviceReference = context
+          .getServiceReference(EventAdmin.class);
 
       /* get the service  */
-      eventAdmin = (EventAdmin) bundleContext
-        .getService(serviceReference);
-
-
+      eventAdmin = context.getService(serviceReference);
     }
 
 
@@ -231,9 +212,9 @@ public class Scenario14TestSuite extends TestSuite {
       int i = 0;
       while (i<2000) {
         /* a Hash table to store message in */
-        Dictionary message = new Hashtable();
+        Dictionary<String, Object> message = new Hashtable<>();
         /* put some properties into the messages */
-        message.put("message", new Integer(i));
+        message.put("message", i);
         /* put the sender */
         message.put("FROM", this);
 
@@ -242,7 +223,7 @@ public class Scenario14TestSuite extends TestSuite {
           /* send the message */
           eventAdmin
             .sendEvent(new Event(topicToPublish, message));
-        } else if (publisherId > 2) {
+        } else {
           /* send the message */
           eventAdmin
             .postEvent(new Event(topicToPublish, message));
@@ -262,32 +243,17 @@ public class Scenario14TestSuite extends TestSuite {
    */
   class EventConsumer extends TestCase implements EventHandler {
     /** class variable for service registration */
-    private ServiceRegistration serviceRegistration;
+    private ServiceRegistration<EventHandler> serviceRegistration;
 
     /** class variable indicating the topics */
     private String[] topicsToConsume;
-
-    /** class variable keeping number of asynchronus message */
-    private int numOfasynchMessages=0;
-
-    /** class variable keeping number of asynchronus message */
-    private int numOfsynchMessages=0;
-
-    /** class variable holding the old syncronus message nummber */
-    private int synchMessageExpectedNumber=0;
-
-    /** class variable holding the old asyncronus message nummber */
-    private int asynchMessageExpectedNumber=0;
 
     private Throwable error;
 
     /**
      * Constructor creates a consumer service
-     *
-     * @param bundleContext
-     * @param topics
      */
-    public EventConsumer(BundleContext bundleContext, String[] topics,
+    public EventConsumer(String[] topics,
                          String name, int id) {
       /* call super class */
       super(name + ":" + id);
@@ -301,20 +267,15 @@ public class Scenario14TestSuite extends TestSuite {
      */
     public void runTest() throws Throwable {
       /* create the hashtable to put properties in */
-      Dictionary props = new Hashtable();
+      Dictionary<String, Object> props = new Hashtable<>();
       /* put service.pid property in hashtable */
       props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
       /* register the service */
       serviceRegistration = bundleContext.registerService
-        (EventHandler.class.getName(), this, props);
+        (EventHandler.class, this, props);
 
       assertNotNull(getName() +" service registration should not be null",
                     serviceRegistration);
-
-      if (serviceRegistration == null) {
-        fail("Could not get Service Registration ");
-      }
-
     }
 
     public void cleanup() throws Throwable {

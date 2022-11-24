@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,10 +43,9 @@ public class BundleActivator implements org.osgi.framework.BundleActivator {
   public void start(BundleContext bc) {
     {
       TestSuite suite = new HttpTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr 
-	= bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class.getName(), suite, props);
     }
     /*
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,6 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
-import org.osgi.service.event.TopicPermission;
 
 import org.knopflerfish.bundle.eventadmin_test.scenario13.Scenario13;
 
@@ -64,7 +63,7 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
   /** bundle context variable */
   private BundleContext bundleContext;
   /** the messages to be deliverd */
-  private final int MESSAGES_SENT=10;
+  private static final int MESSAGES_SENT = 10;
 
   /**
    * Constuructor for the TestSuite class.
@@ -83,9 +82,9 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
     addTest(new Setup());
     /* add the event consumer to the test suite */
     EventConsumer[] eventConsumer = new EventConsumer[] {
-      new EventConsumer(bundleContext, scenario13_topics,
+      new EventConsumer(scenario13_topics,
                         "Scenario 13 EventConsumer", 1),
-      new EventConsumer(bundleContext, scenario13_topics,
+      new EventConsumer(scenario13_topics,
                         "Scenario 13 EventConsumer", 2) };
     addTest(eventConsumer[0]);
 
@@ -94,7 +93,7 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
 
     /* add the event publisher to the test suite */
     addTest(new EventPublisher(bundleContext, "Scenario 1 EventPublisher",
-                               1, MESSAGES_SENT));
+        1, MESSAGES_SENT));
 
     /* add the cleanup class */
     addTest(new Cleanup(eventConsumer));
@@ -106,7 +105,7 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
    *
    *@author Magnus Klack
    */
-  class Setup extends TestCase {
+  static class Setup extends TestCase {
     public Setup(){
 
     }
@@ -139,9 +138,9 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
     }
     public void runTest() throws Throwable {
       Throwable error = null;
-      for (int i=0; i<eventConsumer.length; i++) {
+      for (EventConsumer consumer : eventConsumer) {
         try {
-          eventConsumer[i].cleanup();
+          consumer.cleanup();
         } catch (Throwable e) {
           error = e;
         }
@@ -166,10 +165,7 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
    *
    * @author Magnus Klack
    */
-  class EventPublisher extends TestCase {
-
-    /** A reference to a service */
-    private ServiceReference serviceReference;
+  static class EventPublisher extends TestCase {
 
     /** The admin which delivers the events */
     private EventAdmin eventAdmin;
@@ -192,50 +188,34 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
 
     public void runTest() throws Throwable {
       /* Claims the reference of the EventAdmin Service */
-      serviceReference = bundleContext
-        .getServiceReference(EventAdmin.class.getName());
+      ServiceReference<EventAdmin> serviceReference = bundleContext
+          .getServiceReference(EventAdmin.class);
 
       /* assert that a reference is aquired */
       assertNotNull(getName()
                     + " Should be able to get reference to EventAdmin service",
-                    serviceReference);
-      /* check the service reference */
-      if (serviceReference == null) {
-        /* set fail */
-        fail(getName() + " service reference should not be null");
-      }
+          serviceReference);
 
       /* get the service  */
-      eventAdmin = (EventAdmin) bundleContext
-        .getService(serviceReference);
+      eventAdmin = bundleContext.getService(serviceReference);
 
       /* assert that service is available */
       assertNotNull(getName()
                     + " Should be able to get instance to EventAdmin object",eventAdmin);
 
-      /* check if null */
-      if (eventAdmin == null) {
-        /* set a fail */
-        fail(getName() + " event admin should not be null");
-      }
-
       /* create an anonymous thread */
-      Thread synchDeliver = new Thread() {
-          public void run() {
-            /* deliver the messages */
-            for (int i = 0; i < messageTosend; i++) {
-              /* a Hash table to store message in */
-              Dictionary message = new Hashtable();
-              /* put some properties into the messages */
-              message.put("Synchronus message",new Integer(i));
-              /* send the message */
-              eventAdmin.sendEvent(new Event("com/acme/timer", message));
+      Thread synchDeliver = new Thread(() -> {
+        /* deliver the messages */
+        for (int i = 0; i < messageTosend; i++) {
+          /* a Hash table to store message in */
+          Dictionary<String, Object> message = new Hashtable<>();
+          /* put some properties into the messages */
+          message.put("Synchronus message", i);
+          /* send the message */
+          eventAdmin.sendEvent(new Event("com/acme/timer", message));
 
-            }
-          }
-
-
-        };
+        }
+      });
 
       /* print that the test has started */
       System.out.println("Testing synchronus delivery");
@@ -256,22 +236,10 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
    */
   class EventConsumer extends TestCase implements EventHandler {
     /** class variable for service registration */
-    private ServiceRegistration serviceRegistration;
+    private ServiceRegistration<EventHandler> serviceRegistration;
 
     /** class variable indicating the topics */
     private String[] topicsToConsume;
-
-    /** class variable keeping number of asynchronus message */
-    private int numOfasynchMessages=0;
-
-    /** class variable keeping number of asynchronus message */
-    private int numOfsynchMessages=0;
-
-    /** class variable holding the old syncronus message nummber */
-    private int synchMessageExpectedNumber=0;
-
-    /** class variable holding the old asyncronus message nummber */
-    private int asynchMessageExpectedNumber=0;
 
     /** variable indicates the id of the consumer */
     private int numericId;
@@ -280,11 +248,8 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
 
     /**
      * Constructor creates a consumer service
-     *
-     * @param bundleContext
-     * @param topics
      */
-    public EventConsumer(BundleContext bundleContext, String[] topics,
+    public EventConsumer(String[] topics,
                          String name, int id) {
       /* call super class */
       super(name + ":" + id);
@@ -300,21 +265,16 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
      */
     public void runTest() throws Throwable {
       /* create the hashtable to put properties in */
-      Dictionary props = new Hashtable();
+      Dictionary<String, Object> props = new Hashtable<>();
       /* put service.pid property in hashtable */
       props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
       /* register the service */
       serviceRegistration = bundleContext.registerService
-        (EventHandler.class.getName(), this, props);
+        (EventHandler.class, this, props);
 
       assertNotNull(getName()
                     + " service registration should not be null",
                     serviceRegistration);
-
-      if (serviceRegistration == null) {
-        fail("Could not get Service Registration ");
-      }
-
     }
 
     public void cleanup() throws Throwable {
@@ -326,22 +286,14 @@ public class Scenario13TestSuite extends TestSuite implements Scenario13 {
       }
     }
 
-    public void reset(){
-      numOfasynchMessages=0;
-      numOfsynchMessages=0;
-      synchMessageExpectedNumber=0;
-      asynchMessageExpectedNumber=0;
-    }
-
-
     /**
      * This method takes events from the event admin service.
      */
     public void handleEvent(Event event) {
-      if(numericId==2){
+      if (numericId == 2) {
         /* try to crash the consumer */
-        Long eventId = (Long)event.getProperty("Synchronus message");
-      }else{
+        event.getProperty("Synchronus message");
+      } else {
         try {
           /* normal phase */
           Integer eventId = (Integer)event.getProperty("Synchronus message");

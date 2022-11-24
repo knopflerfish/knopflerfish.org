@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,20 +33,16 @@
  */
 package org.knopflerfish.bundle.endurance_test;
 
-import java.util.Hashtable;
-
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.util.tracker.*;
+import org.osgi.util.tracker.ServiceTracker;
 
-import org.knopflerfish.service.bundleEnd7_test.*;
+import org.knopflerfish.service.bundleEnd7_test.Control;
+import org.knopflerfish.service.bundleEnd7_test.PhonyService7;
 
 class Test3 implements EnduranceTest {
   private BundleContext bc;
-  private Bundle bundle;
   private ServiceTracker tracker;
   
   
@@ -56,7 +52,7 @@ class Test3 implements EnduranceTest {
 
   public void prepare() {
     try {
-      bundle = Util.installBundle(bc, "bundleEnd7_test-1.0.0.jar");
+      Bundle bundle = Util.installBundle(bc, "bundleEnd7_test-1.0.0.jar");
       bundle.start();
       tracker = new ServiceTracker(bc, Control.class.getName(), null);
       tracker.open();
@@ -68,7 +64,7 @@ class Test3 implements EnduranceTest {
   public boolean runTest() {
     Control control = (Control)tracker.getService();
     control.register();
-    ServiceReference ref = bc.getServiceReference(PhonyService7.class.getName());
+    ServiceReference<PhonyService7> ref = bc.getServiceReference(PhonyService7.class);
     bc.getService(ref);
     bc.ungetService(ref);
     control.unregister();

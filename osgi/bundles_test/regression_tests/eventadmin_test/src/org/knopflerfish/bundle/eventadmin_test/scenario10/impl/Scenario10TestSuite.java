@@ -1,15 +1,35 @@
 /*
- * @(#)Scenario10TestSuite.java        1.0 2005/06/28
- *
- * Copyright (c) 2003-2005 Gatespace telematics AB
- * Otterhallegatan 2, 41670,Gothenburgh, Sweden.
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
- * This software is the confidential and proprietary information of
- * Gatespace telematics AB. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Gatespace telematics AB.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.knopflerfish.bundle.eventadmin_test.scenario10.impl;
 
@@ -45,9 +65,7 @@ public class Scenario10TestSuite extends TestSuite {
     private boolean consumerIsPresent = false;
 
     /** variable representing a sempahore for the consumer is present variable */
-    public Object semaphore = new Object();
-
-    EventGenerator eventGenerator;
+    public final Object semaphore = new Object();
 
     /**
      * Constructor for the Scenario9 TestSuite
@@ -81,7 +99,7 @@ public class Scenario10TestSuite extends TestSuite {
      *
      * @author Magnus Klack
      */
-    class Setup extends TestCase {
+    static class Setup extends TestCase {
         public void runTest() throws Throwable {
 
         }
@@ -112,9 +130,9 @@ public class Scenario10TestSuite extends TestSuite {
         }
         public void runTest() throws Throwable {
           Throwable error = null;
-          for (int i=0; i<eventConsumer.length; i++) {
+          for (EventConsumer consumer : eventConsumer) {
             try {
-              eventConsumer[i].cleanup();
+              consumer.cleanup();
             } catch (Throwable e) {
               error = e;
             }
@@ -146,7 +164,6 @@ public class Scenario10TestSuite extends TestSuite {
 
         /**
          * Consturctor to initialize a dummy bundle
-         * @param context
          */
         public EventGenerator(BundleContext context) {
             super("Event generator");
@@ -164,39 +181,39 @@ public class Scenario10TestSuite extends TestSuite {
             }
 
             /* must be conumers */
-            Thread surveyThread = new Thread() {
-                public void run() {
-                    try {
-                        ServiceReference[] references = null;
-                        while (references == null) {
-                            /* wait until consumers are present */
-                            references = bundleContext
-                                    .getServiceReferences(
-                                            "org.osgi.service.event.EventHandler",
-                                            null);
-                        }
-
-                        /* lock the semaphore */
-                        synchronized (semaphore) {
-                            /* set the consumer as present */
-                            consumerIsPresent = true;
-                            semaphore.notifyAll();
-                        }
-
-                    } catch (InvalidSyntaxException e) {
-                        System.out
-                                .println("\n************** FATAL ERROR IN SCENARIO 10 ***************\n");
-
+            Thread surveyThread = new Thread(() -> {
+                try {
+                    ServiceReference<?>[] references = null;
+                    while (references == null) {
+                        /* wait until consumers are present */
+                        references = bundleContext
+                                .getServiceReferences(
+                                        "org.osgi.service.event.EventHandler",
+                                        null);
                     }
+
+                    /* lock the semaphore */
+                    synchronized (semaphore) {
+                        /* set the consumer as present */
+                        consumerIsPresent = true;
+                        semaphore.notifyAll();
+                    }
+
+                } catch (InvalidSyntaxException e) {
+                    System.out
+                            .println("\n************** FATAL ERROR IN SCENARIO 10 ***************\n");
+
                 }
-            };
+            });
             /* start wait process */
             surveyThread.start();
 
             /* wait for the semaphore to be true */
             while (!consumerIsPresent) {
                 synchronized (semaphore) {
-                    try { semaphore.wait(); } catch (Exception e) {}
+                    try {
+                      semaphore.wait();
+                    } catch (Exception ignored) {}
                 }
 
             }
@@ -231,7 +248,7 @@ public class Scenario10TestSuite extends TestSuite {
 
         /** variable counting  events */
         private int eventCounter = 0;
-        private ServiceRegistration serviceRegistration;
+        private ServiceRegistration<EventHandler> serviceRegistration;
 
         private Throwable error;
 
@@ -247,12 +264,12 @@ public class Scenario10TestSuite extends TestSuite {
         public void runTest() throws Throwable {
             eventCounter = 0;
             /* create the hashtable to put properties in */
-            Hashtable props = new Hashtable();
+            Hashtable<String, Object> props = new Hashtable<>();
             /* put service.pid property in hashtable */
             props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
             /* register the service */
-            serviceRegistration = bundleContext.registerService(EventHandler.class
-                    .getName(), this, props);
+            serviceRegistration = bundleContext.registerService(
+                EventHandler.class, this, props);
             /* assert not null */
             assertNotNull(displayName + " Can't get service", serviceRegistration);
         }
@@ -279,37 +296,37 @@ public class Scenario10TestSuite extends TestSuite {
             case 0:
                 assertEquals("Wrong topic!",
                              "org/osgi/framework/BundleEvent/INSTALLED",
-                             (String) event.getTopic());
+                             event.getTopic());
                 break;
             case 1:
                 assertEquals("Wrong topic!",
                              "org/osgi/framework/BundleEvent/RESOLVED",
-                             (String) event.getTopic());
+                             event.getTopic());
                 break;
             case 2:
                 assertEquals("Wrong topic!",
                              "org/osgi/framework/BundleEvent/STARTED",
-                             (String) event.getTopic());
+                             event.getTopic());
                 break;
             case 3:
                 assertEquals("Wrong topic!",
                              "org/osgi/framework/BundleEvent/STOPPED",
-                             (String) event.getTopic());
+                             event.getTopic());
                 break;
             case 4:
                 assertEquals("Wrong topic!",
                              "org/osgi/framework/BundleEvent/UNRESOLVED",
-                             (String) event.getTopic());
+                             event.getTopic());
                 break;
             case 5:
                 assertEquals("Wrong topic!",
                              "org/osgi/framework/BundleEvent/UPDATED",
-                             (String) event.getTopic());
+                             event.getTopic());
                 break;
             case 6:
                 assertEquals("Wrong topic!",
                              "org/osgi/framework/BundleEvent/UNINSTALLED",
-                             (String) event.getTopic());
+                             event.getTopic());
                 break;
             default:
                 fail("Order not granted in event admin service");

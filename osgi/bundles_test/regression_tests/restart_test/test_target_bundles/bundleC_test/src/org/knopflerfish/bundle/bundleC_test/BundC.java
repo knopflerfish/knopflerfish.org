@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,10 @@
 
 package org.knopflerfish.bundle.bundleC_test;
 
-import java.util.*;
-import org.knopflerfish.service.bundleC_test.*;
-import org.osgi.framework.*;
+import java.util.Hashtable;
+
+import org.osgi.framework.BundleContext;
+import org.knopflerfish.service.bundleC_test.BundleC;
 
 /*
    This bundle is used to check parts of the functionality of the framework
@@ -51,7 +52,7 @@ public class BundC implements BundleC {
 
   public BundC (BundleContext bc) {
     this.bc = bc;
-    Hashtable dict = new Hashtable();
+    Hashtable<String, Object> dict = new Hashtable<>();
     dict.put ("key1","value1");
     dict.put ("key2","value2");
     try {

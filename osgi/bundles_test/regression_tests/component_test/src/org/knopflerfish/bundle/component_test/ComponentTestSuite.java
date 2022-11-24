@@ -64,9 +64,9 @@ import org.osgi.service.component.ComponentInstance;
 import org.osgi.service.component.runtime.ServiceComponentRuntime;
 import org.osgi.service.component.runtime.dto.ComponentDescriptionDTO;
 import org.osgi.service.log.LogEntry;
+import org.osgi.service.log.LogLevel;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
-import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class ComponentTestSuite extends TestSuite implements ComponentATest
@@ -103,7 +103,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
   }
 
   /* from http_test */
-  class FWTestCase extends TestCase {
+  static class FWTestCase extends TestCase {
     public String getName() {
       String name = getClass().getName();
       int ix = name.lastIndexOf("$");
@@ -162,7 +162,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
          try {
            Thread.sleep(SLEEP_TIME);
-         } catch (Exception e) {}
+         } catch (Exception ignored) {}
 
          assertNotNull("Could not get service object for A1", obj);
          assertEquals("Should have been activate bumped", 1, counter);
@@ -171,7 +171,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
          try {
            Thread.sleep(SLEEP_TIME);
-         } catch (Exception e) {}
+         } catch (Exception ignored) {}
 
          assertEquals("Should have been deactivate bumped", 11, counter);
 
@@ -209,8 +209,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     private boolean gotCircularError;
 
     public void logged(LogEntry le) {
-      if (le.getLevel() == LogService.LOG_ERROR &&
-          le.getMessage().indexOf("circular") >= 0) {
+      if (le.getLogLevel() == LogLevel.ERROR &&
+          le.getMessage().contains("circular")) {
         gotCircularError = true;
       }
     }
@@ -246,8 +246,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertTrue("Should have got circular error message", gotCircularError);
         lrs.removeLogListener(this);
 
-        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable<String, Object>());
-        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String, Object>());
+        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable<>());
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<>());
 
         Thread.sleep(SLEEP_TIME);
 
@@ -359,7 +359,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          Double d1 = (Double) ref.getProperty("Double1");
          System.out.println("Double1= " +d1);
          assertNotNull("Double1 not null", d1);
-         assertEquals("Double1 == 2^24 + 2^-8", new Double(16777216.00390625), d1);
+         assertEquals("Double1 == 2^24 + 2^-8", 16777216.00390625, d1);
 
          double[] da = (double[]) ref.getProperty("Doubles");
          printArray("Doubles= ", da);
@@ -371,7 +371,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          Float f1 = (Float) ref.getProperty("Float1");
          System.out.println("Float1= " +f1);
          assertNotNull("Float1 not null", f1);
-         assertEquals("Float1 == 1", new Float(4.0), f1);
+         assertEquals("Float1 == 1", 4.0f, f1);
 
          float[] fa = (float[]) ref.getProperty("Floats");
          printArray("Floats= ", fa);
@@ -443,7 +443,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          Boolean bo1 = (Boolean) ref.getProperty("Boolean1");
          System.out.println("Boolean1= " +bo1);
          assertNotNull("Boolean1 not null", bo1);
-         assertEquals("Boolean1 == true", new Boolean(true), bo1);
+         assertEquals("Boolean1 == true", Boolean.TRUE, bo1);
 
          boolean[] boa = (boolean[]) ref.getProperty("Booleans");
          printArray("Booleans= ", boa);
@@ -459,7 +459,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       }
     }
 
-    void printArray(String caption, Object a) throws IOException {
+    void printArray(String caption, Object a) {
       StringBuilder sb = new StringBuilder(80);
 
       sb.append(caption);
@@ -500,7 +500,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
          try {
            Thread.sleep(SLEEP_TIME);
-         } catch (InterruptedException ie) {}
+         } catch (InterruptedException ignored) {}
 
          ServiceReference<?> e1SR = bc.getServiceReference
            ("org.knopflerfish.service.componentE_test.ComponentE1");
@@ -517,9 +517,9 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          assertNotNull("Could not get service object for E1", e1);
 
          // Check that no E2 instance have been injected into e1 yet.
-         Method getE2Method = e1.getClass().getMethod("getE2", (Class[])null);
+         Method getE2Method = e1.getClass().getMethod("getE2", (Class<?>[])null);
          assertNull("No E2 service yet",
-                    getE2Method.invoke(e1, new Object[]{}));
+                    getE2Method.invoke(e1));
          System.out.println("Initially no E2 service bound to E1.");
 
          // Prepare to create an E2 component instance
@@ -531,36 +531,35 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          assertEquals("One E2 component factory service ref",
                       1, e2FactorySRs.length);
 
-         ComponentFactory e2Factory
-           = (ComponentFactory) bc.getService(e2FactorySRs[0]);
+         ComponentFactory<?> e2Factory
+           = (ComponentFactory<?>) bc.getService(e2FactorySRs[0]);
          assertNotNull("No E2 component factory", e2Factory);
 
          // Create an E2 component instance
          System.out.println("Creating E2 component instance.");
-         ComponentInstance e2Inst = e2Factory.newInstance((Dictionary<String,Object>) null);
+         ComponentInstance<?> e2Inst = e2Factory.newInstance((Dictionary<String,Object>) null);
          assertNotNull("No E2 instance", e2Inst);
 
          try {
            Thread.sleep(SLEEP_TIME);
-         } catch (InterruptedException ie) {}
+         } catch (InterruptedException ignored) {}
 
 
          // Check that the E2 instance have been bound to e1.
-         Object e2 = getE2Method.invoke(e1, new Object[]{});
+         Object e2 = getE2Method.invoke(e1);
          System.out.println("E2 service bound to E1: " +e2);
          assertNotNull("E2 service should now be bound to e1", e2);
 
          // Destroy the E2 component instance
          System.out.println("Disposing E2 component instance.");
          e2Inst.dispose();
-         e2Inst = null;
 
          try {
            Thread.sleep(SLEEP_TIME);
-         } catch (InterruptedException ie) {}
+         } catch (InterruptedException ignored) {}
 
          // Check that the E2 instance have been unbound from e1.
-         e2 = getE2Method.invoke(e1, new Object[]{});
+         e2 = getE2Method.invoke(e1);
          System.out.println("E2 service bound to E1 after disposal: " +e2);
          assertNull("E2 service should be unbound from e1 after dispose", e2);
 
@@ -571,25 +570,24 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
          try {
            Thread.sleep(SLEEP_TIME);
-         } catch (InterruptedException ie) {}
+         } catch (InterruptedException ignored) {}
 
 
          // Check that the second E2 instance have been bound to e1 now.
-         e2 = getE2Method.invoke(e1, new Object[]{});
+         e2 = getE2Method.invoke(e1);
          System.out.println("Second E2 service bound to e1: " +e2);
          assertNotNull("E2 service should now be bound to e1", e2);
 
          // Destroy the second E2 component instance
          System.out.println("Disposing second E2 component instance.");
          e2Inst.dispose();
-         e2Inst = null;
 
          try {
            Thread.sleep(SLEEP_TIME);
-         } catch (InterruptedException ie) {}
+         } catch (InterruptedException ignored) {}
 
          // Check that the second E2 instance have been unbound from e1.
-         e2 = getE2Method.invoke(e1, new Object[]{});
+         e2 = getE2Method.invoke(e1);
          System.out.println("E2 service bound to E1 after disposal (2): " +e2);
          assertNull("E2 service bound to E1 after disposal (2).", e2);
 
@@ -625,7 +623,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
          try {
            Thread.sleep(SLEEP_TIME);
-         } catch (InterruptedException ie) {}
+         } catch (InterruptedException ignored) {}
 
          final ServiceReference<?>[] srs = bc.getServiceReferences
            ("org.knopflerfish.service.component2_test.Component", null);
@@ -641,7 +639,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
            assertNotNull("Could not get service object "+i, s);
 
            // Call the service method to double check.
-           final Method getMethod = s.getClass().getMethod("get", (Class[])null);
+           final Method getMethod = s.getClass().getMethod("get", (Class<?>[])null);
 
            final String v = (String) getMethod.invoke(s, new Object[]{});
            assertEquals("s.get(" +i +")", "C"+(i+1), v);
@@ -689,8 +687,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       ServiceRegistration<?> reg = null;
       ServiceRegistration<?> reg2 = null;
       try {
-        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String,Object>());
-        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable<String,Object>());
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<>());
+        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable<>());
 
         counter = 0;
         c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
@@ -707,7 +705,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertNotNull("Should get service C", bc.getService(ref));
 
         assertEquals("Should have been activate(B&C)/bind(C) bumped", 102, counter);
-        Hashtable<String, Object> p = new Hashtable<String,Object>();
+        Hashtable<String, Object> p = new Hashtable<>();
         p.put("block","yes");
         reg2.setProperties(p);
 
@@ -780,8 +778,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       ServiceRegistration<?> regSecond = null;
       ServiceRegistration<?> reg2 = null;
       try {
-        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String,Object>());
-        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable<String,Object>());
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<>());
+        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable<>());
 
         counter = 0;
         c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
@@ -798,9 +796,9 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertNotNull("Should get service C", bc.getService(ref));
 
         assertEquals("Should have been activate(B&C)/bind(C) bumped", 102, counter);
-        regSecond = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String,Object>());
-        Hashtable<String,Object> p = new Hashtable<String,Object>();
-        p.put(Constants.SERVICE_RANKING, new Integer(7));
+        regSecond = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<>());
+        Hashtable<String,Object> p = new Hashtable<>();
+        p.put(Constants.SERVICE_RANKING, 7);
         regSecond.setProperties(p);
         reg.unregister();
         reg = null;
@@ -1000,7 +998,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertNull("Should not get serviceRef X", ref);
 
         
-        ServiceRegistration<?> reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String,Object>());
+        ServiceRegistration<?> reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<>());
 
         Thread.sleep(SLEEP_TIME);
 
@@ -1090,14 +1088,14 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         ServiceReference<?> [] refs = bc.getServiceReferences(ComponentFactory.class.getName(),
             "(&(component.name=componentF_test.factory)(component.factory=componentF_test.X))");
         assertTrue("Should get one serviceRef factory", refs != null && refs.length == 1);
-        ComponentFactory cf = (ComponentFactory) bc.getService(refs[0]);
+        ComponentFactory<?> cf = (ComponentFactory<?>) bc.getService(refs[0]);
         assertNotNull("Should get ComponentFactory", cf);
 
-        Hashtable<String, Integer> dict = new Hashtable<String, Integer>();
-        dict.put("base", new Integer(1));
-        ComponentInstance ci1 = cf.newInstance(dict);
-        dict.put("base", new Integer(10));
-        ComponentInstance ci2 = cf.newInstance(dict);
+        Hashtable<String, Integer> dict = new Hashtable<>();
+        dict.put("base", 1);
+        ComponentInstance<?> ci1 = cf.newInstance(dict);
+        dict.put("base", 10);
+        ComponentInstance<?> ci2 = cf.newInstance(dict);
 
         refs = bc.getServiceReferences("org.knopflerfish.service.componentF_test.ComponentX", null);
         assertNotNull("Should get serviceRef X", refs);
@@ -1218,12 +1216,12 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         ServiceReference<?> [] refs = bc.getServiceReferences(ComponentFactory.class.getName(),
             "(&(component.name=componentF_test.factory)(component.factory=componentF_test.X))");
         assertTrue("Should get one serviceRef factory", refs != null && refs.length == 1);
-        ComponentFactory cf = (ComponentFactory) bc.getService(refs[0]);
+        ComponentFactory<?> cf = (ComponentFactory<?>) bc.getService(refs[0]);
         assertNotNull("Should get ComponentFactory", cf);
 
-        Hashtable<String, Integer> dict = new Hashtable<String, Integer>();
-        dict.put("base", new Integer(1));
-        ComponentInstance ci1 = cf.newInstance(dict);
+        Hashtable<String, Integer> dict = new Hashtable<>();
+        dict.put("base", 1);
+        ComponentInstance<?> ci1 = cf.newInstance(dict);
 
         refs = bc.getServiceReferences("org.knopflerfish.service.componentF_test.ComponentX", null);
         assertNotNull("Should get serviceRef X", refs);
@@ -1234,8 +1232,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         assertEquals("One bind call", 1, z.getXStatus());
 
-        dict.put("base", new Integer(10));
-        ComponentInstance ci2 = cf.newInstance(dict);
+        dict.put("base", 10);
+        ComponentInstance<?> ci2 = cf.newInstance(dict);
 
         assertEquals("One more bind call", 11, z.getXStatus());
 
@@ -1244,7 +1242,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertEquals("Two unbind calls", 11011, z.getXStatus());
 
         zref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentZ");
-        assertNull("Should not get serviceRef X", ref);
+        assertNull("Should not get serviceRef X", zref);
         
         x.enableZ();
 
@@ -1257,8 +1255,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         assertEquals("Two bind calls", 11, znew.getXStatus());
         
-        dict.put("base", new Integer(100));
-        ComponentInstance ci3 = cf.newInstance(dict);
+        dict.put("base", 100);
+        ComponentInstance<?> ci3 = cf.newInstance(dict);
 
         assertEquals("One more bind call", 111, znew.getXStatus());
 
@@ -1302,7 +1300,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         b1.start();
         final String b1loc = b1.getLocation();
 
-        cmt = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class.getName(), null);
+        cmt = new ServiceTracker<>(bc, ConfigurationAdmin.class.getName(), null);
         cmt.open();
         
         Thread.sleep(SLEEP_TIME);
@@ -1322,8 +1320,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         StringBuilder targetedPid = new StringBuilder("componentC_test.factory");
         ConfigurationAdmin ca = cmt.getService();
         Configuration c = ca.getConfiguration(targetedPid.toString(), b1loc);
-        Dictionary<String, Object> props = new Hashtable<String, Object>();
-        props.put("base", new Integer(1));
+        Dictionary<String, Object> props = new Hashtable<>();
+        props.put("base", 1);
         c.update(props);
         
         Thread.sleep(SLEEP_TIME);
@@ -1331,9 +1329,9 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         ServiceReference<?> [] refs = bc.getServiceReferences(ComponentFactory.class.getName(),
             "(&(component.name=componentC_test.factory)(component.factory=componentC_test.X))");
         assertTrue("Should get one serviceRef factory", refs != null && refs.length == 1);
-        ComponentFactory cf = (ComponentFactory) bc.getService(refs[0]);
+        ComponentFactory<?> cf = (ComponentFactory<?>) bc.getService(refs[0]);
         assertNotNull("Should get componentCactory", cf);
-        Dictionary<String, Object> iprops = new Hashtable<String, Object>();
+        Dictionary<String, Object> iprops = new Hashtable<>();
         iprops.put("iprop", "first");
         cf.newInstance(iprops);
 
@@ -1342,7 +1340,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         org.knopflerfish.service.componentC_test.ComponentX x =
             (org.knopflerfish.service.componentC_test.ComponentX)bc.getService(ref);
         assertEquals(targetedPid.toString(), x.getProp(Constants.SERVICE_PID));
-        assertEquals(new Integer(1), x.getProp("base"));
+        assertEquals(1, x.getProp("base"));
         assertEquals("first", x.getProp("iprop"));
 
         Thread.sleep(SLEEP_TIME);
@@ -1355,25 +1353,25 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         String bsnPid  = targetedPid.append('|').append(b1.getSymbolicName()).toString();
         targetedPid.append('|').append(b1.getVersion().toString());
-        targetedPid.append('|').append(b1.getLocation().toString());
+        targetedPid.append('|').append(b1.getLocation());
         Configuration c2 = ca.getConfiguration(targetedPid.toString(), b1loc);
-        props.put("base", new Integer(2));
+        props.put("base", 2);
         c2.update(props);
 
         Thread.sleep(SLEEP_TIME);
 
         assertEquals(targetedPid.toString(), x.getProp(Constants.SERVICE_PID));
-        assertEquals(new Integer(2), x.getProp("base"));
+        assertEquals(2, x.getProp("base"));
         assertEquals("first", x.getProp("iprop"));
 
         Configuration c3 = ca.getConfiguration(bsnPid, b1loc);
-        props.put("base", new Integer(4));
+        props.put("base", 4);
         c3.update(props);
 
         Thread.sleep(SLEEP_TIME);
 
         assertEquals(targetedPid.toString(), x.getProp(Constants.SERVICE_PID));
-        assertEquals(new Integer(2), x.getProp("base"));
+        assertEquals(2, x.getProp("base"));
         assertEquals("first", x.getProp("iprop"));
         
         c2.delete();
@@ -1381,7 +1379,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         Thread.sleep(SLEEP_TIME);
 
         assertEquals(bsnPid, x.getProp(Constants.SERVICE_PID));
-        assertEquals(new Integer(4), x.getProp("base"));
+        assertEquals(4, x.getProp("base"));
         assertEquals("first", x.getProp("iprop"));
 
         c.delete();
@@ -1389,7 +1387,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         Thread.sleep(SLEEP_TIME);
 
         assertEquals(bsnPid, x.getProp(Constants.SERVICE_PID));
-        assertEquals(new Integer(4), x.getProp("base"));
+        assertEquals(4, x.getProp("base"));
         assertEquals("first", x.getProp("iprop"));
 
         assertEquals("Check x ref calls", 6000001, z.getXStatus());
@@ -1404,7 +1402,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertNull("Should not get serviceRef Z", ref);
 
         c = ca.getConfiguration("c|test", b1loc);
-        props = new Hashtable<String, Object>();
+        props = new Hashtable<>();
         props.put("factory", "no");
         c.update(props);
 
@@ -1553,7 +1551,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         b1.start();
         final String b1loc = b1.getLocation();
 
-        cmt = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class.getName(), null);
+        cmt = new ServiceTracker<>(bc, ConfigurationAdmin.class.getName(), null);
         cmt.open();
         
         Thread.sleep(SLEEP_TIME);
@@ -1564,7 +1562,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         ConfigurationAdmin ca = cmt.getService();
         Configuration c = ca.createFactoryConfiguration("componentC_test.U", b1loc);
 
-        Dictionary<String, Object> props = new Hashtable<String, Object>();
+        Dictionary<String, Object> props = new Hashtable<>();
         props.put("vRef.target", "(vnum=v0)");
         c.update(props);
         
@@ -1582,7 +1580,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertTrue("Should get one serviceRef to ComponentU", refs != null && refs.length == 1);
 
         Configuration c2 = ca.createFactoryConfiguration("componentC_test.U", b1loc);
-        props = new Hashtable<String, Object>();
+        props = new Hashtable<>();
         props.put("vRef.target", "(vnum=v2)");
         c2.update(props);
         
@@ -1638,7 +1636,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         b1.start();
         final String b1loc = b1.getLocation();
 
-        cmt = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class.getName(), null);
+        cmt = new ServiceTracker<>(bc, ConfigurationAdmin.class.getName(), null);
         cmt.open();
         
         Thread.sleep(SLEEP_TIME);
@@ -1649,7 +1647,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         ConfigurationAdmin ca = cmt.getService();
 
         Configuration c = ca.createFactoryConfiguration("componentM_test.A", b1loc);
-        Hashtable<String, Object> props = new Hashtable<String, Object>();
+        Hashtable<String, Object> props = new Hashtable<>();
         props.put("anum", "a0");
         props.put("bRef.target", "(bnum=b0)");
         c.update(props);
@@ -1771,7 +1769,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         b1.start();
         final String b1loc = b1.getLocation();
 
-        cmt = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class.getName(), null);
+        cmt = new ServiceTracker<>(bc, ConfigurationAdmin.class.getName(), null);
         cmt.open();
         
         Thread.sleep(SLEEP_TIME);
@@ -1782,7 +1780,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         ConfigurationAdmin ca = cmt.getService();
 
         Configuration c = ca.createFactoryConfiguration("componentM_test.A", b1loc);
-        Hashtable<String, Object> props = new Hashtable<String, Object>();
+        Hashtable<String, Object> props = new Hashtable<>();
         props.put("anum", "a0");
         props.put("bRef.target", "(bnum=b0)");
         props.put("cRef.target", "(cnum=c1)");
@@ -1913,8 +1911,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     private boolean gotCircularError;
 
     public void logged(LogEntry le) {
-      if (le.getLevel() == LogService.LOG_ERROR &&
-          le.getMessage().indexOf("circular") >= 0) {
+      if (le.getLogLevel() == LogLevel.ERROR &&
+          le.getMessage().contains("circular")) {
         gotCircularError = true;
       }
     }
@@ -1922,12 +1920,11 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
     public void runTest() {
       Bundle c1 = null;
-      ServiceReference<?> sr = null;
       LogReaderService lrs = null;
 
       try {
         gotCircularError = false;
-        sr = bc.getServiceReference(LogReaderService.class.getName());
+        ServiceReference<?> sr = bc.getServiceReference(LogReaderService.class.getName());
         lrs = (LogReaderService)bc.getService(sr);
         lrs.addLogListener(this);
 

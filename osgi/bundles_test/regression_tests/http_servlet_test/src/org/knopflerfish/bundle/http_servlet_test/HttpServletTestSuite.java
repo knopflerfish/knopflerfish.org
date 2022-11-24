@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, KNOPFLERFISH project
+ * Copyright (c) 2015-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,40 +34,55 @@
 
 package org.knopflerfish.bundle.http_servlet_test;
 
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Enumeration;
+import javax.servlet.Servlet;
+
+import junit.framework.AssertionFailedError;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestFailure;
+import junit.framework.TestResult;
+import junit.framework.TestSuite;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.knopflerfish.service.http_servlet_test.*;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.http.HttpContext;
+import org.osgi.service.http.HttpService;
 
-import org.osgi.framework.*;
-import org.osgi.service.http.*;
-
-import javax.servlet.*;
-
-import junit.framework.*;
-
-import org.knopflerfish.service.junit.*;
+import org.knopflerfish.service.http_servlet_test.GetResponseTests;
+import org.knopflerfish.service.http_servlet_test.HttpServletRequestTestCase;
+import org.knopflerfish.service.http_servlet_test.HttpServletResponseTests;
+import org.knopflerfish.service.http_servlet_test.HttpServletResponseTestsDefaultValues;
+import org.knopflerfish.service.http_servlet_test.PostRequestTests;
+import org.knopflerfish.service.http_servlet_test.PostResponseTests;
+import org.knopflerfish.service.http_servlet_test.SendGetResponseTests;
+import org.knopflerfish.service.http_servlet_test.SendPostResponseTests;
+import org.knopflerfish.service.http_servlet_test.TestData;
+import org.knopflerfish.service.junit.JUnitResult;
 
 public class HttpServletTestSuite extends TestSuite  {
   public static final String TEST_SERVLET_ALIAS = "/testservlet";
   
   BundleContext bc;
   Bundle bu;
-  String HttpServiceClass = "org.osgi.service.http.HttpService";
 
-  String http     = "http://";
   String hostname = "localhost";
   public static int port;
   Object obj;
 
-  ServiceReference httpSR = null;
+  ServiceReference<HttpService> httpSR = null;
 
   PrintStream out = System.out;
 
@@ -172,13 +187,11 @@ public class HttpServletTestSuite extends TestSuite  {
 
     if(bRead) {
       boolean bOK = false;
-      InputStream is = null;
-      try {
-        is = url.openStream();
+      try (InputStream is = url.openStream()) {
         byte[] buf = new byte[1024];
         int n;
         int total = 0;
-        while(-1 != (n = is.read(buf))) {
+        while (-1 != (n = is.read(buf))) {
           total += n;
         }
         out.println(" -> " + total + " bytes");
@@ -186,8 +199,6 @@ public class HttpServletTestSuite extends TestSuite  {
       } catch (Exception e) {
         out.println(" -> " + e);
         throw e;
-      } finally {
-        try { is.close(); } catch (Exception ignored) { }
       }
       if(!bOK) {
         throw new RuntimeException("No data from alias=" + alias
@@ -202,8 +213,8 @@ public class HttpServletTestSuite extends TestSuite  {
     protected String failMessage = null;
     
     public FWTestCase() {
-      ;
     }
+
     @Override
     public String getName() {
       String name = getClass().getName();
@@ -264,9 +275,9 @@ public class HttpServletTestSuite extends TestSuite  {
     @Override
     public void runTest() throws Throwable {
       out.println("HttpTestSuite:SETUP starting");
-      httpSR = bc.getServiceReference(HttpServiceClass);
+      httpSR = bc.getServiceReference(HttpService.class);
       assertNotNull("Setup: no http service ref available", httpSR);
-      httpService = (HttpService) bc.getService(httpSR);
+      httpService = bc.getService(httpSR);
       assertNotNull("Setup: no http service object available", httpService);
 
       Object hostObj = httpSR.getProperty("host");
@@ -283,7 +294,7 @@ public class HttpServletTestSuite extends TestSuite  {
         obj = httpSR.getProperty("openPort");
       }
       if (obj != null && obj instanceof Integer) {
-        port = ((Integer)obj).intValue();
+        port = (Integer) obj;
       } else {
         out.println("Ooops - failed to find the port property!!!");
 
@@ -305,13 +316,17 @@ public class HttpServletTestSuite extends TestSuite  {
   }
 
   class GetRequestSuiteProxy extends FWTestCase {
-    private int num_calls = 1;
+    private int num_calls;
     
-    GetRequestSuiteProxy(int count) {
-      super();
-      num_calls = count;
+    @SuppressWarnings("unused")
+    public GetRequestSuiteProxy() {
+      this(1);
     }
     
+    GetRequestSuiteProxy(int count) {
+      num_calls = count;
+    }
+
     @Override
     public void runTest() throws Throwable {
       out.println("HttpTestSuite - starting: " + getName());
@@ -402,7 +417,7 @@ public class HttpServletTestSuite extends TestSuite  {
   class Cleanup extends FWTestCase {
 
     @Override
-    public void runTest() throws Throwable {
+    public void runTest() {
       out.println("HttpTestSuite:CLEANUP starting");
       assertNotNull("Setup: no http service ref available", httpSR);
       assertNotNull("Setup: no http service object available", httpService);
@@ -444,7 +459,7 @@ public class HttpServletTestSuite extends TestSuite  {
   public void reportResult(TestSuite testSuite, TestResult result, Test parent) {
     activeTestCase.reportResult(result);
     RemoteTestResult testRes = new RemoteTestResult(testSuite, result, parent);
-    ServiceRegistration sr = bc.registerService(JUnitResult.class.getName(), testRes, null);
+    bc.registerService(JUnitResult.class, testRes, null);
   }
   
   public void runTestSuite(TestSuite suite, TestSuite parent) {
@@ -460,7 +475,7 @@ public class HttpServletTestSuite extends TestSuite  {
       reportResult(suite, result);
   }
 
-  class RemoteTestResult implements JUnitResult {
+  static class RemoteTestResult implements JUnitResult {
     private TestSuite testSuite;
     private Test parentTest;
     private TestResult result;

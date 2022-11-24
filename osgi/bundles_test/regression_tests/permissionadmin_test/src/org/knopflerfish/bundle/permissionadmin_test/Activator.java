@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,20 +34,22 @@
 
 package org.knopflerfish.bundle.permissionadmin_test;
 
-import java.util.*;
-import org.osgi.framework.*;
+import java.util.Hashtable;
 
-import junit.framework.*;
+import junit.framework.TestSuite;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 public class Activator implements org.osgi.framework.BundleActivator {
   
-  ServiceRegistration sr = null;
+  ServiceRegistration<TestSuite> sr = null;
 
   public void start(BundleContext bc) {
     TestSuite suite = new PermissionAdminTestSuite(bc);
-    Hashtable props = new Hashtable();
+    Hashtable<String, Object> props = new Hashtable<>();
     props.put("service.pid", suite.getName());
-    sr = bc.registerService(TestSuite.class.getName(), suite, props);
+    sr = bc.registerService(TestSuite.class, suite, props);
   }
 
   public void stop(BundleContext bc) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2010, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,73 +40,63 @@ import junit.framework.TestSuite;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
 public class Activator implements BundleActivator {
 
   public void start(BundleContext bc) {
     {
       TestSuite suite = new FrameworkTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class, suite, props);
     }
     {
       TestSuite suite = new ServiceListenerTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class, suite, props);
     }
     {
       TestSuite suite = new PackageAdminTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class, suite, props);
     }
     {
       TestSuite suite = new NativeCodeTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class, suite, props);
     }
     {
       TestSuite suite = new PackageTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class, suite, props);
     }
     {
       TestSuite suite = new RequireBundleTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class, suite, props);
     }
     {
       TestSuite suite = new FragmentTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class, suite, props);
     }
     {
       TestSuite suite = new CapabilityTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class, suite, props);
     }
     {
       TestSuite suite = new BundleWiringTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class, suite, props);
     }
   }
 

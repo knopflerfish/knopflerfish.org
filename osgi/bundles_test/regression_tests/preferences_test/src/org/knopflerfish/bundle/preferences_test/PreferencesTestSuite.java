@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,22 +34,21 @@
 
 package org.knopflerfish.bundle.preferences_test;
 
-import java.io.*;
+import junit.framework.TestSuite;
 
-import org.osgi.framework.*;
-import org.osgi.service.prefs.*;
-
-import junit.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.prefs.Preferences;
+import org.osgi.service.prefs.PreferencesService;
 
 public class PreferencesTestSuite
   extends TestSuite
 {
   Bundle bu;
   BundleContext bc;
-  ServiceReference prefsSR;
+  ServiceReference<PreferencesService> prefsSR;
   PreferencesService prefs;
-
-  final PrintStream out = System.out;
 
   public PreferencesTestSuite(BundleContext bc) {
     super ("PreferencesTestSuite");
@@ -66,24 +65,20 @@ public class PreferencesTestSuite
 
   // Get the Preferences Service.
   class Setup extends FWTestCase {
-    public void runTest()
-      throws Throwable
-    {
+    public void runTest() {
       assertNotNull("No bundle context...", bc);
 
-      prefsSR = bc.getServiceReference(PreferencesService.class.getName());
+      prefsSR = bc.getServiceReference(PreferencesService.class);
       assertNotNull("No preferences service reference available", prefsSR);
 
-      prefs = (PreferencesService) bc.getService(prefsSR);
+      prefs = bc.getService(prefsSR);
       assertNotNull("No preferences service reference available", prefs);
     }
   }
 
   // Unget the Preferences Service.
   class Cleanup extends FWTestCase {
-    public void runTest()
-      throws Throwable
-    {
+    public void runTest() {
       prefs = null;
       bc.ungetService(prefsSR);
       prefsSR = null;

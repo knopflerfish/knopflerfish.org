@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 
 package org.knopflerfish.bundle.preferences_test;
 
-import junit.framework.*;
+import junit.framework.TestCase;
 
 public class FWTestCase
   extends TestCase

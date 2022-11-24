@@ -62,7 +62,7 @@ public class FWTestCase extends TestCase {
     int ix = name.lastIndexOf("$");
     if(ix != -1) {
       try {
-        Class         clazz = Class.forName(name.substring(0, ix));
+        Class<?>      clazz = Class.forName(name.substring(0, ix));
         Field         f     = clazz.getField("HELP_" +
                                              getName().toUpperCase());
         String[]      lines = (String[])f.get(null);

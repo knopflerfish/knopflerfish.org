@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, KNOPFLERFISH project
+ * Copyright (c) 2015-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,8 @@
 
 package org.knopflerfish.bundle.http_servlet_test;
 
-import java.net.*;
+import java.net.URL;
+
 import org.osgi.service.http.HttpContext;
 
 public class HttpTestContext implements HttpContext {
@@ -61,7 +62,7 @@ public class HttpTestContext implements HttpContext {
   @Override
   public boolean handleSecurity(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) {
     /* Set response status */
-    if (security == false) {
+    if (!security) {
        response.setStatus(403);
     }
     return security;

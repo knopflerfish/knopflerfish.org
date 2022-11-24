@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,13 @@
 
 package org.knopflerfish.bundle.servicetracker_test;
 
-import java.util.*;
-import java.io.*;
-import java.net.*;
-import org.osgi.framework.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
 /**
  * Misc static utility methods.

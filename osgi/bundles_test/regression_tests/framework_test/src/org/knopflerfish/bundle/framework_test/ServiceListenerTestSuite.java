@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2009 KNOPFLERFISH project
+ * Copyright (c) 2007-2022 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,6 @@ public class ServiceListenerTestSuite
   PrintStream err = System.err;
 
   final static String TRUE   = "true";
-  final static String FALSE  = "false";
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
@@ -95,7 +94,7 @@ public class ServiceListenerTestSuite
   }
 
 
-  class FWTestCase
+  static class FWTestCase
     extends TestCase
   {
     public String getName() {
@@ -151,9 +150,11 @@ public class ServiceListenerTestSuite
         buSL3,
         buSL4,
       };
-      for(int i = 0; i < bundles.length; i++) {
-        try {  bundles[i].uninstall();  }
-        catch (Exception ignored) { }
+      for (Bundle bundle : bundles) {
+        try {
+          bundle.uninstall();
+        } catch (Exception ignored) {
+        }
       }
 
       buA = null;
@@ -165,6 +166,7 @@ public class ServiceListenerTestSuite
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAMESL05A =  {
     "Checks that the correct service events",
     "are sent to a registered service listener.",
@@ -176,10 +178,9 @@ public class ServiceListenerTestSuite
     extends FWTestCase
   {
     public void runTest() throws Throwable {
-      boolean teststatus = true;
       int cnt = 1;
 
-      teststatus = runStartStopTest( "FRAMEsl05A", cnt, buA,
+      boolean teststatus = runStartStopTest( "FRAMEsl05A", cnt, buA,
                                      new int[]{
                                        ServiceEvent.REGISTERED,
                                        ServiceEvent.UNREGISTERING,
@@ -189,7 +190,7 @@ public class ServiceListenerTestSuite
                                        ServiceEvent.UNREGISTERING,
                                      } );
 
-      if (teststatus == true) {
+      if (teststatus) {
         out.println("### ServiceListenerTestsuite :FRAMEsl05A:PASS");
       }
       else {
@@ -199,6 +200,7 @@ public class ServiceListenerTestSuite
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAMESL10A =  {
     "Checks that the correct service events",
     "are sent to a registered service listener.",
@@ -228,6 +230,7 @@ public class ServiceListenerTestSuite
 
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAMESL15A =  {
     "Checks that the correct service events",
     "are sent to a registered service listener.",
@@ -328,7 +331,7 @@ public class ServiceListenerTestSuite
 
       // Check that buSL1 has been notified about the FooService.
       out.println("Check that FooService is added to service tracker in buSL1");
-      ServiceReference buSL1SR
+      ServiceReference<?> buSL1SR
         = bc.getServiceReference("org.knopflerfish.bundle.foo.Activator");
       assertNotNull("No activator service reference.", buSL1SR);
       Object buSL1Activator = bc.getService(buSL1SR);
@@ -338,8 +341,6 @@ public class ServiceListenerTestSuite
       assertTrue("", serviceAddedField.getBoolean(buSL1Activator));
       out.println("buSL1Activator.serviceAdded is true");
       bc.ungetService(buSL1SR);
-      buSL1Activator = null;
-      buSL1SR = null;
 
       // Update buSL1
       try {
@@ -379,8 +380,6 @@ public class ServiceListenerTestSuite
       assertFalse("", serviceAddedField.getBoolean(buSL1Activator));
       out.println("buSL1Activator.serviceAdded is false");
       bc.ungetService(buSL1SR);
-      buSL1Activator = null;
-      buSL1SR = null;
 
 
       // Stop buSL2
@@ -435,8 +434,6 @@ public class ServiceListenerTestSuite
       assertFalse("", serviceAddedField.getBoolean(buSL1Activator));
       out.println("buSL1Activator.serviceAdded is false");
       bc.ungetService(buSL1SR);
-      buSL1Activator = null;
-      buSL1SR = null;
 
       // Refresh packages
       assertNull(Util.refreshPackages(bc,new Bundle[]{buSL1}));
@@ -452,8 +449,6 @@ public class ServiceListenerTestSuite
       assertTrue("", serviceAddedField.getBoolean(buSL1Activator));
       out.println("buSL1Activator.serviceAdded is true");
       bc.ungetService(buSL1SR);
-      buSL1Activator = null;
-      buSL1SR = null;
 
       // Stop buSL1
       try {
@@ -531,6 +526,7 @@ public class ServiceListenerTestSuite
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAMESL20A =  {
     "Checks that the correct service events",
     "are sent to a registered service listener.",
@@ -636,7 +632,7 @@ public class ServiceListenerTestSuite
 
       // Check that buSL1 has been notified about the FooService.
       out.println("Check that FooService is added to service tracker in buSL1");
-      ServiceReference buSL1SR
+      ServiceReference<?> buSL1SR
         = bc.getServiceReference("org.knopflerfish.bundle.foo.Activator");
       assertNotNull("No activator service reference.", buSL1SR);
       Object buSL1Activator = bc.getService(buSL1SR);
@@ -647,12 +643,10 @@ public class ServiceListenerTestSuite
                  serviceAddedField.getBoolean(buSL1Activator));
       out.println("buSL1Activator.serviceAdded is true");
       bc.ungetService(buSL1SR);
-      buSL1Activator = null;
-      buSL1SR = null;
 
       // Check that buSL3 has been notified about the FooService.
       out.println("Check that FooService is added to service tracker in buSL3");
-      ServiceReference buSL3SR
+      ServiceReference<?> buSL3SR
         = bc.getServiceReference("org.knopflerfish.bundle.foo.Activator3");
       assertNotNull("No activator service reference.", buSL3SR);
       Object buSL3Activator = bc.getService(buSL3SR);
@@ -663,8 +657,6 @@ public class ServiceListenerTestSuite
                  serviceAddedField3.getBoolean(buSL3Activator));
       out.println("buSL3Activator.serviceAdded is true");
       bc.ungetService(buSL3SR);
-      buSL3Activator = null;
-      buSL3SR = null;
 
       // Stop the service provider: buSL2
       try {
@@ -704,8 +696,6 @@ public class ServiceListenerTestSuite
                  serviceRemovedField3.getBoolean(buSL3Activator));
       out.println("buSL3Activator.serviceRemoved is true");
       bc.ungetService(buSL3SR);
-      buSL3Activator = null;
-      buSL3SR = null;
 
 
       // Stop buSL1
@@ -785,7 +775,7 @@ public class ServiceListenerTestSuite
   }
 
 
-
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAMESL25A =  {
     "Checks that the correct service events",
     "are sent to a registered service listener.",
@@ -893,7 +883,7 @@ public class ServiceListenerTestSuite
 
       // Check that buSL3 has been notified about the FooService.
       out.println("Check that FooService is added to service tracker in buSL3");
-      ServiceReference buSL3SR
+      ServiceReference<?> buSL3SR
         = bc.getServiceReference("org.knopflerfish.bundle.foo.Activator3");
       assertNotNull("No activator service reference.", buSL3SR);
       Object buSL3Activator = bc.getService(buSL3SR);
@@ -904,12 +894,10 @@ public class ServiceListenerTestSuite
                  serviceAddedField3.getBoolean(buSL3Activator));
       out.println("buSL3Activator.serviceAdded is true");
       bc.ungetService(buSL3SR);
-      buSL3Activator = null;
-      buSL3SR = null;
 
       // Check that buSL1 has been notified about the FooService.
       out.println("Check that FooService is added to service tracker in buSL1");
-      ServiceReference buSL1SR
+      ServiceReference<?> buSL1SR
         = bc.getServiceReference("org.knopflerfish.bundle.foo.Activator");
       assertNotNull("No activator service reference.", buSL1SR);
       Object buSL1Activator = bc.getService(buSL1SR);
@@ -920,8 +908,6 @@ public class ServiceListenerTestSuite
                  serviceAddedField.getBoolean(buSL1Activator));
       out.println("buSL1Activator.serviceAdded is true");
       bc.ungetService(buSL1SR);
-      buSL1Activator = null;
-      buSL1SR = null;
 
       // Stop the service provider: buSL4
       try {
@@ -962,8 +948,6 @@ public class ServiceListenerTestSuite
                  serviceRemovedField3.getBoolean(buSL3Activator));
       out.println("buSL3Activator.serviceRemoved is true");
       bc.ungetService(buSL3SR);
-      buSL3Activator = null;
-      buSL3SR = null;
 
 
       // Stop buSL1
@@ -1147,7 +1131,7 @@ public class ServiceListenerTestSuite
     implements org.osgi.framework.ServiceListener
   {
     final boolean checkUsingBundles;
-    final ArrayList events = new ArrayList(10);
+    final ArrayList<ServiceEvent> events = new ArrayList<>(10);
 
     boolean teststatus = true;
 
@@ -1165,7 +1149,7 @@ public class ServiceListenerTestSuite
       events.add(evt);
       out.println("ServiceEvent: " +toString(evt) );
       if (ServiceEvent.UNREGISTERING==evt.getType()) {
-        ServiceReference sr = evt.getServiceReference();
+        ServiceReference<?> sr = evt.getServiceReference();
 
         // Validate that no bundle is marked as using the service
         Bundle[] usingBundles = sr.getUsingBundles();
@@ -1220,7 +1204,7 @@ public class ServiceListenerTestSuite
         try {
           Long sid = (Long)sr.getProperty(Constants.SERVICE_ID);
           String sidFilter = "(" +Constants.SERVICE_ID +"=" +sid +")";
-          ServiceReference[] srs = bc.getServiceReferences((String)null, sidFilter);
+          ServiceReference<?>[] srs = bc.getServiceReferences((String)null, sidFilter);
           if (null==srs || 0==srs.length) {
             out.println("ServiceReference for UNREGISTERING service is not"
                         +" found in the service registry; ok.");
@@ -1231,7 +1215,7 @@ public class ServiceListenerTestSuite
                         + sr
                         +", not found in the service registry; fail.");
             out.print("Found the following Service references: ");
-            for (int i=0; null!=srs && i<srs.length; i++) {
+            for (int i = 0; i < srs.length; i++) {
               if (i>0) out.print(", ");
               out.print(srs[i]);
             }
@@ -1252,6 +1236,7 @@ public class ServiceListenerTestSuite
       events.clear();
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean checkEvents(int[] eventTypes)
     {
       if (events.size() != eventTypes.length) {
@@ -1260,7 +1245,7 @@ public class ServiceListenerTestSuite
       }
 
       for (int i=0; i<eventTypes.length; i++) {
-        ServiceEvent evt = (ServiceEvent) events.get(i);
+        ServiceEvent evt = events.get(i);
         if (eventTypes[i] != evt.getType() ) {
           dumpEvents(eventTypes);
           return false;
@@ -1269,7 +1254,7 @@ public class ServiceListenerTestSuite
       return true;
     }
 
-    private void printUsingBundles(ServiceReference sr, String caption)
+    private void printUsingBundles(ServiceReference<?> sr, String caption)
     {
       Bundle[] usingBundles = sr.getUsingBundles();
 
@@ -1298,26 +1283,22 @@ public class ServiceListenerTestSuite
     {
       if (null==evt) return " - NONE - ";
 
-      ServiceReference sr = evt.getServiceReference();
-      String[] objectClasses = (String[]) sr.getProperty(Constants.OBJECTCLASS);
+      ServiceReference<?> sr = evt.getServiceReference();
       String res = toStringEventType(evt.getType());
 
-      for (int i=0; i<objectClasses.length; i++){
-        if (i>0) res += ", ";
-        res += objectClasses[i];
-      }
+      String[] objectClasses = (String[]) sr.getProperty(Constants.OBJECTCLASS);
+      res += String.join(", ", objectClasses);
+
       return res;
     }
 
     // Print expected and actual service events.
     void dumpEvents(int[] eventTypes)
     {
-      int max = events.size()> eventTypes.length
-        ? events.size() : eventTypes.length;
+      int max = Math.max(events.size(), eventTypes.length);
       out.println("Expected event type --  Actual event");
       for (int i=0; i<max; i++) {
-        ServiceEvent evt
-          = i<events.size() ? (ServiceEvent) events.get(i) : null;
+        ServiceEvent evt = i < events.size() ? events.get(i) : null;
         out.println(" "
                     +(i<eventTypes.length
                       ? toStringEventType(eventTypes[i]) : "- NONE - ")
@@ -1328,7 +1309,7 @@ public class ServiceListenerTestSuite
 
   } // end of class ServiceListener
 
-  // A servicelistener that will be notified about all Services, not
+  // A ServiceListener that will be notified about all Services, not
   // only assignable ones.
   class AllServiceListener
     extends ServiceListener

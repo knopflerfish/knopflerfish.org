@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,79 +54,74 @@ import org.osgi.service.event.EventHandler;
  * conditions and periods.
  *
  * @author Magnus Klack
- *
  */
 public class FuntionalTestSuite extends TestSuite {
-  /** the bundle context */
+  /**
+   * the bundle context
+   */
   private BundleContext bundleContext;
-
-  /** the display name */
-  private String name;
 
   /**
    * Constructor
    *
    * @param context the bundle context of the instance creator
    */
-  public FuntionalTestSuite(BundleContext context){
+  public FuntionalTestSuite(BundleContext context) {
     super("Functional Stress");
 
-    bundleContext=context;
+    bundleContext = context;
 
-    String[] topic={"com/acme/*"};
-    addTest(new EventConsumer(bundleContext,topic ,"EventConsumer", 1));
+    String[] topic = {"com/acme/*"};
+    addTest(new EventConsumer(topic, "EventConsumer", 1));
 
-    String[] topic2={"com/acme/timer/*"};
-    addTest(new EventConsumer(bundleContext,topic ,"EventConsumer", 2));
+    String[] topic2 = {"com/acme/timer/*"};
+    addTest(new EventConsumer(topic2, "EventConsumer", 2));
 
+    String[] topic3 = {"COM/acme/LOCAL"};
+    addTest(new EventConsumer(topic3, "EventConsumer", 3));
 
-    String[] topic3={"COM/acme/LOCAL"};
-    addTest(new EventConsumer(bundleContext,topic ,"EventConsumer", 3));
+    String[] topic4 = {"*"};
+    addTest(new EventConsumer(topic4, "EventConsumer", 4));
 
-    String[] topic4={"*"};
-    addTest(new EventConsumer(bundleContext,topic ,"EventConsumer", 4));
+    String[] topic5 = {"com/Roland/timer"};
+    addTest(new EventConsumer(topic5, "EventConsumer", 5));
 
+    String[] topic6 = {"/com/acme/timer"};
+    addTest(new EventConsumer(topic6, "EventConsumer", 6));
 
-    String[] topic5={"com/Roland/timer"};
-    addTest(new EventConsumer(bundleContext,topic ,"EventConsumer", 5));
+    String[] topic7 = {"*"};
+    addTest(new EventConsumer(topic7, "EventConsumer", 7));
 
-    String[] topic6={"/com/acme/timer"};
-    addTest(new EventConsumer(bundleContext,topic ,"EventConsumer", 6));
-
-    String[] topic7={"*"};
-    addTest(new EventConsumer(bundleContext,topic ,"EventConsumer", 7));
-
-    EventPublisher p1=new EventPublisher(bundleContext,"com/acme/timer","EventPublisher",1);
+    EventPublisher p1 = new EventPublisher(bundleContext, "com/acme/timer", "EventPublisher", 1);
     addTest(p1);
 
-    EventPublisher p2 = new EventPublisher(bundleContext,"com/acme/timer","EventPublisher",2);
+    EventPublisher p2 = new EventPublisher(bundleContext, "com/acme/timer", "EventPublisher", 2);
     addTest(p2);
 
-    EventPublisher p3 = new EventPublisher(bundleContext,"com/acme/timer","EventPublisher",3);
+    EventPublisher p3 = new EventPublisher(bundleContext, "com/acme/timer", "EventPublisher", 3);
     addTest(p3);
 
-    EventPublisher p4 =new EventPublisher(bundleContext,"com/Roland/timer","EventPublisher",4);
+    EventPublisher p4 = new EventPublisher(bundleContext, "com/Roland/timer", "EventPublisher", 4);
     addTest(p4);
 
-    EventPublisher p5=new EventPublisher(bundleContext,"com/acme/timer","EventPublisher",5);
+    EventPublisher p5 = new EventPublisher(bundleContext, "com/acme/timer", "EventPublisher", 5);
     addTest(p5);
 
-    EventPublisher p6=new EventPublisher(bundleContext,"com/acme/timer/*","EventPublisher",6);
+    EventPublisher p6 = new EventPublisher(bundleContext, "com/acme/timer/*", "EventPublisher", 6);
     addTest(p6);
 
-    EventPublisher p7=new EventPublisher(bundleContext,"COM/acme/LOCAL","EventPublisher",7);
+    EventPublisher p7 = new EventPublisher(bundleContext, "COM/acme/LOCAL", "EventPublisher", 7);
     addTest(p7);
 
-    EventPublisher p8=new EventPublisher(bundleContext,"LOCAL/APACHE/MAGNUS","EventPublisher",8);
+    EventPublisher p8 = new EventPublisher(bundleContext, "LOCAL/APACHE/MAGNUS", "EventPublisher", 8);
     addTest(p8);
 
 
-    EventPublisher p9 = new EventPublisher(bundleContext,"COM/KLACK/System","EventPublisher",9);
+    EventPublisher p9 = new EventPublisher(bundleContext, "COM/KLACK/System", "EventPublisher", 9);
     addTest(p9);
 
-    EventPublisher p10 =new EventPublisher(bundleContext,"SYSTEM/apache","EventPublisher",10);
+    EventPublisher p10 = new EventPublisher(bundleContext, "SYSTEM/apache", "EventPublisher", 10);
     addTest(p10);
-
 
 
   }
@@ -139,71 +134,68 @@ public class FuntionalTestSuite extends TestSuite {
   /**
    * Sets up neccessary environment
    *
-   *@author Magnus Klack
+   * @author Magnus Klack
    */
-  class Setup extends TestCase {
-    public Setup(){
-
-    }
+  static class Setup extends TestCase {
     public void runTest() throws Throwable {
-
     }
+
     public String getName() {
       String name = getClass().getName();
       int ix = name.lastIndexOf("$");
-      if(ix == -1) {
+      if (ix == -1) {
         ix = name.lastIndexOf(".");
       }
-      if(ix != -1) {
+      if (ix != -1) {
         name = name.substring(ix + 1);
       }
       return name;
     }
   }
+
   /**
    * Clean up the test suite
    *
    * @author Magnus Klack
    */
-  class Cleanup extends TestCase {
+  static class Cleanup extends TestCase {
     public void runTest() throws Throwable {
 
     }
+
     public String getName() {
       String name = getClass().getName();
       int ix = name.lastIndexOf("$");
-      if(ix == -1) {
+      if (ix == -1) {
         ix = name.lastIndexOf(".");
       }
-      if(ix != -1) {
+      if (ix != -1) {
         name = name.substring(ix + 1);
       }
       return name;
     }
   }
 
-
-
-  private class EventPublisher extends TestCase {
-    /** A reference to a service */
-    private ServiceReference serviceReference;
-
-    /** The admin which delivers the events */
+  private static class EventPublisher extends TestCase {
+    /**
+     * The admin which delivers the events
+     */
     private EventAdmin eventAdmin;
 
-    /** the private bundle context */
+    /**
+     * the private bundle context
+     */
     private BundleContext bundleContext;
 
     private String topicToPublish;
 
-    /** the running variable */
-    private boolean running=true;
-
-    /** the id of the publisher */
+    /**
+     * the id of the publisher
+     */
     private int publisherId;
 
 
-    public EventPublisher(BundleContext context,String topic,String name,int id){
+    public EventPublisher(BundleContext context, String topic, String name, int id) {
       /* call super class */
       super(name + ":" + id);
       /* assign bundleContext */
@@ -212,57 +204,40 @@ public class FuntionalTestSuite extends TestSuite {
       topicToPublish = topic;
       /* assign the publisherID */
       publisherId = id;
-
-
     }
 
     public void runTest() throws Throwable {
       /* Claims the reference of the EventAdmin Service */
-      serviceReference = bundleContext
-        .getServiceReference(EventAdmin.class.getName());
+      ServiceReference<EventAdmin> serviceReference = bundleContext
+          .getServiceReference(EventAdmin.class);
 
       /* assert that a reference is aquired */
       assertNotNull(getName()
-                    + " Should be able to get reference to EventAdmin service",
-                    serviceReference);
-      /* check the service reference */
-      if (serviceReference == null) {
-        /* set fail */
-        fail(getName() + " service reference should not be null");
-      }
+              + " Should be able to get reference to EventAdmin service",
+          serviceReference);
 
       /* get the service  */
-      eventAdmin = (EventAdmin) bundleContext
-        .getService(serviceReference);
+      eventAdmin = bundleContext.getService(serviceReference);
 
       /* assert that service is available */
-      assertNotNull(getName() +" Should be able to get instance to "
-                    +"EventAdmin object",
-                    eventAdmin);
-
-      /* check if null */
-      if (eventAdmin == null) {
-        /* set a fail */
-        fail(getName() + " event admin should not be null");
-      }
-
+      assertNotNull(getName() + " Should be able to get instance to "
+              + "EventAdmin object",
+          eventAdmin);
 
       publish();
-
-
     }
 
     private void publish() {
-      int i=0;
-      while(running) {
+      int i = 0;
+      while (true) {
         /* a Hash table to store message in */
-        Dictionary message = new Hashtable();
+        Dictionary<String, Object> message = new Hashtable<>();
         /* put some properties into the messages */
-        message.put("Synchronus message",new Integer(i));
+        message.put("Synchronus message", i);
         /* put the sender */
-        message.put("FROM",this);
+        message.put("FROM", this);
 
-        if(publisherId>5) {
+        if (publisherId > 5) {
           /* send the message */
           eventAdmin.sendEvent(new Event(topicToPublish, message));
         } else {
@@ -271,53 +246,30 @@ public class FuntionalTestSuite extends TestSuite {
         }
 
         i++;
-
       }
-
     }
-
   }
-
-
-
 
   /**
    * Class consumes events
    *
    * @author magnus
    */
+  @SuppressWarnings("UnconstructableJUnitTestCase")
   class EventConsumer extends TestCase implements EventHandler {
-    /** class variable for service registration */
-    private ServiceRegistration serviceRegistration;
-
-    /** class variable indicating the topics */
+    /**
+     * class variable indicating the topics
+     */
     private String[] topicsToConsume;
-
-    /** class variable keeping number of asynchronus message */
-    private int numOfasynchMessages=0;
-
-    /** class variable keeping number of asynchronus message */
-    private int numOfsynchMessages=0;
-
-    /** class variable holding the old syncronus message nummber */
-    private int synchMessageExpectedNumber=0;
-
-    /** class variable holding the old asyncronus message nummber */
-    private int asynchMessageExpectedNumber=0;
 
     /**
      * Constructor creates a consumer service
-     *
-     * @param bundleContext
-     * @param topics
      */
-    public EventConsumer(BundleContext bundleContext, String[] topics,
-                         String name, int id) {
+    public EventConsumer(String[] topics, String name, int id) {
       /* call super class */
       super(name + ":" + id);
       /* assign the consume topics */
       topicsToConsume = topics;
-
     }
 
     /**
@@ -325,34 +277,27 @@ public class FuntionalTestSuite extends TestSuite {
      */
     public void runTest() throws Throwable {
       /* create the hashtable to put properties in */
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       /* put service.pid property in hashtable */
       props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
       /* register the service */
-      serviceRegistration = bundleContext.registerService
-        (EventHandler.class.getName(), this, props);
-
+      ServiceRegistration<EventHandler> serviceRegistration = bundleContext.registerService
+          (EventHandler.class, this, props);
 
       assertNotNull(getName()
-                    + " service registration should not be null",
-                    serviceRegistration);
-
-      if (serviceRegistration == null) {
-        fail("Could not get Service Registration ");
-      }
-
+              + " service registration should not be null",
+          serviceRegistration);
     }
-
 
     /**
      * This method takes events from the event admin service.
      */
     public void handleEvent(Event event) {
       System.out.println("****************************  RECEVIED "
-                         +"***********************************");
-      String from = (String)event.getProperty("FROM");
+          + "***********************************");
+      String from = (String) event.getProperty("FROM");
       System.err.println(getName() + " recived an event from:" + from
-                         +" with topic:"+ event.getTopic());
+          + " with topic:" + event.getTopic());
     }
 
   }

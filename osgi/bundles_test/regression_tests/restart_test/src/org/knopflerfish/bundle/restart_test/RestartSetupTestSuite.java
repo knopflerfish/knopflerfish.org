@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,16 @@
 
 package org.knopflerfish.bundle.restart_test;
 
-import java.util.*;
-import java.io.*;
-import java.math.*;
-import java.net.*;
-import java.lang.reflect.*;
-import java.security.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 
-import org.osgi.framework.*;
+import junit.framework.TestSuite;
 
-import junit.framework.*;
-import org.osgi.service.startlevel.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.startlevel.StartLevel;
 
 public class RestartSetupTestSuite extends TestSuite {
   BundleContext bc;
@@ -65,14 +64,14 @@ public class RestartSetupTestSuite extends TestSuite {
  
 
   class Setup extends FWTestCase {
-    public void runTest() throws Throwable {
+    public void runTest() {
       File f = bc.getDataFile(Activator.STATE_FILENAME);
       assertFalse(Activator.STATE_FILENAME + " shouldn't exists", f.exists());
 
-      ServiceReference sr = bc.getServiceReference(StartLevel.class.getName());
+      ServiceReference<StartLevel> sr = bc.getServiceReference(StartLevel.class);
       assertNotNull("StartLevel references cannot be null", sr);
 
-      sl = (StartLevel)bc.getService(sr);
+      sl = bc.getService(sr);
 
       assertNotNull("StartLevel service cannot be null", sr);
 
@@ -123,20 +122,16 @@ public class RestartSetupTestSuite extends TestSuite {
   }
 
   class Cleanup extends FWTestCase {
-    public void runTest() throws Throwable {
+    public void runTest() {
       File f = bc.getDataFile(Activator.STATE_FILENAME);
 
       assertFalse(Activator.STATE_FILENAME + " shouldn't exists", f.exists());
 
-      FileOutputStream fout = null;
-      try {
-	fout = new FileOutputStream(f);
-	state.save(fout, "state");
-	out.println("saved state=" + state);
+      try (FileOutputStream fout = new FileOutputStream(f)) {
+        state.save(fout, "state");
+        out.println("saved state=" + state);
       } catch (Exception e) {
-	fail("Failed to mark as started: " + e);
-      } finally {
-	try {  fout.close(); } catch (Exception ignored) { }
+        fail("Failed to mark as started: " + e);
       }
     }
   }

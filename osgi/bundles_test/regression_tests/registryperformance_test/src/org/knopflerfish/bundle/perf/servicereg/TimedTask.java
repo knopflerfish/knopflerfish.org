@@ -34,13 +34,11 @@
 
 package org.knopflerfish.bundle.perf.servicereg;
 
-import org.osgi.framework.*;
-import java.io.*;
-import java.util.*;
+import java.io.PrintStream;
 
 public abstract class TimedTask {
-  String module = "";
-  String msg    = "";
+  String module;
+  String msg;
   long   time = -1;
   long   mem  = -1;
 
@@ -64,13 +62,8 @@ public abstract class TimedTask {
       "]";
   }
 
-  public void log() {
-    log(this);
-  }
-
   public static Object log(TimedTask task) {
     long now = System.currentTimeMillis();
-    long total = Runtime.getRuntime().totalMemory();
     long free  = Runtime.getRuntime().freeMemory();
     
     Object r = null;

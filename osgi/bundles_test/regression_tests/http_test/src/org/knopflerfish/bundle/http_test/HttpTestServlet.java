@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,20 +34,15 @@
 
 package org.knopflerfish.bundle.http_test;
 
-import org.knopflerfish.service.http_test.*;
+import java.io.IOException;
+import java.io.PrintWriter;
 
-import java.io.*;
-import java.util.*;
-import org.osgi.framework.*;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-
-import org.osgi.service.http.*;
-import org.osgi.service.http.HttpService;
-
-
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 class HttpTestServlet extends HttpServlet {
   boolean destroyCalled = false;
@@ -56,7 +51,7 @@ class HttpTestServlet extends HttpServlet {
   }
 
   public void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException,IOException
+    throws IOException
   {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,15 @@
 package org.knopflerfish.bundle.endurance_test;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 
-import org.knopflerfish.service.bundleEnd7_test.*;
+import org.knopflerfish.service.bundleEnd7_test.Control;
 
 class Test6 implements EnduranceTest {
 
-  private static int NUM_LISTENERS = 1000;
+  private static final int NUM_LISTENERS = 1000;
   private BundleContext bc;
   private ServiceTracker tracker;
   

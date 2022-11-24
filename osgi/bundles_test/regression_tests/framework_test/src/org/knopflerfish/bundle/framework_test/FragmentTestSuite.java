@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   Bundle bu;
 
   // PackageAdmin
-  ServiceReference paSR = null;
+  ServiceReference<PackageAdmin> paSR = null;
   PackageAdmin pa = null;
 
   // Test target bundles
@@ -116,7 +116,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
-  class FWTestCase extends TestCase {
+  static class FWTestCase extends TestCase {
 
     public String getName() {
       String name = getClass().getName();
@@ -134,8 +134,8 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   class Setup extends FWTestCase {
     public void runTest() throws Throwable {
       // Looks up the package admin service and installs the test target bundles
-      paSR = bc.getServiceReference(PackageAdmin.class.getName());
-      pa = (PackageAdmin)bc.getService(paSR);
+      paSR = bc.getServiceReference(PackageAdmin.class);
+      pa = bc.getService(paSR);
       if (pa == null) {
         fail("Failed to get PackageAdmin service");
       }
@@ -166,11 +166,12 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
         buJ,
         buK
       };
-      for(int i = 0; i < bundles.length; i++) {
-        if (bundles[i] != null) {
+      for (Bundle bundle : bundles) {
+        if (bundle != null) {
           try {
-            bundles[i].uninstall();
-          } catch (Exception ignored) { }
+            bundle.uninstall();
+          } catch (Exception ignored) {
+          }
         }
       }
 
@@ -194,6 +195,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME500A =  {
     "Check that we handle fragments with stricter but overlaping import requirements"
   };
@@ -223,6 +225,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME510A =  {
     "Check that we handle fragments with stricter but overlaping import requirements"
   };
@@ -254,6 +257,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME520A =  {
     "Check that we handle fragments with stricter but overlaping import requirements"
   };
@@ -290,6 +294,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME530A =  {
     "Check that we handle fragments with stricter but overlaping import requirements"
   };
@@ -326,6 +331,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME540A =  {
     "Check that we handle dynamic attach of fragments"
   };
@@ -362,6 +368,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME550B =  {
     "Check that we handle dynamic attach of fragments"
   };
@@ -395,7 +402,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
         assertTrue("Host should be able to read Fragment G data", is.read(buf) == 1);
         assertEquals("Host should get Fragment G data", "G", new String(buf));
         is.close();
-      } catch (IOException ioe) {
+      } catch (IOException ignored) {
       }
 
       buC = Util.installBundle(bc, "fb_C_api-1.0.0.jar");
@@ -412,6 +419,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME555A =  {
     "Check that we attach of fragments with external imports"
   };
@@ -442,6 +450,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME560A =  {
     "Check that we handle dynamic attach of fragments"
   };
@@ -474,7 +483,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       // NYI wait for refreshed event
       try {
         Thread.sleep(5000);
-      } catch (InterruptedException _ignore) {
+      } catch (InterruptedException ignored) {
       }
 
       assertEquals("Class should come from Host after refresh", "HOST", checkApi(1));
@@ -545,12 +554,11 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   // Help methods
   //
 
-  /**
-   */
+  @SuppressWarnings("SameParameterValue")
   private String checkApi(int version)
   {
-    ServiceReference sr = null;
-    Object fa = null;
+    ServiceReference<?> sr;
+    Object fa;
 
     try {
       sr = bc.getServiceReference("test_fapi.FragApi");
@@ -563,8 +571,8 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
     }
 
     // Check api version
-    Class c = fa.getClass();
-    Class [] ci = c.getInterfaces();
+    Class<?> c = fa.getClass();
+    Class<?>[] ci = c.getInterfaces();
     if (ci.length != 1) {
       return "Doesn't have a FragApi interface";
     }
@@ -583,7 +591,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
     // Get source
     String res;
     try {
-      Method where = c.getDeclaredMethod("where", new Class [] {});
+      Method where = c.getDeclaredMethod("where");
       if (where.getReturnType() != String.class) {
         return "Method where doesn't return String";
       }

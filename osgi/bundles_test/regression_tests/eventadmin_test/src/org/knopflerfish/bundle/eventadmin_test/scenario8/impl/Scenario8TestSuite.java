@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,14 +91,14 @@ public class Scenario8TestSuite extends TestSuite implements Scenario8 {
     addTest(new Setup());
 
     ExternalJAR[] externalJAR = new ExternalJAR[] {
-      new ExternalJAR(bundleContext, "Scenario 8 EventConsumer1", 8, "testlibs/EventConsumer1.jar"),
-      new ExternalJAR(bundleContext, "Scenario 8 EventConsumer2", 8, "testlibs/EventConsumer2.jar"),
-      new ExternalJAR(bundleContext, "Scenario 8 EventConsumer3", 8, "testlibs/EventConsumer3.jar"),
-      new ExternalJAR(bundleContext, "Scenario 8 EventConsumer4", 8, "testlibs/EventConsumer4.jar"),
-      new ExternalJAR(bundleContext, "Scenario 8 EventPublisher1", 8, "testlibs/EventProducer1.jar"),
-      new ExternalJAR(bundleContext, "Scenario 8 EventPublisher2", 8, "testlibs/EventProducer2.jar"),
-      new ExternalJAR(bundleContext, "Scenario 8 EventPublisher3", 8, "testlibs/EventProducer3.jar"),
-      new ExternalJAR(bundleContext, "Scenario 8 EventPublisher4", 8, "testlibs/EventProducer4.jar") };
+        new ExternalJAR(bundleContext, "Scenario 8 EventConsumer1", 8, "testlibs/EventConsumer1.jar"),
+        new ExternalJAR(bundleContext, "Scenario 8 EventConsumer2", 8, "testlibs/EventConsumer2.jar"),
+        new ExternalJAR(bundleContext, "Scenario 8 EventConsumer3", 8, "testlibs/EventConsumer3.jar"),
+        new ExternalJAR(bundleContext, "Scenario 8 EventConsumer4", 8, "testlibs/EventConsumer4.jar"),
+        new ExternalJAR(bundleContext, "Scenario 8 EventPublisher1", 8, "testlibs/EventProducer1.jar"),
+        new ExternalJAR(bundleContext, "Scenario 8 EventPublisher2", 8, "testlibs/EventProducer2.jar"),
+        new ExternalJAR(bundleContext, "Scenario 8 EventPublisher3", 8, "testlibs/EventProducer3.jar"),
+        new ExternalJAR(bundleContext, "Scenario 8 EventPublisher4", 8, "testlibs/EventProducer4.jar")};
 
     /* add the external Event consumers */
 
@@ -121,7 +121,7 @@ public class Scenario8TestSuite extends TestSuite implements Scenario8 {
    *
    *@author Magnus Klack
    */
-  class Setup extends TestCase {
+  static class Setup extends TestCase {
     public Setup(){
 
     }
@@ -153,8 +153,8 @@ public class Scenario8TestSuite extends TestSuite implements Scenario8 {
       this.externalJAR = externalJAR;
     }
     public void runTest() throws Throwable {
-      for (int i=0; i<externalJAR.length; i++) {
-        externalJAR[i].cleanup();
+      for (ExternalJAR jar : externalJAR) {
+        jar.cleanup();
       }
     }
     public String getName() {
@@ -170,7 +170,7 @@ public class Scenario8TestSuite extends TestSuite implements Scenario8 {
     }
   }
 
-  class ExternalJAR extends TestCase{
+  static class ExternalJAR extends TestCase{
     /* The bundle xontext */
     BundleContext bundleContext;
     /* The path to the jar file to be installed*/
@@ -192,6 +192,7 @@ public class Scenario8TestSuite extends TestSuite implements Scenario8 {
       /* install the bundle */
 
       buU = Util.installBundle(bundleContext, pathToJAR);
+      assertNotNull(buU);
       buU.start();
     }
 

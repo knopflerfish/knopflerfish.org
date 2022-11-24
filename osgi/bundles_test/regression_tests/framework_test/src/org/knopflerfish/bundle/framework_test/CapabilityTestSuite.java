@@ -75,7 +75,7 @@ public class CapabilityTestSuite extends TestSuite implements FrameworkTest
   }
 
 
-  class FWTestCase extends TestCase {
+  static class FWTestCase extends TestCase {
 
     public String getName() {
       String name = getClass().getName();
@@ -102,6 +102,7 @@ public class CapabilityTestSuite extends TestSuite implements FrameworkTest
         }
       };
       try {
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (fl) {
           fw.refreshBundles(null, fl);
           fl.wait(3000);
@@ -131,11 +132,12 @@ public class CapabilityTestSuite extends TestSuite implements FrameworkTest
         buCUP2,
         buCU,
       };
-      for(int i = 0; i < bundles.length; i++) {
-        if (bundles[i] != null) {
+      for (Bundle bundle : bundles) {
+        if (bundle != null) {
           try {
-            bundles[i].uninstall();
-          } catch (Exception ignored) { }
+            bundle.uninstall();
+          } catch (Exception ignored) {
+          }
         }
       }
 
@@ -149,6 +151,7 @@ public class CapabilityTestSuite extends TestSuite implements FrameworkTest
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME600A =  {
     "Check that we care about uses on Require-Capablity"
   };
@@ -176,6 +179,7 @@ public class CapabilityTestSuite extends TestSuite implements FrameworkTest
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME610A =  {
     "Check that we care about uses on Require-Capablity"
   };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,9 +60,9 @@ class Test9 implements EnduranceTest {
       Bundle bundle = Util.installBundle(bc, "bundleEnd151_test-1.0.0.jar");
       bundle.start();
       
-      for (int i = 0; i < loops; i++) {   
-        for (int o = 0; o < locales.length; o++) {
-          bundle.getHeaders(locales[o]);
+      for (int i = 0; i < loops; i++) {
+        for (String locale : locales) {
+          bundle.getHeaders(locale);
         }
       }
       

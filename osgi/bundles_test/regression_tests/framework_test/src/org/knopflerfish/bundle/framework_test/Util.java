@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,17 +110,13 @@ public class Util {
    */
   public static byte[] loadURL(URL url) throws Exception {
     byte[]       buf = new byte[1024];
-    InputStream  is  = null;
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
-    try {
-      is = url.openStream();
+    try (InputStream is = url.openStream()) {
       int n;
-      while(-1 != (n = is.read(buf))) {
+      while (-1 != (n = is.read(buf))) {
         bout.write(buf, 0, n);
       }
       return bout.toByteArray();
-    } finally {
-      try { is.close(); } catch (Exception e) {}
     }
   }
 
@@ -138,12 +134,12 @@ public class Util {
   {
     System.out.println("PackageAdmin.refreshPackages("
                        +Arrays.asList(bundles) +")");
-    ServiceReference paSR
-      = bc.getServiceReference(PackageAdmin.class.getName());
+    ServiceReference<PackageAdmin> paSR
+      = bc.getServiceReference(PackageAdmin.class);
     if (null==paSR)
       return "No package admin service reference.";
 
-    PackageAdmin pa = (PackageAdmin) bc.getService(paSR);
+    PackageAdmin pa = bc.getService(paSR);
     if (null==pa)
       return "No package admin service.";
 
@@ -159,7 +155,7 @@ public class Util {
             }
           }
         }
-      };
+    };
     bc.addFrameworkListener(fListen);
 
     try {

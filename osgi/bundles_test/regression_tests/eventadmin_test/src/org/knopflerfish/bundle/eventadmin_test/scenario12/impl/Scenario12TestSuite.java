@@ -1,15 +1,35 @@
 /*
- * @(#)Scenario10TestSuite.java        1.0 2005/06/28
- *
- * Copyright (c) 2003-2005 Gatespace telematics AB
- * Otterhallegatan 2, 41670,Gothenburgh, Sweden.
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
- * This software is the confidential and proprietary information of
- * Gatespace telematics AB. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Gatespace telematics AB.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.knopflerfish.bundle.eventadmin_test.scenario12.impl;
 
@@ -41,14 +61,6 @@ public class Scenario12TestSuite extends TestSuite {
 
     /** class variable holding the bundle context */
     private BundleContext bundleContext;
-
-    /** variable indicating that consumers are present */
-    private boolean consumerIsPresent = false;
-
-    /** variable representing a sempahore for the consumer is present variable */
-    public Object semaphore = new Object();
-
-    EventGenerator eventGenerator;
 
     /**
      * Constructor for the Scenario9 TestSuite
@@ -82,7 +94,7 @@ public class Scenario12TestSuite extends TestSuite {
      *
      * @author Magnus Klack
      */
-    class Setup extends TestCase {
+    static class Setup extends TestCase {
         public void runTest() throws Throwable {
 
         }
@@ -113,9 +125,9 @@ public class Scenario12TestSuite extends TestSuite {
         }
         public void runTest() throws Throwable {
           Throwable error = null;
-          for (int i=0; i<eventConsumer.length; i++) {
+          for (EventConsumer consumer : eventConsumer) {
             try {
-              eventConsumer[i].cleanup();
+              consumer.cleanup();
             } catch (Throwable e) {
               error = e;
             }
@@ -135,15 +147,12 @@ public class Scenario12TestSuite extends TestSuite {
         }
     }
 
-    private class EventGenerator extends TestCase {
-        /** local variable holding the bundleContext */
-        private BundleContext bundleContext;
+    private static class EventGenerator extends TestCase {
         /** the log */
         private LogRef log;
 
         /**
          * Consturctor to initialize a dummy bundle
-         * @param context
          */
         public EventGenerator(BundleContext context) {
           /* call the super class */
@@ -151,7 +160,6 @@ public class Scenario12TestSuite extends TestSuite {
             /* assign the log */
             log = new LogRef(context);
             assertNotNull(getName()+ " can't get the log service",log);
-            bundleContext=context;
         }
 
         public void runTest() throws Throwable {
@@ -186,11 +194,8 @@ public class Scenario12TestSuite extends TestSuite {
         /** variable holding the instance name */
         private String displayName;
 
-        /** variable counting  events */
-        private int eventCounter = 0;
-
-        private ServiceRegistration serviceRegistration;
-        private Hashtable msgs;
+        private ServiceRegistration<EventHandler> serviceRegistration;
+        private Hashtable<String, Boolean> msgs;
 
         private Throwable error;
 
@@ -204,18 +209,18 @@ public class Scenario12TestSuite extends TestSuite {
         }
 
         public void runTest() throws Throwable {
-            msgs = new Hashtable();
+            msgs = new Hashtable<>();
             msgs.put(ERROR_MSG, Boolean.FALSE);
             msgs.put(WARN_MSG, Boolean.FALSE);
             msgs.put(INFO_MSG, Boolean.FALSE);
             msgs.put(DEBUG_MSG, Boolean.FALSE);
             /* create the hashtable to put properties in */
-            Hashtable props = new Hashtable();
+            Hashtable<String, Object> props = new Hashtable<>();
             /* put service.pid property in hashtable */
             props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
             /* register the service */
-            serviceRegistration = bundleContext.registerService(EventHandler.class
-                    .getName(), this, props);
+            serviceRegistration = bundleContext.registerService(
+                EventHandler.class, this, props);
             /* assert not null */
             assertNotNull(displayName + " Can't get service", serviceRegistration);
         }
@@ -228,17 +233,17 @@ public class Scenario12TestSuite extends TestSuite {
             throw error;
           }
           assertTrue("Not all messages received",
-                     (((Boolean) msgs.get(ERROR_MSG)).booleanValue() &&
-                      ((Boolean) msgs.get(WARN_MSG)).booleanValue() &&
-                      ((Boolean) msgs.get(INFO_MSG)).booleanValue() &&
-                      ((Boolean) msgs.get(DEBUG_MSG)).booleanValue()));
+                     (msgs.get(ERROR_MSG) &&
+                         msgs.get(WARN_MSG) &&
+                         msgs.get(INFO_MSG) &&
+                         msgs.get(DEBUG_MSG)));
         }
 
         public void handleEvent(Event event) {
           try {
             System.out.println(displayName + " received topic:"
                       + event.getTopic());
-            msgs.put(event.getProperty(EventConstants.MESSAGE), Boolean.TRUE);
+            msgs.put(event.getProperty(EventConstants.MESSAGE).toString(), Boolean.TRUE);
           } catch (RuntimeException e) {
             error = e;
             throw e;

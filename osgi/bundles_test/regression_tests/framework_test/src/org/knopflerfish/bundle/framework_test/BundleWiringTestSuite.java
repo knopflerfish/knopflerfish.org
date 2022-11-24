@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2014, KNOPFLERFISH project
+/* Copyright (c) 2014-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Collections;
 
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import org.knopflerfish.service.framework_test.FrameworkTest;
@@ -65,7 +64,7 @@ public class BundleWiringTestSuite extends TestSuite implements FrameworkTest
     addTest(new Cleanup());
   }
 
-  class Setup extends FWTestCase {
+  static class Setup extends FWTestCase {
     public void runTest() throws Throwable {
     }
   }
@@ -77,11 +76,12 @@ public class BundleWiringTestSuite extends TestSuite implements FrameworkTest
       Bundle[] bundles = new Bundle[] {
         buB,
       };
-      for(int i = 0; i < bundles.length; i++) {
-        if (bundles[i] != null) {
+      for (Bundle bundle : bundles) {
+        if (bundle != null) {
           try {
-            bundles[i].uninstall();
-          } catch (Exception ignored) { }
+            bundle.uninstall();
+          } catch (Exception ignored) {
+          }
         }
       }
       buB = null;
@@ -89,6 +89,7 @@ public class BundleWiringTestSuite extends TestSuite implements FrameworkTest
   }
 
 
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME700A =  {
     "Check that listResources work correctly"
   };
@@ -103,7 +104,7 @@ public class BundleWiringTestSuite extends TestSuite implements FrameworkTest
       fw.resolveBundles(Collections.singleton(buB));
       BundleWiring wiring = buB.adapt(BundleWiring.class);
       assertNotNull(wiring);
-      Collection resources = wiring.listResources("/", "*.class", 0);
+      Collection<String> resources = wiring.listResources("/", "*.class", 0);
       assertEquals("Class files in top of bundleB_test", 0, resources.size());
       resources = wiring.listResources("/org/knopflerfish/bundle", "*.class",
           BundleWiring.FINDENTRIES_RECURSE);
@@ -113,7 +114,7 @@ public class BundleWiringTestSuite extends TestSuite implements FrameworkTest
       assertEquals("Class files in bundleB_test", 3, resources.size());
       resources = wiring.listResources("org/", null,
           BundleWiring.FINDENTRIES_RECURSE + BundleWiring.LISTRESOURCES_LOCAL);
-      assertEquals("All entires in bundleB_test org", 8, resources.size());
+      assertEquals("All entries in bundleB_test org", 8, resources.size());
       out.println("### framework test bundle :FRAME700A:PASS");
     }
   }

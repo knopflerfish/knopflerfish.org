@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,13 @@
 
 package org.knopflerfish.bundle.bundleB_test;
 
-import java.util.*;
-import org.knopflerfish.service.bundleB_test.*;
-import org.osgi.framework.*;
+import java.util.Hashtable;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Configurable;
+import org.osgi.framework.ServiceRegistration;
+
+import org.knopflerfish.service.bundleB_test.BundleB;
 
 /*
    This bundle is used to check parts of the functionality of the framework
@@ -46,17 +50,17 @@ import org.osgi.framework.*;
 public class BundB implements BundleB, Configurable {
   BundleContext bc;
   String serviceDescription = "org.knopflerfish.service.bundleB_test.BundleB";
-  ServiceRegistration sreg;
+  ServiceRegistration<?> sreg;
 
   public BundB (BundleContext bc) {
     this.bc = bc;
-    Hashtable dict = new Hashtable();
+    Hashtable<String, Object> dict = new Hashtable<>();
     dict.put ("key1","value1");
     dict.put ("key2","value2");
     dict.put ("key3","value3");
     dict.put ("key4","value4");
     try {
-      sreg = bc.registerService(serviceDescription, this, null);
+      sreg = bc.registerService(serviceDescription, this, dict);
     }
     catch (RuntimeException ru) {
       System.out.println ("Exception " + ru + " in BundleB start"); 
@@ -66,9 +70,11 @@ public class BundB implements BundleB, Configurable {
   public Object getConfigurationObject() {
     return this;
   }
-  public ServiceRegistration getServReg () {
+
+  public ServiceRegistration<?> getServReg () {
     return sreg;
   }
+
   public void setServReg (Hashtable d2) {
     System.err.println("Set called");
     try {

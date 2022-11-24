@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
  */
 package org.knopflerfish.bundle.eventadmin_test.scenario7.impl;
 
-import java.util.Calendar;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
@@ -84,16 +83,16 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
     addTest(new Setup());
 
     /* add the event consumers to the test suite */
-    EventConsumer eventConsumer = new EventConsumer(bundleContext, scenario7_topics1,
+    EventConsumer eventConsumer = new EventConsumer(scenario7_topics1,
                                                     "Scenario 7 EventConsumer1", 7);
-    EventConsumer2 eventConsumer2 = new EventConsumer2(bundleContext, scenario7_topics1,
+    EventConsumer2 eventConsumer2 = new EventConsumer2(scenario7_topics1,
                                                        "Scenario 7 EventConsumer2", 7);
     addTest(eventConsumer);
     addTest(eventConsumer2);
 
     /* add the event publisher to the test suite */
     EventPublisher eventPublisher = new EventPublisher(bundleContext, "Scenario 7 EventPublisher",
-                                                       7, "com/acme/timer");
+        7, "com/acme/timer");
     addTest(eventPublisher);
     /* add the cleanup class */
     addTest(new Cleanup(eventConsumer, eventConsumer2, eventPublisher));
@@ -104,7 +103,7 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
    *
    *@author Magnus Klack
    */
-  class Setup extends TestCase {
+  static class Setup extends TestCase {
     public Setup() {
 
     }
@@ -159,19 +158,10 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
     }
   }
 
-  class EventPublisher extends TestCase {
-
-    /** A reference to a service */
-    private ServiceReference serviceReference;
+  static class EventPublisher extends TestCase {
 
     /** The admin which delivers the events */
     private EventAdmin eventAdmin;
-
-    /** A calendar used to get the system time */
-    private Calendar calendar;
-
-    /** a variable indicating if the publisher is running */
-    private boolean running;
 
     /** class variable holding bundle context */
     private BundleContext bundleContext;
@@ -179,8 +169,6 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
     /** variable holding the topic to use */
     private String topicToSend;
 
-    private Thread synchDeliver;
-    private Thread asynchDeliver;
     private boolean stopped;
 
     public EventPublisher(BundleContext context, String name, int id,
@@ -197,85 +185,87 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
     public void runTest() throws Throwable {
       /* determine if to use a local copy of EventAdmin or not */
       /* Claims the reference of the EventAdmin Service */
-      serviceReference = bundleContext
-        .getServiceReference(EventAdmin.class.getName());
+      ServiceReference<EventAdmin> serviceReference = bundleContext
+          .getServiceReference(EventAdmin.class);
 
       /* assert that a reference is aquired */
       assertNotNull(getName()
                     + " Should be able to get reference to EventAdmin service",
-                    serviceReference);
+          serviceReference);
 
-      if (serviceReference == null) {
-        fail(getName() + " service reference should not be null");
-      }
+      eventAdmin = bundleContext.getService(serviceReference);
 
-      eventAdmin = (EventAdmin) bundleContext
-        .getService(serviceReference);
-
-      assertNotNull(getName()
-                    + " Should be able to get instance to EventAdmin object");
-
-      if (eventAdmin == null) {
-        fail(getName() + " event admin should not be null");
-      }
+      assertNotNull(
+          getName() + " Should be able to get instance to EventAdmin object",
+          eventAdmin);
 
       stopped = false;
 
-      synchDeliver = new Thread() {
-          public void run() {
-            int i = 0;
-            while (!stopped && !Thread.interrupted()) {
-              try {
-                /* a Hash table to store message in */
-                Dictionary message = new Hashtable();
-                /* put some properties into the messages */
-                message.put("Synchronus message", new Integer(i));
-                /* send the message */
-                System.out
+      /* a Hash table to store message in */
+      /* put some properties into the messages */
+      /* send the message */
+      /* Puts the thread to sleep for 10 seconds */
+      //ignored, treated by while loop
+      Thread synchDeliver = new Thread() {
+        public void run() {
+          int i = 0;
+          while (!stopped && !Thread.interrupted()) {
+            try {
+              /* a Hash table to store message in */
+              Dictionary<String, Object> message = new Hashtable<>();
+              /* put some properties into the messages */
+              message.put("Synchronus message", i);
+              /* send the message */
+              System.out
                   .println(getName()
-                           + " sending a synchronus event with message:"
-                           + message.toString()
-                           + "and the topic:" + topicToSend);
-                eventAdmin
+                      + " sending a synchronus event with message:"
+                      + message.toString()
+                      + "and the topic:" + topicToSend);
+              eventAdmin
                   .sendEvent(new Event(topicToSend, message));
-                /* Puts the thread to sleep for 10 seconds */
-                i++;
-                Thread.sleep(10000);
-              } catch (InterruptedException e) {
-                //ignored, treated by while loop
-              }
+              /* Puts the thread to sleep for 10 seconds */
+              i++;
+              Thread.sleep(10000);
+            } catch (InterruptedException e) {
+              //ignored, treated by while loop
             }
           }
-        };
+        }
+      };
 
       synchDeliver.start();
 
-      asynchDeliver = new Thread() {
-          public void run() {
-            int i = 0;
-            while (!stopped && !Thread.interrupted()) {
-              try {
-                /* a Hash table to store message in */
-                Dictionary message = new Hashtable();
-                /* put some properties into the messages */
-                message.put("Asynchronus message", new Integer(i));
-                /* send the message */
-                System.out
+      /* a Hash table to store message in */
+      /* put some properties into the messages */
+      /* send the message */
+      /* Puts the thread to sleep for 10 seconds */
+      //ignored, treated by while loop
+      Thread asynchDeliver = new Thread() {
+        public void run() {
+          int i = 0;
+          while (!stopped && !Thread.interrupted()) {
+            try {
+              /* a Hash table to store message in */
+              Dictionary<String, Object> message = new Hashtable<>();
+              /* put some properties into the messages */
+              message.put("Asynchronus message", i);
+              /* send the message */
+              System.out
                   .println(getName()
-                           + " sending a asynchronus event with message:"
-                           + message.toString()
-                           + "and the topic:" + topicToSend);
-                eventAdmin
+                      + " sending a asynchronus event with message:"
+                      + message.toString()
+                      + "and the topic:" + topicToSend);
+              eventAdmin
                   .sendEvent(new Event(topicToSend, message));
-                /* Puts the thread to sleep for 10 seconds */
-                i++;
-                Thread.sleep(10000);
-              } catch (InterruptedException e) {
-                //ignored, treated by while loop
-              }
+              /* Puts the thread to sleep for 10 seconds */
+              i++;
+              Thread.sleep(10000);
+            } catch (InterruptedException e) {
+              //ignored, treated by while loop
             }
           }
-        };
+        }
+      };
       asynchDeliver.start();
 
     }
@@ -291,10 +281,7 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
 
   class EventConsumer extends TestCase implements EventHandler {
     /** class variable for service registration */
-    private ServiceRegistration serviceRegistration;
-
-    /** class variable indicating the instance name */
-    private int instanceId;
+    private ServiceRegistration<EventHandler> serviceRegistration;
 
     /** class variable indicating the topics correct version */
     private String[] topicsToConsume;
@@ -309,16 +296,11 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
 
     /**
      * Constructor creates a consumer service
-     *
-     * @param bundleContext
-     * @param topics
      */
-    public EventConsumer(BundleContext bundleContext, String[] topics,
+    public EventConsumer(String[] topics,
                          String name, int id) {
       /* call super class */
       super(name + ":" + id);
-      /* assign the instance id */
-      instanceId = id;
       /* assign the consume topics */
       topicsToConsume = topics;
     }
@@ -327,22 +309,17 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
       asynchMessages = 0;
       synchMessages = 0;
       /* create the hashtable to put properties in */
-      Dictionary props = new Hashtable();
+      Dictionary<String, Object> props = new Hashtable<>();
       /* determine what topicType to use */
       /* put service.pid property in hashtable */
       props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
 
       /* register the service */
-      serviceRegistration = bundleContext.registerService(
-                                                          EventHandler.class.getName(), this, props);
+      serviceRegistration = bundleContext.registerService(EventHandler.class, this, props);
 
       assertNotNull(getName()
                     + " service registration should not be null",
                     serviceRegistration);
-
-      if (serviceRegistration == null) {
-        fail("Could not get Service Registration ");
-      }
     }
 
     public void cleanup() throws Throwable {
@@ -397,10 +374,7 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
 
   class EventConsumer2 extends TestCase implements EventHandler {
     /** class variable for service registration */
-    private ServiceRegistration serviceRegistration;
-
-    /** class variable indicating the instance name */
-    private int instanceId;
+    private ServiceRegistration<EventHandler> serviceRegistration;
 
     /** class variable indicating the topics correct version */
     private String[] topicsToConsume;
@@ -415,16 +389,11 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
 
     /**
      * Constructor creates a consumer service
-     *
-     * @param bundleContext
-     * @param topics
      */
-    public EventConsumer2(BundleContext bundleContext, String[] topics,
+    public EventConsumer2(String[] topics,
                           String name, int id) {
       /* call super class */
       super(name + ":" + id);
-      /* assign the instance id */
-      instanceId = id;
       /* assign the consume topics */
       topicsToConsume = topics;
     }
@@ -433,22 +402,17 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
       asynchMessages = 0;
       synchMessages = 0;
       /* create the hashtable to put properties in */
-      Dictionary props = new Hashtable();
+      Dictionary<String, Object> props = new Hashtable<>();
       /* determine what topicType to use */
       /* put service.pid property in hashtable */
       props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
 
       /* register the service */
-      serviceRegistration = bundleContext.registerService(
-                                                          EventHandler.class.getName(), this, props);
+      serviceRegistration = bundleContext.registerService(EventHandler.class, this, props);
 
       assertNotNull(getName()
                     + " service registration should not be null",
                     serviceRegistration);
-
-      if (serviceRegistration == null) {
-        fail("Could not get Service Registration ");
-      }
     }
 
     public void cleanup() throws Throwable {
@@ -496,6 +460,7 @@ public class Scenario7TestSuite extends TestSuite implements Scenario7 {
         assertTrue("to many asynchronous messages", asynchMessages < 2);
 
         /* Infinit loop in order to force a blacklist on the listener from the EventAdmin */
+        //noinspection InfiniteLoopStatement
         while (true) {
           try {
             Thread.sleep(1000);

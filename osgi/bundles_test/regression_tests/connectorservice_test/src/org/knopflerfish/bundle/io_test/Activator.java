@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,19 +34,21 @@
 
 package org.knopflerfish.bundle.io_test;
 
-import java.util.*;
-import org.osgi.framework.*;
-import junit.framework.*;
+import java.util.Hashtable;
+
+import junit.framework.TestSuite;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 
 public class Activator implements BundleActivator {
   
   public void start(BundleContext bc) {
     {
       TestSuite suite = new ConnectorServiceTestSuite(bc);
-      Hashtable props = new Hashtable();
+      Hashtable<String, Object> props = new Hashtable<>();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr 
-	= bc.registerService(TestSuite.class.getName(), suite, props);
+      bc.registerService(TestSuite.class, suite, props);
     }
     /*
     {

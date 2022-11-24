@@ -76,8 +76,8 @@ public class PermissionTestSuite extends TestSuite {
 
   Properties props         = System.getProperties();
   String     lineseparator = props.getProperty("line.separator");
-  Vector     events        = new Vector(); // vector for events from test bundles
-  Vector     expevents     = new Vector(); // comparision vector
+  Vector<devEvent> events    = new Vector<>(); // vector for events from test bundles
+  Vector<devEvent> expevents = new Vector<>(); // comparision vector
 
 
   PrintStream out = System.out;
@@ -136,8 +136,8 @@ public class PermissionTestSuite extends TestSuite {
 	buY ,
 	buZ ,
       };
-      for(int i = 0; i < bundles.length; i++) {
-	try {  bundles[i].uninstall();  } 
+      for (Bundle bundle : bundles) {
+	try {  bundle.uninstall();  }
 	catch (Exception ignored) { }      
       }
 
@@ -170,7 +170,10 @@ public class PermissionTestSuite extends TestSuite {
   //     The testbundle U has no permission to register its service and should 
   //     not be registered
 
+  @SuppressWarnings("unused")
   public final static String USAGE_FRAME090A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME090A =  {
     "Install and start bundleU_test, to check that it is unable to register its own service",
     "to see that the Permissions work.",
@@ -181,31 +184,23 @@ public class PermissionTestSuite extends TestSuite {
   class Frame090a extends FWTestCase {
     public void runTest() throws Throwable {
       buU = null;
-      boolean teststatus = true;
       clearEvents();
       try {
 	buU = Util.installBundle(bc, "bundleU_test-1.0.0.jar");
 	buU.start();
-	teststatus = true;
       }
-      catch (BundleException bexcA) {
-	fail("framework test bundle "+ bexcA +" :FRAME090A:FAIL");
-	teststatus = false;
+      catch (BundleException | SecurityException e) {
+	fail("framework test bundle "+ e +" :FRAME090A:FAIL");
       }
-      catch (SecurityException secA) {
-	fail("framework test bundle "+ secA +" :FRAME090A:FAIL");
-	teststatus = false;
-      }
-      
+
       // Check that a service reference does not exist
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleU_test.BundleU");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleU_test.BundleU");
       if (sr1 != null) {
 	fail("framework test bundle, found unexpected service from test bundle U found :FRAME090A:FAIL");
-	teststatus = false;
       }
       
       // check the listeners for events, expect none 
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.STARTED, false, ServiceEvent.REGISTERED, buU, sr1);
+      boolean lStat = checkListenerEvents(false , 0, true , BundleEvent.STARTED, false, ServiceEvent.REGISTERED, buU, sr1);
       
       // get the permissions of bundle buU and check if they are as expected
       ServicePermission get = new ServicePermission("*", ServicePermission.GET);
@@ -215,13 +210,12 @@ public class PermissionTestSuite extends TestSuite {
       boolean p2 = buU.hasPermission(register);
       // out.println("framework test bundle : p1, p2" + p1 + ",  "+  p2);
       
-      if (!(p1 == true && p2 == false)) {
-	teststatus = false;
-	out.println("framework test bundle permissions of test bundleU not as expected");
+      if (!(p1 && !p2)) {
+        out.println("framework test bundle permissions of test bundleU not as expected");
 	fail("framework test bundle: GET is " + p1 +" should be true, REGISTER is " + p2 + ",  should be false");
       }
       
-      if (teststatus == true && buU.getState() == Bundle.ACTIVE && lStat == true) {
+      if (buU.getState() == Bundle.ACTIVE && lStat) {
 	out.println("### framework test bundle :FRAME090A:PASS");
       }
       else {
@@ -235,7 +229,10 @@ public class PermissionTestSuite extends TestSuite {
   //     unable to get the log service,
   //     able to get the test service
   //    
+  @SuppressWarnings("unused")
   public final static String USAGE_FRAME095A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME095A =  {
     "Install and start bundleV_test, to check that it is:",
     "able to register its own service",
@@ -246,32 +243,27 @@ public class PermissionTestSuite extends TestSuite {
   class Frame095a extends FWTestCase {
     public void runTest() throws Throwable {
       buV = null;
-      boolean teststatus = true;
+      boolean teststatus;
       try {
 	buV = Util.installBundle(bc, "bundleV_test-1.0.0.jar");
 	buV.start();
 	teststatus = true;
       }
-      catch (BundleException bexcA) {
-	bexcA.printStackTrace();
-	fail("framework test bundle "+ bexcA +" :FRAME095A:FAIL");
+      catch (BundleException | SecurityException e) {
+	e.printStackTrace();
+	fail("framework test bundle "+ e +" :FRAME095A:FAIL");
 	teststatus = false;
       }
-      catch (SecurityException secA) {
-	secA.printStackTrace();
-	fail("framework test bundle "+ secA +" :FRAME095A:FAIL");
-	teststatus = false;
-      }
-      
+
       // Check that a service reference does exist
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleV_test.BundleV");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleV_test.BundleV");
       if (sr1 == null) {
 	fail("framework test bundle, did not found expected service from test bundle V found :FRAME095:FAIL");
 	teststatus = false;
       }
       
       // check the listeners for events, expect registration
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buV, sr1);
+      boolean lStat = checkListenerEvents(false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buV, sr1);
       
       // get the permissions of bundle buV and check if they are as expected
       ServicePermission get = new ServicePermission("org.knopflerfish.service.framework_test.FrameworkTest", ServicePermission.GET);
@@ -287,12 +279,13 @@ public class PermissionTestSuite extends TestSuite {
       }
       
       // now give the bundleV a servicereference via reflection
-      ServiceReference sr = bc.getServiceReference("org.knopflerfish.service.bundleV_test.BundleV");
+      ServiceReference<?> sr = bc.getServiceReference("org.knopflerfish.service.bundleV_test.BundleV");
       Object srl = bc.getServiceReference("org.osgi.service.log.LogService");
       
       Method m;
-      Class c, parameters[];
-      
+      Class<?> c;
+      Class<?>[] parameters;
+
       Object obj1 = bc.getService(sr);
       // out.println("servref  = "+ sr);
       // out.println("object = "+ obj1);
@@ -304,16 +297,16 @@ public class PermissionTestSuite extends TestSuite {
       parameters = new Class[1];
       //
       Method [] mxx = c.getDeclaredMethods();
-      for (int y=0;y <mxx.length; y++) {
+      for (Method method : mxx) {
 	// out.println("Methods in obj1 " + mxx[y].getName());
-	if (mxx[y].getName().endsWith("tryService")) {
+	if (method.getName().endsWith("tryService")) {
 	  // out.println("Methods in obj1 " + mxx[y].getName());
-	  Class [] cxx = mxx[y].getParameterTypes();
-	  for (int z=0; z < cxx.length; z++) {
+	  Class<?>[] cxx = method.getParameterTypes();
+	  for (Class<?> clazz : cxx) {
 	    // out.println("Parameter Classes in obj1 " + cxx[z].getName());
-	    if (cxx[z].getName().endsWith("org.osgi.framework.ServiceReference")) {
+	    if (clazz.getName().endsWith("org.osgi.framework.ServiceReference")) {
 	      // out.println("Selected Parameter Classes in obj1 " + cxx[z].toString());
-	      parameters[0] = cxx[z]; 
+	      parameters[0] = clazz;
 	    }
 	  }
 	}
@@ -342,7 +335,7 @@ public class PermissionTestSuite extends TestSuite {
 	out.println("Unexpected " +  thr);
       }
       
-      if (!(p1 == true && p2 == true)) {
+      if (!(p1 && p2)) {
 	teststatus = false;
 	out.println("framework test bundle permissions of test bundleV not as expected");
 	fail("framework test bundle: GET is " + p1 +" should be true, REGISTER is " + p2 + ",  should be true");
@@ -366,14 +359,14 @@ public class PermissionTestSuite extends TestSuite {
 	teststatus = false;
 	out.println("Real events");
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
+	  devEvent dee = events.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
 	}
 	out.println("Expected events");
 	for (int i = 0; i< expevents.size() ; i++) {
-	  devEvent dee = (devEvent) expevents.elementAt(i);
+	  devEvent dee = expevents.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
@@ -382,8 +375,8 @@ public class PermissionTestSuite extends TestSuite {
       else {
 	
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
-	  devEvent exp = (devEvent) expevents.elementAt(i);
+	  devEvent dee = events.elementAt(i);
+	  devEvent exp = expevents.elementAt(i);
 	  if (!(dee.getDevice().equals(exp.getDevice()) && dee.getMethod().equals(exp.getMethod()) && dee.getValue() == exp.getValue())) {
 	    out.println("Event no = " + i);
 	    if (!(dee.getDevice().equals(exp.getDevice()))) {
@@ -404,7 +397,7 @@ public class PermissionTestSuite extends TestSuite {
       events.removeAllElements();
       expevents.removeAllElements();
       
-      if (teststatus == true && buV.getState() == Bundle.ACTIVE && lStat == true) {
+      if (teststatus && buV.getState() == Bundle.ACTIVE && lStat) {
 	out.println("### framework test bundle :FRAME095A:PASS");
       }
       else {
@@ -417,7 +410,10 @@ public class PermissionTestSuite extends TestSuite {
   //     bundleX_test, which should be ok 
   //     bundleY_test, which should fail 
   //
+  @SuppressWarnings("unused")
   public final static String USAGE_FRAME100A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME100A =  {
     "Install and start bundleW_test, to check that it is:",
     "able to install bundleX_test, which should be ok",
@@ -427,36 +423,32 @@ public class PermissionTestSuite extends TestSuite {
   class Frame0100a extends FWTestCase {
     public void runTest() throws Throwable {
       buW = null;
-      boolean teststatus = true;
+      boolean teststatus;
       try {
 	buW = Util.installBundle(bc, "bundleW_test-1.0.0.jar");
 	buW.start();
 	teststatus = true;
       }
-      catch (BundleException bexcA) {
-	fail("framework test bundle "+ bexcA +" :FRAME100A:FAIL");
+      catch (BundleException | SecurityException e) {
+	fail("framework test bundle "+ e +" :FRAME100A:FAIL");
 	teststatus = false;
       }
-      catch (SecurityException secA) {
-	fail("framework test bundle "+ secA +" :FRAME100A:FAIL");
-	teststatus = false;
-      }
-      
+
       // Check that a service reference does exist
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleW_test.BundleW");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleW_test.BundleW");
       if (sr1 == null) {
 	fail("framework test bundle, did not found expected service from test bundle W found :FRAME100A:FAIL");
 	teststatus = false;
       }
       
       // check the listeners for events, expect registration
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buW, sr1);
+      boolean lStat = checkListenerEvents(false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buW, sr1);
       
       // now give the bundleW a jar file to load, via reflection
-      ServiceReference sr = bc.getServiceReference("org.knopflerfish.service.bundleW_test.BundleW");
-      bundleLoad (out, sr, "bundleX_test");
-      bundleLoad (out, sr, "bundleY_test");
-      bundleLoad (out, sr, "bundleZ_test");
+      ServiceReference<?> sr = bc.getServiceReference("org.knopflerfish.service.bundleW_test.BundleW");
+      bundleLoad (sr, "bundleX_test");
+      bundleLoad (sr, "bundleY_test");
+      bundleLoad (sr, "bundleZ_test");
       /* 
       // list all events 
       for (int i = 0; i< events.size() ; i++) {
@@ -480,14 +472,14 @@ public class PermissionTestSuite extends TestSuite {
 	teststatus = false;
 	out.println("Real events");
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
+	  devEvent dee = events.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
 	}
 	out.println("Expected events");
 	for (int i = 0; i< expevents.size() ; i++) {
-	  devEvent dee = (devEvent) expevents.elementAt(i);
+	  devEvent dee = expevents.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
@@ -495,8 +487,8 @@ public class PermissionTestSuite extends TestSuite {
       }
       else {
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
-	  devEvent exp = (devEvent) expevents.elementAt(i);
+	  devEvent dee = events.elementAt(i);
+	  devEvent exp = expevents.elementAt(i);
 	  if (!(dee.getDevice().equals(exp.getDevice()) && dee.getMethod().equals(exp.getMethod()) && dee.getValue() == exp.getValue())) {
 	    out.println("Event no = " + i);
 	    if (!(dee.getDevice().equals(exp.getDevice()))) {
@@ -516,7 +508,7 @@ public class PermissionTestSuite extends TestSuite {
       events.removeAllElements();
       expevents.removeAllElements();
       
-      if (teststatus == true && buW.getState() == Bundle.ACTIVE && lStat == true) {
+      if (teststatus && buW.getState() == Bundle.ACTIVE && lStat) {
 	out.println("### framework test bundle :FRAME100A:PASS");
       }
       else {
@@ -530,7 +522,10 @@ public class PermissionTestSuite extends TestSuite {
   //     that should cause SecurityExceptions in W1
   //
 
+  @SuppressWarnings("unused")
   public final static String USAGE_FRAME105A = "";
+
+  @SuppressWarnings("unused")
   public final static String [] HELP_FRAME105A =  {
     "Install and start bundleW1_test, to check that it is:",
     "possible to install and start.",
@@ -541,7 +536,7 @@ public class PermissionTestSuite extends TestSuite {
   class Frame0105a extends FWTestCase {
     public void runTest() throws Throwable {
       buW1 = null;
-      boolean teststatus = true;
+      boolean teststatus;
       clearEvents();
       try {
 	buW1 = Util.installBundle(bc, "bundleW1_test-1.0.0.jar");
@@ -558,7 +553,7 @@ public class PermissionTestSuite extends TestSuite {
       }
       
       // check the listeners for events, expect registration
-      boolean lStat = checkListenerEvents(out, false , 0, true , BundleEvent.INSTALLED, false, ServiceEvent.REGISTERED, buW1, null);
+      boolean lStat = checkListenerEvents(false , 0, true , BundleEvent.INSTALLED, false, ServiceEvent.REGISTERED, buW1, null);
       
       try {
 	buW1.start();
@@ -574,19 +569,19 @@ public class PermissionTestSuite extends TestSuite {
       }
       
       // Check that a service reference does exist
-      ServiceReference sr1 = bc.getServiceReference("org.knopflerfish.service.bundleW1_test.BundleW1");
+      ServiceReference<?> sr1 = bc.getServiceReference("org.knopflerfish.service.bundleW1_test.BundleW1");
       if (sr1 == null) {
 	fail("framework test bundleW1, unexpected service from test bundle W1 found :FRAME105A:FAIL");
 	teststatus = false;
       }
-      boolean lStat2 = checkListenerEvents(out, false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buW1, sr1);
+      boolean lStat2 = checkListenerEvents(false , 0, true , BundleEvent.STARTED, true, ServiceEvent.REGISTERED, buW1, sr1);
       
       // now give the bundleW1 jar files to load, via reflection
-      ServiceReference sr = bc.getServiceReference("org.knopflerfish.service.bundleW1_test.BundleW1");
+      ServiceReference<?> sr = bc.getServiceReference("org.knopflerfish.service.bundleW1_test.BundleW1");
       if (sr != null ) {
-	bundleLoad (out, sr, "bundleX_test");
-	bundleLoad (out, sr, "bundleY_test");
-	bundleLoad (out, sr, "bundleZ_test");
+	bundleLoad (sr, "bundleX_test");
+	bundleLoad (sr, "bundleY_test");
+	bundleLoad (sr, "bundleZ_test");
       }
       
       
@@ -612,14 +607,14 @@ public class PermissionTestSuite extends TestSuite {
 	teststatus = false;
 	out.println("Real events");
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
+	  devEvent dee = events.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
 	}
 	out.println("Expected events");
 	for (int i = 0; i< expevents.size() ; i++) {
-	  devEvent dee = (devEvent) expevents.elementAt(i);
+	  devEvent dee = expevents.elementAt(i);
 	  out.print("Bundle " + dee.getDevice());
 	  out.print(" Method " + dee.getMethod());
 	  out.println(" Value " + dee.getValue());
@@ -627,8 +622,8 @@ public class PermissionTestSuite extends TestSuite {
       }
       else {
 	for (int i = 0; i< events.size() ; i++) {
-	  devEvent dee = (devEvent) events.elementAt(i);
-	  devEvent exp = (devEvent) expevents.elementAt(i);
+	  devEvent dee = events.elementAt(i);
+	  devEvent exp = expevents.elementAt(i);
 	  if (!(dee.getDevice().equals(exp.getDevice()) && dee.getMethod().equals(exp.getMethod()) && dee.getValue() == exp.getValue())) {
 	    out.println("Event no = " + i);
 	    if (!(dee.getDevice().equals(exp.getDevice()))) {
@@ -648,7 +643,7 @@ public class PermissionTestSuite extends TestSuite {
       events.removeAllElements();
       expevents.removeAllElements();
       
-      if (teststatus == true && buW1.getState() == Bundle.ACTIVE && lStat == true && lStat2 == true) {
+      if (teststatus && buW1.getState() == Bundle.ACTIVE && lStat && lStat2) {
 	out.println("### framework test bundle :FRAME105A:PASS");
       }
       else {
@@ -659,7 +654,7 @@ public class PermissionTestSuite extends TestSuite {
   
   // Check of exporting and importing bundles and versions
   
-  private boolean checkExportVersion (Object _out, Bundle exporter, Bundle importer, String packName, String version) {
+  private boolean checkExportVersion(Bundle exporter, Bundle importer, String packName, String version) {
     String packServiceName = "org.osgi.service.packageadmin.PackageAdmin";
     PackageAdmin packService = (PackageAdmin) bc.getService(bc.getServiceReference(packServiceName));
     boolean teststatus = true;
@@ -669,7 +664,6 @@ public class PermissionTestSuite extends TestSuite {
     } else {
       // Now get the array of exported packages from exporting bundle,
       // with one expected package
-      long expId = exporter.getBundleId();
       long impId = importer.getBundleId();
       
       ExportedPackage [] exp2 = packService.getExportedPackages(exporter);
@@ -678,13 +672,13 @@ public class PermissionTestSuite extends TestSuite {
       // look for if they are imported by the importer bundle
       //
       if (exp2 != null) {
-	for (int i = 0; i < exp2.length ; i++ ) {
+	for (ExportedPackage exportedPackage : exp2) {
 	  // out.println("Got exported package " + exp2[i].getName() + " spev ver. " + exp2[i].getSpecificationVersion() + " in FRAME215A");
-	  if (version.equals(exp2[i].getSpecificationVersion()) && packName.equals(exp2[i].getName())) {
-	    Bundle [] ib = exp2[i].getImportingBundles();
-	    for (int j = 0; j < ib.length ; j++ ) {
+	  if (version.equals(exportedPackage.getSpecificationVersion()) && packName.equals(exportedPackage.getName())) {
+	    Bundle [] ibs = exportedPackage.getImportingBundles();
+	    for (Bundle ib : ibs) {
 	      // out.println("   Importing bundle: " + ib[j].getBundleId());
-	      if (ib[j].getBundleId() ==  impId) {
+	      if (ib.getBundleId() ==  impId) {
 		// out.println ("MATCH p2 p2 hurrah");
 		teststatus = true;
 	      }
@@ -704,7 +698,7 @@ public class PermissionTestSuite extends TestSuite {
   private String xlateData(byte [] b1) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < b1.length ; i++) {
-      if (-128 <= b1[i] && b1[i] < 0) {
+      if (b1[i] < 0) {
 	sb.append(new String(b1, i, 1));
       }
       if (0 <= b1[i] && b1[i] < 32) {
@@ -721,7 +715,8 @@ public class PermissionTestSuite extends TestSuite {
 
   // General printout of PermissionInfo
 
-  private void printPermission(Object _out, PermissionInfo pi) {
+  private void printPermission(PermissionInfo pi) {
+    //noinspection StringBufferReplaceableByString
     StringBuilder sb1 = new StringBuilder();
 
     sb1.append("ENCODED: ");
@@ -744,13 +739,13 @@ public class PermissionTestSuite extends TestSuite {
 
   // Condensed printout of PermissionInfo
 
-  private void printPermissionShort (Object _out, PermissionInfo pi) {
+  private void printPermissionShort(PermissionInfo pi) {
     out.println("  ENCODED: " + pi.getEncoded());
   }
 
   // Check that the expected implications occur 
-  public boolean implyCheck (Object _out, boolean expected, Permission p1, Permission p2) {
-    boolean result = true;
+  public boolean implyCheck(boolean expected, Permission p1, Permission p2) {
+    boolean result;
     if (p1.implies(p2) == expected) {
       result = true;
     } else {
@@ -765,8 +760,8 @@ public class PermissionTestSuite extends TestSuite {
     return result;
   }
 
-  public boolean implyCheck (Object _out, boolean expected, PermissionCollection p1, Permission p2) {
-    boolean result = true;
+  public boolean implyCheck(boolean expected, PermissionCollection p1, Permission p2) {
+    boolean result;
     if (p1.implies(p2) == expected) {
       result = true;
     } else {
@@ -786,10 +781,11 @@ public class PermissionTestSuite extends TestSuite {
 
 
   // Check that the expected events has reached the listeners and reset the events in the listeners
-  private boolean checkListenerEvents(Object _out, boolean fwexp, int fwtype, boolean buexp, int butype, boolean sexp, int stype, Bundle bunX, ServiceReference servX ) {
+  @SuppressWarnings("SameParameterValue")
+  private boolean checkListenerEvents(boolean fwexp, int fwtype, boolean buexp, int butype, boolean sexp, int stype, Bundle bunX, ServiceReference<?> servX) {
     boolean listenState = true;	// assume everything will work
 
-    if (fwexp == true) {
+    if (fwexp) {
       if (fListen.getEvent() != null) {
 	if (fListen.getEvent().getType() != fwtype || fListen.getEvent().getBundle() != bunX) {
 	  System.out.println("framework test bundle, wrong type of framework event/bundle : " +  fListen.getEvent().getType());
@@ -818,7 +814,7 @@ public class PermissionTestSuite extends TestSuite {
       }
     }
 
-    if (buexp == true) {
+    if (buexp) {
       if (bListen.getEvent() != null) {
 	if (bListen.getEvent().getType() != butype || bListen.getEvent().getBundle() != bunX) {
 	  System.out.println("framework test bundle, wrong type of bundle event/bundle: " +  bListen.getEvent().getType());
@@ -840,7 +836,7 @@ public class PermissionTestSuite extends TestSuite {
     }
 
 
-    if (sexp == true) {
+    if (sexp) {
       if (sListen.getEvent() != null) {
 	if (servX != null) {
 	  if (sListen.getEvent().getType() != stype || servX != sListen.getEvent().getServiceReference() ) {
@@ -899,9 +895,10 @@ public class PermissionTestSuite extends TestSuite {
 
 
   // to access test service methods via reflection 
-  private void bundleLoad (Object _out, ServiceReference sr, String bundle) {
+  private void bundleLoad(ServiceReference<?> sr, String bundle) {
     Method m;
-    Class c, parameters[];
+    Class<?> c;
+    Class<?>[] parameters;
 
     Object obj1 = bc.getService(sr);
     // System.out.println("servref  = "+ sr);
@@ -941,16 +938,10 @@ public class PermissionTestSuite extends TestSuite {
     events.addElement(new devEvent(device, method, value));
   }
 
-  class devEvent {
+  static class devEvent {
     String dev;
     String met;
     int val;
-
-    public devEvent (String dev, String met , Integer val) {
-      this.dev = dev;
-      this.met = met;
-      this.val = val.intValue();
-    }
 
     public devEvent (String dev, String met , int val) {
       this.dev = dev;
@@ -972,20 +963,20 @@ public class PermissionTestSuite extends TestSuite {
 
   }
 
-  private boolean checkEvents(Object _out, Vector expevents, Vector events) {
+  private boolean checkEvents(Vector<devEvent> expevents, Vector<devEvent> events) {
     boolean state = true;
     if (events.size() != expevents.size()) {
       state = false;
       out.println("Real events");
       for (int i = 0; i< events.size() ; i++) {
-	devEvent dee = (devEvent) events.elementAt(i);
+	devEvent dee = events.elementAt(i);
 	out.print("Bundle " + dee.getDevice());
 	out.print(" Method " + dee.getMethod());
 	out.println(" Value " + dee.getValue());
       }
       out.println("Expected events");
       for (int i = 0; i< expevents.size() ; i++) {
-	devEvent dee = (devEvent) expevents.elementAt(i);
+	devEvent dee = expevents.elementAt(i);
 	out.print("Bundle " + dee.getDevice());
 	out.print(" Method " + dee.getMethod());
 	out.println(" Value " + dee.getValue());
@@ -993,8 +984,8 @@ public class PermissionTestSuite extends TestSuite {
     }
     else {
       for (int i = 0; i< events.size() ; i++) {
-	devEvent dee = (devEvent) events.elementAt(i);
-	devEvent exp = (devEvent) expevents.elementAt(i);
+	devEvent dee = events.elementAt(i);
+	devEvent exp = expevents.elementAt(i);
 	if (!(dee.getDevice().equals(exp.getDevice()) && dee.getMethod().equals(exp.getMethod()) && dee.getValue() == exp.getValue())) {
 	  out.println("Event no = " + i);
 	  if (!(dee.getDevice().equals(exp.getDevice()))) {
@@ -1027,7 +1018,7 @@ public class PermissionTestSuite extends TestSuite {
     }
   }
 
-  class FrameworkListener implements org.osgi.framework.FrameworkListener {
+  static class FrameworkListener implements org.osgi.framework.FrameworkListener {
     FrameworkEvent fwe;
     public void frameworkEvent(FrameworkEvent evt) {
       this.fwe = evt;
@@ -1041,7 +1032,7 @@ public class PermissionTestSuite extends TestSuite {
     }
   }
   
-  class ServiceListener implements org.osgi.framework.ServiceListener {
+  static class ServiceListener implements org.osgi.framework.ServiceListener {
     ServiceEvent serve = null;
     public void serviceChanged(ServiceEvent evt) {
       this.serve = evt;
@@ -1056,7 +1047,7 @@ public class PermissionTestSuite extends TestSuite {
     
   }
   
-  class BundleListener implements org.osgi.framework.BundleListener {
+  static class BundleListener implements org.osgi.framework.BundleListener {
     BundleEvent bunEvent = null;
     
     public void bundleChanged (BundleEvent evt) {

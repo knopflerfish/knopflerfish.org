@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, KNOPFLERFISH project
+ * Copyright (c) 2015-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,6 @@
 
 package org.knopflerfish.service.http_servlet_test;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-
 import org.apache.commons.httpclient.HttpMethod;
 import org.knopflerfish.bundle.http_servlet_test.HttpServletTestSuite;
 
@@ -59,7 +56,7 @@ public class GetResponseTests extends TestCase {
     method = HttpServletTestSuite.getCurrentHttpMethod();
   }
   
-  public void testResponseCode() throws IOException {
+  public void testResponseCode() {
     assertEquals(200, method.getStatusCode());
   }
   
