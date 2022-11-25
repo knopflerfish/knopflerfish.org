@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2018, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -164,8 +164,8 @@ public class MethodAnalyserASM extends MethodVisitor {
     ca.addReferencedType(Type.getObjectType(owner));
 
     Type[] argTypes = Type.getArgumentTypes(descriptor);
-    for (int i = 0; argTypes != null && i < argTypes.length; i++) {
-      ca.addReferencedType(argTypes[i]);
+    for (Type argType : argTypes) {
+      ca.addReferencedType(argType);
     }
     ca.addReferencedType(Type.getReturnType(descriptor));
   }

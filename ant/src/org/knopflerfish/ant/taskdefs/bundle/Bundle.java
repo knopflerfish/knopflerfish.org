@@ -34,6 +34,7 @@ package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -237,23 +238,26 @@ public class Bundle
   private static final String PACKAGE_ANALYSIS_NONE = "none";
   private static final String PACKAGE_ANALYSIS_WARN = "warn";
   private static final String PACKAGE_ANALYSIS_AUTO = "auto";
+  private static final List<String> PACKAGE_ANALYSIS_VALUES = Arrays.asList(
+      PACKAGE_ANALYSIS_NONE,
+      PACKAGE_ANALYSIS_WARN,
+      PACKAGE_ANALYSIS_AUTO
+  );
 
   private String activator = ACTIVATOR_AUTO;
   private String packageAnalysis = PACKAGE_ANALYSIS_WARN;
-  private final Map<String, String> importPackage =
-    new HashMap<String, String>();
-  private final Map<String, String> exportPackage =
-    new HashMap<String, String>();
-  private final List<ZipFileSet> libs = new ArrayList<ZipFileSet>();
-  private final List<ZipFileSet> classes = new ArrayList<ZipFileSet>();
+  private final Map<String, String> importPackage = new HashMap<>();
+  private final Map<String, String> exportPackage = new HashMap<>();
+  private final List<ZipFileSet> libs = new ArrayList<>();
+  private final List<ZipFileSet> classes = new ArrayList<>();
 
   private File baseDir = null;
-  private final List<FileSet> zipgroups = new ArrayList<FileSet>();
-  private final List<FileSet> srcFilesets = new ArrayList<FileSet>();
+  private final List<FileSet> zipGroups = new ArrayList<>();
+  private final List<FileSet> srcFilesets = new ArrayList<>();
 
   private final Manifest generatedManifest = new Manifest();
 
-  private final Set<String> standardPackagePrefixes = new HashSet<String>();
+  private final Set<String> standardPackagePrefixes = new HashSet<>();
 
   private final BundlePackagesInfo bpInfo = new BundlePackagesInfo(this);
   private final ClassAnalyserASM asmAnalyser = new ClassAnalyserASM(bpInfo,
@@ -261,14 +265,12 @@ public class Bundle
 
   private void analyze()
   {
-    if (activator == ACTIVATOR_AUTO || packageAnalysis != PACKAGE_ANALYSIS_NONE) {
+    if (ACTIVATOR_AUTO.equals(activator) || !PACKAGE_ANALYSIS_NONE.equals(packageAnalysis)) {
       addZipGroups();
       addImplicitFileset();
 
       for (final FileSet fileset : srcFilesets) {
-        for (@SuppressWarnings("unchecked")
-        final Iterator<Resource> fsIt = fileset.iterator(); fsIt.hasNext();) {
-          final Resource res = fsIt.next();
+        for (final Resource res : fileset) {
           analyze(res);
         }
       }
@@ -277,7 +279,7 @@ public class Bundle
 
       final Set<String> publicPackages = exportPackage.keySet();
 
-      if (packageAnalysis != PACKAGE_ANALYSIS_NONE) {
+      if (!PACKAGE_ANALYSIS_NONE.equals(packageAnalysis)) {
         for (final String packageName : publicPackages) {
           if (!bpInfo.providesPackage(packageName)) {
             log("Exported package not provided by bundle: " + packageName,
@@ -329,7 +331,7 @@ public class Bundle
         final String packageName = (String) element;
         if (!isStandardPackage(packageName)
             && !importPackage.containsKey(packageName)) {
-          if (packageAnalysis == PACKAGE_ANALYSIS_AUTO) {
+          if (PACKAGE_ANALYSIS_AUTO.equals(packageAnalysis)) {
             final String version = exportPackage.get(packageName);
             try {
               importPackage.put(packageName, toImportRange(version));
@@ -342,7 +344,7 @@ public class Bundle
               log(msg, Project.MSG_ERR);
               throw new BuildException(msg, iae);
             }
-          } else if (packageAnalysis == PACKAGE_ANALYSIS_WARN) {
+          } else if (PACKAGE_ANALYSIS_WARN.equals(packageAnalysis)) {
             log("Referenced package not found in bundle or imports: "
                 + packageName, Project.MSG_WARN);
           }
@@ -367,9 +369,8 @@ public class Bundle
       analyzeJar(res);
     } else if (res.getName().endsWith("/packageinfo")) {
       analyzePackageinfo(res);
-    } else {
-      // Just ignore all other files
     }
+    // Just ignore all other files
   }
 
   protected void analyzeJar(Resource res)
@@ -422,9 +423,8 @@ public class Bundle
 
   private void addZipGroups()
   {
-    for (int i = 0; i < zipgroups.size(); i++) {
-      final FileSet fileset = zipgroups.get(i);
-      final FileScanner fs = fileset.getDirectoryScanner(getProject());
+    for (final FileSet zipGroup : zipGroups) {
+      final FileScanner fs = zipGroup.getDirectoryScanner(getProject());
       final String[] files = fs.getIncludedFiles();
       final File basedir = fs.getBasedir();
       for (final String file : files) {
@@ -457,9 +457,9 @@ public class Bundle
   private void handleActivator()
       throws ManifestException
   {
-    if (activator == ACTIVATOR_NONE) {
+    if (ACTIVATOR_NONE.equals(activator)) {
       log("No BundleActivator set", Project.MSG_DEBUG);
-    } else if (activator == ACTIVATOR_AUTO) {
+    } else if (ACTIVATOR_AUTO.equals(activator)) {
       switch (bpInfo.countProvidedActivatorClasses()) {
       case 0: {
         log("No class implementing BundleActivator found", Project.MSG_INFO);
@@ -476,7 +476,7 @@ public class Bundle
       }
       }
     }
-    if (activator != ACTIVATOR_NONE && activator != ACTIVATOR_AUTO) {
+    if (!ACTIVATOR_NONE.equals(activator) && !ACTIVATOR_AUTO.equals(activator)) {
       log("Bundle-Activator: " + activator, Project.MSG_INFO);
       generatedManifest
           .addConfiguredAttribute(createAttribute(BUNDLE_ACTIVATOR_KEY,
@@ -515,7 +515,7 @@ public class Bundle
         final DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
         final String[] files = ds.getIncludedFiles();
         if (files.length != 0) {
-          zipgroups.add(fileset);
+          zipGroups.add(fileset);
           final String prefix = fixPrefix(fileset.getPrefix(getProject()));
           for (final String file : files) {
             value.append(prefix.replace('\\', '/'));
@@ -597,7 +597,7 @@ public class Bundle
    * number in its version number).
    *
    * @param version
-   *          an OSGi compatibel version on string form.
+   *          an OSGi compatible version on string form.
    * @return a quoted version range starting with the given version (inclusive)
    *         ending with the next major version (exclusive). If the specified
    *         version is <code>null</code> or an empty string a <code>null</code>
@@ -617,31 +617,20 @@ public class Bundle
 
   // public methods
 
-  public void setActivator(String activator)
-  {
-    if (ACTIVATOR_NONE.equalsIgnoreCase(activator)) {
-      this.activator = ACTIVATOR_NONE;
-    } else if (ACTIVATOR_AUTO.equalsIgnoreCase(activator)) {
-      this.activator = ACTIVATOR_AUTO;
-    } else {
-      this.activator = activator;
-    }
+  public void setActivator(String activator) {
+    this.activator = activator.trim().toLowerCase();
   }
 
-  public void setPackageAnalysis(String packageAnalysis)
-  {
+  public void setPackageAnalysis(String packageAnalysis) {
     packageAnalysis = packageAnalysis.trim().toLowerCase();
-    if (PACKAGE_ANALYSIS_NONE.equals(packageAnalysis)) {
-      this.packageAnalysis = PACKAGE_ANALYSIS_NONE;
-    } else if (PACKAGE_ANALYSIS_WARN.equals(packageAnalysis)) {
-      this.packageAnalysis = PACKAGE_ANALYSIS_WARN;
-    } else if (PACKAGE_ANALYSIS_AUTO.equals(packageAnalysis)) {
-      this.packageAnalysis = PACKAGE_ANALYSIS_AUTO;
+    if (PACKAGE_ANALYSIS_VALUES.contains(packageAnalysis)) {
+      this.packageAnalysis = packageAnalysis;
     } else {
       throw new BuildException("Illegal value: " + packageAnalysis);
     }
   }
 
+  @SuppressWarnings("unused")
   public void addConfiguredStandardPackage(OSGiPackage osgiPackage)
   {
     final String name = osgiPackage.getName();
@@ -656,6 +645,7 @@ public class Bundle
     }
   }
 
+  @SuppressWarnings("unused")
   public void addConfiguredImportPackage(OSGiPackage osgiPackage)
   {
     final String name = osgiPackage.getName();
@@ -668,6 +658,7 @@ public class Bundle
     }
   }
 
+  @SuppressWarnings("unused")
   public void addConfiguredExportPackage(OSGiPackage osgiPackage)
   {
     final String name = osgiPackage.getName();
@@ -680,6 +671,7 @@ public class Bundle
     }
   }
 
+  @SuppressWarnings("unused")
   public void addConfiguredLib(ZipFileSet fileset)
   {
     // TODO: handle refid
@@ -733,7 +725,7 @@ public class Bundle
   public void addZipGroupFileset(FileSet fileset)
   {
     super.addZipGroupFileset(fileset);
-    zipgroups.add(fileset);
+    zipGroups.add(fileset);
   }
 
   @Override

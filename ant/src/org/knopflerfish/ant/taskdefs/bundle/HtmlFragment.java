@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import java.io.File;
 
 
 /**
- * <p>An Html formated text fragment the the MakeHTMLTask can be
+ * <p>An Html formatted text fragment the the MakeHTMLTask can be
  * configured with.</p>
  *
  * <p>When <code>$(name)</code> is found in the document to be generated

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2016, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -385,7 +385,7 @@ public class BundleLocator extends Task {
 
   private final static String PROPS_PREFIX = "bap.";
 
-  private final List<ResourceCollection>    filesets = new ArrayList<ResourceCollection>();
+  private final List<ResourceCollection>    filesets = new ArrayList<>();
 
   private BundleArchives bas;
 
@@ -417,6 +417,7 @@ public class BundleLocator extends Task {
     this.bundleNames = s;
   }
 
+  @SuppressWarnings("unused")
   public void addFileset(FileSet set) {
     filesets.add(set);
   }
@@ -623,7 +624,7 @@ public class BundleLocator extends Task {
         return getBundleArchive(name, null, null);
       } else {
         final Version min = new Version(version);
-        Version max = null;
+        Version max;
 
         switch(level) {
         case 0:
@@ -889,20 +890,16 @@ public class BundleLocator extends Task {
         }
       }
     }
-    OutputStream out = null;
-    try {
-      out= new FileOutputStream(replacefilterfile);
+    try (OutputStream out = new FileOutputStream(replacefilterfile)) {
       props.store(out, "Bundle Version Expansion Mapping");
     } catch (final IOException ioe) {
-      log("Failed to write replacefilterfile, "+replacefilterfile
-          +", reason: "+ioe,
+      log("Failed to write replacefilterfile, " + replacefilterfile
+              + ", reason: " + ioe,
           Project.MSG_ERR);
-      throw new BuildException("Failed to write replacefilterfile",ioe);
-    } finally {
-      if (null!=out) {
-        try { out.close(); } catch (final IOException _ioe) {}
-        log("Created: "+replacefilterfile, Project.MSG_VERBOSE);
-      }
+      throw new BuildException("Failed to write replacefilterfile", ioe);
+    }
+    if (replacefilterfile.exists()) {
+      log("Created: " + replacefilterfile, Project.MSG_VERBOSE);
     }
   }
 

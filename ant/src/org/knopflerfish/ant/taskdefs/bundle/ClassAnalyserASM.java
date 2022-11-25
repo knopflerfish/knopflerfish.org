@@ -89,16 +89,10 @@ public class ClassAnalyserASM
 
   public synchronized void analyseClass(File clsFile)
   {
-    FileInputStream fis = null;
-    try {
-      fis = new FileInputStream(clsFile);
+    try (FileInputStream fis = new FileInputStream(clsFile)) {
       analyseClass(fis, clsFile.toString());
     } catch (Exception e) {
       e.printStackTrace();
-    } finally {
-      if (null!=fis) {
-        try { fis.close(); } catch (Exception _ec) {}
-      }
     }
   }
 
@@ -160,9 +154,9 @@ public class ClassAnalyserASM
     if (null!=superName) {
       addReferencedType(Type.getObjectType(superName));
     }
-    for(int i = 0; i < interfaces.length; i++) {
-      addReferencedType(Type.getObjectType(interfaces[i]));
-      if (BUNDLE_ACTIVATOR.equals(interfaces[i])) {
+    for (String anInterface : interfaces) {
+      addReferencedType(Type.getObjectType(anInterface));
+      if (BUNDLE_ACTIVATOR.equals(anInterface)) {
         bpInfo.addProvidedActivatorClass(name);
       }
     }
@@ -310,8 +304,8 @@ public class ClassAnalyserASM
                                    String[] exceptions)
   {
     Type[] argTypes = Type.getArgumentTypes(desc);
-    for (int i=0; argTypes!=null && i<argTypes.length; i++) {
-      addReferencedType(argTypes[i]);
+    for (Type argType : argTypes) {
+      addReferencedType(argType);
     }
     addReferencedType(Type.getReturnType(desc));
 

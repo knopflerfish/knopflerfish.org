@@ -70,7 +70,7 @@ public class Util {
    */
   public static Set<String> parseEnumeration(String d, String s)
   {
-    final HashSet<String> result = new HashSet<String>();
+    final HashSet<String> result = new HashSet<>();
     if (s != null) {
       final AttributeTokenizer at = new AttributeTokenizer(s);
       do {
@@ -134,7 +134,7 @@ public class Util {
                                                       boolean unique,
                                                       boolean single_entry)
   {
-    final List<HeaderEntry> res = new ArrayList<Util.HeaderEntry>();
+    final List<HeaderEntry> res = new ArrayList<>();
 
     if (s != null) {
       final AttributeTokenizer at = new AttributeTokenizer(s);
@@ -194,7 +194,7 @@ public class Util {
               @SuppressWarnings("unchecked")
               List<Object> oldValues = (List<Object>) old;
               if (oldValues == null) {
-                oldValues = new ArrayList<Object>();
+                oldValues = new ArrayList<>();
                 he.attributes.put(param, oldValues);
               }
               oldValues.add(value);
@@ -238,37 +238,31 @@ public class Util {
     Object res;
 
     type = type == null ? STRING_TYPE : type.intern();
-    if (STRING_TYPE == type) {
+    if (STRING_TYPE.equals(type)) {
       res = value;
-    } else if (LONG_TYPE == type) {
+    } else if (LONG_TYPE.equals(type)) {
       try {
         res = new Long(value.trim());
       } catch (final Exception e) {
-        throw (IllegalArgumentException) new
-        IllegalArgumentException("Definition, " +a
-                                 +", expected value of type Long but found '"
-                                 +value +"' for attribute '"
-                                 +param + "'.").initCause(e);
+        throw new IllegalArgumentException("Definition, " + a
+            + ", expected value of type Long but found '" + value
+            + "' for attribute '" + param + "'.", e);
       }
-    } else if (DOUBLE_TYPE == type) {
+    } else if (DOUBLE_TYPE.equals(type)) {
       try {
         res = new Double(value.trim());
       } catch (final Exception e) {
-        throw (IllegalArgumentException) new
-        IllegalArgumentException("Definition, " +a
-                                 +", expected value of type Double but found '"
-                                 +value +"' for attribute '"
-                                 +param + "'.").initCause(e);
+        throw new IllegalArgumentException("Definition, " + a
+            + ", expected value of type Double but found '" + value
+            + "' for attribute '" + param + "'.", e);
       }
-    } else if (VERSION_TYPE == type) {
+    } else if (VERSION_TYPE.equals(type)) {
       try {
         res = new Version(value);
       } catch (final Exception e) {
-        throw (IllegalArgumentException) new
-        IllegalArgumentException("Definition, " +a
-                                 +", expected value of type Version but found '"
-                                 +value +"' for attribute '"
-                                 +param + "'.").initCause(e);
+        throw new IllegalArgumentException("Definition, " + a
+            + ", expected value of type Version but found '" + value
+            + "' for attribute '" + param + "'.", e);
       }
     } else if (type.startsWith(LIST_TYPE)) {
       String elemType = type.substring(LIST_TYPE.length()).trim();
@@ -288,16 +282,16 @@ public class Util {
       }
 
       try {
-        final List<String> elements = splitWords(value, ',', STRING_TYPE!=elemType);
-        final List<Object> l = new ArrayList<Object>(elements.size());
+        final List<String> elements = splitWords(value, ',', !STRING_TYPE.equals(elemType));
+        final List<Object> l = new ArrayList<>(elements.size());
         for (final String elem : elements) {
           l.add(toValue(a, param, elemType, elem));
         }
         res = l;
       } catch (final Exception e) {
-        throw (IllegalArgumentException) new IllegalArgumentException
+        throw new IllegalArgumentException
           ("Definition, " + a + ", expected '" + type + "' value but found '"
-              + value + "' for attribute '" + param + "'.").initCause(e);
+              + value + "' for attribute '" + param + "'.", e);
       }
     } else {
         throw new IllegalArgumentException("Definition, " +a
@@ -360,7 +354,7 @@ public class Util {
                                      String whiteSpace,
                                      char citChar) {
     boolean bCit = false; // true when inside citation chars.
-    final Vector<String> v = new Vector<String>(); // (String) individual words after splitting
+    final Vector<String> v = new Vector<>(); // (String) individual words after splitting
     StringBuilder buf = new StringBuilder();
     int i = 0;
 
@@ -421,7 +415,7 @@ public class Util {
                                         char sepChar,
                                         boolean trim)
   {
-    final List<String> res = new ArrayList<String>();
+    final List<String> res = new ArrayList<>();
     final StringBuilder buf = new StringBuilder();
     int pos = 0;
     final int length = s.length();
@@ -512,14 +506,14 @@ public class Util {
     final int v1Len = v1.length();
     int n = 0;
 
-    // count number of occurances to be able to correctly size
+    // count number of occurrences to be able to correctly size
     // the resulting output char array
     while (-1 != (ix = s.indexOf(v1, ix))) {
       n++;
       ix += v1Len;
     }
 
-    // No occurances at all, just return source string
+    // No occurrences at all, just return source string
     if (n == 0) {
       return s;
     }
@@ -530,7 +524,7 @@ public class Util {
     final char[] r = new char[s.length() + n * (v2Len - v1Len)];
     int rPos = 0;
 
-    // for each occurance, copy v2 where v1 used to be
+    // for each occurrence, copy v2 where v1 used to be
     while (-1 != (ix = s.indexOf(v1, start))) {
       while (start < ix) {
         r[rPos++] = s.charAt(start++);
@@ -569,7 +563,7 @@ public class Util {
 
     // get word (non-whitespace chars) up to the next non-quoted
     // ',', ';' or ':', '=' if not valueWord is set
-    String getWord(boolean keepEscapse, boolean valueWord) {
+    String getWord(boolean keepEscapes, boolean valueWord) {
       skipWhite();
       boolean backslash = false;
       boolean quote = false;
@@ -578,7 +572,7 @@ public class Util {
       loop: for (; pos < length; pos++) {
         if (backslash) {
           backslash = false;
-          if (keepEscapse) {
+          if (keepEscapes) {
             val.append('\\');
           }
           val.append(s.charAt(pos));
@@ -722,6 +716,7 @@ public class Util {
     }
 
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean getEnd() {
       final int save = pos;
       skipWhite();
@@ -760,13 +755,10 @@ public class Util {
   {
     final String headerName;
     final boolean singleKey;
-    final List<String> keys = new ArrayList<String>();
-    final Map<String, Object> attributes = new HashMap<String, Object>();
-    final Map<String, String> directives = new HashMap<String, String>();
+    final List<String> keys = new ArrayList<>();
+    final Map<String, Object> attributes = new HashMap<>();
+    final Map<String, String> directives = new HashMap<>();
 
-    /**
-     * @param singleKey
-     */
     HeaderEntry(String headerName, boolean singleKey)
     {
       this.headerName = headerName;

@@ -219,7 +219,7 @@ public class BundleClasspathTask extends Task {
    */
   public List<FileSet> getFileSets(boolean failOnClassPath)
   {
-    final List<FileSet> res = new ArrayList<FileSet>();
+    final List<FileSet> res = new ArrayList<>();
     final Project proj = getProject();
 
     if (dir==null) {
@@ -246,7 +246,7 @@ public class BundleClasspathTask extends Task {
         entry = entry.substring(1);
       }
 
-      FileSet fileSet = null;
+      FileSet fileSet;
       final File src= new File(dir, entry);
 
       // Bundle class path entries are either directories or jar/zip-files!
@@ -322,7 +322,7 @@ public class BundleClasspathTask extends Task {
       } else if (entry.endsWith(".jar")) {
         sb.append(entry);
       } else {
-        sb.append(entry + "/**/*.class");
+        sb.append(entry).append("/**/*.class");
       }
       if (st.hasMoreTokens()) {
         sb.append(",");

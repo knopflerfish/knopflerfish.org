@@ -263,17 +263,13 @@ public class BundleUserDocNavigateTask
   }
 
   // Mapping from category name to sorted set with link data.
-  private final Map<String, SortedSet<LinkData>> categories =
-    new HashMap<String, SortedSet<LinkData>>();
+  private final Map<String, SortedSet<LinkData>> categories = new HashMap<>();
 
   // Insert a link data item to a category in the categories map
   private void add(final String category, final LinkData ld)
   {
-    SortedSet<LinkData> lds = categories.get(category);
-    if (null==lds) {
-      lds = new TreeSet<LinkData>();
-      categories.put(category, lds);
-    }
+    SortedSet<LinkData> lds =
+        categories.computeIfAbsent(category, k -> new TreeSet<>());
     lds.add(ld);
   }
 
@@ -333,7 +329,7 @@ public class BundleUserDocNavigateTask
     if (null!=sd && 0<sd.length()) {
       try {
         ld.depth = Integer.parseInt(sd);
-      } catch (final NumberFormatException nfe) {
+      } catch (final NumberFormatException ignored) {
       }
     }
     final String category = docProps.getProperty("category", defaultCategory);
@@ -343,8 +339,11 @@ public class BundleUserDocNavigateTask
   private void analyzeDocDir()
   {
     final File[] files = docDir.listFiles();
-    for (final File file2 : files) {
-      final File file = file2;
+    if (files == null) {
+      log("docdir not found: " + docDir, Project.MSG_ERR);
+      return;
+    }
+    for (final File file : files) {
 
       // Only interested in directories.
       if (!file.isDirectory()) {
@@ -378,9 +377,7 @@ public class BundleUserDocNavigateTask
           } else {
             for (int j=0; j<linkCnt; j++) {
               final LinkData ld = new LinkData(defaultTitle, defaultLinkPath);
-              final String category = fillLinkData(docProps,
-                                                   String.valueOf(j)+".",
-                                                   ld);
+              final String category = fillLinkData(docProps, j +".", ld);
               add(category, ld);
             }
           }
@@ -458,9 +455,6 @@ public class BundleUserDocNavigateTask
 
       FileUtil.writeStringToFile(toFile, content);
       log("Created: " + toFile.getAbsolutePath());
-    } catch (final IOException e) {
-      e.printStackTrace();
-      throw new BuildException(e);
     } catch (final Exception e) {
       e.printStackTrace();
       throw new BuildException(e);

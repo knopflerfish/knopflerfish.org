@@ -227,10 +227,10 @@ public class MakeHTMLTask
    */
   private String bundleList;
 
-  private final ArrayList<ResourceCollection> filesets = new ArrayList<ResourceCollection>();
+  private final ArrayList<ResourceCollection> filesets = new ArrayList<>();
   private String disable;
 
-  private final Map<String, HtmlFragment> fragments = new HashMap<String,HtmlFragment>();
+  private final Map<String, HtmlFragment> fragments = new HashMap<>();
 
   public void setFromfile(String s) {
     fromFile = s;
@@ -265,7 +265,6 @@ public class MakeHTMLTask
     this.do_manpage = true;
   }
 
-
   public void setDisable(String disabled) {
     this.disable = disabled;
   }
@@ -274,10 +273,12 @@ public class MakeHTMLTask
     this.javadocRelPath = s;
   }
 
+  @SuppressWarnings("unused")
   public void addFileset(FileSet fs) {
     filesets.add(fs);
   }
 
+  @SuppressWarnings("unused")
   public void addConfiguredHtmlFragment(HtmlFragment fragment) {
     final String name = fragment.getName();
     if (name == null) {
@@ -306,7 +307,7 @@ public class MakeHTMLTask
       description = "";
     }
 
-    if (filesets.isEmpty() && fromFile == null && toFile == null) {
+    if (filesets.isEmpty() && (fromFile == null || toFile == null)) {
       throw new BuildException("Need to specify tofile and fromfile or give a fileset");
     }
 
@@ -364,7 +365,7 @@ public class MakeHTMLTask
       }
 
       // Compute the relative path from directory holding the toFile
-      // to the javadoc direcotry.
+      // to the javadoc directory.
       String pathToOutDir = "";
       tmp = new File(outdir, toFile).getParentFile();
       while ((tmp = tmp.getParentFile()) != null && tmp.equals(outdir)) {
@@ -384,7 +385,7 @@ public class MakeHTMLTask
           content = Util.replace(content, "$("+key +"_LINK)", fragLink);
         }
         String fragCont = FileUtil.loadFile(frag.getFromFile().getPath());
-        if (null!=fragCont && 0<fragCont.length()) {
+        if (0 < fragCont.length()) {
           fragCont = "<a name=\"" +key +"\"></a>\n" + fragCont;
         }
         content = Util.replace(content, "$("+key +")", fragCont);
@@ -476,9 +477,6 @@ public class MakeHTMLTask
 
       FileUtil.writeStringToFile(new File(outdir, toFile), content);
       log("Created: " + new File(outdir, toFile));
-    } catch (final IOException e) {
-      e.printStackTrace();
-      throw new BuildException(e);
     } catch (final Exception e) {
       e.printStackTrace();
       throw new BuildException(e);
@@ -520,7 +518,7 @@ public class MakeHTMLTask
           throw new BuildException("Name not set for htdocs.link.url." + i);
         }
 
-        String cssClass = null;
+        String cssClass;
 
         if (disable != null && disable.equals(id)) {
           cssClass = getProject().getProperty(CSS_CLASS_DISABLED);
@@ -528,8 +526,13 @@ public class MakeHTMLTask
           cssClass = getProject().getProperty(CSS_CLASS_ENABLED);
         }
 
-        buf.append("<a class=\"" + cssClass + "\" href=\"" + url
-                   + "\">" + name + "</a><br/>\n");
+        buf .append("<a class=\"")
+            .append(cssClass)
+            .append("\" href=\"")
+            .append(url)
+            .append("\">")
+            .append(name)
+            .append("</a><br/>\n");
       } else {
         throw new BuildException("Do not recognize type " + type);
       }
@@ -559,7 +562,7 @@ public class MakeHTMLTask
    *         file sets described above or null if no file set was defined.
    */
   private BundleArchives getBundleArchives() {
-    final List<ResourceCollection> fileSets = new ArrayList<ResourceCollection>();
+    final List<ResourceCollection> fileSets = new ArrayList<>();
     final Project proj = getProject();
 
     // File set for bundlebuild.xml properties
@@ -596,8 +599,7 @@ public class MakeHTMLTask
     }
 
     // FileSet defined with id (for bundle overview documentation).
-    final FileSet docbuildeFileSet
-      = (FileSet) proj.getReference("docbuild.jarfiles");
+    final FileSet docbuildeFileSet = proj.getReference("docbuild.jarfiles");
     if (null!=docbuildeFileSet) {
       fileSets.add(docbuildeFileSet);
       log("Found build results (docbuild.jarfiles): " + docbuildeFileSet,
@@ -644,9 +646,12 @@ public class MakeHTMLTask
     final StringBuilder res = new StringBuilder();
 
     if (null != bas) {
-      final boolean javadocPresent = pathToJavadocDir != null && 0<pathToJavadocDir.length();
+      if (pathToJavadocDir == null) {
+        throw new IllegalArgumentException("pathToJavadocDir is null");
+      }
+      final boolean javadocPresent = 0 < pathToJavadocDir.length();
       for (final Entry<String, SortedMap<Version, SortedSet<BundleArchive>>> pkgEntry: bas.allExports.entrySet()) {
-        final String pkg = pkgEntry.getKey().toString();
+        final String pkg = pkgEntry.getKey();
         final Map<Version,SortedSet<BundleArchive>> verToProvides = pkgEntry.getValue();
 
         final String docFile = replace(pkg, ".", "/") +BundleHTMLExtractorTask.PACKAGE_SUMMARY_HTML;
@@ -672,7 +677,7 @@ public class MakeHTMLTask
             row = replace(row, "${namelink}", "${name}");
           }
           row = replace(row, "${name}", pkg);
-          row = replace(row, "${version}", version.toString());
+          row = replace(row, "${version}", version);
           row = replace(row, "${javadoc}", docPath);
           row = replace(row, "${providers}", providersToString(providers));
 

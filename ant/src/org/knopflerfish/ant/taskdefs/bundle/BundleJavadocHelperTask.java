@@ -291,7 +291,7 @@ public class BundleJavadocHelperTask extends Task {
   /**
    * The set of java package names for exported packages.
    */
-  final TreeSet<String> ePkgs = new TreeSet<String>();
+  final TreeSet<String> ePkgs = new TreeSet<>();
 
 
   // Implements Task
@@ -339,20 +339,12 @@ public class BundleJavadocHelperTask extends Task {
       return;
     }
 
-    final Set<String> srcRoots = new TreeSet<String>();
-    BufferedReader in = null;
-    try {
-      in = new BufferedReader(new FileReader(srcRootsFile));
-
+    final Set<String> srcRoots = new TreeSet<>();
+    try (BufferedReader in = new BufferedReader(new FileReader(srcRootsFile))) {
       String line = in.readLine();
       while (null != line) {
         srcRoots.add(line.trim());
         line = in.readLine();
-      }
-    } finally {
-      if (in != null) {
-        in.close();
-        in = null;
       }
     }
     final Project proj = getProject();
@@ -379,7 +371,7 @@ public class BundleJavadocHelperTask extends Task {
         path.setLocation(new File( (String) element ));
       }
       log("Created path: "+path,Project.MSG_DEBUG);
-      final Path oldPath = (Path) proj.getReference(srcPathId);
+      final Path oldPath = proj.getReference(srcPathId);
       if (null!=oldPath) {
         oldPath.add(path);
         log(srcPathId +" after extension: "+oldPath, Project.MSG_VERBOSE);
@@ -396,20 +388,12 @@ public class BundleJavadocHelperTask extends Task {
     // Unconditional process of exportPkgsFile / exportPkgsValue since
     // result is used by other process-methods.
     if (exportPkgsFile != null) {
-      BufferedReader in= null;
 
-      try {
-        in = new BufferedReader(new FileReader(exportPkgsFile));
-
+      try (BufferedReader in = new BufferedReader(new FileReader(exportPkgsFile))) {
         String line = in.readLine();
-        while (null!=line) {
+        while (null != line) {
           handleOneExportPackageLine(line);
           line = in.readLine();
-        }
-      } finally {
-        if (in != null) {
-          in.close();
-          in = null;
         }
       }
     }
@@ -449,9 +433,7 @@ public class BundleJavadocHelperTask extends Task {
                                  true, false);
 
       for (final HeaderEntry entry : entries) {
-        for (final String pkg : entry.getKeys()) {
-          ePkgs.add(pkg);
-        }
+        ePkgs.addAll(entry.getKeys());
       }
     }
   }
@@ -465,7 +447,7 @@ public class BundleJavadocHelperTask extends Task {
 
     final Project proj = getProject();
 
-    final TreeSet<String> pkgNamesWithSource = new TreeSet<String>();
+    final TreeSet<String> pkgNamesWithSource = new TreeSet<>();
     boolean pkgSrcAvailable = false;
 
     for (final Object element : ePkgs) {
@@ -492,7 +474,7 @@ public class BundleJavadocHelperTask extends Task {
           Project.MSG_DEBUG);
 
       if (fileSet.size() > 0) {
-        pkgSrcAvailable |= true;
+        pkgSrcAvailable = true;
         pkgNamesWithSource.add(pkg);
       }
     }

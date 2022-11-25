@@ -227,45 +227,42 @@ public class BundleHTMLExtractorTask
   /** Last part of the javadoc URL for a package. */
   static final String PACKAGE_SUMMARY_HTML = "/package-summary.html";
 
-  private BundleArchives bas;
+  private static final String listSeparator = "<br>\n";
+  private static final String indexListHeader = "<h2>${bundle.list.header}</h2>";
 
-  private final String listSeparator = "<br>\n";
-  private final String indexListHeader = "<h2>${bundle.list.header}</h2>";
-
-  private final String indexListRow =
+  private static final String indexListRow =
     "<a target=\"bundle_main\" href=\"${bundledoc}\">${FILE.short}</a><br>\n";
 
-  private final String indexMainRow =
+  private static final String indexMainRow =
     "<tr>"
         + "<td><a target=\"bundle_main\" href=\"${bundledoc}\">${FILE.short}</a></td><td>"
         + "<td>${Bundle-Description}</td>" + "</tr>\n";
 
-  private final String indexMainUnresolved =
+  private static final String indexMainUnresolved =
     "<table>\n <tr><td colspan=2 class=\"mfheader\">Unresolved packages</td></tr>\n${unresolvedRows}\n</table>\n";
 
-  private final String indexMainUnresolvedRow =
+  private static final String indexMainUnresolvedRow =
     " <tr><td>${FILE.short}</td>\n  <td>${pkgs}</td></tr>\n";
 
-  private final String bundleRow =
+  private static final String bundleRow =
     "<tr><td><a href=\"${bundledoc}\">${FILE.short}</a></td><td>${what}</td></tr>\n";
 
-  private final String packageListRow =
+  private static final String packageListRow =
     "<tr><td>${pkg}</td><td>${providers}</td></tr>\n";
 
-  private final String missingRow =
+  private static final String missingRow =
     "<tr><td>${name}</td><td>${version}</td></tr>\n";
 
-  private final String pkgHTML = "${namelink}";
-  private final String pkgHTMLversion = "${namelink}&nbsp;${version}";
+  private static final String pkgHTML = "${namelink}";
+  private static final String pkgHTMLversion = "${namelink}&nbsp;${version}";
 
-  private final Map<String, Object> globalVars = new TreeMap<String, Object>();
+  private final Map<String, Object> globalVars = new TreeMap<>();
 
   /**
    * Mapping from package name to bundle archive that uses the package
    * containing one entry for each package that does not have any java doc.
    */
-  private final Map<String, BundleArchive> missingDocs =
-    new TreeMap<String, BundleArchive>();
+  private final Map<String, BundleArchive> missingDocs = new TreeMap<>();
 
   public BundleHTMLExtractorTask()
   {
@@ -390,41 +387,39 @@ public class BundleHTMLExtractorTask
     this.javadocRelPath = s;
   }
 
-  private final List<ResourceCollection> filesets =
-    new ArrayList<ResourceCollection>();
+  private final List<ResourceCollection> filesets = new ArrayList<>();
 
+  @SuppressWarnings("unused")
   public void addFileset(FileSet set)
   {
     filesets.add(set);
   }
 
-  Set<String> listPropSet = new HashSet<String>();
+  Set<String> listPropSet = new HashSet<>();
 
   public void setListProps(String s)
   {
     listPropSet = Util.parseEnumeration("list props", s);
   }
 
-  Set<String> alwaysPropSet = new HashSet<String>();
+  Set<String> alwaysPropSet = new HashSet<>();
 
   /**
    * Comma separated string with keys that shall have an empty default value.
-   *
-   * @param s
    */
   public void setAlwaysProps(String s)
   {
     alwaysPropSet = Util.parseEnumeration("always props", s);
   }
 
-  Set<String> skipAttribSet = new HashSet<String>();
+  Set<String> skipAttribSet = new HashSet<>();
 
   public void setSkipAttribSet(String s)
   {
     skipAttribSet = Util.parseEnumeration("skip attributes set", s);
   }
 
-  Set<String> systemPackageSet = new HashSet<String>();
+  Set<String> systemPackageSet = new HashSet<>();
 
   public void setSystemPackageSet(String s)
   {
@@ -448,7 +443,7 @@ public class BundleHTMLExtractorTask
     }
 
     log("Loading bundle information:", Project.MSG_VERBOSE);
-    bas = new BundleArchives(this, filesets, true);
+    BundleArchives bas = new BundleArchives(this, filesets, true);
     bas.doProviders();
 
     log("Writing bundle jar docs pages.", Project.MSG_VERBOSE);
@@ -497,7 +492,7 @@ public class BundleHTMLExtractorTask
    * the that particular bundle archive.
    */
   private final Map<BundleArchive, Map<String, Object>> ba2varMap =
-    new HashMap<BundleArchive, Map<String, Object>>();
+      new HashMap<>();
 
   /**
    * Get the variable expansion map the the given bundle archive.
@@ -513,7 +508,7 @@ public class BundleHTMLExtractorTask
   {
     Map<String, Object> res = ba2varMap.get(ba);
     if (null == res) {
-      res = new HashMap<String, Object>();
+      res = new HashMap<>();
       ba2varMap.put(ba, res);
 
       // Populate the variable expansion map
@@ -537,7 +532,6 @@ public class BundleHTMLExtractorTask
       String relPathUp = "";
       while (sepIx > -1) {
         relPathUp += ".." + File.separator;
-        ;
         sepIx = ba.relPath.indexOf(File.separator, sepIx + 1);
       }
       res.put("relpathup", relPathUp);
@@ -757,19 +751,18 @@ public class BundleHTMLExtractorTask
    * @param ba
    *          The bundle archive to insert manifest attributes from.
    * @return the template string with <code>${MF.UNHANDLED}</code> replaced.
-   * @throws IOException
    */
   private String mfaReplace(final String template, final BundleArchive ba)
       throws IOException
   {
-    final Set<String> handledSet = new TreeSet<String>();
+    final Set<String> handledSet = new TreeSet<>();
     // The set of manifest attribute names in the bundle.
-    final Set<String> mfanSet = new TreeSet<String>();
+    final Set<String> mfanSet = new TreeSet<>();
     for (final Object element : ba.mainAttributes.keySet()) {
       final String mfan = element.toString();
 
       mfanSet.add(mfan);
-      if (-1 != template.indexOf("${" + mfan + "}")) {
+      if (template.contains("${" + mfan + "}")) {
         handledSet.add(mfan);
       }
     }
@@ -778,19 +771,17 @@ public class BundleHTMLExtractorTask
     // for
     // each manifest attribute not in the template and not in the skip set.
     final Map<String, Object> varMap = getVarMap(ba);
-    final Set<String> otherMfans = new TreeSet<String>(mfanSet);
+    final Set<String> otherMfans = new TreeSet<>(mfanSet);
     otherMfans.removeAll(skipAttribSet);
     otherMfans.removeAll(handledSet);
     final StringBuilder mfOtherAttributes = new StringBuilder();
-    for (final String string : otherMfans) {
-      final String key = string.toString();
-
+    for (final String key : otherMfans) {
       String value = (String) varMap.get(key);
       // If value is a valid URL, present it as a link
       try {
         final URL url = new URL(value);
         value = "<a target=\"_top\" href=\"" + url + "\">" + value + "</a>";
-      } catch (final MalformedURLException mue) {
+      } catch (final MalformedURLException ignored) {
       }
       mfOtherAttributes.append("<tr>\n").append(" <td>").append(key)
           .append("</td>\n").append(" <td>").append(value).append("</td>\n")
@@ -809,7 +800,6 @@ public class BundleHTMLExtractorTask
    * @param ba
    *          The bundle archive to insert manifest attributes from.
    * @return the template string with <code>${depending.list}</code> replaced.
-   * @throws IOException
    */
   private String dependingReplace(final String template, final BundleArchive ba)
       throws IOException
@@ -850,7 +840,6 @@ public class BundleHTMLExtractorTask
    * @param ba
    *          The bundle archive to insert manifest attributes from.
    * @return the template string with <code>${depends.list}</code> replaced.
-   * @throws IOException
    */
   private String providersReplace(final String template, final BundleArchive ba)
       throws IOException
@@ -882,7 +871,7 @@ public class BundleHTMLExtractorTask
       boolean unresolvedHeadingInculded = false;
       for (final Entry<String, VersionRange> entry : ba.pkgUnprovidedMap
           .entrySet()) {
-        final String pkgName = entry.getKey().toString();
+        final String pkgName = entry.getKey();
 
         if (!isSystemPackage(pkgName)) {
           if (!unresolvedHeadingInculded) {
@@ -915,13 +904,12 @@ public class BundleHTMLExtractorTask
    * @param ba
    *          The bundle archive to insert manifest attributes from.
    * @return the template string with <code>${sources.list}</code> replaced.
-   * @throws IOException
    */
   private String sourcesReplace(final String template, final BundleArchive ba)
       throws IOException
   {
     final Map<String, Object> varMap = getVarMap(ba);
-    final List<String> srcList = new ArrayList<String>();
+    final List<String> srcList = new ArrayList<>();
     final StringBuilder sb = new StringBuilder();
 
     if (include_source_files) {
@@ -1006,7 +994,6 @@ public class BundleHTMLExtractorTask
    *          The template to use for this file.
    * @param rowTemplate
    *          Template to use for a bundle row in the listing.
-   * @throws IOException
    */
   private void writeBundlesPage(final File outFile,
                                 final String template,
@@ -1083,9 +1070,8 @@ public class BundleHTMLExtractorTask
    *          The template to use for this file.
    * @param rowTemplate
    *          Template to use for a bundle row in the listing.
-   *
-   * @throws IOException
    */
+  @SuppressWarnings("SameParameterValue")
   private void writePkgListPage(final File outFile,
                                 final String template,
                                 final String rowTemplate,
@@ -1096,7 +1082,7 @@ public class BundleHTMLExtractorTask
 
     for (final Entry<String, SortedMap<Version, SortedSet<BundleArchive>>> entry : bas.allExports
         .entrySet()) {
-      final String pkg = entry.getKey().toString();
+      final String pkg = entry.getKey();
       final Map<Version, SortedSet<BundleArchive>> vpMap = entry.getValue();
 
       for (final Entry<Version, SortedSet<BundleArchive>> vpEntry : vpMap
@@ -1136,6 +1122,7 @@ public class BundleHTMLExtractorTask
    * Derive relative path from <tt>fromDir</tt> to the file given by
    * <tt>filePath</tt>.
    */
+  @SuppressWarnings("StringConcatenationInLoop")
   static String createRelPath(File fromDir, String filePath)
   {
     String res = "";
@@ -1146,6 +1133,12 @@ public class BundleHTMLExtractorTask
       res += "..";
       fromDir = fromDir.getParentFile();
     }
+
+    if (fromDir == null) {
+      // Relative path not possible
+      return filePath;
+    }
+
     if (res.length() > 0) {
       res += File.separator;
     }

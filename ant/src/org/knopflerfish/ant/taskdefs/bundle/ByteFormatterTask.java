@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -203,7 +203,6 @@ public class ByteFormatterTask extends Task {
    * Performs the requested formatting.
    */
   public void execute() {
-    String formatedValue = "";
     String[] suffixes = new String[]{ "",  "Ki","Mi",
                                       "Gi","Ti","Pi",
                                       "Ei","Zi","Yi"};
@@ -228,10 +227,10 @@ public class ByteFormatterTask extends Task {
     long r = value -i*factor; // Remainder.
     // Convert r to a decimal fraction
     double fraction  = ((double) r)/((double) factor);
-    formatedValue = formatValue(i, fraction);
+    String formattedValue = formatValue(i, fraction);
 
     Project project = getProject();
-    project.setProperty(property, formatedValue +sep +suffixes[ix] +unit);
+    project.setProperty(property, formattedValue + sep + suffixes[ix] + unit);
   }
 
   private String formatValue( long integral, double fraction)
@@ -239,10 +238,10 @@ public class ByteFormatterTask extends Task {
     String res = String.valueOf(integral);
     if (integral<10) { // Append two digits from the fraction
       int dec = (int) (fraction*100);
-      res = res +"." +(dec<10?"0":"") +String.valueOf(dec);
+      res = res +"." + (dec < 10 ? "0" : "") + dec;
     } else if (integral<100) { // Append one digit from the fraction
       int dec = (int) (fraction*10);
-      res = res +"." +String.valueOf(dec);
+      res = res +"." + dec;
     }
     return res;
   }

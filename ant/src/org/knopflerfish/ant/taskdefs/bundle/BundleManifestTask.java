@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2018, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -318,7 +319,7 @@ public class BundleManifestTask extends Task {
    * All known kinds of bundles. Used to remove unused kind specific main section
    * manifest attributes.
    */
-  private final Set<String> allBundleKinds = new HashSet<String>();
+  private final Set<String> allBundleKinds = new HashSet<>();
 
   /**
    * Prefix of project properties to add main section attributes for.
@@ -442,7 +443,7 @@ public class BundleManifestTask extends Task {
   /**
    * The name of the OSGi/Minimum Execution Environment.
    */
-  private final String OSGI_MINIMUM_EE_NAME = "OSGi/Minimum";
+  private static final String OSGI_MINIMUM_EE_NAME = "OSGi/Minimum";
 
   /**
    * Replacement filter for the filter in required capabilities in the
@@ -453,8 +454,6 @@ public class BundleManifestTask extends Task {
   /**
    * Sets the replacement filter expression for required capabilities in the
    * osgi.ee name-space that requires the OSGi/Minimum EE.
-   *
-   * @param s
    */
   public void setReplaceEEmin(String s) {
     if (s != null && (s = s.trim()).length() > 0) {
@@ -563,7 +562,7 @@ public class BundleManifestTask extends Task {
             try {
               attr = new Manifest.Attribute(attrName, attrValue);
               mf.addConfiguredAttribute(attr);
-              log("from propety '" + attrName + ": " + attrValue + "'.", Project.MSG_VERBOSE);
+              log("from property '" + attrName + ": " + attrValue + "'.", Project.MSG_VERBOSE);
             } catch (final ManifestException me) {
               throw new BuildException("Failed to add main section attribute for property '" + key + "' with value '"
                   + attrValue + "'.\n" + me.getMessage(), me, getLocation());
@@ -596,7 +595,7 @@ public class BundleManifestTask extends Task {
    * Mapping from attribute key, all lower case, to attribute name with case
    * according to the OSGi specification.
    */
-  private static final Hashtable<String, String> osgiAttrNamesMap = new Hashtable<String, String>();
+  private static final Hashtable<String, String> osgiAttrNamesMap = new Hashtable<>();
   static {
     for (final String osgiAttrName : osgiAttrNames) {
       osgiAttrNamesMap.put(osgiAttrName.toLowerCase(), osgiAttrName);
@@ -641,7 +640,7 @@ public class BundleManifestTask extends Task {
     if (null != prefix && 0 < prefix.length()) {
       final int prefixLength = prefix.length();
       final Manifest.Section mainS = mf.getMainSection();
-      final Vector<String> attrNames = new Vector<String>();
+      final Vector<String> attrNames = new Vector<>();
       for (final Enumeration<String> ae = mainS.getAttributeKeys(); ae.hasMoreElements();) {
         final String key = ae.nextElement();
         final Manifest.Attribute attr = mainS.getAttribute(key);
@@ -685,7 +684,7 @@ public class BundleManifestTask extends Task {
       final Manifest.Section mainS = mf.getMainSection();
 
       // Find all attributes to remove.
-      final Vector<String> attrNames = new Vector<String>();
+      final Vector<String> attrNames = new Vector<>();
       for (final Enumeration<String> ae = mainS.getAttributeKeys(); ae.hasMoreElements();) {
         final String key = ae.nextElement();
         final Manifest.Attribute attr = mainS.getAttribute(key);
@@ -756,6 +755,7 @@ public class BundleManifestTask extends Task {
    * @exception ManifestException
    *              if the section is not valid.
    */
+  @SuppressWarnings("unused")
   public void addConfiguredSection(Manifest.Section section) throws ManifestException {
     manifestNested.addConfiguredSection(section);
   }
@@ -792,6 +792,7 @@ public class BundleManifestTask extends Task {
    * @exception ManifestException
    *              if the attribute is not valid.
    */
+  @SuppressWarnings("unused")
   public void addConfiguredAttribute(Manifest.Attribute attribute) throws ManifestException {
     if (BUNDLE_EMPTY_STRING.equals(attribute.getValue())) {
       return;
@@ -830,6 +831,7 @@ public class BundleManifestTask extends Task {
    * @param suffix
    *          The required suffix.
    */
+  @SuppressWarnings("SameParameterValue")
   private void ensureAttrFirstValueEndsWith(final Manifest mf, final String attrName, final String suffix) {
     final Manifest.Attribute attr = mf.getMainSection().getAttribute(attrName);
     if (null != attr) {
@@ -861,6 +863,7 @@ public class BundleManifestTask extends Task {
    * @param value
    *          The required attribute value.
    */
+  @SuppressWarnings("SameParameterValue")
   private void ensureAttrValue(Manifest mf, String attrName, String value) {
     Manifest.Attribute ma = mf.getMainSection().getAttribute(attrName);
     if (null == ma) {
@@ -892,7 +895,7 @@ public class BundleManifestTask extends Task {
     final Manifest.Attribute kfVerAttr = mf.getMainSection().getAttribute("Knopflerfish-Version");
     if (null != kfVerAttr) {
       final String version = kfVerAttr.getValue();
-      final boolean isSnapshot = -1 < version.indexOf("snapshot");
+      final boolean isSnapshot = version.contains("snapshot");
 
       final String toReplace = "/releases/current/";
       final String replacement = isSnapshot ? "/snapshots/" + version + "/" : ("/releases/" + version + "/");
@@ -967,29 +970,15 @@ public class BundleManifestTask extends Task {
     Manifest manifestTemplate = null;
 
     if (null != manifestTemplateFile && manifestTemplateFile.exists()) {
-      FileInputStream is = null;
-      InputStreamReader ir = null;
-      try {
-        is = new FileInputStream(manifestTemplateFile);
-        if (encoding == null) {
-          ir = new InputStreamReader(is, "UTF-8");
-        } else {
-          ir = new InputStreamReader(is, encoding);
-        }
+      final String encoding = this.encoding == null ? "UTF-8" : this.encoding;
+      try (InputStreamReader ir = new InputStreamReader(
+          new FileInputStream(manifestTemplateFile), encoding)) {
         manifestTemplate = new Manifest(ir);
       } catch (final ManifestException me) {
         throw new BuildException("Template manifest " + manifestTemplateFile + " is invalid. " + me.getMessage(), me,
             getLocation());
       } catch (final IOException ioe) {
         throw new BuildException("Failed to read " + manifestTemplateFile, ioe, getLocation());
-      } finally {
-        if (ir != null) {
-          try {
-            ir.close();
-          } catch (final IOException e) {
-            // ignore
-          }
-        }
       }
     }
 
@@ -1002,7 +991,7 @@ public class BundleManifestTask extends Task {
         }
         manifestToWrite.merge(manifestProps);
         manifestToWrite.merge(manifestNested);
-        log("Creating bundle manifets based on '" + manifestTemplateFile + "' merged with data from"
+        log("Creating bundle manifest based on '" + manifestTemplateFile + "' merged with data from"
             + " manifest properties and nested elements.",
             manifestFile == null ? Project.MSG_DEBUG : Project.MSG_VERBOSE);
       }
@@ -1010,7 +999,7 @@ public class BundleManifestTask extends Task {
         // Resulting manifest based on properties and nested data
         manifestToWrite.merge(manifestProps);
         manifestToWrite.merge(manifestNested);
-        log("Creating bundle manifets based on data from" + " properties and nested elements.",
+        log("Creating bundle manifest based on data from" + " properties and nested elements.",
             manifestFile == null ? Project.MSG_DEBUG : Project.MSG_VERBOSE);
       }
       if (mode.getValue().startsWith("template")) {
@@ -1020,10 +1009,10 @@ public class BundleManifestTask extends Task {
         }
         if (!mode.getValue().equals("templateOnly")) {
           manifestToWrite.merge(manifestNested);
-          log("Creating bundle manifets based on '" + manifestTemplateFile + "' and nested elements.",
+          log("Creating bundle manifest based on '" + manifestTemplateFile + "' and nested elements.",
               manifestFile == null ? Project.MSG_DEBUG : Project.MSG_VERBOSE);
         } else {
-          log("Creating bundle manifets based on '" + manifestTemplateFile + "'.",
+          log("Creating bundle manifest based on '" + manifestTemplateFile + "'.",
               manifestFile == null ? Project.MSG_DEBUG : Project.MSG_VERBOSE);
         }
       }
@@ -1062,19 +1051,13 @@ public class BundleManifestTask extends Task {
     if (null == manifestFile) {
       updatePropertiesFromMainSectionAttributeValues(manifestToWrite);
     } else {
-      PrintWriter pw = null;
-      try {
-        final FileOutputStream os = new FileOutputStream(manifestFile);
-        final OutputStreamWriter ow = new OutputStreamWriter(os, "UTF-8");
-        pw = new PrintWriter(ow);
+      try (PrintWriter pw = new PrintWriter(
+          new OutputStreamWriter(
+              new FileOutputStream(manifestFile), StandardCharsets.UTF_8))) {
         manifestToWrite.write(pw);
         doVerbose(manifestToWrite);
       } catch (final IOException ioe) {
         throw new BuildException("Failed to write " + manifestFile, ioe, getLocation());
-      } finally {
-        if (pw != null) {
-          pw.close();
-        }
       }
     }
   }

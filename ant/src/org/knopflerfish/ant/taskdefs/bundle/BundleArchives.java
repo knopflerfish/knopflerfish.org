@@ -43,7 +43,6 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -98,7 +97,7 @@ public class BundleArchives {
    * the bundle has been found.
    */
   final Map<String, SortedSet<BundleArchive>> bnToBundleArchives =
-    new TreeMap<String, SortedSet<BundleArchive>>();
+      new TreeMap<>();
 
   /**
    * Map from bundle symbolic name to a sorted set of a bundle archive object
@@ -106,12 +105,12 @@ public class BundleArchives {
    * when more than one version of the bundle has been found.
    */
   final Map<String, SortedSet<BundleArchive>> bsnToBundleArchives =
-    new TreeMap<String, SortedSet<BundleArchive>>();
+      new TreeMap<>();
 
   /**
    * Set with all bundle archives specified by the given resource collections.
    */
-  final SortedSet<BundleArchive> allBundleArchives = new TreeSet<BundleArchive>();
+  final SortedSet<BundleArchive> allBundleArchives = new TreeSet<>();
 
   /**
    * Set with all packages exported from some bundle in this collection of
@@ -124,7 +123,7 @@ public class BundleArchives {
    * </p>
    */
   final SortedMap<String, SortedMap<Version, SortedSet<BundleArchive>>> allExports =
-    new TreeMap<String, SortedMap<Version, SortedSet<BundleArchive>>>();
+      new TreeMap<>();
 
   /**
    * Traverse the given list of resource collections and create
@@ -196,20 +195,18 @@ public class BundleArchives {
           }
         }
 
-        for (@SuppressWarnings("unchecked")
-        final Iterator<Resource> rcIt = rc.iterator(); rcIt.hasNext();) {
-          final Resource res = rcIt.next();
+        for (final Resource res : rc) {
           if (res.getName().endsWith(".jar")) {
             task.log("Adding bundle: " + res, Project.MSG_VERBOSE);
             try {
               final BundleArchive ba =
-                new BundleArchive(task, (FileResource) res, parseExportImport);
+                  new BundleArchive(task, (FileResource) res, parseExportImport);
               allBundleArchives.add(ba);
               addToMap(bnToBundleArchives, ba.bundleName, ba);
               addToMap(bsnToBundleArchives, ba.bsn, ba);
             } catch (final Exception e) {
               final String msg =
-                "Failed to analyze bundle archive: " + res + "; reason: " + e;
+                  "Failed to analyze bundle archive: " + res + "; reason: " + e;
               task.log(msg);
               throw new BuildException(msg, e);
             }
@@ -227,7 +224,7 @@ public class BundleArchives {
   }
 
   SortedSet<String> getKnownNames() {
-    final TreeSet<String> knownNames = new TreeSet<String>(bnToBundleArchives.keySet());
+    final TreeSet<String> knownNames = new TreeSet<>(bnToBundleArchives.keySet());
     knownNames.addAll(bsnToBundleArchives.keySet());
     return knownNames;
   }
@@ -249,17 +246,12 @@ public class BundleArchives {
         final String pkgName = eE.getKey();
         final Version pkgVersion = eE.getValue();
 
-        SortedMap<Version, SortedSet<BundleArchive>> versions = allExports.get(pkgName);
-        if (null == versions) {
-          versions = new TreeMap<Version, SortedSet<BundleArchive>>();
-          allExports.put(pkgName, versions);
-        }
+        SortedMap<Version, SortedSet<BundleArchive>> versions =
+            allExports.computeIfAbsent(pkgName, k -> new TreeMap<>());
 
-        SortedSet<BundleArchive> exporters = versions.get(pkgVersion);
-        if (null == exporters) {
-          exporters = new TreeSet<BundleArchive>();
-          versions.put(pkgVersion, exporters);
-        }
+        SortedSet<BundleArchive> exporters =
+            versions.computeIfAbsent(pkgVersion, k -> new TreeSet<>());
+
         exporters.add(ba);
       }
     }
@@ -282,21 +274,13 @@ public class BundleArchives {
                 // The package pkgName may be imported by ba from provider,
                 // update ba's providers map
                 SortedSet<String> pkgNames = ba.pkgProvidersMap
-                  .get(provider);
-                if (null == pkgNames) {
-                  pkgNames = new TreeSet<String>();
-                  ba.pkgProvidersMap.put(provider, pkgNames);
-                }
+                    .computeIfAbsent(provider, k -> new TreeSet<>());
                 pkgNames.add(pkgName);
 
                 // Non self exported package, add to pkgCtProvidersMap
                 if (!ba.pkgExportMap.containsKey(pkgName)) {
                   SortedSet<String> pkgNamesCt = ba.pkgCtProvidersMap
-                    .get(provider);
-                  if (null == pkgNamesCt) {
-                    pkgNamesCt = new TreeSet<String>();
-                    ba.pkgCtProvidersMap.put(provider, pkgNamesCt);
-                  }
+                      .computeIfAbsent(provider, k -> new TreeSet<>());
                   pkgNamesCt.add(pkgName);
                 }
 
@@ -304,11 +288,7 @@ public class BundleArchives {
                 // provider to ba, update provider.pkgProvidedMap to
                 // reflect this.
                 SortedSet<String> pkgNamesProvidedToBa = provider.pkgProvidedMap
-                  .get(ba);
-                if (null == pkgNamesProvidedToBa) {
-                  pkgNamesProvidedToBa = new TreeSet<String>();
-                  provider.pkgProvidedMap.put(ba, pkgNamesProvidedToBa);
-                }
+                    .computeIfAbsent(ba, k -> new TreeSet<>());
                 pkgNamesProvidedToBa.add(pkgName);
               }
             }
@@ -354,7 +334,7 @@ public class BundleArchives {
 
     SortedSet<BundleArchive> bas = map.get(key);
     if (null == bas) {
-      bas = new TreeSet<BundleArchive>();
+      bas = new TreeSet<>();
       map.put(key, bas);
       task.log("Found bundle '" + key + "'.", Project.MSG_DEBUG);
     }
@@ -407,7 +387,7 @@ public class BundleArchives {
     final Map<String, VersionRange> pkgImportMap;
 
     /** Set with names of imported packages that are optional. */
-    final Set<String> pkgImportOptional = new TreeSet<String>();
+    final Set<String> pkgImportOptional = new TreeSet<>();
 
     /**
      * Collection of bundles that provides packages that this bundle are
@@ -419,7 +399,7 @@ public class BundleArchives {
      * </p>
      */
     final Map<BundleArchive, SortedSet<String>> pkgProvidersMap =
-      new TreeMap<BundleArchive, SortedSet<String>>();
+        new TreeMap<>();
 
     /**
      * Collection of bundles that provides packages that this bundle needs
@@ -433,7 +413,7 @@ public class BundleArchives {
      * </p>
      */
     final Map<BundleArchive, SortedSet<String>> pkgCtProvidersMap =
-      new TreeMap<BundleArchive, SortedSet<String>>();
+        new TreeMap<>();
 
     /**
      * Collection of bundles that this bundle provides packages to, i.e.,
@@ -446,7 +426,7 @@ public class BundleArchives {
      * </p>
      */
     final Map<BundleArchive, SortedSet<String>> pkgProvidedMap =
-      new TreeMap<BundleArchive, SortedSet<String>>();
+        new TreeMap<>();
 
     /**
      * Sub set of the entries in the imported packages map for which there are
@@ -457,7 +437,7 @@ public class BundleArchives {
      * Initially empty, to fill in this map call {@link #doProviders()}.
      * </p>
      */
-    final Map<String, VersionRange> pkgUnprovidedMap = new TreeMap<String, VersionRange>();
+    final Map<String, VersionRange> pkgUnprovidedMap = new TreeMap<>();
 
     /** Mapping from exported service name to its version. */
     final Map<String, Version> serviceExportMap;
@@ -489,8 +469,7 @@ public class BundleArchives {
       this.relPath = resource.getName();
 
       // Get data from the bundles manifest and contents
-      final JarFile bundle = new JarFile(file);
-      try {
+      try (JarFile bundle = new JarFile(file)) {
         final Manifest manifest = bundle.getManifest();
         this.mainAttributes = manifest.getMainAttributes();
         this.manifestVersion = deriveBundleManifestVersion();
@@ -508,13 +487,6 @@ public class BundleArchives {
         }
         srcCount = count;
 
-      } finally {
-        if (null != bundle) {
-          try {
-            bundle.close();
-          } catch (final IOException _ioe) {
-          }
-        }
       }
 
       // Derive bundle name, bn, from the file name and the manifest version.
@@ -544,12 +516,9 @@ public class BundleArchives {
                        + "', but the version in the bundle's manifest is '"
                        + version + "'.", Project.MSG_DEBUG);
             }
-          } catch (final NumberFormatException nfe) {
+          } catch (final IllegalArgumentException e) {
             task.log("Invalid version in bundle file name '" + versionS + "': "
-                     + nfe, Project.MSG_VERBOSE);
-          } catch (final IllegalArgumentException iae) {
-            task.log("Invalid version in bundle file name '" + versionS + "': "
-                     + iae, Project.MSG_VERBOSE);
+                     + e, Project.MSG_VERBOSE);
           }
           ix = fileName.lastIndexOf('-', ix-1);
         }
@@ -587,7 +556,7 @@ public class BundleArchives {
       }
 
       if ("2".equals(manifestVersion) && null == bsn) {
-        final String msg = "Found bundle with Bundle-MainfestVersion >= 2 "
+        final String msg = "Found bundle with Bundle-ManifestVersion >= 2 "
           + "without Bundle-SymbolicName: " + fileName;
         throw new BuildException(msg);
       }
@@ -683,26 +652,16 @@ public class BundleArchives {
 
       try {
         return new Version(versionS);
-      } catch (final NumberFormatException nfe) {
+      } catch (final IllegalArgumentException e) {
         if ("1".equals(manifestVersion)) {
           // Pre OSGi R4 bundle with non-standard version format; use
           // the default version.
           return Version.emptyVersion;
         }
         final String msg = "Invalid bundle version '" + versionS
-          + "' found in " + file + ": " + nfe;
+          + "' found in " + file + ": " + e;
         task.log(msg, Project.MSG_ERR);
-        throw new BuildException(msg, nfe);
-      } catch (final IllegalArgumentException iae) {
-        if ("1".equals(manifestVersion)) {
-          // Pre OSGi R4 bundle with non-standard version format; use
-          // the default version.
-          return Version.emptyVersion;
-        }
-        final String msg = "Invalid bundle version '" + versionS
-          + "' found in " + file + ": " + iae;
-        task.log(msg, Project.MSG_ERR);
-        throw new BuildException(msg, iae);
+        throw new BuildException(msg, e);
       }
     }
 
@@ -723,13 +682,12 @@ public class BundleArchives {
      *
      * @return Mapping from package/service name to version/version range.
      */
-    @SuppressWarnings("deprecation")
-	private <V> Map<String, V> parseNames(String s,
-                                          boolean range,
+    private <V> Map<String, V> parseNames(String s,
+                                          @SuppressWarnings("unused") boolean range,
                                           Set<String> optionals,
                                           Class<V> valueType)
     {
-      final TreeMap<String, V> res = new TreeMap<String, V>();
+      final TreeMap<String, V> res = new TreeMap<>();
 
       final String v = mainAttributes.getValue(s);
       final List<HeaderEntry> entries =
@@ -740,6 +698,7 @@ public class BundleArchives {
           (String) entry.attributes.get(Constants.VERSION_ATTRIBUTE);
         // Fall back to "specification-version" for pre OSGi R4 bundles.
         if (null == versionS) {
+          //noinspection deprecation
           versionS =
             (String) entry.attributes
                 .get(Constants.PACKAGE_SPECIFICATION_VERSION);
@@ -749,15 +708,13 @@ public class BundleArchives {
         }
         if (valueType.equals(Version.class)) {
           @SuppressWarnings("unchecked")
-          final
-          V version = (V) new Version(versionS);
+          final V version = (V) new Version(versionS);
           for (final String key : entry.getKeys()) {
             res.put(key, version);
           }
         } else if (valueType.equals(VersionRange.class)) {
           @SuppressWarnings("unchecked")
-          final
-          V versionRange =  (V) new VersionRange(versionS);
+          final V versionRange = (V) new VersionRange(versionS);
           for (final String key : entry.getKeys()) {
             res.put(key, versionRange);
           }
@@ -774,7 +731,7 @@ public class BundleArchives {
 
     public String getBundleDescription() {
       final String res = mainAttributes.getValue(Constants.BUNDLE_DESCRIPTION);
-      return null == res ? res : res.trim();
+      return null == res ? null : res.trim();
     }
 
     public List<HeaderEntry> getBundleLicense() {
@@ -841,16 +798,16 @@ public class BundleArchives {
      *          The directory to extract the source files to.
      * @return List with one entry for each extracted file. The value is the
      *         path relative to <code>destDir</code>.
-     * @throws IOException
      */
     public List<String> extractSources(File destDir) throws IOException {
-      final List<String> res = new ArrayList<String>();
+      final List<String> res = new ArrayList<>();
       final JarFile jarFile = new JarFile(file);
       for (final Enumeration<JarEntry> e = jarFile.entries(); e.hasMoreElements();) {
         final ZipEntry entry = e.nextElement();
 
         if (entry.getName().startsWith(SRC_PREFIX)) {
           if (0 == res.size()) {
+            //noinspection ResultOfMethodCallIgnored
             destDir.mkdirs();
           }
 
@@ -874,14 +831,17 @@ public class BundleArchives {
       return res;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static void makeDir(final File destDir, final ZipEntry entry,
-                                final String prefix) throws IOException {
+                                final String prefix) {
       final File d = new File(destDir,
                               Util.replace(entry.getName(), prefix, ""));
 
+      //noinspection ResultOfMethodCallIgnored
       d.mkdirs();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static void copyEntry(File destDir, ZipFile file, ZipEntry entry,
                                   String prefix) throws IOException {
       final File destFile = new File(destDir, Util.replace(entry.getName(),
@@ -890,6 +850,7 @@ public class BundleArchives {
       final File dir = destFile.getParentFile();
 
       if (!dir.exists()) {
+        //noinspection ResultOfMethodCallIgnored
         dir.mkdirs();
       }
       copyStream(new BufferedInputStream(file.getInputStream(entry)),
@@ -900,38 +861,27 @@ public class BundleArchives {
       throws IOException {
       final byte[] buf = new byte[1024];
 
-      BufferedInputStream in = null;
-      BufferedOutputStream out = null;
-
-      try {
-        in = new BufferedInputStream(is);
-        out = new BufferedOutputStream(os);
+      try (BufferedInputStream in = new BufferedInputStream(is);
+           BufferedOutputStream out = new BufferedOutputStream(os)) {
         int n;
         while ((n = in.read(buf)) > 0) {
           out.write(buf, 0, n);
-        }
-      } finally {
-        try {
-          in.close();
-        } catch (final Exception ignored) {
-        }
-        try {
-          out.close();
-        } catch (final Exception ignored) {
         }
       }
     }
 
     private static List<String> copyTree(File dest, File src, String prefix,
                                  String suffix) throws IOException {
-      final List<String> res = new ArrayList<String>();
+      final List<String> res = new ArrayList<>();
 
       if (src.isDirectory()) {
         if (!dest.exists()) {
+          //noinspection ResultOfMethodCallIgnored
           dest.mkdirs();
         }
 
         final String[] files = src.list();
+        assert files != null;
         for (final String file2 : files) {
           res.addAll(copyTree(new File(dest, file2),
                               new File(src, file2), prefix, suffix));
@@ -959,11 +909,10 @@ public class BundleArchives {
      *
      * @return Mapping where the key is the name (path) of the source file and
      *         the value the repository URL to it.
-     * @throws IOException
      */
     public Map<String, String> getSrcRepositoryLinks(final String pathPrefix, final URL repoURL)
       throws IOException {
-      final Map<String, String> res = new TreeMap<String, String>();
+      final Map<String, String> res = new TreeMap<>();
 
       // Check if we can locate a source tree based on the
       // "Built-From" header.
@@ -988,10 +937,11 @@ public class BundleArchives {
 
     private Map<String, String> srcRepositoryLinks(final String pathPrefix, final URL repoURL,
                                    final File src, final String prefix) throws IOException {
-      final Map<String, String> res = new TreeMap<String, String>();
+      final Map<String, String> res = new TreeMap<>();
 
       if (src.isDirectory()) {
         final String[] files = src.list();
+        assert files != null;
         for (final String file2 : files) {
           res.putAll(srcRepositoryLinks(pathPrefix, repoURL, new File(src,
                                                                       file2), prefix));

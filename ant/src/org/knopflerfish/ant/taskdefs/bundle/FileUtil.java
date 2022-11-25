@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -74,7 +74,7 @@ public class FileUtil
 
   public static String loadFile(String fname) throws IOException {
     final byte[] bytes = loadURL(new URL("file:" + fname));
-    return new String(bytes, "UTF-8");
+    return new String(bytes, StandardCharsets.UTF_8);
   }
 
 
@@ -92,7 +92,7 @@ public class FileUtil
   }
 
   /**
-   * Load an XML-formated file into a DOM-document.
+   * Load an XML-formatted file into a DOM-document.
    *
    * @param file The XML file to load.
    * @return DOM document.
@@ -127,15 +127,13 @@ public class FileUtil
 
   // Always write files using UTF-8.
   public static void writeStringToFile(File outFile, String s) throws IOException {
-    OutputStreamWriter writer = null;
-    try {
-      outFile.getParentFile().mkdirs();
-      final OutputStream out = new FileOutputStream(outFile);
-      writer = new OutputStreamWriter(out, "UTF-8");
+    //noinspection ResultOfMethodCallIgnored
+    outFile.getParentFile().mkdirs();
+
+    try (OutputStreamWriter writer = new OutputStreamWriter(
+        new FileOutputStream(outFile), StandardCharsets.UTF_8)) {
       writer.write(s, 0, s.length());
       //      System.out.println("wrote " + outFile);
-    } finally {
-      try { writer.close(); } catch (final Exception ignored) { }
     }
   }
 

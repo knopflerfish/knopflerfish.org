@@ -392,18 +392,16 @@ import org.osgi.framework.Version;
  */
 public class BundleInfoTask extends Task {
 
-  private final ArrayList<ResourceCollection> implsResourceCollections = new ArrayList<ResourceCollection>();
-  private final List<ResourceCollection> exportsResourceCollections = new ArrayList<ResourceCollection>();
+  private final ArrayList<ResourceCollection> implsResourceCollections = new ArrayList<>();
+  private final List<ResourceCollection> exportsResourceCollections = new ArrayList<>();
 
   private String importsProperty = "";
   private String exportsProperty = "";
   private String activatorProperty = "";
-  private String serviceComponent = "";
-  private String fragmentHost = "";
   private Version manifestVersion = new Version("1");
   private boolean bUses = true;
 
-  private final Set<String> stdImports = new TreeSet<String>();
+  private final Set<String> stdImports = new TreeSet<>();
 
   private boolean bPrintClasses = false;
 
@@ -420,11 +418,11 @@ public class BundleInfoTask extends Task {
    * The set of packages referenced by the included classes but not provided by
    * them.
    */
-  private final TreeSet<String> importSet = new TreeSet<String>();
+  private final TreeSet<String> importSet = new TreeSet<>();
   /**
    * A set of packages used by the included classes but not referenced from them.
    */
-  private final TreeSet<String> extraImportSet = new TreeSet<String>();
+  private final TreeSet<String> extraImportSet = new TreeSet<>();
 
   private final BundlePackagesInfo bpInfo = new BundlePackagesInfo(this);
   private final ClassAnalyserASM asmAnalyser = new ClassAnalyserASM(bpInfo, this);
@@ -521,8 +519,7 @@ public class BundleInfoTask extends Task {
    * Set name value of the Service-Component manifest header.
    */
   public void setServiceComponent(String serviceComponent) {
-    this.serviceComponent = serviceComponent;
-    if (!BundleManifestTask.isPropertyValueEmpty(this.serviceComponent)) {
+    if (!BundleManifestTask.isPropertyValueEmpty(serviceComponent)) {
       // A bundle with service components may have an activator but it
       // is not recommended.
       bActivatorOptional = true;
@@ -533,8 +530,7 @@ public class BundleInfoTask extends Task {
    * Set value of the Fragment-Host manifest header.
    */
   public void setFragmentHost(String fragmentHost) {
-    this.fragmentHost = fragmentHost;
-    if (!BundleManifestTask.isPropertyValueEmpty(this.fragmentHost)) {
+    if (!BundleManifestTask.isPropertyValueEmpty(fragmentHost)) {
       // A fragment bundle must not have an activator.
       bSetActivator = false;
     }
@@ -577,6 +573,7 @@ public class BundleInfoTask extends Task {
    * @param set
    *          The file set with exports to add.
    */
+  @SuppressWarnings("unused")
   public void addConfiguredExports(FileSet set) {
     final Restrict restrict = new Restrict();
     restrict.add(set);
@@ -590,6 +587,7 @@ public class BundleInfoTask extends Task {
    * @param bcpt
    *          The bundle classpath that the bundle will have.
    */
+  @SuppressWarnings("unused")
   public void addConfiguredExportsBundleClasspath(BundleClasspathTask bcpt) {
     for (final Object element : bcpt.getFileSets(failOnClassPath)) {
       final Restrict restrict = new Restrict();
@@ -605,6 +603,7 @@ public class BundleInfoTask extends Task {
    * @param set
    *          The file set with private implementations to add.
    */
+  @SuppressWarnings("unused")
   public void addConfiguredImpls(FileSet set) {
     final Restrict restrict = new Restrict();
     restrict.add(set);
@@ -618,6 +617,7 @@ public class BundleInfoTask extends Task {
    * @param bcpt
    *          The bundle classpath that the bundle will have.
    */
+  @SuppressWarnings("unused")
   public void addConfiguredImplsBundleClasspath(BundleClasspathTask bcpt) {
     for (final Object element : bcpt.getFileSets(failOnClassPath)) {
       final Restrict restrict = new Restrict();
@@ -658,15 +658,14 @@ public class BundleInfoTask extends Task {
     for (final Object element : exportsResourceCollections) {
       final ResourceCollection rc = (ResourceCollection) element;
 
-      for (final Iterator<Resource> rcIt = rc.iterator(); rcIt.hasNext();) {
-        final Resource res = rcIt.next();
+      for (final Resource res : rc) {
         log("Exports resource: " + res, Project.MSG_DEBUG);
         analyze(res);
       }
     } // Scan done
 
     // Get the sub-set of the provided packages that are the exports set
-    final Set<String> providedExportSet = new TreeSet<String>(bpInfo.getProvidedPackages());
+    final Set<String> providedExportSet = new TreeSet<>(bpInfo.getProvidedPackages());
     final SortedSet<String> manifestExportSet = getPredefinedExportSet();
     if (null != manifestExportSet) {
       // An Export-Package header was given it shall contain
@@ -676,7 +675,7 @@ public class BundleInfoTask extends Task {
         log("Provided package to export:  " + providedExportSet, Project.MSG_ERR);
         log("Given Export-Package header: " + manifestExportSet, Project.MSG_ERR);
         final StringBuilder msg = new StringBuilder();
-        final TreeSet<String> tmp = new TreeSet<String>(manifestExportSet);
+        final TreeSet<String> tmp = new TreeSet<>(manifestExportSet);
         tmp.removeAll(providedExportSet);
         if (0 < tmp.size()) {
           msg.append("The following non-provided packages are present in the ").append("Export-Package header: ")
@@ -708,8 +707,7 @@ public class BundleInfoTask extends Task {
     for (final Object element : implsResourceCollections) {
       final ResourceCollection rc = (ResourceCollection) element;
 
-      for (final Iterator<Resource> rcIt = rc.iterator(); rcIt.hasNext();) {
-        final Resource res = rcIt.next();
+      for (final Resource res : rc) {
         log("Impl resource: " + res, Project.MSG_DEBUG);
         analyze(res);
       }
@@ -725,7 +723,7 @@ public class BundleInfoTask extends Task {
 
     // The set of referenced packages that matches one of the
     // stdImport patterns.
-    final SortedSet<String> ignoredReferencedPackages = new TreeSet<String>();
+    final SortedSet<String> ignoredReferencedPackages = new TreeSet<>();
 
     // Remove all packages with names like "java.*" (full set of
     // patterns are given by the stdImports set). Such packages must
@@ -740,14 +738,14 @@ public class BundleInfoTask extends Task {
     log("Referenced packages to import: " + unprovidedReferencedPackages, Project.MSG_DEBUG);
     importSet.addAll(unprovidedReferencedPackages);
 
-    final SortedSet<String> unprovidedExtraImportSet = new TreeSet<String>(extraImportSet);
+    final SortedSet<String> unprovidedExtraImportSet = new TreeSet<>(extraImportSet);
     unprovidedExtraImportSet.removeAll(bpInfo.getProvidedPackages());
     log("Un-provided extra packages to import: " + unprovidedExtraImportSet, Project.MSG_DEBUG);
     importSet.addAll(unprovidedExtraImportSet);
 
     // The set of packages that will be mentioned in the
     // Export-Package or the Import-Package header.
-    final Set<String> allImpExpPkgs = new TreeSet<String>(providedExportSet);
+    final Set<String> allImpExpPkgs = new TreeSet<>(providedExportSet);
     allImpExpPkgs.addAll(importSet);
 
     bpInfo.postProcessUsingMap(ignoredReferencedPackages, allImpExpPkgs);
@@ -796,7 +794,7 @@ public class BundleInfoTask extends Task {
       } else {
         // Import-Package given; check that all derived packages are
         // present and that there are no duplicated packages.
-        final TreeSet<String> givenImportSet = new TreeSet<String>();
+        final TreeSet<String> givenImportSet = new TreeSet<>();
 
         final List<HeaderEntry> entries = Util.parseManifestHeader(Constants.IMPORT_PACKAGE, importsVal, false, true,
             false);
@@ -812,7 +810,7 @@ public class BundleInfoTask extends Task {
         }
 
         givenImportSet.removeAll(bpInfo.getProvidedPackages());
-        final TreeSet<String> missingImports = new TreeSet<String>(importSet);
+        final TreeSet<String> missingImports = new TreeSet<>(importSet);
         missingImports.removeAll(givenImportSet);
         if (0 < missingImports.size()) {
           log("External packages: " + importSet, Project.MSG_ERR);
@@ -826,7 +824,7 @@ public class BundleInfoTask extends Task {
             throw new BuildException(msg, getLocation());
           }
         }
-        final TreeSet<String> extraImports = new TreeSet<String>(givenImportSet);
+        final TreeSet<String> extraImports = new TreeSet<>(givenImportSet);
         extraImports.removeAll(importSet);
         if (0 < extraImports.size()) {
           log("External packages: " + importSet, Project.MSG_ERR);
@@ -888,8 +886,7 @@ public class BundleInfoTask extends Task {
 
     for (final Object element : bpInfo.getReferencedClasses()) {
       final String s = (String) element;
-      if (s.endsWith("[]")) {
-      } else {
+      if (!s.endsWith("[]")) {
         if (!bpInfo.providesClass(s)) {
           if (bPrintClasses) {
             System.out.println(s);
@@ -907,9 +904,7 @@ public class BundleInfoTask extends Task {
         final List<HeaderEntry> entries = Util.parseManifestHeader(Constants.IMPORT_PACKAGE, importsSpec, false, true,
             false);
         for (final HeaderEntry entry : entries) {
-          for (final String pkgName : entry.getKeys()) {
-            importSet.add(pkgName);
-          }
+          importSet.addAll(entry.getKeys());
         }
       } else {
         // Spec is empty, must remove the emtpy value marker for now.
@@ -972,7 +967,7 @@ public class BundleInfoTask extends Task {
       if (!BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
         log("Found non-empty Export-Package attribute: '" + exportsVal + "'", Project.MSG_DEBUG);
 
-        final TreeSet<String> res = new TreeSet<String>();
+        final TreeSet<String> res = new TreeSet<>();
         final List<HeaderEntry> entries = Util.parseManifestHeader(Constants.EXPORT_PACKAGE, exportsVal, false, true,
             false);
 
@@ -1116,9 +1111,9 @@ public class BundleInfoTask extends Task {
             // Validate the given uses directive.
             final Set<String> usesPkgs = bpInfo.getPackagesReferencedFromPackage(pkgName);
             final String usesValue = entry.getDirectives().remove(Constants.USES_DIRECTIVE);
-            final TreeSet<String> uPkgsMan = new TreeSet<String>(
+            final TreeSet<String> uPkgsMan = new TreeSet<>(
                 Arrays.asList(Util.splitwords(usesValue, ", \t", '"')));
-            final Set<String> uPkgsMis = new TreeSet<String>(usesPkgs);
+            final Set<String> uPkgsMis = new TreeSet<>(usesPkgs);
             uPkgsMis.removeAll(uPkgsMan);
             if (0 < uPkgsMis.size()) {
               final String msg = "The package '" + pkgName + "' in the Export-Package"
@@ -1130,7 +1125,7 @@ public class BundleInfoTask extends Task {
                 throw new BuildException(msg, getLocation());
               }
             }
-            final Set<String> uPkgsExtra = new TreeSet<String>(uPkgsMan);
+            final Set<String> uPkgsExtra = new TreeSet<>(uPkgsMan);
             uPkgsExtra.removeAll(usesPkgs);
             if (0 < uPkgsExtra.size()) {
               final String msg = "The package '" + pkgName + "' in the Export-Package"
@@ -1194,17 +1189,17 @@ public class BundleInfoTask extends Task {
       analyzePackageinfo(res);
     } else if (name.endsWith(".class")) {
       analyzeClass(res);
-    } else {
-      // Just ignore all other files
     }
+    // Just ignore all other files
   }
 
+  @SuppressWarnings("unused")
   protected boolean isImported(String className) {
     for (final Object element : importSet) {
       final String pkg = (String) element;
       if (className.startsWith(pkg)) {
         final String rest = className.substring(pkg.length() + 1);
-        if (-1 == rest.indexOf(".")) {
+        if (!rest.contains(".")) {
           return true;
         }
       }
@@ -1258,9 +1253,9 @@ public class BundleInfoTask extends Task {
    *          the version number to convert to a version range.
    * @return A quoted version range string.
    */
-  public static final String toDefaultVersionRange(final String version) {
+  public static String toDefaultVersionRange(final String version) {
     final Version v = new Version(version);
-    return "\"[" + v.toString() + "," + String.valueOf(v.getMajor() + 1) + ")\"";
+    return "\"[" + v.toString() + "," + (v.getMajor() + 1) + ")\"";
   }
 
   public static final Set<String> ANALYZE_SUFFIXES = new TreeSet<String>() {
@@ -1277,16 +1272,13 @@ public class BundleInfoTask extends Task {
    * A resource selector that selects files to be analyzed. I.e., it selects
    * <code>.class</code>-files and <code>packageinfo</code>-files.
    */
-  public static final ResourceSelector analyzeRestriction = new ResourceSelector() {
-    @Override
-    public boolean isSelected(final Resource r) {
-      for (final String suffix : BundleInfoTask.ANALYZE_SUFFIXES) {
-        if (r.getName().endsWith(suffix)) {
-          return true;
-        }
+  public static final ResourceSelector analyzeRestriction = resource -> {
+    for (final String suffix : BundleInfoTask.ANALYZE_SUFFIXES) {
+      if (resource.getName().endsWith(suffix)) {
+        return true;
       }
-      return false;
     }
+    return false;
   };
 
   /**

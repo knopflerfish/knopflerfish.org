@@ -35,7 +35,6 @@ package org.knopflerfish.ant.taskdefs.bundle;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -46,8 +45,6 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.io.FileWriter;
-import java.net.URL;
-import java.net.MalformedURLException;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -59,8 +56,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
-
-import org.osgi.framework.Version;
 
 import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
 import org.knopflerfish.ant.taskdefs.bundle.Util.HeaderEntry;
@@ -280,9 +275,9 @@ public class BundleMvnAntTask extends Task {
     snapshotRelease = b;
   }
   
-  private final List<ResourceCollection> rcs =
-    new ArrayList<ResourceCollection>();
+  private final List<ResourceCollection> rcs = new ArrayList<>();
 
+  @SuppressWarnings("unused")
   public void addFileSet(FileSet fs)
   {
     rcs.add(fs);
@@ -294,6 +289,7 @@ public class BundleMvnAntTask extends Task {
     if (null==outDir) {
       throw new BuildException("Mandatory attribute 'outDir' missing.");
     }
+    //noinspection ResultOfMethodCallIgnored
     outDir.mkdirs();
 
     if (null==buildFileName) {
@@ -361,11 +357,6 @@ public class BundleMvnAntTask extends Task {
  
     fw.write("publications {\n");
     
-    final String prefix1 = "  ";
-    final String prefix2 = prefix1 + "  ";
-    
-    final StringBuilder targetNames = new StringBuilder(2048);
-
     for (final Entry<String,SortedSet<BundleArchive>> entry : bas.bsnToBundleArchives.entrySet()) {
       final SortedSet<BundleArchive> bsnSet = entry.getValue();
       // Sorted set with bundle archives, same bsn, different versions
@@ -395,15 +386,16 @@ public class BundleMvnAntTask extends Task {
         fw.write("version '" + version + "'\n" );
 
         String archivePathName = ba.file.getAbsolutePath();
+        String archivePathPrefix = archivePathName.substring(0, archivePathName.length() - 4);
         fw.write("artifact \"" + archivePathName + "\"\n");
         // source and javadoc, if they exist
-        String javadocPath = archivePathName.substring(0, archivePathName.length()-4) + "-javadoc.jar";
+        String javadocPath = archivePathPrefix + "-javadoc.jar";
         File f = new File(javadocPath);
         if (f.exists()) {
           fw.write("artifact ('" + javadocPath + "') {\n");
           fw.write("classifier = 'javadoc'}\n");
         }
-        String sourcePath = archivePathName.substring(0, archivePathName.length()-4) + "-source.jar";
+        String sourcePath = archivePathPrefix + "-source.jar";
         f = new File(sourcePath);
 
         if (f.exists()) {
@@ -456,9 +448,7 @@ public class BundleMvnAntTask extends Task {
     log("wrote " + buildFileName, Project.MSG_VERBOSE);
   }
 
-  private void writeBuildFile()
-    throws IOException
-  {
+  private void writeBuildFile() {
     log("Creating build file: " + buildFile, Project.MSG_VERBOSE);
 
     final String prefix1 = "  ";
@@ -541,9 +531,7 @@ public class BundleMvnAntTask extends Task {
     log("wrote " + buildFile, Project.MSG_VERBOSE);
   }
 
-  private void writeDependencyManagementFile()
-    throws IOException
-  {
+  private void writeDependencyManagementFile() {
     if (null==dependencyManagementFile) {
       return;
     }
@@ -664,6 +652,7 @@ public class BundleMvnAntTask extends Task {
    * @param value
    *          The new value.
    */
+  @SuppressWarnings("SameParameterValue")
   private void setPropertyValue(final Element el,
                                 final String name,
                                 final String value) {
@@ -724,6 +713,7 @@ public class BundleMvnAntTask extends Task {
    * @param attrValue
    *          The new attribute value.
    */
+  @SuppressWarnings("SameParameterValue")
   private void setTargetAttr(final Element el, final String name, final String attrName, final String attrValue) {
     final NodeList propertyNL = el.getElementsByTagName("target");
     boolean found = false;
@@ -780,6 +770,7 @@ public class BundleMvnAntTask extends Task {
    * @param elc
    *          The element to add Maven coordinates as childe nodes to.
    */
+  @SuppressWarnings("SameParameterValue")
   private void addMavenCoordinates(final Element ela,
                                    final Element elc,
                                    final String prefix)
@@ -814,13 +805,12 @@ public class BundleMvnAntTask extends Task {
    */
   private String getMavenPath(final Element ela)
   {
-    final String path = ela.getAttribute("groupId").replace('.','/') +"/"
-      +ela.getAttribute("artifactId") +"/"
-      +ela.getAttribute("version")    +"/"
-      +ela.getAttribute("artifactId") +"-"
-      +ela.getAttribute("version")    +".jar";
-
-    return path;
+    return
+        ela.getAttribute("groupId").replace('.','/') + "/"
+      + ela.getAttribute("artifactId") + "/"
+      + ela.getAttribute("version")    + "/"
+      + ela.getAttribute("artifactId") + "-"
+      + ela.getAttribute("version")    + ".jar";
   }
 
   private void addGradleLicense(FileWriter fw, final BundleArchive ba) throws IOException
@@ -879,6 +869,7 @@ public class BundleMvnAntTask extends Task {
    * @param prefix
    *          Whitespace to added before the owning element.
    */
+  @SuppressWarnings("SameParameterValue")
   private void addLicense(final Element el, final BundleArchive ba, final String prefix)
   {
     final Element licenses = el.getOwnerDocument().createElement("licenses");
@@ -926,6 +917,7 @@ public class BundleMvnAntTask extends Task {
    * @param prefix
    *          Whitespace to add before the new element.
    */
+  @SuppressWarnings("SameParameterValue")
   private void addDependencies(Element el, BundleArchive ba, String prefix)
   {
     final Element dependencies = el.getOwnerDocument().createElement("dependencies");
@@ -1025,18 +1017,18 @@ public class BundleMvnAntTask extends Task {
     log("Selecting dependencies for : "+ba, Project.MSG_VERBOSE);
 
     // The total set of packages that are provided by the dependencies.
-    final TreeSet<String> pkgs = new TreeSet<String>();
+    final TreeSet<String> pkgs = new TreeSet<>();
 
     // The sub-set of the dependency entries that are API-bundles.
     final List<Entry<BundleArchive, SortedSet<String>>> depsApi =
-      new ArrayList<Entry<BundleArchive, SortedSet<String>>>();
+        new ArrayList<>();
 
     // The sub-set of the dependency entries that are not API-bundles.
     final List<Entry<BundleArchive, SortedSet<String>>> depsNonApi =
-      new ArrayList<Entry<BundleArchive, SortedSet<String>>>();
+        new ArrayList<>();
 
     // The resulting collection of dependencies
-    final Map<BundleArchive,SortedSet<String>> res = new TreeMap<BundleArchive,SortedSet<String>>();
+    final Map<BundleArchive,SortedSet<String>> res = new TreeMap<>();
 
     // Group providing bundles in to API-bundles and non-API-bundles
     // and the set of packages provided by all providers.
@@ -1057,8 +1049,8 @@ public class BundleMvnAntTask extends Task {
     log("  Provided imported packages: "+pkgs, Project.MSG_VERBOSE);
 
     final Comparator<Entry<BundleArchive, SortedSet<String>>> cmp = new ProvidesEntrySetComparator();
-    Collections.sort(depsApi, cmp);
-    Collections.sort(depsNonApi, cmp);
+    depsApi.sort(cmp);
+    depsNonApi.sort(cmp);
 
     selectProviders(res, pkgs, depsApi);
     selectProviders(res, pkgs, depsNonApi);
@@ -1130,6 +1122,7 @@ public class BundleMvnAntTask extends Task {
    * @param prefix
    *          Whitespace to add before the new element.
    */
+  @SuppressWarnings("SameParameterValue")
   private void addSourceAttachment(final Element el,
                                    final BundleArchive ba,
                                    final String prefix)
@@ -1178,6 +1171,7 @@ public class BundleMvnAntTask extends Task {
    * @param prefix
    *          Whitespace to add before the new element.
    */
+  @SuppressWarnings("SameParameterValue")
   private void addJavadocAttachment(final Element el,
                                     final BundleArchive ba,
                                     final String prefix)
@@ -1247,7 +1241,7 @@ public class BundleMvnAntTask extends Task {
 
   private String getGroupId(final BundleArchive ba)  {
     final int ix = ba.bsn.lastIndexOf('.');
-    final String gId = -1==ix ? (String) groupId : ba.bsn.substring(0,ix);
+    final String gId = -1==ix ? groupId : ba.bsn.substring(0,ix);
 
     if (null!=gId) {
       // return (groupVersion != null) ? gId + "." + groupVersion : gId;
@@ -1269,8 +1263,7 @@ public class BundleMvnAntTask extends Task {
 
   private String getArtifactId(final BundleArchive ba)  {
     final int ix = ba.bsn.lastIndexOf('.');
-    final String aId = -1==ix ? ba.bsn : ba.bsn.substring(ix+1);
-    return aId;
+    return -1 == ix ? ba.bsn : ba.bsn.substring(ix + 1);
   }
 
   private String getVersion(final BundleArchive ba)  {
