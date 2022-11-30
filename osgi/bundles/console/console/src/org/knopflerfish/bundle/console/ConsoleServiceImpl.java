@@ -65,9 +65,9 @@ public class ConsoleServiceImpl implements ConsoleService {
     }
 
     public String[] setAlias(final String key, final String[] val) {
-        String[] oldVal = (String[]) AccessController
-                .doPrivileged((PrivilegedAction<Object>) () -> aliases.put(key, val.clone()));
-        return oldVal;
+        return (String[]) AccessController.doPrivileged(
+            (PrivilegedAction<Object>) () -> aliases.put(key, val.clone())
+        );
     }
 
     /**

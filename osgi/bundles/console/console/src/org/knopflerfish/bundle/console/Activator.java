@@ -95,6 +95,7 @@ public class Activator
      * @param level Log level
      * @param msg Log message
      */
+    @SuppressWarnings("SameParameterValue")
     void log(int level, String msg) {
         ServiceReference<LogService> srLog = bc.getServiceReference(LogService.class);
         if (srLog != null) {

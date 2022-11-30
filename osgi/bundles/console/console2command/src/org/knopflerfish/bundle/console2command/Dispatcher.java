@@ -51,6 +51,7 @@ public class Dispatcher {
     return "Dispatcher[" + "cg=" + commandGroupAdapter + "]";
   }
   
+  @SuppressWarnings("unused")
   public void main(Object[] args0) {
     try {
       String name = args0[0].toString();

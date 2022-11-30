@@ -69,7 +69,6 @@ public class Command implements ServiceListener, Runnable {
     private String groupName;
     private Session session;
     private ServiceReference<CommandGroup> commandGroupRef;
-    private int status = -1;
 
     Reader in;
     Writer out;
@@ -193,7 +192,7 @@ public class Command implements ServiceListener, Runnable {
                 }
             }
         }
-        args = vargs.toArray(new String[vargs.size()]);
+        args = vargs.toArray(new String[0]);
     }
 
     public void runThreaded() {
@@ -214,16 +213,15 @@ public class Command implements ServiceListener, Runnable {
             if (commandGroupRef != null) {
                 cg = bc.getService(commandGroupRef);
                 if (cg == null) {
-                    status = -2;
                     return null;
                 }
             } else {
                 cg = sessionCommandGroup;
             }
             if (out instanceof PrintWriter) {
-                status = cg.execute(args, in, (PrintWriter) out, session);
+                cg.execute(args, in, (PrintWriter) out, session);
             } else {
-                status = cg.execute(args, in, new PrintWriter(out), session);
+                cg.execute(args, in, new PrintWriter(out), session);
             }
             if (commandGroupRef != null) {
                 try {
@@ -266,6 +264,9 @@ public class Command implements ServiceListener, Runnable {
       refs = bc.getServiceReferences(CommandGroup.class,
                                      "(groupName=" + word + "*)");
     } catch (InvalidSyntaxException ignore) {
+    }
+    if (refs == null) {
+        throw new IOException("No such command group: " + word);
     }
     if (refs.size()==1) {
       // A single match, use it.
