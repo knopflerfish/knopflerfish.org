@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,11 +47,11 @@ public interface DataStorageService {
    * 
    * @return a JsonStorage
    */
-  public JsonStorage getJsonStorage();
+  JsonStorage getJsonStorage();
   
   /**
    * Removes the bundle's datastorage
    */
-  public void removeJsonStorage();
+  void removeJsonStorage();
   
 }

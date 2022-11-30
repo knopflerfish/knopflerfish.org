@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,10 +50,9 @@ public class DataStorageServiceFactory
   implements ServiceFactory<DataStorageService>, BundleListener
 {
   
-  ServiceRegistration<DataStorageService> storeReg = null;
+  private ServiceRegistration<DataStorageService> storeReg = null;
   
-  Map<Bundle, DataStorageServiceImpl> storageMap
-  = new HashMap<Bundle,DataStorageServiceImpl>();
+  private final Map<Bundle, DataStorageServiceImpl> storageMap = new HashMap<>();
 
   DataStorageServiceFactory() {
   }

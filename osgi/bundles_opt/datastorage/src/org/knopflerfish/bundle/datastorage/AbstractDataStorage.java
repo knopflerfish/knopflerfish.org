@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 
 import org.knopflerfish.service.datastorage.DataStorageNode;
-// import org.knopflerfish.service.datastorage.JsonNode;
 import org.knopflerfish.service.datastorage.JsonGenericStorageNode;
 import org.knopflerfish.service.datastorage.JsonStorageNode;
 
@@ -53,13 +52,13 @@ import org.knopflerfish.service.datastorage.JsonStorageNode;
  */
 public interface AbstractDataStorage  {
   /**
-   * @returns <tt>true</tt> if the preferences tree that the storage
+   * @return <tt>true</tt> if the preferences tree that the storage
    * object represents have been removed.
    */
   boolean     isStale();
   
   /**
-   * Get list of childrens to a given path.
+   * Get list of children to a given path.
    */
   Collection<String>    getChildrenNames(final String path);
   

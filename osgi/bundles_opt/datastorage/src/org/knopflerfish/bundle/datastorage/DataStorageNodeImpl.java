@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,10 @@
 
 package org.knopflerfish.bundle.datastorage;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 
-import org.knopflerfish.service.datastorage.DataStorage;
 import org.knopflerfish.service.datastorage.DataStorageNode;
-// import org.knopflerfish.util.Base64;
 
 public abstract class DataStorageNodeImpl implements DataStorageNode {
 
@@ -149,7 +145,7 @@ public abstract class DataStorageNodeImpl implements DataStorageNode {
   }
 
   protected static void assertPath(String pathName) {
-    if(-1 != pathName.indexOf("//")) {
+    if(pathName.contains("//")) {
       throw new IllegalArgumentException("Illegal // in path name '" + pathName + "'");
     }
     if(pathName.length() > 1 && pathName.endsWith("/")) {
@@ -175,7 +171,7 @@ public abstract class DataStorageNodeImpl implements DataStorageNode {
 
   @Override
   public boolean equals(Object other) {
-    if(other == null || !(other instanceof DataStorageNodeImpl)) {
+    if(!(other instanceof DataStorageNodeImpl)) {
       return false;
     }
     DataStorageNodeImpl pi = (DataStorageNodeImpl)other;

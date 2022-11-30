@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,12 +49,12 @@ public interface JsonGenericStorageNode<T> extends DataStorageNode {
    * Stores a generic object in this node.
    * @param o the object to store
    */
-  public void put(Object o);
+  void put(Object o);
  
   /**
    * Returns the object stored in this node
    * @return The stored object.
    */
-  public T get();
+  T get();
   
 }

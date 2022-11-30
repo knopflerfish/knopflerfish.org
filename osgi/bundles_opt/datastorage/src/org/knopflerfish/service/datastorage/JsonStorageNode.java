@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
 
 package org.knopflerfish.service.datastorage;
 
-import java.lang.reflect.Type;
-
 /**
  * @author Makewave AB
  *
@@ -51,14 +49,14 @@ public interface JsonStorageNode<T> extends DataStorageNode {
    * Stores an object in this node
    * @param o the object to store
    */
-  public void put(Object o);
+  void put(Object o);
 
 
   /**
    * Returns the object stored in this node
    * @return the object
    */
-  public T get();
+  T get();
   
   // public T get(Type t);
 }

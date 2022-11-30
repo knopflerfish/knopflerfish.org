@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,18 +36,12 @@ package org.knopflerfish.bundle.datastorage;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
-import java.util.Iterator;
-
-import com.google.gson.reflect.TypeToken;
 
 import org.osgi.framework.Bundle;
 
-// import org.knopflerfish.service.datastorage.JsonNode;
 import org.knopflerfish.service.datastorage.JsonStorageNode;
 import org.knopflerfish.service.datastorage.JsonStorage;
-import org.knopflerfish.service.datastorage.DataStorageNode;
 import org.knopflerfish.service.datastorage.JsonGenericStorageNode;
-
 
 public class JsonStorageImpl implements JsonStorage {
 
@@ -73,11 +67,12 @@ public class JsonStorageImpl implements JsonStorage {
 
   @Override
   public <T> JsonStorageNode<T> getNode(String pathName, Class<T> classOfT) {
-    return (JsonStorageNode<T>) jsonStorage.getNode(pathName, classOfT, true);
+    return jsonStorage.getNode(pathName, classOfT, true);
   }
 
   @Override
   public <T> JsonGenericStorageNode<T> getNode(String pathName, Type typeOfT) {
+    //noinspection unchecked
     return (JsonGenericStorageNode<T>) jsonStorage.getNode(pathName, typeOfT, true);
   }
 

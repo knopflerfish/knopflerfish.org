@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,21 +36,18 @@ package org.knopflerfish.bundle.datastorage;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -59,11 +56,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.osgi.framework.Bundle;
 
-import org.knopflerfish.service.datastorage.DataStorage;
 import org.knopflerfish.service.datastorage.DataStorageNode;
 import org.knopflerfish.service.datastorage.DataStorageNode.DataStorageNodeType;
 import org.knopflerfish.service.datastorage.JsonGenericStorageNode;
-// import org.knopflerfish.service.datastorage.JsonNode;
 import org.knopflerfish.service.datastorage.JsonStorageNode;
 import org.knopflerfish.util.Text;
 
@@ -122,6 +117,7 @@ public class  JsonFileStorage implements AbstractDataStorage {
   /**
    * Removes all preferences trees for the given bundle.
    */
+  @SuppressWarnings("unused")
   static void cleanup(Bundle bundle)
   {
     
@@ -129,8 +125,6 @@ public class  JsonFileStorage implements AbstractDataStorage {
 
   final File baseDir;
 
-  boolean bDebug = false;
-  
   final Object lock = new Object();
 
   /** Set to true when the entire datastorage tree repesented by this storage
@@ -140,18 +134,16 @@ public class  JsonFileStorage implements AbstractDataStorage {
 
   
   private JsonFileStorage(final File baseDir) {
-    this.baseDir = AccessController.doPrivileged(new PrivilegedAction<File>() {
-      @Override
-      public File run() {
-        baseDir.mkdirs();
+    this.baseDir = AccessController.doPrivileged((PrivilegedAction<File>) () -> {
+      //noinspection ResultOfMethodCallIgnored
+      baseDir.mkdirs();
 
-        if(!baseDir.exists() || !baseDir.isDirectory()) {
-          throw new RuntimeException
-          ("Failed to create root directory for datastorage: '"
-              +baseDir +"'.");
-        }
-        return baseDir;
+      if(!baseDir.exists() || !baseDir.isDirectory()) {
+        throw new RuntimeException
+            ("Failed to create root directory for datastorage: '"
+                + baseDir +"'.");
       }
+      return baseDir;
     });
   }
 
@@ -165,8 +157,11 @@ public class  JsonFileStorage implements AbstractDataStorage {
       try {
         final File dir = getNodeDir(path, false);
         final String[] listing = dir.list();
-        final ArrayList<String> list = new ArrayList<String>();
-        
+        if (listing == null) {
+          return Collections.emptyList();
+        }
+
+        final ArrayList<String> list = new ArrayList<>();
         for (String s : listing) {
           if (s.startsWith("."))
             continue;
@@ -200,12 +195,12 @@ public class  JsonFileStorage implements AbstractDataStorage {
       try {
         final File dir = getNodeDir(path, false);
         
-        if (!dir.exists())
-          return Collections.emptyList();
-        
         final String[] listing = dir.list();
-        final ArrayList<String> list = new ArrayList<String>();
-        
+        if (listing == null) {
+          return Collections.emptyList();
+        }
+
+        final ArrayList<String> list = new ArrayList<>();
         for (String s : listing) {
           if (s.startsWith("."))
             continue;
@@ -249,7 +244,7 @@ public class  JsonFileStorage implements AbstractDataStorage {
   }
 
   // String (path) -> PreferencesImpl
-  final Map<String, DataStorageNodeImpl> datastorage = new HashMap<String, DataStorageNodeImpl>();
+  final Map<String, DataStorageNodeImpl> datastorage = new HashMap<>();
   
   @Override
   public DataStorageNode getNode(String path) {
@@ -257,10 +252,11 @@ public class  JsonFileStorage implements AbstractDataStorage {
   }
   
   public <T> JsonGenericStorageNode<T> getNode(String path, Type typeOfT, boolean create) {
-    DataStorageNodeImpl node =  (DataStorageNodeImpl) datastorage.get(path);
+    DataStorageNodeImpl node = datastorage.get(path);
     
     if (node != null) {
       if (node instanceof JsonGenericStorageNodeImpl<?>) {
+        //noinspection unchecked
         return (JsonGenericStorageNode<T>) node;
       }
       else {
@@ -273,7 +269,7 @@ public class  JsonFileStorage implements AbstractDataStorage {
       if (nodeType != null && nodeType != DataStorageNodeType.JSON_GENERIC) {
         throw new IllegalStateException("Unexpected type: " + nodeType);
       }
-      final JsonGenericStorageNodeImpl<T> nodeImpl = new JsonGenericStorageNodeImpl<T>(this, path, typeOfT);
+      final JsonGenericStorageNodeImpl<T> nodeImpl = new JsonGenericStorageNodeImpl<>(this, path, typeOfT);
       datastorage.put(path, nodeImpl);
       writeTypeInfo(nodeDir, DataStorageNodeType.JSON_GENERIC);
       return nodeImpl;
@@ -281,7 +277,7 @@ public class  JsonFileStorage implements AbstractDataStorage {
       if (e instanceof PrivilegedActionException) {
         e = (Exception) e.getCause();
       }
-      throw new IllegalStateException("getNode " + path + " failed: " + e);
+      throw new IllegalStateException("getNode " + path + " failed: " + e, e);
     }
   }
   
@@ -292,6 +288,7 @@ public class  JsonFileStorage implements AbstractDataStorage {
 
       if (node != null) {
         if (node instanceof JsonStorageNodeImpl<?>) {
+          //noinspection unchecked
           return (JsonStorageNode<T>) node;
         }
         else {
@@ -305,15 +302,16 @@ public class  JsonFileStorage implements AbstractDataStorage {
         throw new IllegalStateException("Unexpected type: " + nodeType);
       }
      
-      node = new JsonStorageNodeImpl<T>(this, path, classOfNode);
+      node = new JsonStorageNodeImpl<>(this, path, classOfNode);
       datastorage.put(path, node);
       writeTypeInfo(nodeDir, DataStorageNodeType.JSON);
+      //noinspection unchecked
       return (JsonStorageNode<T>) node;
     } catch (Exception e) {
       if (e instanceof PrivilegedActionException) {
         e = (Exception) e.getCause();
       }
-      throw new IllegalStateException("getNode " + path + " failed: " + e);
+      throw new IllegalStateException("getNode " + path + " failed: " + e, e);
     }
   }
 
@@ -323,30 +321,27 @@ public class  JsonFileStorage implements AbstractDataStorage {
       final File f = getNodeDir(path, false);
       final int ix = path.lastIndexOf('/');
 
-      return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-        @Override
-        public Boolean run() {
-          boolean b = false;
-          if(ix != -1 && path.length() > 0) {
-            final String last  = decode(path.substring(ix + 1));
-            String fname = f.getAbsolutePath();
+      return AccessController.doPrivileged((PrivilegedAction<Boolean>) () -> {
+        boolean b = false;
+        if (ix != -1 && path.length() > 0) {
+          final String last = decode(path.substring(ix + 1));
+          String fname = f.getAbsolutePath();
 
-            try {
-              fname = f.getCanonicalPath();
-            } catch (final IOException e) {
-              logWarn("failed to get canonical path of " + path, e);
-            }
+          try {
+            fname = f.getCanonicalPath();
+          } catch (final IOException e) {
+            logWarn("failed to get canonical path of " + path, e);
+          }
 
-            fname = decode(fname);
-            if(fname.endsWith(last)) {
-              b = f.exists();
-            }
-          } else {
+          fname = decode(fname);
+          if (fname.endsWith(last)) {
             b = f.exists();
           }
-          return new Boolean(b);
+        } else {
+          b = f.exists();
         }
-      }).booleanValue();
+        return b;
+      });
     }
   }
 
@@ -360,24 +355,22 @@ public class  JsonFileStorage implements AbstractDataStorage {
  
 
   static void deleteTree(final File f) {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-      @Override
-      public Object run() {
-        JsonFileStorage.deleteTree0(f);
-        return null;
-      }
+    AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+      JsonFileStorage.deleteTree0(f);
+      return null;
     });
   }
 
   // note: needs to be called in privileged action
   private static void deleteTree0(final File f) {
     if(f.exists()) {
-      if(f.isDirectory()) {
-        final String[] children = f.list();
+      final String[] children = f.list();
+      if (children != null) {
         for (final String element : children) {
           deleteTree0(new File(f, element));
         }
       }
+      //noinspection ResultOfMethodCallIgnored
       f.delete();
     }
   }
@@ -416,9 +409,7 @@ public class  JsonFileStorage implements AbstractDataStorage {
   
   File getNodeDir(String path, boolean bCreate) {
     synchronized(lock) {
-      if("".equals(path)) {
-        // root
-      } else {
+      if (!"".equals(path)) {
         if(!path.startsWith("/")) {
           throw new IllegalArgumentException("Path must be absolute, is '" +
                                              path + "'");
@@ -429,16 +420,14 @@ public class  JsonFileStorage implements AbstractDataStorage {
       final File file = new File(baseDir, path);
       final String path2 = path;
       if(bCreate) {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-          @Override
-          public Object run() {
-            file.mkdirs();
-            if(!file.exists() || !file.isDirectory()) {
-              throw new RuntimeException("Failed to create node dir=" +
-                  file.getAbsolutePath() + " from path " + path2);
-            }
-            return null;
+        AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+          //noinspection ResultOfMethodCallIgnored
+          file.mkdirs();
+          if (!file.exists() || !file.isDirectory()) {
+            throw new RuntimeException("Failed to create node dir=" +
+                file.getAbsolutePath() + " from path " + path2);
           }
+          return null;
         });
       }
       return file;

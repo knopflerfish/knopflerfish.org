@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,14 +37,10 @@ package org.knopflerfish.bundle.datastorage;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.lang.reflect.Type;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-// import org.knopflerfish.service.datastorage.JsonNode;
 import org.knopflerfish.service.datastorage.JsonStorageNode;
-
 
 public class JsonStorageNodeImpl<T> extends DataStorageNodeImpl implements JsonStorageNode<T> {
 
@@ -81,10 +77,8 @@ public class JsonStorageNodeImpl<T> extends DataStorageNodeImpl implements JsonS
     //    T val = gson.fromJson(r, classOfNode);
     try {
       r.close();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     } catch (Exception e) {
+      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     return val;

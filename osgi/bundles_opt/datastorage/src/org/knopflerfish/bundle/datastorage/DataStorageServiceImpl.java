@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,11 @@
 package org.knopflerfish.bundle.datastorage;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.osgi.framework.Bundle;
 
-// import org.knopflerfish.service.datastorage.JsonNode;
 import org.knopflerfish.service.datastorage.JsonStorage;
-import org.knopflerfish.service.datastorage.DataStorage;
 import org.knopflerfish.service.datastorage.DataStorageService;
 
 
@@ -50,7 +47,7 @@ public class DataStorageServiceImpl implements DataStorageService {
 
   final Bundle bundle;
 
-  Map<String, JsonStorageImpl> jsonStorages = new HashMap<String, JsonStorageImpl>();
+  private final Map<String, JsonStorageImpl> jsonStorages = new HashMap<>();
 
   DataStorageServiceImpl(Bundle bundle) {
     this.bundle = bundle;

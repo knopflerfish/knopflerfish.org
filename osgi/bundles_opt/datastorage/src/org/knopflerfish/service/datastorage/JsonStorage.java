@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,19 +32,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Datastorage service for storing json objects. 
- *
- */
-
 package org.knopflerfish.service.datastorage;
 
 import java.lang.reflect.Type;
 
 /**
- * Storage for json objects. 
+ * Datastorage service for storing json objects.
  * @author Makewave AB
- *
  */
 public interface JsonStorage extends DataStorage {
   
@@ -55,9 +49,8 @@ public interface JsonStorage extends DataStorage {
    * use the {@link #getNode(String, Type)} instead.
    * @param pathName Path to the node
    * @param classOfT class of T
-   * @return
    */
-  public <T> JsonStorageNode<T> getNode(String pathName, Class<T> classOfT);
+  <T> JsonStorageNode<T> getNode(String pathName, Class<T> classOfT);
   
   
   /**
@@ -66,7 +59,6 @@ public interface JsonStorage extends DataStorage {
    *  {@link #getNode(String, Class)} may be used instead.
    * @param pathName path to node
    * @param typeOfT The type of the node
-   * @return
    */
-  public <T> JsonGenericStorageNode<T> getNode(String pathName, Type typeOfT);
+  <T> JsonGenericStorageNode<T> getNode(String pathName, Type typeOfT);
 }

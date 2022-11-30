@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,6 @@ package org.knopflerfish.service.datastorage;
 
 import java.util.Collection;
 
-import org.knopflerfish.service.datastorage.DataStorageNode;
-
 /**
  * Base class for datastorages.
  * 
@@ -52,19 +50,19 @@ public interface DataStorage {
    * @param pathName path to node
    * @return true of node exist, otherwise false
    */
-  public boolean nodeExists(String pathName);
+  boolean nodeExists(String pathName);
   
   /**
    * Removes the node at pathname
    * @param pathName pathname to remove
    */
-  public void removeNode(String pathName);
+  void removeNode(String pathName);
   
   /**
    * Returns all child nodes to a node
    * @param pathName node to get children for
    * @return A collections of pathnames
    */
-  public Collection<String> getChildNodePathNames(String pathName);
+  Collection<String> getChildNodePathNames(String pathName);
   
 }

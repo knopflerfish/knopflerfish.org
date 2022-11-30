@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, KNOPFLERFISH project
+ * Copyright (c) 2018-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,14 +47,14 @@ public interface DataStorageNode {
    * Returns the name of the node
    * @return the name
    */
-  public String getName();
+  String getName();
   
   /**
    * Returns the absolute path to this node.
    * 
    * @return the absolute path
    */
-  public String getAbsolutePath();
+  String getAbsolutePath();
   
   /**
    * Returns the parent node. For the root node null is returned
@@ -62,31 +62,31 @@ public interface DataStorageNode {
    * @return the parent node.
    * 
    */
-  public DataStorageNode getParent();
+  DataStorageNode getParent();
   
   /**
    * Returns the children to the node
    * @return a collection of children.
    */
-  public Collection<DataStorageNode> children();
+  Collection<DataStorageNode> children();
   
   /**
    * Returns the names of the children
    * @return a collection of child node names
    */
-  public Collection<String> childNames();
+  Collection<String> childNames();
   
   /**
    * Return the node type
    * @return the node type
    */
-  public DataStorageNodeType getType();
+  DataStorageNodeType getType();
   
   /**
    * Enumeration indicating the type of the node
    *
    */
-  public enum DataStorageNodeType {
+  enum DataStorageNodeType {
     JSON,
     JSON_GENERIC
   }
