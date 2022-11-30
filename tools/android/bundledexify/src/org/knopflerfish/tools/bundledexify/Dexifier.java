@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2015, KNOPFLERFISH project
+ * Copyright (c) 2015-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,7 +91,7 @@ public class Dexifier {
   /* replace input file with output */
   private boolean replaceOutput = false;
   /* Output files */
-  private Hashtable<String,File> output = new Hashtable<String,File>();
+  private Hashtable<String,File> output = new Hashtable<>();
   /* Destination directory for output */
   private File destDir = null;
   /* output info */
@@ -101,6 +101,7 @@ public class Dexifier {
   private DexOptions dexOptions = new DexOptions();
 
 
+  @SuppressWarnings("UnusedReturnValue")
   public File dexify(String bundle) throws IOException {
     File inputFile = new File(bundle);
     File outputFile = getOutput(bundle);
@@ -159,7 +160,9 @@ public class Dexifier {
       return outputFile;
     } finally {
       if (!ok) {
-        outputFile.delete();
+        if (!outputFile.delete()) {
+          warn("Unable to delete output file: " + outputFile);
+        }
       }
     }
   }
@@ -202,7 +205,9 @@ public class Dexifier {
 
   public void setDestDir(String destDir) {
     this.destDir = new File(destDir);
-    this.destDir.mkdirs();
+    if (!this.destDir.mkdirs()) {
+      info("Dest dir not created or already exists: " + destDir);
+    }
   }
 
   public boolean isVerbose() {
@@ -256,7 +261,7 @@ public class Dexifier {
     if (p == null) {
       p = ".";
     }
-    Set<String> res = new HashSet<String>();
+    Set<String> res = new HashSet<>();
     for (String e : p.split(",")) {
       res.add(e.trim());
     }
@@ -285,6 +290,7 @@ public class Dexifier {
 
     try {
       ClassDefItem clazz = CfTranslator.translate(cf, bytes, cfOptions , dexOptions, dexFile);
+      //noinspection SynchronizationOnLocalVariableOrMethodParameter
       synchronized (dexFile) {
         dexFile.add(clazz);
       }
@@ -293,6 +299,7 @@ public class Dexifier {
     }
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void saveDexFile(DexFile dexFile, int idx, JarOutputStream outJar) throws IOException {
     if (!dexFile.isEmpty()) {
       String cn = "classes" + (idx > 1 ? Integer.toString(idx) : "") + ".dex";
@@ -315,18 +322,15 @@ public class Dexifier {
   }
 
   private byte[] getEntryBytes(JarFile jar, JarEntry je) throws IOException {
-    InputStream is = jar.getInputStream(je);
-    try {
-      return getBytes(is, (int)je.getSize());
-    } finally {
-      is.close();
+    try (InputStream is = jar.getInputStream(je)) {
+      return getBytes(is, (int) je.getSize());
     }
   }
 
   private byte[] getBytes(InputStream is, int ilen) throws IOException {
     byte[] bytes;
     if (ilen >= 0) {
-      bytes = new byte[(int)ilen];
+      bytes = new byte[ilen];
       final DataInputStream dis = new DataInputStream(is);
       dis.readFully(bytes);
     } else {
@@ -334,10 +338,10 @@ public class Dexifier {
       final byte[] tmp = new byte[81920];
       int len;
       while ((len = is.read(tmp)) > 0) {
-        final byte[] oldbytes = bytes;
-        bytes = new byte[oldbytes.length + len];
-        System.arraycopy(oldbytes, 0, bytes, 0, oldbytes.length);
-        System.arraycopy(tmp, 0, bytes, oldbytes.length, len);
+        final byte[] oldBytes = bytes;
+        bytes = new byte[oldBytes.length + len];
+        System.arraycopy(oldBytes, 0, bytes, 0, oldBytes.length);
+        System.arraycopy(tmp, 0, bytes, oldBytes.length, len);
       }
     }
     return bytes;
@@ -413,6 +417,10 @@ public class Dexifier {
     }
   }
 
+  private void warn(String msg) {
+    System.out.println("Warning: " + msg);
+  }
+
   private boolean upToDate(File outputFile, File inputFile, JarFile jar) {
     if (outputFile.exists()) {
       return inputFile.lastModified() < outputFile.lastModified();
@@ -441,7 +449,10 @@ public class Dexifier {
     File out = output.remove(bundle);
     assert(out != null);
     if (destDir == null && isReplaceOutput()) {
-      out.renameTo(new File(bundle));
+      final File destFile = new File(bundle);
+      if (!out.renameTo(destFile)) {
+        warn("Failed to rename output file " + out + " to " + destFile);
+      }
     }
   }
 
