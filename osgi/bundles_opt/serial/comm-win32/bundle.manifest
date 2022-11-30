@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: comm-win32
 Bundle-SymbolicName: org.knopflerfish.bundle.comm-win32
-Bundle-Version: 3.0.0
+Bundle-Version: 3.1.0
 Bundle-Category: service
 Bundle-Description: Native driver for win32 javax.comm using Sun's COM
  M library

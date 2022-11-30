@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,13 @@
 
 package org.knopflerfish.bundle.comm.w32;
 
-import java.io.*;
-import java.util.*;
+import java.util.StringTokenizer;
 
-import javax.comm.*;
+import javax.comm.CommDriver;
+import javax.comm.CommPortIdentifier;
 
-import org.osgi.framework.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 
 /**
  * We have this start method because SUNs commAPI only searches for the
@@ -47,30 +48,31 @@ import org.osgi.framework.*;
  */
 public class Activator implements BundleActivator {
 
-  public void start(BundleContext bundleContext) throws Exception {
+  public void start(BundleContext bundleContext) {
     try {
       // Initialize ports manually
-      CommDriver cd = 
-	(CommDriver)Class.forName("com.sun.comm.Win32Driver").newInstance();
+      CommDriver cd =
+          (CommDriver) Class.forName("com.sun.comm.Win32Driver").newInstance();
       cd.initialize();
-      
-      StringTokenizer st = 
-	new StringTokenizer(System.getProperty("org.knopflerfish.serial.devices",
-					       "COM1,COM2,COM3,COM4"),
-			    ",");
+
+      StringTokenizer st =
+          new StringTokenizer(System.getProperty("org.knopflerfish.serial.devices",
+              "COM1,COM2,COM3,COM4"),
+              ",");
       while (st.hasMoreTokens()) {
-	String portName = st.nextToken().trim();
-	if (portName.startsWith("COM")) {
-	  CommPortIdentifier.addPortName(portName,
-					 CommPortIdentifier.PORT_SERIAL, 
-					 cd);
-	}
+        String portName = st.nextToken().trim();
+        if (portName.startsWith("COM")) {
+          CommPortIdentifier.addPortName(portName,
+              CommPortIdentifier.PORT_SERIAL,
+              cd);
+        }
       }
     } catch (Exception e) {
       System.out.println("Failed to init win32 serial\n" + e);
     }
   }
 
-  public void stop(BundleContext bundleContext) { }
+  public void stop(BundleContext bundleContext) {
+  }
 
 }

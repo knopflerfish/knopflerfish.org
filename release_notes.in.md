@@ -305,6 +305,9 @@ Knopflerfish Services
 * Javadoc fixes.
 * Fixed issue with Log instance reuse.
 
+### comm-win32 3.1.0
+* Internal code cleanup.
+
 ### Crimson is no longer redistributed
 
 * The Knopflerfish redistribution of crimson has been removed.
