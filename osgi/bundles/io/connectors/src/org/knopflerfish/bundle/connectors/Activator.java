@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,29 +41,30 @@ import org.knopflerfish.bundle.connectors.datagram.DatagramConnectionFactory;
 import org.knopflerfish.bundle.connectors.http.HttpConnectionFactory;
 import org.knopflerfish.bundle.connectors.socket.SocketConnectionFactory;
 
-
 /**
-* @author Kaspar Weilenmann 
-* @author Philippe Laporte
-*/
+ * @author Kaspar Weilenmann
+ * @author Philippe Laporte
+ */
 public class Activator implements BundleActivator {
-    
-    private BaseConnectionFactory[] factories;
-	
-    public void start(BundleContext context) {
-		
-		factories = new BaseConnectionFactory[] { new DatagramConnectionFactory(),
-			new HttpConnectionFactory(),
-			new SocketConnectionFactory() };
-		
-		for (int i = 0; i < factories.length; i++)
-			factories[i].registerFactory(context);
+
+  private BaseConnectionFactory[] factories;
+
+  public void start(BundleContext context) {
+
+    factories = new BaseConnectionFactory[]{new DatagramConnectionFactory(),
+        new HttpConnectionFactory(),
+        new SocketConnectionFactory()};
+
+    for (BaseConnectionFactory factory : factories) {
+      factory.registerFactory(context);
     }
-	
-    // handle unregistration according to specs
-    public void stop(BundleContext context) { 
-		for (int i = 0; i < factories.length; i++)
-			factories[i].unregisterFactory(context);
+  }
+
+  // handle unregistration according to specs
+  public void stop(BundleContext context) {
+    for (BaseConnectionFactory factory : factories) {
+      factory.unregisterFactory(context);
     }
-	
+  }
+
 } // Activator

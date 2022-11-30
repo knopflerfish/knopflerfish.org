@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,13 +63,13 @@ import org.osgi.service.io.ConnectionFactory;
 
 public abstract class BaseConnectionFactory implements ConnectionFactory
 {
-  private final List list = new ArrayList();
+  private final List<Connection> list = new ArrayList<>();
 
   // something like new String[]{"datagram", ..}
   public abstract String[] getSupportedSchemes();
 
   public void registerFactory(BundleContext bc) {
-    Hashtable properties = new Hashtable();
+    Hashtable<String, Object> properties = new Hashtable<>();
     properties.put(ConnectionFactory.IO_SCHEME, getSupportedSchemes());
     bc.registerService(ConnectionFactory.class.getName(), this, properties);
   }
@@ -86,11 +86,11 @@ public abstract class BaseConnectionFactory implements ConnectionFactory
     }
   }
 
-  public void unregisterFactory(BundleContext bc) {
-    Iterator copyIterator;
+  public void unregisterFactory(@SuppressWarnings("unused") BundleContext bc) {
+    Iterator<Connection> copyIterator;
     synchronized (list) {
       // Copy list to avoid race condition
-      copyIterator = new ArrayList(list).iterator();
+      copyIterator = new ArrayList<>(list).iterator();
 
       // Just a precaution, if this factory is used again.
       list.clear();
@@ -98,7 +98,7 @@ public abstract class BaseConnectionFactory implements ConnectionFactory
 
     while (copyIterator.hasNext()) {
       try {
-        ((Connection) copyIterator.next()).close();
+        copyIterator.next().close();
       } catch (IOException e) { /* ignore */ }
     }
   }

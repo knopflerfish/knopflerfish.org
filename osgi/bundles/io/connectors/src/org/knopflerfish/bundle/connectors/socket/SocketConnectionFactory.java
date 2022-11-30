@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,6 @@ public class SocketConnectionFactory extends BaseConnectionFactory {
 
       String hostPort = uri.substring(scheme.length());
       String host = null;
-      String port = null;
       int portAsInt = 0;
 
       int portSeparatorPosition = hostPort.lastIndexOf(":");
@@ -76,9 +75,9 @@ public class SocketConnectionFactory extends BaseConnectionFactory {
       if (portSeparatorPosition > -1) {
         host = hostPort.substring(0, portSeparatorPosition);
 
-        port = hostPort.substring(portSeparatorPosition + 1);
+        String port = hostPort.substring(portSeparatorPosition + 1);
 
-        if (port != null && port.length() > 0) {
+        if (port.length() > 0) {
           portAsInt = Integer.parseInt(port);
           if (portAsInt < 0) {
             portAsInt = 0;

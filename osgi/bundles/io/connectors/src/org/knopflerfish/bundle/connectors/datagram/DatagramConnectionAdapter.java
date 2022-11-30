@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2009, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,6 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/**
- * @author Philippe Laporte
  */
 
 package org.knopflerfish.bundle.connectors.datagram;
@@ -68,10 +64,9 @@ class DatagramConnectionAdapter implements UDPDatagramConnection {
     if (portSep < 10) // the portSep needs to lie past "datagram://"
       throw new IllegalArgumentException("Missing port");
 
-    String strPort = null;
-    strPort = address.substring(portSep + 1, address.length());
-    int port = 0;
+    String strPort = address.substring(portSep + 1);
 
+    int port;
     try {
       port = Integer.parseInt(strPort);
     } catch (NumberFormatException e) {

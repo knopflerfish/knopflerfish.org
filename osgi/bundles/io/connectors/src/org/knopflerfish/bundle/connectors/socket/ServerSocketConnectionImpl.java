@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,12 +68,12 @@ class ServerSocketConnectionImpl implements ServerSocketConnection {
   }
   
 
-	public String getLocalAddress() throws IOException {
+	public String getLocalAddress() {
 		return socket.getInetAddress().getHostAddress();
 
 	}
 
-	public int getLocalPort() throws IOException {
+	public int getLocalPort() {
 		return socket.getLocalPort();
 
 	}

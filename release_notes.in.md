@@ -189,6 +189,7 @@ OSGi Compendium Specification
 ### Connection-Factories 3.1.0
 
 * Internally use StringBuilder instead of StringBuffer.
+* Internal code cleanup.
 
 ### Console 4.1.0
 

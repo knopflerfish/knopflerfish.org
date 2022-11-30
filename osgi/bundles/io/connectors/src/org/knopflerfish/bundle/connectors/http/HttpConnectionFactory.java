@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ import org.knopflerfish.bundle.connectors.BaseConnectionFactory;
  */
 public class HttpConnectionFactory extends BaseConnectionFactory {
         
-  static{
+  static {
     //comply with javax.microedition.io.HttpConnection
     HttpURLConnection.setFollowRedirects(false);
   }
@@ -65,16 +65,15 @@ public class HttpConnectionFactory extends BaseConnectionFactory {
       connection.setDoInput(mode == ConnectorService.READ);
       connection.setDoOutput(mode == ConnectorService.WRITE);
     }
-    
-    Connection con = new HttpConnectionAdapter(this, connection);
-    return con;
+
+    return new HttpConnectionAdapter(this, connection);
   }
 
   public String[] getSupportedSchemes() {
     try {
       Class.forName("javax.net.ssl.HttpsURLConnection");
       return new String[] { "http", "https" };
-    } catch (ClassNotFoundException cnfe) {
+    } catch (ClassNotFoundException e) {
       return new String[] { "http" };
     }
   }

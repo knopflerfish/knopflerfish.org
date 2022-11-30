@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,18 +32,9 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Philippe Laporte
- */
-
 package org.knopflerfish.bundle.connectors.datagram;
 
 import java.io.IOException;
-import java.util.ArrayList;
-
-import java.net.DatagramSocket;
-import java.net.URI;
-//import java.net.URISyntaxException;
 
 import javax.microedition.io.Connection; 
 
@@ -63,12 +54,7 @@ public class DatagramConnectionFactory extends BaseConnectionFactory {
       throw new IOException("Invalid mode");
         
     try {
-            
-      Connection con = 
-        new DatagramConnectionAdapter(this, address, timeouts);
-
-      return con;
-
+      return new DatagramConnectionAdapter(this, address, timeouts);
     } catch (Exception e) {
       // if anything goes wrong it *must* throw IOException
       throw new IOException(e.getMessage());

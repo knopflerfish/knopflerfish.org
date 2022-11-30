@@ -32,10 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
-* @author Philippe Laporte
-*/
-
 package org.knopflerfish.bundle.connectors.datagram;
 
 import java.io.IOException;
@@ -44,7 +40,6 @@ import java.io.UTFDataFormatException;
 import java.io.DataInputStream; 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.URI;
 import javax.microedition.io.Datagram;
 
 /*
@@ -54,7 +49,6 @@ MO: This feels a bit "unclean" -- can someone think of a nicer way to do this?
 class DatagramImpl implements Datagram {
         
   private DatagramPacket dgram;
-  private String address;
   private int pos;
     
   public DatagramImpl(byte[] buffer, int length, String address) {
@@ -110,9 +104,8 @@ class DatagramImpl implements Datagram {
                 
     if (portSep < 10) // the portSep needs to lie past "datagram://"
       throw new IllegalArgumentException("Missing port");
-                
-    String port = null;
-    port = address.substring(portSep + 1, address.length());
+
+    String port = address.substring(portSep + 1);
                 
     if (!port.equals("")) {
       try {
@@ -175,8 +168,8 @@ class DatagramImpl implements Datagram {
     }
   }
         
-  public int skipBytes(int num) throws IOException {
-    byte[] b = getData();
+  public int skipBytes(int num) {
+    getData();
     int new_pos = Math.min(pos + num, getLength());
     int change = new_pos - pos;
                 
@@ -213,7 +206,7 @@ class DatagramImpl implements Datagram {
   }
     
   public int readUnsignedShort() throws IOException {
-    return (int)readShort();
+    return readShort();
   }
         
   public char readChar() throws IOException {
@@ -221,10 +214,10 @@ class DatagramImpl implements Datagram {
   }
         
   public int readInt() throws IOException { 
-    return (int)(read() << 24 | 
+    return read() << 24 |
                  read() << 16 |
                  read() <<  8 |
-                 read());
+                 read();
   }
         
   public long readLong() throws IOException {
@@ -242,15 +235,11 @@ class DatagramImpl implements Datagram {
   public String readLine() throws IOException {
     StringBuilder bf = new StringBuilder();
     char c;
-                
-    while (true) {
+
+    do {
       c = readChar();
       bf.append(c);
-                        
-      if (c == '\n' || c == '\r') {
-        break;
-      }
-    }
+    } while (c != '\n' && c != '\r');
                 
     return bf.toString();
   } 
@@ -263,7 +252,7 @@ class DatagramImpl implements Datagram {
     return Double.longBitsToDouble(readLong());
   }
         
-  public void write(int val) throws IOException {
+  public void write(int val) {
     byte[] b = getData();
     // is this really correct, should getOffset be added?
 
@@ -271,11 +260,11 @@ class DatagramImpl implements Datagram {
     pos++;
   }
         
-  public void write(byte[] buf) throws IOException {
+  public void write(byte[] buf) {
     write(buf, 0, buf.length);
   }
         
-  public void write(byte[] buf, int off, int len) throws IOException {
+  public void write(byte[] buf, int off, int len) {
     if (off < 0 || len < 0 || off + len > buf.length)
       throw new IndexOutOfBoundsException();
                 
@@ -284,29 +273,29 @@ class DatagramImpl implements Datagram {
     }
   }
         
-  public void writeBoolean(boolean bool) throws IOException {
+  public void writeBoolean(boolean bool) {
     write(bool ? 1 : 0);
   }
         
-  public void writeByte(int b) throws IOException {
+  public void writeByte(int b) {
     write(b);
   }
         
-  public void writeShort(int sh) throws IOException {
+  public void writeShort(int sh) {
     write(0xff & (sh >>> 8));
     write(sh & 0xff);
   }
         
-  public void writeChar(int ch) throws IOException {
+  public void writeChar(int ch) {
     writeShort(ch);
   }
         
-  public void writeInt(int val) throws IOException {
+  public void writeInt(int val) {
     writeShort(val >>> 16);
     writeShort(val & 0xffff);
   }
         
-  public void writeLong(long val) throws IOException {
+  public void writeLong(long val) {
     write((int)(val >>> 56));
     write((int)(val >>> 48));
     write((int)(val >>> 40));
@@ -318,9 +307,9 @@ class DatagramImpl implements Datagram {
 
   }
         
-  public void writeChars(String str) throws IOException {
+  public void writeChars(String str) {
     for (int i = 0; i < str.length(); i++)
-      writeChar((int)str.charAt(i));
+      writeChar(str.charAt(i));
   }
         
   public void writeUTF(String str) throws IOException {
@@ -332,7 +321,7 @@ class DatagramImpl implements Datagram {
       } else if (str.charAt(i) == '\u0000' ||
                  (str.charAt(i) >= '\u0080' && str.charAt(i) <= '\u07ff')) {
         bytes += 2;
-      } else if (str.charAt(i) >= '\u0800' && str.charAt(i) <= '\uffff') {
+      } else if (str.charAt(i) >= '\u0800') {
         bytes += 3;
       }
     }
@@ -360,16 +349,16 @@ class DatagramImpl implements Datagram {
     }
   }
     
-  public void writeBytes(String str) throws IOException {
+  public void writeBytes(String str) {
     byte[] bytes = str.getBytes();
     write(bytes);
   }
         
-  public void writeFloat(float val) throws IOException {
-    writeInt((int)Float.floatToIntBits(val));
+  public void writeFloat(float val) {
+    writeInt(Float.floatToIntBits(val));
   }
         
-  public void writeDouble(double val) throws IOException {
+  public void writeDouble(double val) {
     long v = Double.doubleToLongBits(val);
     writeLong(v);
   } 
