@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,11 @@
 
 package org.knopflerfish.bundle.desktopawt;
 
-import org.osgi.framework.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Toolkit;
 import java.net.URL;
 
 class Desktop {
@@ -86,12 +89,12 @@ class Desktop {
     frame.setSize(new Dimension(200, 400));
     
     frame.pack();
-    frame.show();
+    frame.setVisible(true);
   }
 
   public void close() {
     if(frame != null) {
-      frame.hide();
+      frame.setVisible(false);
       frame   = null;
       tracker = null;
     } 

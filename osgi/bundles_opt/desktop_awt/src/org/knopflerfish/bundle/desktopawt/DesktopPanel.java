@@ -34,12 +34,35 @@
 
 package org.knopflerfish.bundle.desktopawt;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.Panel;
+import java.awt.PopupMenu;
+import java.awt.ScrollPane;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
+import java.util.stream.Stream;
 
-import java.util.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.packageadmin.PackageAdmin;
 
 class DesktopPanel extends Panel implements BundleListener {
   ScrollPane scroll;
@@ -56,7 +79,7 @@ class DesktopPanel extends Panel implements BundleListener {
   public static final int SORT_STATE = 2;
 
   int       sortMode = SORT_ID;
-  Hashtable bundles  = new Hashtable();
+  private final Hashtable<Bundle, BundleC> bundles  = new Hashtable<>();
 
   LF lf = LF.getLF();
 
@@ -90,13 +113,13 @@ class DesktopPanel extends Panel implements BundleListener {
     scroll.add(bundlePanel);
 
     cardPanel.add(scroll, "bundles");
-    cardLayout.addLayoutComponent("bundles", scroll);
+    cardLayout.addLayoutComponent(scroll, "bundles");
 
     cardPanel.add(console.panel, "console");
-    cardLayout.addLayoutComponent("console", console.panel);
+    cardLayout.addLayoutComponent(console.panel, "console");
 
     cardPanel.add(openPanel, "open");
-    cardLayout.addLayoutComponent("open", openPanel);
+    cardLayout.addLayoutComponent(openPanel, "open");
 
     statusBar = new StatusBar();
 
@@ -134,11 +157,9 @@ class DesktopPanel extends Panel implements BundleListener {
     bundleUpdated(ev.getBundle());
   }
   
-
-
   public void removeBundle(Bundle b) {
     synchronized(bundles) {
-      BundleC bc = (BundleC)bundles.get(b);
+      BundleC bc = bundles.get(b);
       if(bc != null) {
         bundles.remove(b);
         rebuildBundles();
@@ -157,9 +178,9 @@ class DesktopPanel extends Panel implements BundleListener {
   }
 
 
-  void insertBundle(Vector v, Bundle b, Comp comp) {
+  void insertBundle(Vector<Bundle> v, Bundle b, Comp comp) {
     for(int i = 0; i < v.size(); i++) {
-      Bundle b0 = (Bundle)v.elementAt(i);
+      Bundle b0 = v.elementAt(i);
       if(comp.compare(b, b0) <= 0) {
         v.insertElementAt(b, i);
         return;
@@ -172,7 +193,7 @@ class DesktopPanel extends Panel implements BundleListener {
     synchronized(bundles) {
       int sort = sortMode;
       try {
-        Comp comp = compId;
+        Comp comp = null;
         if(sort == SORT_ID) {
           comp = compId;
         } else if(sort == SORT_NAME) {
@@ -182,17 +203,15 @@ class DesktopPanel extends Panel implements BundleListener {
         }
         
         bundlePanel.removeAll();
-        Vector sorted = new Vector();
-        for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
-          Bundle  b  = (Bundle)e.nextElement();
-          BundleC bc = (BundleC)bundles.get(b);
-          
+        Vector<Bundle> sorted = new Vector<>();
+        for (Enumeration<Bundle> e = bundles.keys(); e.hasMoreElements();) {
+          Bundle b = e.nextElement();
           insertBundle(sorted, b, comp);
         }
         
         for(int i = 0; i < sorted.size(); i++) {
-          Bundle  b  = (Bundle)sorted.elementAt(i);
-          BundleC bc = (BundleC)bundles.get(b);
+          Bundle  b  = sorted.elementAt(i);
+          BundleC bc = bundles.get(b);
           if(bc == null) {
             bc = new BundleC(b);
             bundles.put(b, bc);
@@ -210,40 +229,40 @@ class DesktopPanel extends Panel implements BundleListener {
   }
 
   void bundleUpdated(Bundle b) {
-    BundleC bc = (BundleC)bundles.get(b);
+    BundleC bc = bundles.get(b);
     if(bc != null) {
       //      System.out.println("update " + bc);
       bc.bundleUpdated();
     }
   }
 
-  void unselectAll() {
-    for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
-      Bundle  b  = (Bundle)e.nextElement();
-      BundleC bc = (BundleC)bundles.get(b);
-      if(bc.isSelected()) {
-        bc.bFocus = false;
-        bc.setSelected(false);
-      }
+  private Stream<BundleC> streamSelectedBundles() {
+    if (bundles.size() == 0) {
+      statusBar.setMessage("No bundles selected");
+      return Stream.empty();
     }
+    return streamSelectedBundlesWithoutCheck();
+  }
+
+  private Stream<BundleC> streamSelectedBundlesWithoutCheck() {
+    return bundles.values().stream().filter(BundleC::isSelected);
+  }
+
+  void unselectAll() {
+    streamSelectedBundlesWithoutCheck().forEach(bc -> {
+      bc.bFocus = false;
+      bc.setSelected(false);
+    });
   }
 
   public void startBundles() {
-    if(bundles.size() == 0) {
-      statusBar.setMessage("No bundles selected");
-      return;
-    }
-    for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
-      Bundle b = (Bundle)e.nextElement();
-      BundleC bc = (BundleC)bundles.get(b);
-      if(bc.isSelected()) {
-        try {
-          b.start();
-        } catch (Exception ex) {
-          ex.printStackTrace();
-        }
+    streamSelectedBundles().forEach(bc -> {
+      try {
+        bc.getBundle().start();
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    }
+    });
   }
 
   public void openBundle() {
@@ -251,58 +270,34 @@ class DesktopPanel extends Panel implements BundleListener {
   }
   
   public void stopBundles() {
-    if(bundles.size() == 0) {
-      statusBar.setMessage("No bundles selected");
-      return;
-    }
-    for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
-      Bundle b = (Bundle)e.nextElement();
-      BundleC bc = (BundleC)bundles.get(b);
-      if(bc.isSelected()) {
-        try {
-          b.stop();
-        } catch (Exception ex) {
-          ex.printStackTrace();
-        }
+    streamSelectedBundles().forEach(bc -> {
+      try {
+        bc.getBundle().stop();
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    }
+    });
   }
 
   public void uninstallBundles() {
-    if(bundles.size() == 0) {
-      statusBar.setMessage("No bundles selected");
-      return;
-    }
-    for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
-      Bundle b = (Bundle)e.nextElement();
-      BundleC bc = (BundleC)bundles.get(b);
-      if(bc.isSelected()) {
-        try {
-          b.uninstall();
-          rebuildBundles();
-        } catch (Exception ex) {
-          ex.printStackTrace();
-        }
+    streamSelectedBundles().forEach(bc -> {
+      try {
+        bc.getBundle().uninstall();
+        rebuildBundles();
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    }
+    });
   }
 
   public void updateBundles() {
-    if(bundles.size() == 0) {
-      statusBar.setMessage("No bundles selected");
-      return;
-    }
-    for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
-      Bundle b = (Bundle)e.nextElement();
-      BundleC bc = (BundleC)bundles.get(b);
-      if(bc.isSelected()) {
-        try {
-          b.update();
-        } catch (Exception ex) {
-          ex.printStackTrace();
-        }
+    streamSelectedBundles().forEach(bc -> {
+      try {
+        bc.getBundle().update();
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    }
+    });
   }
 
 
@@ -312,9 +307,9 @@ class DesktopPanel extends Panel implements BundleListener {
       s = s.trim();
       try {
         long bid = Long.parseLong(s);
-        for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
-          Bundle b = (Bundle)e.nextElement();
-          BundleC bc = (BundleC)bundles.get(b);
+        for(Enumeration<Bundle> e = bundles.keys(); e.hasMoreElements();) {
+          Bundle b = e.nextElement();
+          BundleC bc = bundles.get(b);
           if(b.getBundleId() == bid) {
             bc.setSelected(true);
           }
@@ -337,16 +332,6 @@ class DesktopPanel extends Panel implements BundleListener {
 
   void showOBR() {
     cardLayout.show(cardPanel, "obr");
-  }
-
-  void showInstall() {
-    cardLayout.show(cardPanel, "install");
-  }
-
-
-  void showInfo(BundleC bc) {
-    if(bc != null) {
-    }
   }
 
   class BundleC extends DBContainer {
@@ -381,13 +366,11 @@ class DesktopPanel extends Panel implements BundleListener {
           }
           public void mouseEntered(MouseEvent ev) {
             if(paintTime < maxPaintTime) {
-              showInfo(BundleC.this);
               setFocus(true);
             }
           }
           public void mouseExited(MouseEvent ev) {
             if(paintTime < maxPaintTime) {
-              showInfo(null);
               setFocus(false);
             }
           }
@@ -400,6 +383,10 @@ class DesktopPanel extends Panel implements BundleListener {
       addMouseListener(mouseListener);
 
       bundleUpdated();
+    }
+
+    public Bundle getBundle() {
+      return b;
     }
 
     Color alphaCol = new Color(0,0,0,255);
@@ -424,8 +411,6 @@ class DesktopPanel extends Panel implements BundleListener {
       default:
       }
       
-      Dimension size = getSize();
-
       int x = 0;
       int y = 0;
         
@@ -445,12 +430,8 @@ class DesktopPanel extends Panel implements BundleListener {
     }
     
     public void paintComponent(Graphics g) {
-      try {
-        count++;
-        //        System.out.println(count + ": paintComponent " + b + ", sel=" + bSelected + ", focus=" + bFocus + ", mem=" + (g == memG));
-        //        Thread.sleep(200);
-      } catch (Exception e) {
-      }
+      count++;
+
       Dimension size = getSize();
 
       g.setColor(getBackground());
@@ -475,14 +456,8 @@ class DesktopPanel extends Panel implements BundleListener {
       g.drawString(lab2,
                    left,
                    ypos);
-      
-      ypos += g.getFont().getSize() + 2;
     }
     
-    public Dimension preferredSize() {
-      return getPreferredSize();
-    }
-
     public Dimension getPreferredSize() {
       return imgSize;
     }
@@ -550,7 +525,7 @@ class DesktopPanel extends Panel implements BundleListener {
       cardPanel.add(shutdownPanel, "shutdown");
       shutdownPanel.doLayout();
       shutdownPanel.invalidate();
-      cardLayout.addLayoutComponent("shutdown", shutdownPanel);
+      cardLayout.addLayoutComponent(shutdownPanel, "shutdown");
     }
     cardLayout.show(cardPanel, "shutdown");
   }
@@ -589,7 +564,7 @@ class DesktopPanel extends Panel implements BundleListener {
       openBundle();
       break;
     case ACTION_ID_REFRESH:
-      refreshBundles(null);
+      refreshBundles();
       break;
     case ACTION_ID_SHUTDOWN:
       shutdown();
@@ -657,8 +632,7 @@ class DesktopPanel extends Panel implements BundleListener {
       viewPopupMenu = new PopupMenu();
       add(viewPopupMenu);
 
-      MenuItem item;
-      viewPopupMenu.add(new ActionMenuItem("Bundles (id)", 
+      viewPopupMenu.add(new ActionMenuItem("Bundles (id)",
                                            ACTION_ID_BUNDLES_ID));
       viewPopupMenu.add(new ActionMenuItem("Bundles (name)", 
                                            ACTION_ID_BUNDLES_NAME));
@@ -712,17 +686,14 @@ class DesktopPanel extends Panel implements BundleListener {
     }
   }  
 
-  void refreshBundles(Bundle[] bl) {
-    ServiceReference sr = Activator.bc.getServiceReference(PackageAdmin.class.getName());
+  void refreshBundles() {
+    ServiceReference<PackageAdmin> sr = Activator.bc.getServiceReference(PackageAdmin.class);
     if(sr != null) {
       PackageAdmin packageAdmin = null;
       try {
-        packageAdmin = (PackageAdmin)Activator.bc.getService(sr);
+        packageAdmin = Activator.bc.getService(sr);
         if(packageAdmin != null) {
-          if(bl != null && bl.length == 0) {
-            bl = null;
-          }
-          packageAdmin.refreshPackages(bl);
+          packageAdmin.refreshPackages(null);
         }
       } finally {
         if(packageAdmin != null) {
@@ -739,10 +710,6 @@ class DesktopPanel extends Panel implements BundleListener {
     
     String msg = "";
 
-    public Dimension preferredSize() {
-      return getPreferredSize();
-    }
-    
     public Dimension getPreferredSize() {
       return pSize;
     }
@@ -752,9 +719,9 @@ class DesktopPanel extends Panel implements BundleListener {
       int nSelected = 0;
 
       StringBuilder sb = new StringBuilder();
-      for(Enumeration e = bundles.keys(); e.hasMoreElements();) {
-        Bundle b = (Bundle)e.nextElement();
-        BundleC bc = (BundleC)bundles.get(b);
+      for(Enumeration<Bundle> e = bundles.keys(); e.hasMoreElements();) {
+        Bundle b = e.nextElement();
+        BundleC bc = bundles.get(b);
         if(bc.isSelected()) {
           nSelected++;
           if(sb.length() > 0) {
@@ -791,28 +758,17 @@ class DesktopPanel extends Panel implements BundleListener {
   }
 
   interface Comp {
-    public int compare(Bundle b0, Bundle b1);
+    int compare(Bundle b0, Bundle b1);
   }
-  Comp compName = new Comp() {
-      public int compare(Bundle b0, Bundle b1) {
-        String s0 = Util.getBundleName(b0).toLowerCase();
-        String s1 = Util.getBundleName(b1).toLowerCase();
-        
-        return s0.compareTo(s1);
-      }
-    };
+  Comp compName = (b0, b1) -> {
+    String s0 = Util.getBundleName(b0).toLowerCase();
+    String s1 = Util.getBundleName(b1).toLowerCase();
+    return s0.compareTo(s1);
+  };
   
-  Comp compId = new Comp() {
-      public int compare(Bundle b0, Bundle b1) {
-        return (int)(b0.getBundleId() - b1.getBundleId());
-      }
-    };
+  Comp compId = (b0, b1) -> (int)(b0.getBundleId() - b1.getBundleId());
   
-  Comp compState = new Comp() {
-      public int compare(Bundle b0, Bundle b1) {
-        return (int)(b0.getState() - b1.getState());
-      }
-    };
+  Comp compState = (b0, b1) -> (int)(b0.getState() - b1.getState());
   
 }
 

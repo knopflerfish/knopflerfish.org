@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,7 @@
 
 package org.knopflerfish.bundle.desktopawt;
 
-import java.util.Vector;
-import java.io.*;
+import java.io.PrintStream;
 
 public class PrefixPrintStream extends PrintStream {
   PrintStream ps;

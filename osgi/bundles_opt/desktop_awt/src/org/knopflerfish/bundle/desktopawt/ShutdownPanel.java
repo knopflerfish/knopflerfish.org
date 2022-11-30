@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,14 @@
 
 package org.knopflerfish.bundle.desktopawt;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.*;
-import java.awt.*;
-import java.awt.event.*;
-
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Button;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Label;
+import java.awt.Panel;
+import java.util.Random;
 
 public class ShutdownPanel extends Panel implements Runnable {
   Fzz fzz;
@@ -48,11 +50,7 @@ public class ShutdownPanel extends Panel implements Runnable {
     setLayout(new BorderLayout());
     Panel row = new Panel(new BorderLayout());
     Button button = new Button("Shutdown");
-    button.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          startShutdown();
-        }
-      });
+    button.addActionListener(e -> startShutdown());
     row.add(button, BorderLayout.WEST);
     row.add(new Label("All bundles will be stopped"), BorderLayout.CENTER);
     add(row, BorderLayout.NORTH);
@@ -93,7 +91,7 @@ public class ShutdownPanel extends Panel implements Runnable {
     }
   }
 
-  class Fzz extends DBContainer {
+  static class Fzz extends DBContainer {
     
     Random rnd = new Random();
     

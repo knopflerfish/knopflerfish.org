@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,16 @@
 
 package org.knopflerfish.bundle.desktopawt;
 
-import org.osgi.framework.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.HashSet;
 
 public class ImageLabel extends Component {
   Image     img;
@@ -48,9 +54,9 @@ public class ImageLabel extends Component {
   Dimension imgSize;
   Dimension minSize;
 
-  Hashtable actionListeners = new Hashtable();
+  HashSet<ActionListener> actionListeners = new HashSet<>();
 
-  LF        lf         = LF.getLF();
+  LF lf = LF.getLF();
 
   int id = 0;
 
@@ -83,16 +89,16 @@ public class ImageLabel extends Component {
   }
 
   public void addActionListener(ActionListener l) {
-    actionListeners.put(l, l);
+    actionListeners.add(l);
   }
 
+  @SuppressWarnings("unused")
   public void removeActionListener(ActionListener l) {
     actionListeners.remove(l);
   }
 
   public void sendActionEvent(ActionEvent ev) {
-    for(Enumeration e = actionListeners.keys(); e.hasMoreElements();) {
-      ActionListener l = (ActionListener)e.nextElement();
+    for (ActionListener l : actionListeners) {
       try {
         l.actionPerformed(ev);
       } catch (Exception ex) {
@@ -126,18 +132,11 @@ public class ImageLabel extends Component {
     return minSize;
   }
 
-  public Dimension preferredSize() {
-    return getPreferredSize();
-  }
-
-  Color alphaCol = new Color(0,0,0,255);
-
   public void paint(Graphics g) {
     Dimension size = getSize();
     
     if(bFocus && bDoHighlight) {
-      Color hiliteCol1 = lf.stdHiliteCol1.brighter();
-      lf.paintButton(g, 
+      lf.paintButton(g,
                      size, 
                      getBackground(), 
                      lf.stdHiliteCol1,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,12 @@
 
 package org.knopflerfish.bundle.desktopawt;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Image;
 
 public class LF {
   
@@ -52,9 +57,9 @@ public class LF {
   Color stdHiliteCol2  = new Color(255, 255, 255);
   Color stdSelectedCol = new Color(255, 200, 120);
   
-  Color ttBg     = new Color(255, 255, 200);
+  // Color ttBg     = new Color(255, 255, 200);
   Color ttText   = new Color(0,0,0);
-  Color ttBorder = new Color(120,120,120);
+  // Color ttBorder = new Color(120,120,120);
 
   int imgHSpace = 5;
 
@@ -100,7 +105,7 @@ public class LF {
     }
 
     if(bSelected) {
-      Color sel1 = Util.rgbInterpolate(bgColor, selectedCol, .2);
+      // Color sel1 = Util.rgbInterpolate(bgColor, selectedCol, .2);
       Color sel2 = Util.rgbInterpolate(bgColor, selectedCol, .5);
       Color sel3 = Util.rgbInterpolate(bgColor, selectedCol, .7);
 
@@ -130,7 +135,7 @@ public class LF {
 
 
     Color fade1 = Util.rgbInterpolate(bgColor, loColor, .6);
-    Color fade2 = Util.rgbInterpolate(bgColor, loColor, .4);
+    // Color fade2 = Util.rgbInterpolate(bgColor, loColor, .4);
     Color fade3 = Util.rgbInterpolate(bgColor, loColor, .2);
 
     pixel(g, fade1,   1, 2);
@@ -142,34 +147,34 @@ public class LF {
     pixel(g, fade1,   w-1, 2);
     pixel(g, fade1,   w-2, 1);
     pixel(g, fade1,   w-3, 0);
-    pixel(g, fade1,   w-0, 3);
+    pixel(g, fade1,   w  , 3);
     pixel(g, fade3,   w-1, 1);
 
     pixel(g, fade1,   1, h-2);
     pixel(g, fade1,   2, h-1);
-    pixel(g, fade1,   3, h-0);
+    pixel(g, fade1,   3, h);
     pixel(g, fade1,   0, h-3);
     pixel(g, fade3,   1, h-1);
 
 
     pixel(g, fade1,   w-1, h-2);
     pixel(g, fade1,   w-2, h-1);
-    pixel(g, fade1,   w-3, h-0);
-    pixel(g, fade1,   w-0, h-3);
+    pixel(g, fade1,   w-3, h);
+    pixel(g, fade1,   w  , h-3);
     pixel(g, fade3,   w-1, h-1);
 
   }
 
-  public void paintLabel(Graphics g, 
-			 Dimension size,
-			 String s,
-			 Image img,
-			 int horizontalAlign,
-			 int verticalAlign,
-			 Color color,
-			 boolean bEnabled) {
+  @SuppressWarnings("unused")
+  public void paintLabel(Graphics g,
+                         Dimension size,
+                         String s,
+                         Image img,
+                         int horizontalAlign,
+                         int verticalAlign,
+                         Color color,
+                         boolean bEnabled) {
 
-    try {
       Font font = g.getFont();
       FontMetrics fm = g.getFontMetrics();
       
@@ -204,9 +209,6 @@ public class LF {
 	x += imgW;
       }
       g.drawString(s, x, y);
-    } finally {
-      //
-    }
   }
 
   public void pixel(Graphics g, Color c, int x, int y) {
@@ -218,11 +220,8 @@ public class LF {
   public static final int HORIZONTAL_CENTER = 2;
   public static final int HORIZONTAL_RIGHT  = 3;
 
-  public static final int VERTICAL_TOP     = 1;
-  public static final int VERTICAL_CENTER  = 2;
-  public static final int VERTICAL_RIGHT   = 3;
-
-
-  
+  // public static final int VERTICAL_TOP     = 1;
+  // public static final int VERTICAL_CENTER  = 2;
+  // public static final int VERTICAL_RIGHT   = 3;
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2013, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,14 @@
  */
 package org.knopflerfish.bundle.desktopawt;
 
-import org.osgi.framework.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.io.PrintWriter;
 
-import java.util.*;
-import java.io.*;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
 
-import org.knopflerfish.service.console.*;
+import org.knopflerfish.service.console.ConsoleService;
+import org.knopflerfish.service.console.Session;
 
 public class Console implements ServiceListener {
   final static String CONSOLE_CLASS =
@@ -55,8 +55,8 @@ public class Console implements ServiceListener {
 
     String filter = "(objectclass=" + CONSOLE_CLASS + ")";
     try {
-      ServiceReference[] srl = Activator.bc.getServiceReferences((String) null,
-                                                                 filter);
+      ServiceReference<?>[] srl = Activator.bc.getServiceReferences(
+          (String) null, filter);
       for(int i = 0; srl != null && i < srl.length; i++) {
         serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
@@ -83,13 +83,19 @@ public class Console implements ServiceListener {
     }
   }
 
-  ServiceReference consoleSR = null;
+  ServiceReference<ConsoleService> consoleSR = null;
   ConsoleService console = null;
-  Session               consoleSession = null;
+  Session consoleSession = null;
 
-  void openConsole(ServiceReference sr) {
-    consoleSR = sr;
-    console   = (ConsoleService)Activator.bc.getService(consoleSR);
+  void openConsole(ServiceReference<?> sr) {
+    final Object service = Activator.bc.getService(sr);
+    if (!(service instanceof ConsoleService)) {
+      return;
+    }
+
+    //noinspection unchecked
+    consoleSR = (ServiceReference<ConsoleService>) sr;
+    console   = (ConsoleService) service;
 
     try {
       consoleSession =

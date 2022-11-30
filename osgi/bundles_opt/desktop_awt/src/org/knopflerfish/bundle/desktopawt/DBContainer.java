@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,13 @@
 
 package org.knopflerfish.bundle.desktopawt;
 
-import org.osgi.framework.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Panel;
 
- public class DBContainer extends Panel {
+public class DBContainer extends Panel {
 
    Dimension memSize = new Dimension(0,0);
    Graphics  memG;

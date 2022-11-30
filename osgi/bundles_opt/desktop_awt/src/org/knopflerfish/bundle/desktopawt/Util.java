@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,8 +59,7 @@ public class Util {
     int g = (int)(g1 + k * (double)(g2 - g1));
     int b = (int)(b1 + k * (double)(b2 - b1));
 
-    Color c = new Color(r, g, b);
-    return c;
+    return new Color(r, g, b);
   }
 
  public static String stateName(int state) {
@@ -87,11 +86,9 @@ public class Util {
   }
 
   public static String getHeader(Bundle b, String name, String def) {
-    String s = b != null
-      ? (String)b.getHeaders().get(name)
+    return b != null
+      ? b.getHeaders().get(name)
       : def;
-
-    return s;
   }
   
   public static String getBundleName(Bundle b) {
@@ -103,19 +100,11 @@ public class Util {
     return s;
   }
 
-  public static boolean canBeStarted(Bundle b) {
-    return hasActivator(b) || hasMainClass(b);
-  }
-
   public static boolean hasActivator(Bundle b) {
     return null != getHeader(b, "Bundle-Activator");
   }
 
-  public static boolean hasMainClass(Bundle b) {
-    return null != getHeader(b, "Main-class");
-  }
-
- public static String shortLocation(String s) {
+  public static String shortLocation(String s) {
     int ix = s.lastIndexOf("/");
 
     // handle eclipse extended location directory syntax
@@ -135,7 +124,7 @@ public class Util {
   // String replace functions below by Erik Wistrand
 
   /**
-   * Replace all occurances of a substring with another string.
+   * Replace all occurrences of a substring with another string.
    *
    * <p>
    * The returned string will shrink or grow as necessary, depending on
@@ -156,7 +145,7 @@ public class Util {
    * @return Modified string. If any of the input strings are <tt>null</tt>,
    *         the source string <tt>s</tt> will be returned unmodified. 
    *         If <tt>v1.length == 0</tt>, <tt>v1.equals(v2)</tt> or
-   *         no occurances of <tt>v1</tt> is found, also 
+   *         no occurrences of <tt>v1</tt> is found, also
    *         return <tt>s</tt> unmodified.
    */
   public static String replace(final String s, 
@@ -176,14 +165,14 @@ public class Util {
     int v1Len    = v1.length(); 
     int n        = 0;
 
-    // count number of occurances to be able to correctly size
+    // count number of occurrences to be able to correctly size
     // the resulting output char array
     while(-1 != (ix = s.indexOf(v1, ix))) {
       n++;
       ix += v1Len;
     }
 
-    // No occurances at all, just return source string
+    // No occurrences at all, just return source string
     if(n == 0) {
       return s;
     }
@@ -194,7 +183,7 @@ public class Util {
     char[]  r      = new char[s.length() + n * (v2Len - v1Len)];
     int     rPos   = 0;
 
-    // for each occurance, copy v2 where v1 used to be
+    // for each occurrence, copy v2 where v1 used to be
     while(-1 != (ix = s.indexOf(v1, start))) {
       while(start < ix) r[rPos++] = s.charAt(start++);
       for(int j = 0; j < v2Len; j++) {

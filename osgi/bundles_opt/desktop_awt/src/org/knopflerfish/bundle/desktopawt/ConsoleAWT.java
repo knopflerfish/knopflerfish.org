@@ -34,13 +34,26 @@
 
 package org.knopflerfish.bundle.desktopawt;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Label;
+import java.awt.MenuItem;
+import java.awt.Panel;
+import java.awt.PopupMenu;
+import java.awt.TextArea;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Vector;
-import java.io.*;
-
-import java.awt.*;
-import java.awt.event.*; 
-
-import java.net.URL;
 
 public class ConsoleAWT extends Panel {
   LF lf = LF.getLF();
@@ -56,10 +69,9 @@ public class ConsoleAWT extends Panel {
   PrintStream      out;
 
   Container panel;
-  ScrollPane scroll;
   Label  cmdLabel;
 
-  Vector history    = new Vector();
+  Vector<String> history    = new Vector<>();
   int    historyPos = 0;
 
   boolean bGrabbed = false;
@@ -80,22 +92,18 @@ public class ConsoleAWT extends Panel {
     log("ConsoleAWT()");
     try {
       text = new TextArea("", 0, 40) {
-          public Dimension preferredSize() {
-            return getPreferredSize();
-          }
           public Dimension getPreferredSize() {
             return pSize;
           }
         };
       text.setSize(pSize);
       text.setEditable(false);
-      String bootText = 
-	"Knopflerfish OSGi console. Copyright (c) 2004 Knopflerfish.";
+      String bootText;
     
       // See if we're using the knopflerfish framework. If so, grab
       // the boot string from the startup class
       try {
-	Class mainClazz = Class.forName("org.knopflerfish.framework.Main");
+	Class<?> mainClazz = Class.forName("org.knopflerfish.framework.Main");
 	bootText        = (String)mainClazz.getField("bootText").get(null);
       } catch (Throwable e) {
 	bootText        = "";
@@ -115,13 +123,13 @@ public class ConsoleAWT extends Panel {
 	  public void keyPressed(KeyEvent ev) {
 	    if(ev.getKeyCode() == KeyEvent.VK_UP) {
 	      if(historyPos > 0) {
-		String line = (String)history.elementAt(historyPos-1);
+		String line = history.elementAt(historyPos-1);
 		historyPos--;
 		tfCmd.setText(line);
 	      }
 	    } else if(ev.getKeyCode() == KeyEvent.VK_DOWN) {
 	      if(historyPos < history.size()-1) {
-		String line = (String)history.elementAt(historyPos+1);
+		String line = history.elementAt(historyPos+1);
 		historyPos++;
 		tfCmd.setText(line);
 	      }
@@ -145,7 +153,7 @@ public class ConsoleAWT extends Panel {
 		  String s2 = line.substring(1);
 		  String bestStr = "";
 		  for(int i = 0; i < history.size(); i++) {
-		    String s = (String)history.elementAt(i);
+		    String s = history.elementAt(i);
 		    if(s.startsWith(s2) || s.length() >= bestStr.length()) {
 		      bestStr = s;
 		    }
@@ -187,9 +195,6 @@ public class ConsoleAWT extends Panel {
 
       out = new PrintStream(new TextAreaOutputStream(this, text));
 
-      GridBagLayout gridbag = new GridBagLayout();
-      GridBagConstraints c = new GridBagConstraints();
-
       panel.add(text,         BorderLayout.CENTER);
 
       Panel cmdPanel = new Panel(new BorderLayout());
@@ -223,10 +228,8 @@ public class ConsoleAWT extends Panel {
           }
           
           private void showPopup(MouseEvent e) {
-            if (cmdPopupMenu != null) {
-              Component comp = e.getComponent();
-              cmdPopupMenu.show(comp, 0, comp.getSize().height);
-            }
+            Component comp = e.getComponent();
+            cmdPopupMenu.show(comp, 0, comp.getSize().height);
           }
         });
       cmdLabel.add(cmdPopupMenu);

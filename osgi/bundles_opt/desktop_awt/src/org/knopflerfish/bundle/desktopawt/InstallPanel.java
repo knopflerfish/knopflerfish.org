@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,12 +47,10 @@ public class InstallPanel extends Panel {
   String defText = "Enter bundle URL\nthen select \"Install\"";
 
   FileDialog fd;
-  FilenameFilter filter = new FilenameFilter() {
-      public boolean accept(File dir, String name) {
-        String s = name.toLowerCase();
-        return s.endsWith(".jar") || s.endsWith(".zip");
-      }
-    };
+  FilenameFilter filter = (dir, name) -> {
+    String s = name.toLowerCase();
+    return s.endsWith(".jar") || s.endsWith(".zip");
+  };
 
   public InstallPanel() {
     super();
@@ -83,17 +81,9 @@ public class InstallPanel extends Panel {
     installB.setBackground(lf.bgColor);
     
     ImageLabel open = new ImageLabel("/document-open.png", 1, lf.bgColor);
-    open.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          browseFile();
-        }
-      });
+    open.addActionListener(ev -> browseFile());
 
-    installB.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          installBundle(tf.getText());
-        }
-      });
+    installB.addActionListener(ev -> installBundle(tf.getText()));
     row.add(new Label("URL"), BorderLayout.WEST);
     row.add(tf, BorderLayout.CENTER);
     row.add(open, BorderLayout.EAST);
@@ -132,10 +122,10 @@ public class InstallPanel extends Panel {
         System.err.println("Failed to set dir: " + e);
       }
     }
-    fd.show();
+    fd.setVisible(true);
     File dir = new File(fd.getDirectory());
     String name = fd.getFile();
-    if(dir != null && name != null) {
+    if (name != null) {
       File f = new File(dir, name);
       tf.setText("file:" + f.getAbsolutePath());
     }

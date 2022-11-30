@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,8 @@
 
 package org.knopflerfish.bundle.desktopawt;
 
-import java.util.Vector;
-import java.io.*;
-
-import java.awt.*;
-import java.awt.event.*; 
-
-import java.net.URL;
+import java.awt.TextArea;
+import java.io.OutputStream;
 
 public class TextAreaOutputStream extends OutputStream {
 
@@ -59,13 +54,12 @@ public class TextAreaOutputStream extends OutputStream {
   }
 
   public void write(int b) {
-    char c = (char)b;
-    if(c == '\r') {
-    } else if(c == '\n') {
+    char c = (char) b;
+    if (c == '\n') {
       text.append(buff.toString() + "\n");
       buff.setLength(0);
       swingIO.showLastLine();
-    } else {
+    } else if (c != '\r') {
       buff.append(c);
     }
   }

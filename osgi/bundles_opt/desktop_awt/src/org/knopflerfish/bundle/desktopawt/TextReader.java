@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,31 +34,16 @@
 
 package org.knopflerfish.bundle.desktopawt;
 
-import java.util.Vector;
-import java.io.*;
-
-import java.awt.*;
-import java.awt.event.*; 
-
-import java.net.URL;
-
+import java.io.IOException;
+import java.io.Reader;
 
 public class TextReader extends Reader {
 
   StringBuffer sb = new StringBuffer();
 
-  Object  lock     = new Object();
-  Object  waitLock = new Object();
+  private final Object  waitLock = new Object();
 
   public TextReader() {
-  }
-
-  public int available() {
-    if(sb == null) {
-      throw new RuntimeException("Stream closed");
-    }
-    //    System.out.println("read available=" + sb.length());
-    return sb.length();
   }
 
   public void close() {
@@ -69,7 +54,6 @@ public class TextReader extends Reader {
   public void mark(int readlimit) {
   }
 
-  
   public boolean markSupported() {
     return false;
   }
