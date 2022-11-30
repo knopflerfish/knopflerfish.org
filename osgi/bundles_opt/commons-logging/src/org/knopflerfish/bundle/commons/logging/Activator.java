@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,13 @@
 
 package org.knopflerfish.bundle.commons.logging;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.log.LogRef;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import org.apache.commons.logging.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+
+import org.knopflerfish.service.log.LogRef;
 
 public class Activator implements BundleActivator {
   static BundleContext bc;
@@ -45,9 +48,9 @@ public class Activator implements BundleActivator {
 
   Log cLog;
 
-  public void start(BundleContext _bc) {
-    this.bc   = _bc;
-    this.log  = new LogRef(bc);
+  public void start(BundleContext bc) {
+    Activator.bc = bc;
+    log  = new LogRef(Activator.bc);
     
     cLog = LogFactory.getLog("OSGi logger");    
     cLog.trace("OSGi Log implementation of Apache Commons logging started");
@@ -60,6 +63,6 @@ public class Activator implements BundleActivator {
     LogFactory.releaseAll();
 
     log.close();
-    this.bc  = null;
+    Activator.bc = null;
   }
 }

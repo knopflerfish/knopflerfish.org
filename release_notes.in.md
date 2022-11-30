@@ -303,6 +303,7 @@ Knopflerfish Services
 
 * Internally use StringBuilder instead of StringBuffer.
 * Javadoc fixes.
+* Fixed issue with Log instance reuse.
 
 ### Crimson is no longer redistributed
 

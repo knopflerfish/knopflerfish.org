@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,14 @@
 
 package org.knopflerfish.bundle.commons.logging;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.log.LogRef;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 
-import org.apache.commons.logging.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogConfigurationException;
+import org.apache.commons.logging.LogFactory;
 
-//import java.lang.reflect.Constructor;
-//import java.lang.reflect.Method;
-import java.util.*;
-
-/**
- */
 public final class LogFactoryOSGI extends LogFactory {
 
   public LogFactoryOSGI() {
@@ -54,39 +51,39 @@ public final class LogFactoryOSGI extends LogFactory {
   /**
    * The configuration attributes for this {@link LogFactory}.
    */
-  private Hashtable attrs = new Hashtable();
+  private Hashtable<String, Object> attrs = new Hashtable<>();
 
-  // Sttring -> Log
-  private Hashtable logs = new Hashtable();
+  private Hashtable<String, Log> logs = new Hashtable<>();
   
   public Object getAttribute(String name) {
     return (attrs.get(name));
   }
   
   public String[] getAttributeNames() {
-    Vector names = new Vector();
-    Enumeration keys = attrs.keys();
+    Vector<String> names = new Vector<>();
+    Enumeration<String> keys = attrs.keys();
     while (keys.hasMoreElements()) {
-      names.addElement((String) keys.nextElement());
+      names.addElement(keys.nextElement());
     }
-    String results[] = new String[names.size()];
+    String[] results = new String[names.size()];
     for (int i = 0; i < results.length; i++) {
-      results[i] = (String) names.elementAt(i);
+      results[i] = names.elementAt(i);
     }
     return (results);
   }
 
-  public Log getInstance(Class clazz)
+  public Log getInstance(@SuppressWarnings("rawtypes") Class clazz)
     throws LogConfigurationException
   {
-    Log log = (Log) logs.get(clazz.getName());
+    final String className = clazz.getName();
+    Log log = logs.get(className);
 
     if( log != null ) {
       return log;
     }
     
-    log = new LogOSGI(clazz.getName());
-    logs.put( clazz, log );
+    log = new LogOSGI(className);
+    logs.put(className, log);
     return log;
   }
   
@@ -94,7 +91,7 @@ public final class LogFactoryOSGI extends LogFactory {
   public Log getInstance(String name)
     throws LogConfigurationException
   {
-    Log log = (Log) logs.get(name);
+    Log log = logs.get(name);
     if( log != null ) {
       return log;
     }
