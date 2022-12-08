@@ -930,6 +930,13 @@ class ConfigurationAdminFactory
     return null;
   }
 
+  // TODO: Should ~name be applied before or after generatePid?
+  String generatePid(
+      final String factoryPid, final String name
+  ) throws IOException {
+    return generatePid(factoryPid) + '~' + name;
+  }
+
   String generatePid(final String factoryPid)
       throws IOException
   {
@@ -1661,15 +1668,15 @@ class ConfigurationAdminFactory
     }
 
     @Override
-    public Configuration getFactoryConfiguration(String factoryPid, String name, String location) {
-      // TODO Auto-generated method stub
-      return null;
+    public Configuration getFactoryConfiguration(String factoryPid, String name, String location) throws IOException {
+      final String pid = ConfigurationAdminFactory.this.generatePid(factoryPid, name);
+      return getConfiguration(pid, location);
     }
 
     @Override
-    public Configuration getFactoryConfiguration(String factoryPid, String name) {
-      // TODO Auto-generated method stub
-      return null;
+    public Configuration getFactoryConfiguration(String factoryPid, String name) throws IOException {
+      final String pid = ConfigurationAdminFactory.this.generatePid(factoryPid, name);
+      return getConfiguration(pid);
     }
 
   }
