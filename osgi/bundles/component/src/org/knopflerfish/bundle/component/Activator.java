@@ -41,7 +41,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
-
 public class Activator implements BundleActivator
 {
   private static ServiceTracker<LogService,LogService> logTracker;
@@ -52,10 +51,10 @@ public class Activator implements BundleActivator
   /**
    * Initialize log and start SCR.
    */
-  public void start(BundleContext bc) throws Exception {
-    logTracker = new ServiceTracker<LogService, LogService>(bc,
-                                                            LogService.class.getName(),
-                                                            null);
+  public void start(BundleContext bc) {
+    logTracker = new ServiceTracker<>(bc,
+        LogService.class.getName(),
+        null);
     logTracker.open();
     scr = new SCR(bc);
     scr.start();

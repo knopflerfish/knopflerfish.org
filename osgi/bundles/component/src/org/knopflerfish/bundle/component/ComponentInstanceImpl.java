@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,13 @@
  */
 package org.knopflerfish.bundle.component;
 
-import org.osgi.service.component.*;
+import org.osgi.service.component.ComponentInstance;
 
-
-class ComponentInstanceImpl implements ComponentInstance {
+class ComponentInstanceImpl<S> implements ComponentInstance<S> {
   final ComponentContextImpl cci;
-  final Object instance;
+  final S instance;
 
-  ComponentInstanceImpl(ComponentContextImpl cci, Object instance) {
+  ComponentInstanceImpl(ComponentContextImpl cci, S instance) {
     this.cci = cci;
     this.instance = instance;
   }
@@ -49,7 +48,7 @@ class ComponentInstanceImpl implements ComponentInstance {
     cci.dispose();
   }
 
-  public Object getInstance() {
+  public S getInstance() {
     return instance;
   }
 

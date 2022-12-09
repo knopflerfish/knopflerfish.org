@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2017, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@ import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentInstance;
 import org.osgi.util.promise.Deferred;
 
-
 abstract class Component implements org.apache.felix.scr.Component {
 
   final static String NO_CCID = "";
@@ -76,13 +75,13 @@ abstract class Component implements org.apache.felix.scr.Component {
    * a negative value means that we are in the process of enabling
    * and calculating constraints.
    */
-  Long id = Long.valueOf(-1);
+  Long id = -1L;
   private int unresolvedConstraints;
-  final HashMap<String, ComponentConfiguration []> compConfigs = new HashMap<String, ComponentConfiguration []>();
+  final HashMap<String, ComponentConfiguration[]> compConfigs = new HashMap<>();
   ComponentMethod activateMethod;
   ComponentMethod deactivateMethod;
   ComponentMethod modifiedMethod = null;
-  private final HashMap<String, Integer> cmRevs = new HashMap<String, Integer>();
+  private final HashMap<String, Integer> cmRevs = new HashMap<>();
   protected transient int state = 0;
   private volatile Class<?> componentClass = null;
   private Reference [] refs = null;
@@ -109,7 +108,7 @@ abstract class Component implements org.apache.felix.scr.Component {
    * @see org.apache.felix.scr.Component#getId
    */
   public long getId() {
-    return id.longValue();
+    return id;
   }
 
 
@@ -226,7 +225,7 @@ abstract class Component implements org.apache.felix.scr.Component {
    */
   public String[] getServices() {
     final String[] res = compDesc.getServices();
-    return res != null ? (String[])res.clone() : null;
+    return res != null ? res.clone() : null;
   }
 
 
@@ -239,6 +238,7 @@ abstract class Component implements org.apache.felix.scr.Component {
     if (cc != null) {
       res = cc.getProperties();
     } else {
+      //noinspection unchecked
       res = (Dictionary<String, Object>) compDesc.getProperties().clone();
     }
     return res;
@@ -328,12 +328,11 @@ abstract class Component implements org.apache.felix.scr.Component {
    * @see org.apache.felix.scr.Component#enable
    */
   public void enable() {
-    Deferred<Void> d = new Deferred<Void>();
+    Deferred<Void> d = new Deferred<>();
     enable(d);
     try {
       d.getPromise().getValue();
-    } catch (InvocationTargetException e) {
-    } catch (InterruptedException e) {
+    } catch (InvocationTargetException | InterruptedException ignored) {
     }
   }
 
@@ -345,12 +344,11 @@ abstract class Component implements org.apache.felix.scr.Component {
    * @see org.apache.felix.scr.Component#disable
    */
   public void disable() {
-    Deferred<Void> d = new Deferred<Void>();
+    Deferred<Void> d = new Deferred<>();
     disable(d);
     try {
       d.getPromise().getValue();
-    } catch (InvocationTargetException e) {
-    } catch (InterruptedException e) {
+    } catch (InvocationTargetException | InterruptedException ignored) {
     }
   }
 
@@ -359,32 +357,28 @@ abstract class Component implements org.apache.felix.scr.Component {
     final Object disabling = new Object();
     synchronized(disabling) {
       try {
-        new Thread(new Runnable() {
-          @Override
-          public void run()
-          {
-            try {
-              if (isEnabled()) {
-               synchronized (lock) {
-                  if (isEnabled()) {
-                    state = STATE_DISABLING;
-                    synchronized(disabling) {
-                      disabling.notifyAll();
-                    }
-                    disable(ComponentConstants.DEACTIVATION_REASON_DISABLED, d);
-                  } else {
-                    d.resolve(null);
+        new Thread(() -> {
+          try {
+            if (isEnabled()) {
+             synchronized (lock) {
+                if (isEnabled()) {
+                  state = STATE_DISABLING;
+                  synchronized(disabling) {
+                    disabling.notifyAll();
                   }
+                  disable(ComponentConstants.DEACTIVATION_REASON_DISABLED, d);
+                } else {
+                  d.resolve(null);
                 }
-              } else {
-                d.resolve(null);
               }
-            } catch (Exception failure) {
-              d.fail(failure);
+            } else {
+              d.resolve(null);
             }
-            synchronized(disabling) {
-              disabling.notifyAll();
-            }
+          } catch (Exception failure) {
+            d.fail(failure);
+          }
+          synchronized(disabling) {
+            disabling.notifyAll();
           }
         }).start();
         disabling.wait();
@@ -400,31 +394,28 @@ abstract class Component implements org.apache.felix.scr.Component {
     synchronized(enabling) {
       try {
         Activator.logInfo(bc, "Enable " + toString());
-        new Thread(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              if (!isEnabled()) {
-               synchronized (lock) {
-                  if (!isEnabled()) {
-                    state = STATE_ENABLING;
-                    synchronized(enabling) {
-                      enabling.notifyAll();
-                    }
-                    enableTrackConstraints(d);
-                  } else {
-                    d.resolve(null);
+        new Thread(() -> {
+          try {
+            if (!isEnabled()) {
+             synchronized (lock) {
+                if (!isEnabled()) {
+                  state = STATE_ENABLING;
+                  synchronized(enabling) {
+                    enabling.notifyAll();
                   }
+                  enableTrackConstraints(d);
+                } else {
+                  d.resolve(null);
                 }
-              } else {
-                d.resolve(null);
               }
-            } catch (Exception failure) {
-              d.fail(failure);
+            } else {
+              d.resolve(null);
             }
-            synchronized(enabling) {
-              enabling.notifyAll();
-            }
+          } catch (Exception failure) {
+            d.fail(failure);
+          }
+          synchronized(enabling) {
+            enabling.notifyAll();
           }
         }).start();
         enabling.wait();
@@ -441,8 +432,9 @@ abstract class Component implements org.apache.felix.scr.Component {
   }
 
 
-  HashMap<String, Object> getPropertiesMap()
+  Map<String, Object> getPropertiesMap()
   {
+    //noinspection rawtypes,unchecked
     return new HashMap(compDesc.getProperties());
   }
 
@@ -461,7 +453,7 @@ abstract class Component implements org.apache.felix.scr.Component {
         disposeComponentConfigs(reason);
         untrackConstraints();
         refs = null;
-        id = Long.valueOf(-1);
+        id = -1L;
         state = dispose ? STATE_DISPOSED : STATE_DISABLED;
       } else if (dispose && state == STATE_DISABLED) {
         state = STATE_DISPOSED;
@@ -548,7 +540,7 @@ abstract class Component implements org.apache.felix.scr.Component {
         // No satisfied, check if we have circular problems.
         // Only applicable if component registers a service.
         Activator.logDebug("Check circular: " + toString());
-        String res = scr.checkCircularReferences(this, new ArrayList<Component>());
+        String res = scr.checkCircularReferences(this, new ArrayList<>());
         if (res != null) {
           Activator.logError(bc, res, null);
         }
@@ -588,6 +580,7 @@ abstract class Component implements org.apache.felix.scr.Component {
   /**
    * Unresolved a constraint check unsatisfied.
    */
+  @SuppressWarnings("SameParameterValue")
   void unresolvedConstraint(int reason) {
     synchronized (lock) {
       if (unresolvedConstraints++ == 0) {
@@ -655,8 +648,8 @@ abstract class Component implements org.apache.felix.scr.Component {
 
   void incrementCMRev(String ccid) {
     Integer i = cmRevs.get(ccid);
-    int cnt = i == null ? 0 : i.intValue();
-    cmRevs.put(ccid, Integer.valueOf(cnt + 1));
+    int cnt = i == null ? 0 : i;
+    cmRevs.put(ccid, cnt + 1);
   }
 
 
@@ -668,11 +661,10 @@ abstract class Component implements org.apache.felix.scr.Component {
   /**
    * Handle CM config deletes for Immediate- & Delayed-Components.
    * FactoryComponents have overridden method
-   *
    */
   void cmConfigDeleted(String ccid) {
     Activator.logDebug("ConfigurationEvent deleted, ccid=" + ccid + ", comp=" + toString());
-    ComponentConfiguration [] cc;
+    ComponentConfiguration[] cc;
     synchronized (lock) {
       resetCMRev(ccid);
       if (!cmConfig.isSatisfied()) {
@@ -701,7 +693,9 @@ abstract class Component implements org.apache.felix.scr.Component {
         if (cc != null) {
           ComponentConfiguration[] old = compConfigs.remove(NO_CCID);
           if (old != null) {
-            ComponentConfiguration [] merged = new ComponentConfiguration[old.length + 1];
+            ComponentConfiguration[] merged = new ComponentConfiguration[old.length + 1];
+            // TODO: ComponentConfiguration[] cc will never be found in ComponentConfiguration[] old
+            // TODO: What are we trying to do?
             int i = -1 - Arrays.binarySearch(old, cc);
             if (i > 0) {
               System.arraycopy(old, 0, merged, 0, i);
@@ -769,7 +763,7 @@ abstract class Component implements org.apache.felix.scr.Component {
    *
    */
   private ComponentConfiguration [] newComponentConfigurations() {
-    final ArrayList<ComponentConfiguration> res = new ArrayList<ComponentConfiguration>();
+    final ArrayList<ComponentConfiguration> res = new ArrayList<>();
     if (!cmConfig.isEmpty()) {
       for (final String ccid : cmConfig.getCCIds()) {
         if (compConfigs.get(ccid) == null) {
@@ -782,7 +776,7 @@ abstract class Component implements org.apache.felix.scr.Component {
     } else if (compConfigs.get(NO_CCID) == null) {
       res.add(newComponentConfiguration(NO_CCID, null));
     }
-    return res.toArray(new ComponentConfiguration [res.size()]);
+    return res.toArray(new ComponentConfiguration[0]);
   }
 
 
@@ -838,7 +832,7 @@ abstract class Component implements org.apache.felix.scr.Component {
    * Dispose of a created ComponentConfiguration.
    */
   private void disposeComponentConfigs(int reason) {
-    final ArrayList<ComponentConfiguration []> cl = new ArrayList<ComponentConfiguration []>(compConfigs.values());
+    final ArrayList<ComponentConfiguration []> cl = new ArrayList<>(compConfigs.values());
     for (final ComponentConfiguration [] componentConfigurations : cl) {
       for (final ComponentConfiguration cc : componentConfigurations) {
         cc.dispose(reason, true);
@@ -954,21 +948,21 @@ abstract class Component implements org.apache.felix.scr.Component {
     Class<?> clazz = componentClass;
     while (clazz != null && !lookFor.isEmpty()) {
       final Method[] methods = clazz.getDeclaredMethods();
-      final HashMap<String, ComponentMethod[]> nextLookfor
-        = new HashMap<String, ComponentMethod[]>(lookFor);
+      final HashMap<String, ComponentMethod[]> nextLookFor
+          = new HashMap<>(lookFor);
       for (final Method m : methods) {
         final ComponentMethod[] cm = lookFor.get(m.getName());
         if (cm != null) {
           for (final ComponentMethod element : cm) {
             if (element.updateMethod(minor, m, clazz)) {
               // Found one candidate, don't look in superclass
-              nextLookfor.remove(m.getName());
+              nextLookFor.remove(m.getName());
             }
           }
         }
       }
       clazz = clazz.getSuperclass();
-      lookFor = nextLookfor;
+      lookFor = nextLookFor;
     }
   }
 
@@ -998,7 +992,7 @@ abstract class Component implements org.apache.felix.scr.Component {
    *
    */
   Collection<ComponentConfiguration> getComponentConfigurations() {
-    Collection<ComponentConfiguration> res = new ArrayList<ComponentConfiguration>();
+    Collection<ComponentConfiguration> res = new ArrayList<>();
     synchronized (compConfigs) {
       for (final ComponentConfiguration [] ccs : compConfigs.values()) {
         Collections.addAll(res, ccs);
@@ -1025,7 +1019,7 @@ abstract class Component implements org.apache.felix.scr.Component {
    * the first time this method is called.
    */
   private void getMethods() {
-    final HashMap<String, ComponentMethod[]> lookFor = new HashMap<String, ComponentMethod[]>();
+    final HashMap<String, ComponentMethod[]> lookFor = new HashMap<>();
     String name = compDesc.getActivateMethod();
     activateMethod = new ComponentMethod(name, this, false);
     saveMethod(lookFor, name , activateMethod);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013, KNOPFLERFISH project
+ * Copyright (c) 2012-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
 
 
-class ComponentFactoryImpl implements ComponentFactory
+class ComponentFactoryImpl<S> implements ComponentFactory<S>
 {
   private FactoryComponent factoryComponent;
 
@@ -56,13 +56,13 @@ class ComponentFactoryImpl implements ComponentFactory
   /**
    *
    */
-  public ComponentInstance newInstance(@SuppressWarnings("rawtypes") Dictionary instanceProps) {
+  public ComponentInstance<S> newInstance(@SuppressWarnings("rawtypes") Dictionary instanceProps) {
     final FactoryComponent fc = factoryComponent;
     if (fc != null) {
       @SuppressWarnings("unchecked")
-      final
-      Dictionary<String, Object> ip = instanceProps;
-      return fc.newInstance(ip);
+      final Dictionary<String, Object> ip = instanceProps;
+      //noinspection unchecked
+      return (ComponentInstance<S>) fc.newInstance(ip);
     }
     throw new ComponentException("Component factory has been disposed");
   }

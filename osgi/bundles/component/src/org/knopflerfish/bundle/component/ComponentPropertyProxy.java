@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ import org.osgi.service.component.ComponentException;
  */
 class ComponentPropertyProxy implements InvocationHandler
 {
-  final private HashMap<String,Object> results = new HashMap<String, Object>();
+  final private HashMap<String,Object> results = new HashMap<>();
   final private Dictionary<String, Object> properties;
   final private Bundle bundle;
 
@@ -64,8 +64,7 @@ class ComponentPropertyProxy implements InvocationHandler
 
 
   @Override
-  public Object invoke(Object proxy, Method method, Object[] args)
-      throws Throwable {
+  public Object invoke(Object proxy, Method method, Object[] args) {
     String mName = method.getName();
     if (args != null && args.length > 0) {
       throw new NoSuchMethodError(mName + " can't have arguments");
@@ -112,7 +111,7 @@ class ComponentPropertyProxy implements InvocationHandler
         } else if (res instanceof String) {
           return Boolean.parseBoolean((String) res);
         } else if (res instanceof Character) {
-          return ((Character) res).charValue() != 0;
+          return (Character) res != 0;
         } else if (res instanceof Number) {
           String s = res.toString();
           return !(s.equals("0") || s.equals("0.0") || s.equals("-0.0"));
@@ -126,7 +125,7 @@ class ComponentPropertyProxy implements InvocationHandler
         } else if (res instanceof String) {
           return ((String) res).length() > 0 ? ((String) res).charAt(0) : (char)0;
         } else if (res instanceof Boolean) {
-          return (char)(((Boolean) res).booleanValue() ? 1 : 0);
+          return (char)((Boolean) res ? 1 : 0);
         } else if (res instanceof Number) {
           return (char)((Number) res).intValue();
         } else {
@@ -174,7 +173,7 @@ class ComponentPropertyProxy implements InvocationHandler
         } else if (res instanceof Boolean) {
           return (long)((Boolean) res ? 1 : 0);
         } else if (res instanceof Character) {
-          return (long)((Character) res).charValue();
+          return (long) (Character) res;
         } else if (res instanceof Number) {
           return ((Number) res).longValue();
         } else {
@@ -189,7 +188,7 @@ class ComponentPropertyProxy implements InvocationHandler
         } else if (res instanceof Boolean) {
           return (float)((Boolean) res ? 1 : 0);
         } else if (res instanceof Character) {
-          return (float)((Character) res).charValue();
+          return (float) (Character) res;
         } else if (res instanceof Number) {
           return ((Number) res).floatValue();
         } else {
@@ -204,7 +203,7 @@ class ComponentPropertyProxy implements InvocationHandler
         } else if (res instanceof Boolean) {
           return (double)((Boolean) res ? 1 : 0);
         } else if (res instanceof Character) {
-          return (double)((Character) res).charValue();
+          return (double) (Character) res;
         } else if (res instanceof Number) {
           return ((Number) res).doubleValue();
         } else {
@@ -213,7 +212,7 @@ class ComponentPropertyProxy implements InvocationHandler
       } else if (retType == Class.class) {
         res = getPossibleElement(res, idx, null);
         if (res == null) {
-          return res;
+          return null;
         } else if (res instanceof String) {
           return bundle.loadClass((String) res);
         } else {
@@ -222,10 +221,10 @@ class ComponentPropertyProxy implements InvocationHandler
       } else if (retType.isEnum()) {
         res = getPossibleElement(res, idx, null);
         if (res == null) {
-          return res;
+          return null;
         } else if (res instanceof String) {
           @SuppressWarnings({ "rawtypes" })
-          Class cls = (Class)retType;
+          Class cls = retType;
           return coerceEnum((String)res, cls);
         } else {
           throw new ComponentException("Enum");
@@ -234,7 +233,7 @@ class ComponentPropertyProxy implements InvocationHandler
         throw new ComponentException("Unexpected annotation type " + retType);        
       } else if (retType.isArray()) {
         if (res == null) {
-          return res;
+          return null;
         }
         Class<?> elemType = retType.getComponentType();
         Class<?> resCls = res.getClass();
@@ -254,10 +253,8 @@ class ComponentPropertyProxy implements InvocationHandler
       } else {
         throw new ComponentException("Unexpected type " + retType);
       }
-    } catch (NumberFormatException nfe) {
-      throw new ComponentException(nfe);
-    } catch (ClassNotFoundException cnfe) {
-      throw new ComponentException(cnfe);
+    } catch (NumberFormatException | ClassNotFoundException e) {
+      throw new ComponentException(e);
     }
   }
 
@@ -321,9 +318,9 @@ class ComponentPropertyProxy implements InvocationHandler
     } else if (res instanceof String) {
       return Integer.parseInt((String)res);
     } else if (res instanceof Boolean) {
-      return (int)((Boolean) res ? 1 : 0);
+      return (Boolean) res ? 1 : 0;
     } else if (res instanceof Character) {
-      return (int)((Character) res).charValue();
+      return (int) (Character) res;
     } else if (res instanceof Number) {
       return ((Number) res).intValue();
     } else {

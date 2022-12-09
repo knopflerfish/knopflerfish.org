@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, KNOPFLERFISH project
+ * Copyright (c) 2016-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,13 @@
  */
 package org.knopflerfish.bundle.component;
 
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.osgi.dto.DTO;
 import org.osgi.framework.Bundle;
@@ -51,7 +56,6 @@ import org.osgi.service.component.runtime.dto.UnsatisfiedReferenceDTO;
 import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
 
-
 class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
 {
 
@@ -66,7 +70,7 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
    *  {@inheritDoc}
    */
   public Collection<ComponentDescriptionDTO> getComponentDescriptionDTOs(Bundle... bundles) {
-    List<ComponentDescriptionDTO> res = new ArrayList<ComponentDescriptionDTO>();
+    List<ComponentDescriptionDTO> res = new ArrayList<>();
     Bundle [] bs =  (bundles.length == 0) ? scr.bc.getBundles() : bundles;
     for (Bundle b : bs) {
       res.addAll(getComponentDescriptionDTOs(b, null));
@@ -91,11 +95,11 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
    *  {@inheritDoc}
    */
   public Collection<ComponentConfigurationDTO> getComponentConfigurationDTOs(ComponentDescriptionDTO description) {
-    List<ComponentConfigurationDTO> res = new ArrayList<ComponentConfigurationDTO>();
+    List<ComponentConfigurationDTO> res = new ArrayList<>();
     Component c = getComponent(description);
     if (c != null) {
-      List<SatisfiedReferenceDTO> srd = new ArrayList<SatisfiedReferenceDTO>();
-      List<UnsatisfiedReferenceDTO> urd = new ArrayList<UnsatisfiedReferenceDTO>();
+      List<SatisfiedReferenceDTO> srd = new ArrayList<>();
+      List<UnsatisfiedReferenceDTO> urd = new ArrayList<>();
       Reference [] refs = c.getRawReferences();
       if (refs != null) {
         for (Reference r : refs) {
@@ -108,8 +112,8 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
       }
       for (ComponentConfiguration cc : c.getComponentConfigurations()) {
         res.add(createComponentConfigurationDTO(cc, description,
-                                                srd.toArray(new SatisfiedReferenceDTO[srd.size()]),
-                                                urd.toArray(new UnsatisfiedReferenceDTO[urd.size()])));
+                                                srd.toArray(new SatisfiedReferenceDTO[0]),
+                                                urd.toArray(new UnsatisfiedReferenceDTO[0])));
       }
     }
     return res;
@@ -129,7 +133,7 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
    */
   public Promise<Void> enableComponent(ComponentDescriptionDTO description) {
     Component c = getComponent(description);
-    Deferred<Void> d = new Deferred<Void>();
+    Deferred<Void> d = new Deferred<>();
     if (c != null) {
       c.enable(d);
     } else {
@@ -144,7 +148,7 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
    */
   public Promise<Void> disableComponent(ComponentDescriptionDTO description) {
     Component c = getComponent(description);
-    Deferred<Void> d = new Deferred<Void>();
+    Deferred<Void> d = new Deferred<>();
     if (c != null) {
       c.disable(d);
     } else {
@@ -237,7 +241,7 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
     SatisfiedReferenceDTO res = new SatisfiedReferenceDTO();
     res.name = r.getName();
     res.target = r.getTarget();
-    HashSet<ServiceReference<?>> services = new HashSet<ServiceReference<?>>();
+    HashSet<ServiceReference<?>> services = new HashSet<>();
     for (ReferenceListener rl : r.getAllReferenceListeners()) {
       ServiceReference<?>[] bound = rl.getBoundServiceReferences();
       if (bound != null) {
@@ -253,7 +257,7 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
     UnsatisfiedReferenceDTO res = new UnsatisfiedReferenceDTO();
     res.name = r.getName();
     res.target = r.getTarget();
-    HashSet<ServiceReference<?>> services = new HashSet<ServiceReference<?>>();
+    HashSet<ServiceReference<?>> services = new HashSet<>();
     for (ReferenceListener rl : r.getAllReferenceListeners()) {
       Collections.addAll(services, rl.getServiceReferences());
     }
@@ -280,7 +284,7 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
 
 
   private List<ComponentDescriptionDTO> getComponentDescriptionDTOs(Bundle b, String name) {
-    List<ComponentDescriptionDTO> res = new ArrayList<ComponentDescriptionDTO>();
+    List<ComponentDescriptionDTO> res = new ArrayList<>();
     Component [] cs = scr.getComponents(b);
     if (cs != null) {
       for (Component c : cs) {
@@ -296,7 +300,7 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
   private ServiceReferenceDTO [] getServiceReferenceDTOs(Set<ServiceReference<?>> services) {
     ServiceReferenceDTO[] res = new ServiceReferenceDTO[services.size()];
     int i = 0;
-    for (ServiceReference sr : services) {
+    for (ServiceReference<?> sr : services) {
       res[i++] = getServiceReferenceDTO(sr);
     }
     return res;
@@ -305,12 +309,12 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
 
   private ServiceReferenceDTO getServiceReferenceDTO(ServiceReference<?> sr) {
     ServiceReferenceDTO res = new ServiceReferenceDTO();
-    res.properties = new HashMap<String, Object>();
+    res.properties = new HashMap<>();
     for (String key : sr.getPropertyKeys()) {
       Object val = safeDTOObject(sr.getProperty(key));
       res.properties.put(key, val);
     }
-    res.id = ((Long)sr.getProperty(Constants.SERVICE_ID)).longValue();
+    res.id = (Long) sr.getProperty(Constants.SERVICE_ID);
     Bundle [] using = sr.getUsingBundles();
     if (using != null) {
       res.usingBundles = new long [using.length];
@@ -330,7 +334,7 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
 
 
   private Object safeDTOObject(Object val) {
-    Class c = val.getClass();
+    Class<?> c = val.getClass();
     Object res = val;
     if (c.isArray()) {
       if (!validDTOType(c.getComponentType())) {
@@ -347,7 +351,8 @@ class ServiceComponentRuntimeImpl implements ServiceComponentRuntime
     return res;
   }
 
-  private boolean validDTOType(Class c) {
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+  private boolean validDTOType(Class<?> c) {
     return c == String.class || c == Boolean.class ||
         (c.isPrimitive() && c != Boolean.TYPE && c != Character.TYPE) ||
         Number.class.isAssignableFrom(c) ||

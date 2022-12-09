@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2017, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,14 +46,13 @@ import org.osgi.service.cm.ConfigurationEvent;
 import org.osgi.service.cm.ConfigurationListener;
 import org.osgi.util.tracker.ServiceTracker;
 
-
 /**
  * Service Component Runtime
  */
 class CMHandler implements ConfigurationListener
 {
   private final SCR scr;
-  private final Hashtable<String, CMPid[]> configSubscriber = new Hashtable<String, CMPid[]>();
+  private final Hashtable<String, CMPid[]> configSubscriber = new Hashtable<>();
   private final ServiceTracker<ConfigurationAdmin,ConfigurationAdmin> cmAdminTracker;
 
   private ServiceRegistration<ConfigurationListener> cmListener = null;
@@ -64,7 +63,7 @@ class CMHandler implements ConfigurationListener
    */
   CMHandler(SCR scr) {
     this.scr = scr;
-    cmAdminTracker = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(scr.bc, ConfigurationAdmin.class, null);
+    cmAdminTracker = new ServiceTracker<>(scr.bc, ConfigurationAdmin.class, null);
   }
 
 

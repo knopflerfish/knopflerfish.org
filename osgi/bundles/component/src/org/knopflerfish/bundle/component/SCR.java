@@ -48,10 +48,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.*;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.SynchronousBundleListener;
 
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.runtime.ServiceComponentRuntime;
@@ -64,13 +71,13 @@ class SCR implements SynchronousBundleListener
   final BundleContext bc;
   final CMHandler cmHandler;
 
-  private final Set<Bundle> lazy = Collections.synchronizedSet(new HashSet<Bundle>());
-  private final Hashtable<Bundle, Component[]> bundleComponents = new Hashtable<Bundle, Component[]>();
-  private final Hashtable<String, Component[]> components = new Hashtable<String, Component[]>();
-  private final Hashtable<String, Component[]> serviceComponents = new Hashtable<String, Component[]>();
-  private final Hashtable<BundleContext, ComponentServiceListener> compListeners = new Hashtable<BundleContext, ComponentServiceListener>();
-  private final HashMap<Thread, List<PostponedBind>> postponedBind = new HashMap<Thread, List<PostponedBind>>();
-  private final HashMap<Thread, Integer> ppRef = new HashMap<Thread, Integer>();
+  private final Set<Bundle> lazy = Collections.synchronizedSet(new HashSet<>());
+  private final Hashtable<Bundle, Component[]> bundleComponents = new Hashtable<>();
+  private final Hashtable<String, Component[]> components = new Hashtable<>();
+  private final Hashtable<String, Component[]> serviceComponents = new Hashtable<>();
+  private final Hashtable<BundleContext, ComponentServiceListener> compListeners = new Hashtable<>();
+  private final HashMap<Thread, List<PostponedBind>> postponedBind = new HashMap<>();
+  private final HashMap<Thread, Integer> ppRef = new HashMap<>();
   private long nextId = 0;
 
 
@@ -115,7 +122,7 @@ class SCR implements SynchronousBundleListener
   void stop() {
     bc.removeBundleListener(this);
     cmHandler.stop();
-    final Bundle [] b = bundleComponents.keySet().toArray(new Bundle[bundleComponents.size()]);
+    final Bundle [] b = bundleComponents.keySet().toArray(new Bundle[0]);
     for (final Bundle element : b) {
       removeBundle(element, ComponentConstants.DEACTIVATION_REASON_DISPOSED);
     }
@@ -164,7 +171,7 @@ class SCR implements SynchronousBundleListener
    * @return Long component id.
    */
   synchronized Long getNextComponentId() {
-    return new Long(nextId++);
+    return nextId++;
   }
 
   /**
@@ -177,7 +184,7 @@ class SCR implements SynchronousBundleListener
     Activator.logDebug("Process header " + ComponentConstants.SERVICE_COMPONENT +
                        " for bundle#" + b.getBundleId() + ": " + sc);
     if (sc != null) {
-      final ArrayList<String> entries = splitwords(sc);
+      final ArrayList<String> entries = splitWords(sc);
       if (entries.size() == 0) {
         Activator.logError(b, "Header " + ComponentConstants.SERVICE_COMPONENT + " empty.", null);
         return;
@@ -191,7 +198,7 @@ class SCR implements SynchronousBundleListener
         Activator.logError("Could not fina a XML parser", xppe);
         return;
       }
-      final ArrayList<ComponentDescription> cds = new ArrayList<ComponentDescription>();
+      final ArrayList<ComponentDescription> cds = new ArrayList<>();
       for (String me : entries) {
         final int pos = me.lastIndexOf('/');
         final String path = pos > 0 ? me.substring(0, pos) : "/";
@@ -199,7 +206,7 @@ class SCR implements SynchronousBundleListener
         if (null != e) {
           while (e.hasMoreElements()) {
             final URL u = e.nextElement();
-            InputStream is = null;
+            InputStream is;
             try {
               is = u.openStream();
             } catch (final IOException ioe) {
@@ -219,12 +226,12 @@ class SCR implements SynchronousBundleListener
                     break;
                   }
                 } catch (final XmlPullParserException pe) {
-                  Activator.logError(b, "Componenent description in '" + u +"'. " +
+                  Activator.logError(b, "Component description in '" + u +"'. " +
                                      "Got " + pe, pe);
                 }
               }
             } catch (final Exception exc) {
-              Activator.logError(b, "Failed to read componenent description '" + u +"'.", exc);
+              Activator.logError(b, "Failed to read component description '" + u +"'.", exc);
             } finally {
               try {
                 is.close();
@@ -339,13 +346,11 @@ class SCR implements SynchronousBundleListener
    * Get all components.
    */
   List<Component> getAllComponents() {
-    final ArrayList<Component> res = new ArrayList<Component>();
+    final ArrayList<Component> res = new ArrayList<>();
     while (true) {
       try {
         for (Component[] e : components.values()) {
-          for (final Component element : e) {
-            res.add(element);
-          }
+          Collections.addAll(res, e);
         }
         return res;
       } catch (final ConcurrentModificationException ignore) { }
@@ -383,16 +388,16 @@ class SCR implements SynchronousBundleListener
       return sb.toString();
     } else if (!component.isSatisfied() && !path.contains(component)) {
       // We have not checked component before and it is inactive
-      final Reference [] rs = component.getRawReferences();
-      if (rs != null) {
+      final Reference [] refs = component.getRawReferences();
+      if (refs != null) {
         path.add(component);
-        for (int i = 0; i < rs.length; i++) {
+        for (Reference ref : refs) {
           // Loop through all mandatory references
-          if (!rs[i].isRefOptional()) {
-            final Component [] cs = serviceComponents.get(rs[i].refDesc.interfaceName);
+          if (!ref.isRefOptional()) {
+            final Component[] cs = serviceComponents.get(ref.refDesc.interfaceName);
             if (cs != null) {
-              Filter targetFilter = rs[i].getCurrentTarget();
-              boolean prototype_required =  ReferenceDescription.SCOPE_PROTOTYPE_REQUIRED.equals(rs[i].getScope());
+              Filter targetFilter = ref.getCurrentTarget();
+              boolean prototype_required = ReferenceDescription.SCOPE_PROTOTYPE_REQUIRED.equals(ref.getScope());
               // Loop through all found components
               for (final Component c : cs) {
                 if ((targetFilter == null || targetFilter.match(c.getProperties())) &&
@@ -420,11 +425,7 @@ class SCR implements SynchronousBundleListener
     if (rl.isDynamic() && rl.isOptional()) {
       final Thread ct = Thread.currentThread();
       synchronized (ppRef) {
-        List<PostponedBind> ppBinds = postponedBind.get(ct);
-        if (ppBinds == null) {
-          ppBinds = new ArrayList<PostponedBind>();
-          postponedBind.put(ct, ppBinds);
-        }
+        List<PostponedBind> ppBinds = postponedBind.computeIfAbsent(ct, k -> new ArrayList<>());
         ppBinds.add(new PostponedBind(cci, rl, sr));
       }
       Activator.logDebug("Postpone bind service " + Activator.srInfo(sr) + " to " + cci);
@@ -463,9 +464,9 @@ class SCR implements SynchronousBundleListener
       final Thread ct = Thread.currentThread();
       Integer refCount = ppRef.get(ct);
       if (refCount != null) {
-        refCount = new Integer(refCount.intValue() + 1);
+        refCount = refCount + 1;
       } else {
-        refCount = new Integer(1);
+        refCount = 1;
       }
       ppRef.put(ct, refCount);
     }
@@ -481,9 +482,9 @@ class SCR implements SynchronousBundleListener
     synchronized (ppRef) {
       final Integer refCount = ppRef.get(ct);
       if (refCount != null) {
-        final int i = refCount.intValue() - 1;
+        final int i = refCount - 1;
         if (i > 0) {
-          ppRef.put(ct, new Integer(i));
+          ppRef.put(ct, i);
           return;
         }
       } else {
@@ -590,9 +591,9 @@ class SCR implements SynchronousBundleListener
    *
    * @param s          String to split.
    */
-  private static ArrayList<String> splitwords(String s) {
+  private static ArrayList<String> splitWords(String s) {
     boolean bCit = false;            // true when inside citation chars.
-    final ArrayList<String> res = new ArrayList<String>();
+    final ArrayList<String> res = new ArrayList<>();
     int first = -1;
     int last = -1;
 

@@ -1,4 +1,4 @@
-/* Copyright (c) 2016-2017, KNOPFLERFISH project
+/* Copyright (c) 2016-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ public class PrototypeComponentConfiguration
   extends ComponentConfiguration
 {
 
-  final HashSet<ComponentContextImpl> ccis = new HashSet<ComponentContextImpl>();
+  final HashSet<ComponentContextImpl> ccis = new HashSet<>();
   /**
    *
    */
@@ -71,7 +71,7 @@ public class PrototypeComponentConfiguration
 
   @Override
   synchronized ComponentContextImpl [] getAllContexts() {
-    return ccis.toArray(new ComponentContextImpl [ccis.size()]);
+    return ccis.toArray(new ComponentContextImpl[0]);
   }
 
   

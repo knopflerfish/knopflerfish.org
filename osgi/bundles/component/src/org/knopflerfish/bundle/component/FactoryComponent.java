@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2017, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,8 +47,9 @@ import org.osgi.service.component.ComponentInstance;
 
 class FactoryComponent extends Component
 {
-  private ServiceRegistration<?> factoryService;
-  private ComponentFactoryImpl componentFactory;
+  @SuppressWarnings("rawtypes")
+  private ServiceRegistration<ComponentFactory> factoryService;
+  private ComponentFactoryImpl<?> componentFactory;
 
 
   FactoryComponent(SCR scr, ComponentDescription cd) {
@@ -70,11 +71,11 @@ class FactoryComponent extends Component
   ComponentConfiguration [] satisfied(ComponentConfiguration old) {
     Activator.logInfo(bc, "Satisfied: " + toString());
     state = STATE_SATISFIED;
-    componentFactory = new ComponentFactoryImpl(this);
-    final Hashtable<String, String> p = new Hashtable<String, String>();
+    componentFactory = new ComponentFactoryImpl<>(this);
+    final Hashtable<String, String> p = new Hashtable<>();
     p.put(ComponentConstants.COMPONENT_NAME, compDesc.getName());
     p.put(ComponentConstants.COMPONENT_FACTORY, compDesc.getFactory());
-    factoryService = bc.registerService(ComponentFactory.class.getName(), componentFactory, p);
+    factoryService = bc.registerService(ComponentFactory.class, componentFactory, p);
     return null;
   }
 
@@ -102,7 +103,7 @@ class FactoryComponent extends Component
   /**
    *
    */
-  ComponentInstance newInstance(Dictionary<String,Object> instanceProps) {
+  ComponentInstance<?> newInstance(Dictionary<String, Object> instanceProps) {
     if (!isSatisfied()) {
       throw new ComponentException("Factory is not satisfied");
     }

@@ -33,7 +33,6 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -97,10 +96,9 @@ class CMConfig
     if (factory == null && !pids[0].pid.equals(ccid)) {
       return null;
     }
-    Map<String, Object> res = new HashMap<String, Object>();
-    for (int i = 0; i < pids.length; i++) {
-      CMPid c = pids[i];
-      Dictionary<String, Object> d = c.getDictionary(factory == c ? ccid : c.pid);
+    Map<String, Object> res = new HashMap<>();
+    for (CMPid cmPid : pids) {
+      Dictionary<String, Object> d = cmPid.getDictionary(factory == cmPid ? ccid : cmPid.pid);
       if (d != null) {
         for (Enumeration<String> ks = d.keys(); ks.hasMoreElements(); ) {
           String k = ks.nextElement();
@@ -108,10 +106,10 @@ class CMConfig
           if (Constants.SERVICE_PID.equals(k)) {
             Object sp = res.get(k);
             if (sp instanceof LinkedList) {
-              ((LinkedList<String>)sp).add((String) value);
+              ((LinkedList<String>) sp).add((String) value);
               continue;
             } else if (sp instanceof String) {
-              LinkedList<String> ll = new LinkedList<String>();
+              LinkedList<String> ll = new LinkedList<>();
               ll.add((String) sp);
               ll.add((String) value);
               value = ll;
@@ -119,7 +117,7 @@ class CMConfig
           }
           res.put(k, value);
         }
-      } else if (factory == c) {
+      } else if (factory == cmPid) {
         return null;
       }
     }
@@ -134,8 +132,8 @@ class CMConfig
    */
   boolean isEmpty() {
     if (isSatisfied()) {
-      for (int i = 0; i < pids.length; i++) {
-        if (!pids[i].isEmpty()) {
+      for (CMPid cmPid : pids) {
+        if (!cmPid.isEmpty()) {
           return false;
         }
       }
@@ -172,23 +170,23 @@ class CMConfig
    */
   boolean subscribe() {
     if (ComponentDescription.POLICY_IGNORE != policy) {
-      for (int i = 0; i < pids.length; i++) {
-        String[] cs = pids[i].getTargetedPIDs();
-        Configuration [] conf = null;
+      for (CMPid cmPid : pids) {
+        String[] cs = cmPid.getTargetedPIDs();
+        Configuration[] conf = null;
         for (int j = cs.length - 1; j >= 0; j--) {
-          handler.addSubscriberCMPid(cs[j], pids[i]);
+          handler.addSubscriberCMPid(cs[j], cmPid);
           if (conf == null) {
             conf = handler.listConfigurations(ConfigurationAdmin.SERVICE_FACTORYPID, cs[j]);
             if (conf != null) {
               for (Configuration c : conf) {
-                pids[i].configSet(pids[i].pid, c.getPid(), c, false);
+                cmPid.configSet(cmPid.pid, c.getPid(), c, false);
               }
             }
           }
           if (conf == null) {
             conf = handler.listConfigurations(Constants.SERVICE_PID, cs[j]);
             if (conf != null) {
-              pids[i].configSet(null, pids[i].pid, conf[0], false);
+              cmPid.configSet(null, cmPid.pid, conf[0], false);
             }
           }
         }
@@ -203,12 +201,12 @@ class CMConfig
    */
   void unsubscribe() {
     if (ComponentDescription.POLICY_IGNORE != policy) {
-      for (int i = 0; i < pids.length; i++) {
-        String[] cs = pids[i].getTargetedPIDs();
+      for (CMPid cmPid : pids) {
+        String[] cs = cmPid.getTargetedPIDs();
         for (int j = cs.length - 1; j >= 0; j--) {
-          handler.removeSubscriberCMPid(cs[j], pids[i]);
+          handler.removeSubscriberCMPid(cs[j], cmPid);
         }
-        pids[i].resetAll();
+        cmPid.resetAll();
       }
     }
   }
@@ -281,7 +279,7 @@ class CMConfig
 
   class CMPid {
     final String pid;
-    private final HashMap<String,Dictionary<String,Object>> cmDicts = new HashMap<String,Dictionary<String,Object>>();
+    private final HashMap<String,Dictionary<String,Object>> cmDicts = new HashMap<>();
 
 
     CMPid(String pid) {
@@ -290,7 +288,7 @@ class CMConfig
 
 
     String [] getActivePids() {
-      return cmDicts.keySet().toArray(new String [cmDicts.size()]);
+      return cmDicts.keySet().toArray(new String[0]);
     }
 
 
@@ -327,7 +325,7 @@ class CMConfig
 
 
     void resetAll()  {
-      for (String k : new ArrayList<String>(cmDicts.keySet())) {
+      for (String k : cmDicts.keySet()) {
         reset(k);
       }
     }
@@ -412,10 +410,6 @@ class CMConfig
     /**
      * Get configuration, but if there is a more targeted version available
      * ignore it and return <code>null</code>.
-     * 
-     * @param factoryPid
-     * @param pid 
-     *
      */
     Configuration getConfiguration(String factoryPid, String pid) {
       /* Check if it is a factory configuration */

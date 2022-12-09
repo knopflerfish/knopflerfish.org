@@ -50,8 +50,8 @@ class ComponentServiceListener
   implements ServiceListener
 {
   private final BundleContext bc;
-  private final Hashtable<String, HashSet<ReferenceListener>> serviceListeners = new Hashtable<String, HashSet<ReferenceListener>>();
-  private final Hashtable<ServiceEvent, List<Runnable>> afterServiceEvent = new Hashtable<ServiceEvent, List<Runnable>>();
+  private final Hashtable<String, HashSet<ReferenceListener>> serviceListeners = new Hashtable<>();
+  private final Hashtable<ServiceEvent, List<Runnable>> afterServiceEvent = new Hashtable<>();
 
 
   public ComponentServiceListener(BundleContext bc)
@@ -83,7 +83,7 @@ class ComponentServiceListener
   synchronized void addServiceListener(ReferenceListener rl) {
     HashSet<ReferenceListener> rls = serviceListeners.get(rl.getInterface());
     if (rls == null) {
-      rls = new HashSet<ReferenceListener>();
+      rls = new HashSet<>();
       rls.add(rl);
       serviceListeners.put(rl.getInterface(), rls);
       try {
@@ -92,7 +92,8 @@ class ComponentServiceListener
         Activator.logError("Internal", ise);
       }
     } else {
-      rls = (HashSet<ReferenceListener>)rls.clone();
+      //noinspection unchecked
+      rls = (HashSet<ReferenceListener>) rls.clone();
       rls.add(rl);
       serviceListeners.put(rl.getInterface(), rls);
     }
@@ -104,7 +105,8 @@ class ComponentServiceListener
     String sn = rl.getInterface();
     HashSet<ReferenceListener> rls = serviceListeners.get(sn);
     if (rls != null) {
-      rls = (HashSet<ReferenceListener>)rls.clone();
+      //noinspection unchecked
+      rls = (HashSet<ReferenceListener>) rls.clone();
       rls.remove(rl);
       if (rls.isEmpty()) {
         serviceListeners.remove(sn);
@@ -126,11 +128,7 @@ class ComponentServiceListener
 
 
   void addAfterServiceEvent(ServiceEvent se, Runnable r) {
-    List<Runnable> ase = afterServiceEvent.get(se);
-    if (ase == null) {
-      ase = new ArrayList<Runnable>();
-      afterServiceEvent.put(se, ase);
-    }
+    List<Runnable> ase = afterServiceEvent.computeIfAbsent(se, k -> new ArrayList<>());
     ase.add(r);
   }
 

@@ -46,7 +46,6 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentServiceObjects;
 
-
 class ComponentMethod
 {
   final String name;
@@ -182,20 +181,24 @@ class ComponentMethod
 
 
   private int checkServiceClass(Class<?> pClass) {
-    int cPrio = 1;
     Class<?> clazz = null;
-    try {
-      clazz = comp.compDesc.bundle.loadClass(ref.getServiceName());
-      if (pClass != clazz) {
-        cPrio--;
-        if (!pClass.isAssignableFrom(clazz)) {
-          cPrio = -1;
-        }
+    if (ref != null) {
+      try {
+        clazz = comp.compDesc.bundle.loadClass(ref.getServiceName());
+      } catch (final ClassNotFoundException ignored) {
       }
-    } catch (final ClassNotFoundException _ignore) {
+    }
+
+    int cPrio = 1;
+    if (clazz == null) {
       // If we can not load the service class then it can only
       // be assignable to the Object class.
       cPrio = (pClass == Object.class) ? cPrio - 1 : -1;
+    } else if (pClass != clazz) {
+      cPrio--;
+      if (!pClass.isAssignableFrom(clazz)) {
+        cPrio = -1;
+      }
     }
     return cPrio;
   }
@@ -226,13 +229,13 @@ class ComponentMethod
     if (minor > 0) {
       if (minor > 2) {
         int res = 0;
-        for (int i = 0; i < p.length; i++) {
-          int d = checkServiceClass(p[i]);
+        for (Class<?> aClass : p) {
+          int d = checkServiceClass(aClass);
           if (d >= 0) {
             res |= d;
-          } else if (p[i] != ServiceReference.class &&
-                     p[i] != ComponentServiceObjects.class &&
-                     p[i] != Map.class) {
+          } else if (aClass != ServiceReference.class &&
+              aClass != ComponentServiceObjects.class &&
+              aClass != Map.class) {
             return -1;
           }
         }
@@ -309,9 +312,9 @@ class ComponentMethod
           args[i] =  cci.getProperties();
         }
       } else if (params[i] == int.class || params[i] == Integer.class) {
-        args[i] = new Integer(reason > Component.KF_DEACTIVATION_REASON_BASE ?
-                              ComponentConstants.DEACTIVATION_REASON_UNSPECIFIED :
-                              reason);
+        args[i] = reason > Component.KF_DEACTIVATION_REASON_BASE ?
+            ComponentConstants.DEACTIVATION_REASON_UNSPECIFIED :
+            reason;
       } else if (params[i] == ServiceReference.class) {
         args[i] = s;
       } else {

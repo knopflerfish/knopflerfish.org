@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2017, KNOPFLERFISH project
+ * Copyright (c) 2017-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ class ComponentService implements ServiceFactory<Object> {
   private ComponentConfiguration componentConfiguration;
   private ServiceRegistration<?> serviceRegistration = null;
   private Thread blocked = null;
-  private String servicePropetiesId;
+  private String servicePropertiesId;
 
 
   ComponentService(Component component, ComponentConfiguration componentConfiguration) {
@@ -56,9 +56,7 @@ class ComponentService implements ServiceFactory<Object> {
   }
 
   /**
-   * Update componentConfigurtion bound to this service.
-   *
-   * @param componentConfiguration
+   * Update componentConfiguration bound to this service.
    */
   synchronized void setComponentConfiguration(ComponentConfiguration componentConfiguration) {
     this.componentConfiguration = componentConfiguration;
@@ -99,7 +97,7 @@ class ComponentService implements ServiceFactory<Object> {
   synchronized void block() {
     if (blocked == null) {
       blocked = Thread.currentThread();
-      servicePropetiesId = componentConfiguration.getServicePropertiesId();
+      servicePropertiesId = componentConfiguration.getServicePropertiesId();
     } else {
       throw new IllegalStateException("ComponentService.block() called while blocked = " + blocked);
     }
@@ -115,7 +113,7 @@ class ComponentService implements ServiceFactory<Object> {
         notifyAll();
         blocked = null;
         if (componentConfiguration != null) {
-          setProps = !servicePropetiesId.equals(componentConfiguration.getServicePropertiesId());
+          setProps = !servicePropertiesId.equals(componentConfiguration.getServicePropertiesId());
         }
       }
     }
@@ -171,7 +169,7 @@ class ComponentService implements ServiceFactory<Object> {
         }
         try {
           this.wait();
-        } catch (InterruptedException _ignore) {
+        } catch (InterruptedException ignored) {
         }
       }
       cc = componentConfiguration;

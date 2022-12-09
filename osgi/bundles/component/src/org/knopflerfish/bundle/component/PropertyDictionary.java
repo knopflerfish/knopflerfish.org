@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,6 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -65,7 +64,7 @@ class PropertyDictionary extends Dictionary<String, Object>
                      Map<String,Object> cm,
                      Dictionary<String,Object> instance,
                      boolean service) {
-    props = new Hashtable<String,Object>();
+    props = new Hashtable<>();
     final ComponentDescription cd = comp.compDesc;
     addDict(cd.getProperties(), service);
     if (cm != null) {
@@ -83,7 +82,7 @@ class PropertyDictionary extends Dictionary<String, Object>
    *
    */
   PropertyDictionary(ServiceReference<?> sr) {
-    props = new Hashtable<String,Object>();
+    props = new Hashtable<>();
     for (String key : sr.getPropertyKeys()) {
       props.put(key, sr.getProperty(key));
     }
@@ -102,6 +101,7 @@ class PropertyDictionary extends Dictionary<String, Object>
   /**
    *
    */
+  @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
   @Override
   public boolean equals(Object o) {
     return props.equals(o);
@@ -241,8 +241,8 @@ class PropertyDictionary extends Dictionary<String, Object>
   public int compareTo(Map<String, Object> that) {
     final Object ro1 = this.get(Constants.SERVICE_RANKING);
     final Object ro2 = that.get(Constants.SERVICE_RANKING);
-    final int r1 = (ro1 instanceof Integer) ? ((Integer)ro1).intValue() : 0;
-    final int r2 = (ro2 instanceof Integer) ? ((Integer)ro2).intValue() : 0;
+    final int r1 = (ro1 instanceof Integer) ? (Integer) ro1 : 0;
+    final int r2 = (ro2 instanceof Integer) ? (Integer) ro2 : 0;
 
     if (r1 != r2) {
       // use ranking if ranking differs
@@ -252,7 +252,7 @@ class PropertyDictionary extends Dictionary<String, Object>
       Object id2 = that.get(Constants.SERVICE_ID);
 
       if (!(id2 instanceof Long)) {
-        id2 = new Long(0);
+        id2 = 0L;
       }
       // otherwise compare using IDs,
       // is less than if it has a higher ID.
@@ -264,7 +264,7 @@ class PropertyDictionary extends Dictionary<String, Object>
    *
    */
   Map<String,Object> getMap() {
-    return new HashMap<String, Object>(props);
+    return new HashMap<>(props);
   }
 
   //
@@ -281,8 +281,7 @@ class PropertyDictionary extends Dictionary<String, Object>
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
   private void addDict(Map m, boolean service) {
-    for (final Iterator<Map.Entry> i = m.entrySet().iterator(); i.hasNext(); ) {
-      final Map.Entry<String, Object> e = i.next();
+    for (final Entry<String, Object> e : (Iterable<Entry<String, Object>>) m.entrySet()) {
       addDict(e.getKey(), e.getValue(), service);
     }
   }

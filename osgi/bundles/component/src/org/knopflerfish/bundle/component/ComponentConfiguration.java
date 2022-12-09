@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentException;
-
 
 abstract class ComponentConfiguration implements Comparable<ComponentConfiguration> {
 
@@ -122,7 +121,7 @@ abstract class ComponentConfiguration implements Comparable<ComponentConfigurati
         }
         try {
           wait(1000L);
-        } catch (final InterruptedException _ignore) {
+        } catch (final InterruptedException ignored) {
         }
       }
       res = getContext(usingBundle, null);
@@ -604,7 +603,7 @@ abstract class ComponentConfiguration implements Comparable<ComponentConfigurati
   /**
    */
   private List<ComponentContextImpl> getActiveContexts() {
-    List<ComponentContextImpl> res = new ArrayList<ComponentContextImpl>();
+    List<ComponentContextImpl> res = new ArrayList<>();
     for (ComponentContextImpl cci : getAllContexts()) {
       if (cci.isActive()) {
         res.add(cci);
@@ -679,7 +678,7 @@ abstract class ComponentConfiguration implements Comparable<ComponentConfigurati
   String getServicePropertiesId() {
     String res = ccId + ":" + component.getCMPidRev(ccId);
     if (instanceProps != null) {
-      res += ":" + Integer.toString(instanceProps.hashCode());
+      res += ":" + instanceProps.hashCode();
     }
     return  res;
    }

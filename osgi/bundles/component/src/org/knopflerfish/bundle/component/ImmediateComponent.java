@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2017, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
  */
 package org.knopflerfish.bundle.component;
 
-import org.osgi.service.component.*;
+import org.osgi.service.component.ComponentException;
 
 
 class ImmediateComponent extends Component {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentInstance;
 
-
 class ComponentContextImpl implements ComponentContext
 {
   final static int ACTIVATING = 0;
@@ -56,70 +55,48 @@ class ComponentContextImpl implements ComponentContext
   final ComponentConfiguration cc;
   private final Bundle usingBundle;
   private Thread activityThread;
-  private volatile ComponentInstanceImpl componentInstance = null;
+  private volatile ComponentInstanceImpl<?> componentInstance = null;
   private volatile int state = ACTIVATING;
   private final HashMap<String, ReferenceListener> boundReferences =
-      new HashMap<String, ReferenceListener>();
+      new HashMap<>();
   private final HashMap<ServiceReference<?>, ComponentServiceObjectsImpl<?>> cciBound =
-      new HashMap<ServiceReference<?>, ComponentServiceObjectsImpl<?>>();
+      new HashMap<>();
 
-
-  /**
-   *
-   */
   ComponentContextImpl(ComponentConfiguration cc, Bundle usingBundle) {
     this.cc = cc;
     this.usingBundle = usingBundle;
     activityThread = Thread.currentThread();
   }
 
-
-  /**
-   *
-   */
   @Override
   public String toString() {
     return "[ComponentContext to " + cc + "]";
   }
 
-
-  /**
-   *
-   */
   public Dictionary<String, Object> getProperties() {
     return cc.getProperties();
   }
 
-
-  /**
-   *
-   */
-  public Object locateService(String name) {
+  public <S> S locateService(String name) {
     final ReferenceListener rl = boundReferences.get(name);
     if (rl != null) {
-      return rl.getService(this);
+      //noinspection unchecked
+      return (S) rl.getService(this);
     }
     return null;
   }
 
-
-  /**
-   *
-   */
-  @SuppressWarnings("unchecked")
-  public Object locateService(String name,
-                              @SuppressWarnings("rawtypes") ServiceReference sRef)
+  public <S> S locateService(String name,
+                             ServiceReference<S> sRef)
   {
     final ReferenceListener rl = boundReferences.get(name);
     if (rl != null) {
-      return rl.getService(sRef, this);
+      //noinspection unchecked
+      return (S) rl.getService(sRef, this);
     }
     return null;
   }
 
-  /**
-   *
-   */
   public Object[] locateServices(String name) {
     final ReferenceListener rl = boundReferences.get(name);
     if (rl != null) {
@@ -128,78 +105,39 @@ class ComponentContextImpl implements ComponentContext
     return null;
   }
 
-
-  /**
-   *
-   */
   public BundleContext getBundleContext() {
     return cc.component.bc;
   }
 
-
-  /**
-   *
-   */
-  public ComponentInstance getComponentInstance() {
-    return componentInstance;
+  public <S> ComponentInstance<S> getComponentInstance() {
+    //noinspection unchecked
+    return (ComponentInstance<S>) componentInstance;
   }
 
-
-  /**
-   *
-   */
   public Bundle getUsingBundle() {
     return usingBundle;
   }
 
-
-  /**
-   *
-   */
   public void enableComponent(String name) {
     cc.component.scr.enableComponent(name, cc.component.compDesc.bundle);
   }
 
-
-  /**
-   *
-   */
   public void disableComponent(String name) {
     cc.component.scr.disableComponent(name, cc.component.compDesc.bundle);
   }
 
-
-  /**
-   *
-   */
   public ServiceReference<?> getServiceReference() {
     return cc.getServiceReference();
   }
 
-  //
-  //
-  //
-
-
-  /**
-   *
-   */
-  void setInstance(Object instance) {
-    componentInstance = new ComponentInstanceImpl(this, instance);
+  <S> void setInstance(S instance) {
+    componentInstance = new ComponentInstanceImpl<>(this, instance);
   }
 
-
-  /**
-   *
-   */
   void dispose() {
     cc.deactivate(this, ComponentConstants.DEACTIVATION_REASON_DISPOSED, true, true);
   }
 
-
-  /**
-   *
-   */
   boolean bind(ReferenceListener rl) {
     if (rl.isMultiple()) {
       int cnt = 0;
@@ -215,10 +153,6 @@ class ComponentContextImpl implements ComponentContext
     }
   }
 
-
-  /**
-   *
-   */
   boolean bind(ReferenceListener rl, ServiceReference<?> s) {
     Activator.logDebug("Bind service " + Activator.srInfo(s) + " to " + cc);
     try {
@@ -275,10 +209,6 @@ class ComponentContextImpl implements ComponentContext
     return false;
   }
 
-
-  /**
-   *
-   */
   void unbind(String name, boolean last) {
     Activator.logDebug("Unbind " + name + " for " + cc);
     final ReferenceListener rl = boundReferences.get(name);
@@ -293,10 +223,6 @@ class ComponentContextImpl implements ComponentContext
     }
   }
 
-
-  /**
-   *
-   */
   void unbind(ReferenceListener rl, ServiceReference<?> sr, boolean resetField) {
     Activator.logDebug("Check unbind service " + Activator.srInfo(sr) + " from " + cc);
     if (rl.isBound(sr, this)) {
@@ -309,7 +235,7 @@ class ComponentContextImpl implements ComponentContext
         if (m != null && !m.isMissing(true)) {
           try {
             m.prepare(this, sr, rl).invoke();
-          } catch (final ComponentException _ignore) {
+          } catch (final ComponentException ignored) {
           }
         }
       } finally {
@@ -319,7 +245,6 @@ class ComponentContextImpl implements ComponentContext
       }
     }
   }
-
 
   void updated(ReferenceListener rl, ServiceReference<?> sr) {
     Activator.logDebug("Check updated service " + Activator.srInfo(sr) + " from " + cc);
@@ -332,7 +257,7 @@ class ComponentContextImpl implements ComponentContext
       if (m != null && !m.isMissing(true)) {
         try {
           m.prepare(this, sr, rl).invoke();
-        } catch (final ComponentException _ignore) {
+        } catch (final ComponentException ignored) {
         }
       }
     } catch (final Exception e) {
@@ -340,14 +265,12 @@ class ComponentContextImpl implements ComponentContext
     }
   }
 
-
   /**
    * Check if we have bound reference to specified service
    */
   boolean isBound(ReferenceListener rl) {
     return boundReferences.containsValue(rl);
   }
-
 
   /**
    * Tell all waiting on activation, activation result.
@@ -360,14 +283,9 @@ class ComponentContextImpl implements ComponentContext
     }
   }
 
-
-  /**
-   *
-   */
   boolean isActive() {
     return state == ACTIVE;
   }
-
 
   /**
    * Called  while holding cc lock.
@@ -382,17 +300,12 @@ class ComponentContextImpl implements ComponentContext
     }
   }
 
-
-  /**
-  *
-  */
  void setDeactive() {
    synchronized (cc) {
      state = DEACTIVE;
      cc.notifyAll();
    }
  }
-
 
   /**
    * Wait for activation of component or return directly
@@ -410,12 +323,11 @@ class ComponentContextImpl implements ComponentContext
       }
       try {
         cc.wait();
-      } catch (final InterruptedException _ignore) { }
+      } catch (final InterruptedException ignored) { }
     }
     return isActive();
   }
 
-  
   /**
    * Wait for deactivation of component or return directly
    * if no deactivation is in progress. Must be called
@@ -430,10 +342,9 @@ class ComponentContextImpl implements ComponentContext
       }
       try {
         cc.wait();
-      } catch (final InterruptedException _ignore) { }
+      } catch (final InterruptedException ignored) { }
     }
   }
-
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
   ComponentServiceObjectsImpl<?> getComponentServiceObjects(ServiceReference<?> sr, ReferenceListener rl) {
@@ -448,7 +359,6 @@ class ComponentContextImpl implements ComponentContext
       return cso;
     }
   }
-
 
   /**
    * This method should only be called by ReferenceListener
@@ -467,7 +377,6 @@ class ComponentContextImpl implements ComponentContext
     return null;
   }
 
-
   void removeCciBound(ServiceReference<?> sr, ReferenceListener rl) {
     synchronized (cciBound) {
       ComponentServiceObjectsImpl<?> cso = getComponentServiceObjects(sr, rl);
@@ -476,7 +385,6 @@ class ComponentContextImpl implements ComponentContext
       }
     }
   }
-
 
   void nullField(ReferenceListener rl) {
     final ComponentField f = rl.ref.getField();

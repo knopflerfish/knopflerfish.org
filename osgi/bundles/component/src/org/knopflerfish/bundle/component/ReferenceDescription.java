@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ package org.knopflerfish.bundle.component;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
-
 
 class ReferenceDescription
 {
@@ -95,9 +94,8 @@ class ReferenceDescription
     this.fieldCollectionType = fieldCollectionType;
   }
 
-
   boolean isFieldUpdate() {
-    return fieldUpdate != null && fieldUpdate.booleanValue();
+    return fieldUpdate != null && fieldUpdate;
   }
 
 }

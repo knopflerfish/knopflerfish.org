@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,6 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentConstants;
 
-
 /**
  *
  */
@@ -65,16 +64,16 @@ class ReferenceListener
   
   final Reference ref;
   private final HashMap<ServiceReference<?>, Object>  bundleBound =
-      new HashMap<ServiceReference<?>, Object>();
+      new HashMap<>();
   private final SortedSet<ServiceReference<?>> serviceRefs =
-      Collections.synchronizedSortedSet(new TreeSet<ServiceReference<?>>());
-  private final HashSet<ServiceReference<?>> unbinding = new HashSet<ServiceReference<?>>();
+      Collections.synchronizedSortedSet(new TreeSet<>());
+  private final HashSet<ServiceReference<?>> unbinding = new HashSet<>();
   private ServiceReference<?> selectedServiceRef = null;
-  private final TreeSet<String> ids = new TreeSet<String>();
+  private final TreeSet<String> ids = new TreeSet<>();
   private Filter cmTarget;
-  private final LinkedList<RefServiceEvent> sEventQueue = new LinkedList<RefServiceEvent>();
+  private final LinkedList<RefServiceEvent> sEventQueue = new LinkedList<>();
   private final HashMap<ServiceReference<?>, HashSet<ComponentContextImpl>> cciBound =
-      new HashMap<ServiceReference<?>, HashSet<ComponentContextImpl>>();
+      new HashMap<>();
 
 
   /**
@@ -122,7 +121,7 @@ class ReferenceListener
     ref.comp.listener.removeServiceListener(this);
     synchronized (serviceRefs) {
       final HashSet<ServiceReference<?>> oldServiceRefs
-        = new HashSet<ServiceReference<?>>(serviceRefs);
+          = new HashSet<>(serviceRefs);
       serviceRefs.clear();
       ServiceReference<?> [] srs;
       try {
@@ -336,20 +335,20 @@ class ReferenceListener
 
 
   ServiceReference<?> [] getServiceReferences() {
-    return serviceRefs.toArray(new ServiceReference[serviceRefs.size()]);
+    return serviceRefs.toArray(new ServiceReference[0]);
   }
 
 
   ServiceReference<?> [] getBoundServiceReferences() {
     synchronized (cciBound) {
       Set<ServiceReference<?>> srs = cciBound.keySet();
-      return srs.isEmpty() ? null : srs.toArray(new ServiceReference<?> [srs.size()]);
+      return srs.isEmpty() ? null : srs.toArray(new ServiceReference<?>[0]);
     }
   }
 
 
   ArrayList<ServiceReference<?>> getBoundServiceReferences(ComponentContextImpl cci) {
-    ArrayList<ServiceReference<?>> res = new ArrayList<ServiceReference<?>>();
+    ArrayList<ServiceReference<?>> res = new ArrayList<>();
     synchronized (cciBound) {
       for (Entry<ServiceReference<?>, HashSet<ComponentContextImpl>> e : cciBound.entrySet()) {
         if (e.getValue().contains(cci)) {
@@ -363,11 +362,7 @@ class ReferenceListener
 
   void bound(ServiceReference<?> sr, Object s, ComponentContextImpl cci) {
     synchronized (cciBound) {
-      HashSet<ComponentContextImpl> ccis = cciBound.get(sr);
-      if (ccis == null) {
-        ccis = new HashSet<ComponentContextImpl>();
-        cciBound.put(sr, ccis);
-      }
+      HashSet<ComponentContextImpl> ccis = cciBound.computeIfAbsent(sr, k -> new HashSet<>());
       ccis.add(cci);
       if (ref.isScopeBundle()) {
         bundleBound.put(sr, s);
@@ -422,7 +417,7 @@ class ReferenceListener
   Object[] getServices(ComponentContextImpl cci)
   {
     final ServiceReference<?>[] srs = getServiceReferences();
-    final ArrayList<Object> res = new ArrayList<Object>(srs.length);
+    final ArrayList<Object> res = new ArrayList<>(srs.length);
     for (final ServiceReference<?> sr : srs) {
       res.add(getServiceCheckActivate(sr, cci));
     }
@@ -552,8 +547,8 @@ class ReferenceListener
     Object s = getBound(sr, cci);
     if (s == null) {
       final Object o = sr.getProperty(ComponentConstants.COMPONENT_NAME);
-      if (o != null && o instanceof String) {
-        final Component [] cs = ref.comp.scr.getComponent((String)o);
+      if (o instanceof String) {
+        final Component [] cs = ref.comp.scr.getComponent((String) o);
         if (cs != null) {
           ref.comp.scr.postponeCheckin();
           try {
@@ -752,15 +747,12 @@ class ReferenceListener
       }
     }
     if (!cccs.isEmpty()) {
-      Runnable delayed = new Runnable() {      
-        @Override
-        public void run() {
-          for (ComponentConfiguration cc : cccs) {
-            ComponentConfiguration [] nccs = cc.remove(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
-            if (nccs != null) {
-              for (ComponentConfiguration ncc : nccs) {
-                ncc.setAndTestLastReactivateEvent(se);
-              }
+      Runnable delayed = () -> {
+        for (ComponentConfiguration cc : cccs) {
+          ComponentConfiguration [] nccs = cc.remove(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
+          if (nccs != null) {
+            for (ComponentConfiguration ncc : nccs) {
+              ncc.setAndTestLastReactivateEvent(se);
             }
           }
         }
@@ -778,8 +770,8 @@ class ReferenceListener
    * Call refUpdated for component configurations that has bound this reference.
    */
   private CompConfigs getComponentConfigs() {
-    ArrayList<ComponentConfiguration> active = new ArrayList<ComponentConfiguration>();
-    ArrayList<String> inactive = new ArrayList<String>();
+    ArrayList<ComponentConfiguration> active = new ArrayList<>();
+    ArrayList<String> inactive = new ArrayList<>();
     for (String id : getIds()) {
       final ComponentConfiguration [] componentConfigurations = ref.comp.compConfigs.get(id);
       if (componentConfigurations != null) {

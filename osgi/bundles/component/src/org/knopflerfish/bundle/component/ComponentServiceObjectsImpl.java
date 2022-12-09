@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, KNOPFLERFISH project
+ * Copyright (c) 2016-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,8 @@ class ComponentServiceObjectsImpl<S>
   final private ComponentContextImpl cci;
   final private ServiceReference<S> sr;
   final private ServiceObjects<S> so;
-  final private IdentityHashMap<S, Integer> services = new IdentityHashMap<S, Integer>();
-  final private HashSet<ReferenceListener> rls = new HashSet<ReferenceListener>();
+  final private IdentityHashMap<S, Integer> services = new IdentityHashMap<>();
+  final private HashSet<ReferenceListener> rls = new HashSet<>();
   private S cciService = null;
 
 
@@ -81,7 +81,7 @@ class ComponentServiceObjectsImpl<S>
     S service = so.getService();
     synchronized (rls) {
       Integer refCnt = services.get(service);
-      refCnt = new Integer(refCnt != null ? refCnt.intValue() + 1 : 1);
+      refCnt = refCnt != null ? refCnt + 1 : 1;
       services.put(service, refCnt);
     }
     return service;
@@ -100,11 +100,11 @@ class ComponentServiceObjectsImpl<S>
       }
       Integer refCnt = services.get(service);
       if (refCnt != null) {
-        int cnt = refCnt.intValue() - 1;
+        int cnt = refCnt - 1;
         if (cnt == 0) {
           services.remove(service);
         } else {
-          services.put(service, new Integer(cnt));
+          services.put(service, cnt);
         }
       } else {
         throw new IllegalArgumentException("Service not from this ComponentServiceObjects");
@@ -126,7 +126,7 @@ class ComponentServiceObjectsImpl<S>
 
   private void close() {
     for (Entry<S, Integer> e : services.entrySet()) {
-      for (int i = e.getValue().intValue(); i > 0; i--) {
+      for (int i = e.getValue(); i > 0; i--) {
         so.ungetService(e.getKey());
       }
     }

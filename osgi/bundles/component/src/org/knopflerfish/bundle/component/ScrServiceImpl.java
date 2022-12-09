@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013, KNOPFLERFISH project
+ * Copyright (c) 2011-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import org.osgi.framework.Bundle;
 public class ScrServiceImpl implements org.apache.felix.scr.ScrService
 {
 
-  final SCR scr;
+  private final SCR scr;
 
   ScrServiceImpl(final SCR scr) {
     this.scr = scr;
@@ -50,22 +50,14 @@ public class ScrServiceImpl implements org.apache.felix.scr.ScrService
 
   // ScrService interface
 
-  /**
-   * @see
-   */
-  public Component[] getComponents()
-  {
-    final List<? extends Component> all = scr
-        .getAllComponents();
+  public Component[] getComponents() {
+    final List<? extends Component> all = scr.getAllComponents();
     if (all.size() > 0) {
-      return all.toArray(new Component[all.size()]);
+      return all.toArray(new Component[0]);
     }
     return null;
   }
 
-  /**
-   * @see
-   */
   public Component getComponent(final long componentId) {
     final List<? extends Component> all = scr.getAllComponents();
     for (final Component component : all) {
@@ -76,10 +68,6 @@ public class ScrServiceImpl implements org.apache.felix.scr.ScrService
     return null;
   }
 
-
-  /**
-   * @see
-   */
   public Component[] getComponents(final String componentName) {
     Component[] res = scr.getComponent(componentName);
     if (res != null) {
@@ -88,10 +76,6 @@ public class ScrServiceImpl implements org.apache.felix.scr.ScrService
     return res;
   }
 
-
-  /**
-   * @see
-   */
   public Component[] getComponents(final Bundle bundle) {
     Component[] res = scr.getComponents(bundle);
     if (res != null) {

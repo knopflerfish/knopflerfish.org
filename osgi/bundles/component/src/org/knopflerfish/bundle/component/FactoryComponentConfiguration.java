@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import org.osgi.framework.Bundle;
 public class FactoryComponentConfiguration extends ComponentConfiguration
 {
   private final Hashtable<Bundle, ComponentContextImpl> factoryContexts =
-      new Hashtable<Bundle, ComponentContextImpl>();
+      new Hashtable<>();
 
   
   FactoryComponentConfiguration(Component c,

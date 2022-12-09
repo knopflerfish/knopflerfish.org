@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2017, KNOPFLERFISH project
+ * Copyright (c) 2006-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,12 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -41,7 +46,6 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentException;
-
 
 /**
  *
@@ -279,7 +283,7 @@ class Reference implements org.apache.felix.scr.Reference
       listener = null;
     } else {
       for (final ReferenceListener referenceListener : 
-             (new HashSet<ReferenceListener>(factoryListeners.values()))) {
+             new HashSet<>(factoryListeners.values())) {
         referenceListener.stop();
       }
       factoryListeners = null;
@@ -301,7 +305,7 @@ class Reference implements org.apache.felix.scr.Reference
           listener.setTarget(ccid, dict);
         } else {
           // We have multiple listener we need multiple listeners
-          factoryListeners = new TreeMap<String, ReferenceListener>();
+          factoryListeners = new TreeMap<>();
           for (String p : listener.getIds()) {
             factoryListeners.put(p, listener);
           }
@@ -330,8 +334,8 @@ class Reference implements org.apache.felix.scr.Reference
       } else {
         // Pid is new, check if we already have a matching listener
         newListener = true;
-        for (final Iterator<ReferenceListener> i = new HashSet<ReferenceListener>(factoryListeners.values()).iterator(); i.hasNext(); ) {
-          rl = i.next();
+        for (ReferenceListener referenceListener : new HashSet<>(factoryListeners.values())) {
+          rl = referenceListener;
           if (!rl.checkTargetChanged(ccid, dict)) {
             rl.addId(ccid, false);
             factoryListeners.put(ccid, rl);
@@ -470,7 +474,7 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   Set<ReferenceListener> getAllReferenceListeners() {
-    Set<ReferenceListener> res = new HashSet<ReferenceListener>();
+    Set<ReferenceListener> res = new HashSet<>();
     if (listener != null) {
       res.add(listener);
     } else if (factoryListeners != null) {
@@ -481,7 +485,6 @@ class Reference implements org.apache.felix.scr.Reference
 
 
   Filter getCurrentTarget() {
-    Filter target;
     final ReferenceListener l = listener;
     if (l != null)  {
       return l.getTargetFilter();
@@ -493,7 +496,7 @@ class Reference implements org.apache.felix.scr.Reference
 
   private void assertFieldAndMethods() {
     if (!fieldAndMethodsSet) {
-      final HashMap<String, ComponentMethod[]> lookFor = new HashMap<String, ComponentMethod[]>();
+      final HashMap<String, ComponentMethod[]> lookFor = new HashMap<>();
       if (refDesc.bind != null) {
         bindMethod = new ComponentMethod(refDesc.bind, comp, this);
         comp.saveMethod(lookFor, refDesc.bind, bindMethod);
