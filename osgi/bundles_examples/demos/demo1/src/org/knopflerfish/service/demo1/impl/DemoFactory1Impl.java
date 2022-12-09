@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,9 @@
 
 package org.knopflerfish.service.demo1.impl;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
 
-import org.knopflerfish.service.demo1.*;
+import org.knopflerfish.service.demo1.DemoFactory1;
 
 /**
  * Implementation of the DemoFactory1 service. The intentions of this
@@ -45,7 +45,7 @@ import org.knopflerfish.service.demo1.*;
  */
 public class DemoFactory1Impl implements DemoFactory1 {
 
-  Bundle b;
+  private Bundle b;
 
   public DemoFactory1Impl(Bundle b) {
     this.b = b;

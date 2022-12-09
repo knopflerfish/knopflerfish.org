@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 
 package org.knopflerfish.service.demo1.impl;
 
-import org.knopflerfish.service.demo1.*;
+import org.knopflerfish.service.demo1.Demo1;
 
 /**
  * Implementation of the Demo1 service.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,5 +42,5 @@ public interface Demo1 {
   /**
    * Add two integers and return the result.
    */
-  public int add(int a, int b);
+  int add(int a, int b);
 }
