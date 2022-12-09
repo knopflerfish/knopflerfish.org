@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,22 +34,14 @@
 
 package org.knopflerfish.example.rxtx_echo;
 
-import java.io.IOException;
-import java.util.*;
-
-import org.osgi.framework.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
-
-/**
- *
- */
 public class Activator implements BundleActivator {
 
   private static ServiceTracker logTracker = null;
-
-  private BundleContext bc;
 
   private SerialPortDevice serial;
 
@@ -58,8 +50,6 @@ public class Activator implements BundleActivator {
   //
 
   public void start(BundleContext bc) {
-    this.bc = bc;
-
     logTracker = new ServiceTracker(bc, LogService.class.getName(), null);
     logTracker.open();
 
@@ -108,7 +98,7 @@ public class Activator implements BundleActivator {
 
   public static void logDebug(String message)
   {
-    log(LogService.LOG_DEBUG, message, null);
+    logDebug(message, null);
   }
 
   public static void logDebug(String message, Throwable t)
@@ -123,7 +113,7 @@ public class Activator implements BundleActivator {
 
   public static void logWarning(String message)
   {
-    log(LogService.LOG_WARNING, message, null);
+    logWarning(message, null);
   }
 
   public static void logWarning(String message, Throwable t)

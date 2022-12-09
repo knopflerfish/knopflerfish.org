@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,18 @@
 
 package org.knopflerfish.example.rxtx_echo;
 
-import java.io.*;
-import java.util.*;
-import gnu.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Enumeration;
+import java.util.TooManyListenersException;
+
+import gnu.io.CommPortIdentifier;
+import gnu.io.PortInUseException;
+import gnu.io.SerialPort;
+import gnu.io.SerialPortEvent;
+import gnu.io.SerialPortEventListener;
+import gnu.io.UnsupportedCommOperationException;
 
 public class SerialPortDevice implements SerialPortEventListener {
 
@@ -60,7 +69,7 @@ public class SerialPortDevice implements SerialPortEventListener {
 
   public void open(String port) {
     CommPortIdentifier portId;
-    Enumeration portIds = CommPortIdentifier.getPortIdentifiers();
+    Enumeration<?> portIds = CommPortIdentifier.getPortIdentifiers();
     while (portIds.hasMoreElements()) {
       portId = (CommPortIdentifier) portIds.nextElement();
       Activator.logDebug("Found port: " + portId.getName());
