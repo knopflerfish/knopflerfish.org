@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,23 +34,20 @@
 
 package org.knopflerfish.bundle.desktop.jvminfo;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.log.*;
-
-import java.util.Hashtable;
-import org.knopflerfish.service.desktop.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.knopflerfish.service.log.LogRef;
 
 public class Activator implements BundleActivator {
 
   static public LogRef        log;
   static public BundleContext bc;
 
-
   JVMDisplayer disp;
   
-  public void start(BundleContext _bc) {
-    this.bc  = _bc;
-    this.log = new LogRef(bc);
+  public void start(BundleContext bc) {
+    Activator.bc  = bc;
+    log = new LogRef(Activator.bc);
 
     disp = new JVMDisplayer(bc);
     disp.open();
@@ -60,13 +57,11 @@ public class Activator implements BundleActivator {
 
   public void stop(BundleContext bc) {
     try {
-      if(log != null) {
-	log = null;
-      }
+      log = null;
 
       disp.close();
 
-      this.bc = null;
+      Activator.bc = null;
     } catch (Exception e) {
       e.printStackTrace();
     }

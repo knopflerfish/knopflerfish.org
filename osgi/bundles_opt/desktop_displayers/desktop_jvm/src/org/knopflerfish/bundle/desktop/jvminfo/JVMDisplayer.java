@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,18 @@
 
 package org.knopflerfish.bundle.desktop.jvminfo;
 
-import org.osgi.framework.*;
-import java.util.*;
-import org.knopflerfish.service.desktop.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 
 public class JVMDisplayer extends DefaultSwingBundleDisplayer {
 
@@ -72,10 +77,10 @@ public class JVMDisplayer extends DefaultSwingBundleDisplayer {
     super.valueChanged(bid);
 
     Bundle[] bl = bc.getBundles();
-    
-    for(int i = 0; i < bl.length; i++) {
-      if(bundleSelModel.isSelected(bl[i].getBundleId())) {
-	
+
+    for (Bundle bundle : bl) {
+      if (bundleSelModel.isSelected(bundle.getBundleId())) {
+
       }
     }
   }
@@ -114,12 +119,7 @@ public class JVMDisplayer extends DefaultSwingBundleDisplayer {
       
       JPanel cmdPanel = new JPanel(new FlowLayout());
       cmdPanel.add(new JButton("Run GC") { {
-	addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent ev) {
-	      Runtime rt = Runtime.getRuntime();
-	      rt.gc();
-	    }
-	  });
+        addActionListener(ev -> Runtime.getRuntime().gc());
       }});
       
       JPanel graphs = new JPanel(new GridLayout(0, 1, 3, 3));
@@ -146,7 +146,7 @@ public class JVMDisplayer extends DefaultSwingBundleDisplayer {
 	bRun = false;
 	try {
 	  runner.join(delay * 10);
-	} catch (Exception e) {
+	} catch (Exception ignored) {
 	}
 	runner = null;
       }
@@ -166,14 +166,12 @@ public class JVMDisplayer extends DefaultSwingBundleDisplayer {
 	  memGraph.addValue(mem);
 	  
 	  threadGraph.addValue(nThreads);
-	  SwingUtilities.invokeLater(new Runnable() {
-	      public void run() {
-		memGraph.repaint();
-		threadGraph.repaint();
-	      }
-	    });
+	  SwingUtilities.invokeLater(() -> {
+	    memGraph.repaint();
+	    threadGraph.repaint();
+	  });
 	  Thread.sleep(delay);
-	} catch (Exception e) {
+	} catch (Exception ignored) {
 	}
       }
     }

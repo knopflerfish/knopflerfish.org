@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,31 +34,32 @@
 
 package org.knopflerfish.bundle.desktop.jvminfo;
 
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
 
 public class JGraph extends JPanel {
-  Color bgColor   = new Color(255, 255, 255);
-  Color gridColor = new Color(220, 220, 220);
-  Color lineColor = new Color(0,   0,   0);
-  Color textColor = new Color(100, 100, 100);
+  private Color bgColor   = new Color(255, 255, 255);
+  private Color gridColor = new Color(220, 220, 220);
+  private Color lineColor = new Color(0,   0,   0);
+  // private Color textColor = new Color(100, 100, 100);
 
-  long xMin  = 0;
-  long xMax  = 100;
-  long xGrid = 10;
+  // private long xMin  = 0;
+  // private long xMax  = 100;
+  // private long xGrid = 10;
 
-  long yMin = 0;
-  long yMax = 8 * 1024 * 1024;
-  long yGrid = 1024 * 1024;
+  private long yMin = 0;
+  private long yMax = 8 * 1024 * 1024;
+  private long yGrid = 1024 * 1024;
 
-  long[] values = new long[100];
-  int pos   = 0;
-  int start = 0;
-
+  private long[] values = new long[100];
+  private int pos   = 0;
+  private int start = 0;
 
   public JGraph(String title, int size, long yMin, long yMax, long yGrid) {
     super(new BorderLayout());

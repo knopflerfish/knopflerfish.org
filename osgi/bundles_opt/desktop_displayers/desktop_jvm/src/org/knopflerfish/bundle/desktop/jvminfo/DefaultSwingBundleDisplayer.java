@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,21 @@
 
 package org.knopflerfish.bundle.desktop.jvminfo;
 
-import org.osgi.framework.*;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Set;
 
-import org.knopflerfish.service.desktop.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 
-import java.util.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+
+import org.knopflerfish.service.desktop.BundleSelectionListener;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
+import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 
 public abstract class DefaultSwingBundleDisplayer
   implements 
@@ -57,7 +63,7 @@ public abstract class DefaultSwingBundleDisplayer
   BundleContext        bc;
   boolean              bAlive = false;
   BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
-  ServiceRegistration  reg  = null;
+  ServiceRegistration<SwingBundleDisplayer> reg  = null;
 
   boolean bUseListeners = true;
 
@@ -73,13 +79,13 @@ public abstract class DefaultSwingBundleDisplayer
 
 
   public void register() {
-    if(reg != null) {
+    if (reg != null) {
       return;
     }
 
     open();
     
-    Hashtable props = new Hashtable();
+    Hashtable<String, Object> props = new Hashtable<>();
     props.put(SwingBundleDisplayer.PROP_NAME,        getName());
     props.put(SwingBundleDisplayer.PROP_DESCRIPTION, getDescription());
     props.put(SwingBundleDisplayer.PROP_ISDETAIL,    
@@ -87,13 +93,13 @@ public abstract class DefaultSwingBundleDisplayer
 	      ? Boolean.TRUE 
 	      : Boolean.FALSE);
     
-    reg = bc.registerService(SwingBundleDisplayer.class.getName(),
+    reg = bc.registerService(SwingBundleDisplayer.class,
 			     this,
 			     props);
   }
 
   public void unregister() {
-    if(reg == null) {
+    if (reg == null) {
       return;
     }
 
@@ -151,7 +157,7 @@ public abstract class DefaultSwingBundleDisplayer
     bundleSelModel.addBundleSelectionListener(this);
   }
 
-  Set components = new HashSet();
+  Set<JComponent> components = new HashSet<>();
 
   public JComponent createJComponent() {
     JComponent comp = newJComponent();
@@ -165,9 +171,8 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
   void closeComponents() {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
-      closeComponent(comp);
+    for (JComponent component : components) {
+      closeComponent(component);
     }
   }
 
@@ -176,10 +181,9 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
   void repaintComponents() {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
-      comp.invalidate();
-      comp.repaint();
+    for (JComponent component : components) {
+      component.invalidate();
+      component.repaint();
     }
   }
 
