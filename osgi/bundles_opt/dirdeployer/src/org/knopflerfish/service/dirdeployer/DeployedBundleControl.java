@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import org.osgi.framework.Bundle;
 
 public interface DeployedBundleControl {
 
-	public enum DeployedBundleControlState {
+	enum DeployedBundleControlState {
 		STAGED,
 	  IS_DEPLOYING,
 		DEPLOYED,
@@ -47,10 +47,10 @@ public interface DeployedBundleControl {
 		FAILED
 	}
 	
-	public void undeploy();
+	void undeploy();
 	
-	public Bundle getBundle();
+	Bundle getBundle();
 	
-	public DeployedBundleControlState getDeploymentState();
+	DeployedBundleControlState getDeploymentState();
 	
 }

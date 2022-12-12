@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2016, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,14 +64,13 @@ class DeployedBundle implements DeployedFile, DeployedBundleControl {
    * detect stray bundles (bundles that are installed, but whose file has been
    * removed while the dir deployer was not running).
    */
-  static final Map<Long, File> installedBundles = new HashMap<Long, File>();
+  static final Map<Long, File> installedBundles = new HashMap<>();
 
   /**
    * Get the file to save and load the state from.
    */
   private static File getStateFile() {
-    final File stateFile = Activator.bc.getDataFile(DeployedBundle.class.getName());
-    return stateFile;
+    return Activator.bc.getDataFile(DeployedBundle.class.getName());
   }
 
   /**
@@ -138,7 +137,7 @@ class DeployedBundle implements DeployedFile, DeployedBundleControl {
    * List with bundles that has been updated, if non-empty a refresh bundles
    * operation is needed.
    */
-  static final List<Bundle> updatedBundles = new ArrayList<Bundle>();
+  static final List<Bundle> updatedBundles = new ArrayList<>();
 
   /**
    * Check if a file seems to be a bundle jar file.
@@ -187,22 +186,23 @@ class DeployedBundle implements DeployedFile, DeployedBundleControl {
 
     if (config.useFileMarkers) {
       
-      if (state == DeployedBundleControlState.FAILED)
+      if (state == DeployedBundleControlState.FAILED) {
         MarkerFile.setFailedMarker(f);
-      else  {
+      } else {
         // check if there is a marker, this can happen after a restart
         Collection<String> markers = MarkerFile.getAllMarkers(f);
-        if (markers.size() > 1) {
-          Activator.logger.warn("This is odd, multiple markers found");
-        } 
-        else if (markers.size() == 0) {
-          if (Activator.logger.doDebug())
+        if (markers.size() == 0) {
+          if (Activator.logger.doDebug()) {
             Activator.logger.debug("No markers, we assume it is new");
+          }
         }
         else if (markers.size() == 1) {
           state = MarkerFile.getState(markers.iterator().next());
-          if (Activator.logger.doDebug())
+          if (Activator.logger.doDebug()) {
             Activator.logger.debug("State is set to: " + state);
+          }
+        } else {
+          Activator.logger.warn("This is odd, multiple markers found");
         }
       }
         
@@ -269,7 +269,7 @@ class DeployedBundle implements DeployedFile, DeployedBundleControl {
         if (null != is) {
           try {
             is.close();
-          } catch (final IOException ioe) {
+          } catch (final IOException ignored) {
           }
         }
       }
@@ -314,8 +314,7 @@ class DeployedBundle implements DeployedFile, DeployedBundleControl {
    *
    * @see org.knopflerfish.bundle.dirdeployer.DeployedFile#start()
    */
-  public void start()
-      throws BundleException {
+  public void start() {
 
     if (DeployedBundleControlState.FAILED == state) {
       if (Activator.logger.doDebug())
@@ -366,9 +365,7 @@ class DeployedBundle implements DeployedFile, DeployedBundleControl {
         installIfNeeded();
       } else {
         DirDeployerImpl.log("updating " + this);
-        InputStream is = null;
-        try {
-          is = new FileInputStream(file);
+        try (InputStream is = new FileInputStream(file)) {
           bundle.update(is);
           synchronized (updatedBundles) {
             updatedBundles.add(bundle);
@@ -378,14 +375,7 @@ class DeployedBundle implements DeployedFile, DeployedBundleControl {
           final BundleRevision br = bundle.adapt(BundleRevision.class);
           isFragment = (br.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0;
           started = false; // Start attempt may be needed.
-        } catch (final IOException ioe) {
-        } finally {
-          if (null != is) {
-            try {
-              is.close();
-            } catch (final IOException ioe) {
-            }
-          }
+        } catch (final IOException ignored) {
         }
       }
     }
@@ -440,13 +430,10 @@ class DeployedBundle implements DeployedFile, DeployedBundleControl {
   @Override
   public boolean isControlFile(File f) {
     String name = f.getName();
-    if (name.endsWith(".dodeploy") ||
-        name.endsWith(".deployed") ||
-        name.endsWith(".undeployed") ||
-        name.endsWith(".failed"))
-      return true;
-    else
-      return false;
+    return name.endsWith(".dodeploy") ||
+           name.endsWith(".deployed") ||
+           name.endsWith(".undeployed") ||
+           name.endsWith(".failed");
   }
 
   public Bundle getBundle() {

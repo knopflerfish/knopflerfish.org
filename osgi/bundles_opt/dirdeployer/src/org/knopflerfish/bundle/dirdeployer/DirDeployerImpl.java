@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2016, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ package org.knopflerfish.bundle.dirdeployer;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -48,11 +47,8 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
-// import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
-import org.knopflerfish.service.dirdeployer.DeployedBundleControl;
 import org.knopflerfish.service.dirdeployer.DirDeployerService;
-import org.knopflerfish.service.log.LogRef;
 
 /**
  * Implementation of <tt>DirDeployerService</tt> which scans a set of
@@ -62,8 +58,7 @@ class DirDeployerImpl
   implements DirDeployerService, FrameworkListener
 {
 
-  final HashMap<File, DeployedFile> deployedFiles =
-    new HashMap<File, DeployedFile>();
+  final HashMap<File, DeployedFile> deployedFiles = new HashMap<>();
 
   Thread runner = null; // scan thread
   boolean bRun = false; // flag for stopping scan thread
@@ -71,7 +66,7 @@ class DirDeployerImpl
   // static ServiceTracker<LogService,LogService> logTracker;
   static ServiceTracker<ConfigurationAdmin,ConfigurationAdmin> caTracker;
   
-  Config config;
+  private final Config config;
 
   public DirDeployerImpl()
   {
@@ -80,11 +75,9 @@ class DirDeployerImpl
 //                                                 LogService.class, null);
 //    logTracker.open();
 
-    caTracker =
-      new ServiceTracker<ConfigurationAdmin, ConfigurationAdmin>(
-                                                                 Activator.bc,
-                                                                 ConfigurationAdmin.class,
-                                                                 null);
+    caTracker = new ServiceTracker<>(
+            Activator.bc, ConfigurationAdmin.class, null
+    );
     caTracker.open();
 
     // create and register the configuration class
@@ -116,12 +109,12 @@ class DirDeployerImpl
             doScan();
             Thread.sleep(Math.max(100, config.interval));
           } catch (final InterruptedException ie) {
-            Activator.logger.info("scaning interrupted");
+            Activator.logger.info("scanning interrupted");
           } catch (final Exception e) {
             Activator.logger.error("scan failed: " +e.getMessage(), e);
           }
         }
-        Activator.logger.info("stopped scaning");
+        Activator.logger.info("stopped scanning");
 
         if (config.uninstallOnStop) {
           uninstallAll();
@@ -195,6 +188,9 @@ class DirDeployerImpl
 
       if (dir != null && dir.exists() && dir.isDirectory()) {
         final String[] files = dir.list();
+        if (files == null) {
+          return;
+        }
 
         for (final String file : files) {
           try {

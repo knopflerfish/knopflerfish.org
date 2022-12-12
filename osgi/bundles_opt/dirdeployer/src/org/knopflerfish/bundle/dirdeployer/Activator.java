@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2016 KNOPFLERFISH project
+ * Copyright (c) 2004-2022 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ public class Activator
     deployer = new DirDeployerImpl();
     deployer.start();
 
-    final Dictionary<String,Object> props = new Hashtable<String,Object>();
+    final Dictionary<String, Object> props = new Hashtable<>();
     bc.registerService(DirDeployerService.class, deployer, props);
 
   }

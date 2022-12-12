@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2016, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,6 @@ interface DeployedFile
 
   /**
    * Uninstall the file.
-   * @throws Exception
    */
   void uninstall()
       throws Exception;

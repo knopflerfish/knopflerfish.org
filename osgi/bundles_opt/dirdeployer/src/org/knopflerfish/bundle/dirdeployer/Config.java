@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2016, KNOPFLERFISH project
+ * Copyright (c) 2004-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,11 +70,11 @@ public class Config
 
   static final String DEFAULT_DIR = "./load";
   
-  static final boolean USE_FILE_MARKERS_DEFALT = Boolean.FALSE;
-  boolean useFileMarkers = USE_FILE_MARKERS_DEFALT;
+  static final boolean USE_FILE_MARKERS_DEFAULT = Boolean.FALSE;
+  boolean useFileMarkers = USE_FILE_MARKERS_DEFAULT;
   
-  static final boolean REGISTER_BUNDLE_CONTROLS_DEFALT = Boolean.FALSE;
-  boolean registerBundleControls = REGISTER_BUNDLE_CONTROLS_DEFALT;
+  static final boolean REGISTER_BUNDLE_CONTROLS_DEFAULT = Boolean.FALSE;
+  boolean registerBundleControls = REGISTER_BUNDLE_CONTROLS_DEFAULT;
   
 
   // directories to scan
@@ -107,7 +107,7 @@ public class Config
       return;
     }
 
-    final Dictionary<String, Object> props = new Hashtable<String, Object>();
+    final Dictionary<String, Object> props = new Hashtable<>();
     props.put("service.pid", PID);
 
     reg = Activator.bc.registerService(ManagedService.class, this, props);
@@ -162,12 +162,12 @@ public class Config
 
     final Boolean uiVal = (Boolean) props.get(PROP_USE_INITIAL_START_LEVEL);
     if (uiVal != null) {
-      useInitialStartLevel = uiVal.booleanValue();
+      useInitialStartLevel = uiVal;
     }
 
     final Integer iVal = (Integer) props.get(PROP_STARTLEVEL);
     if (iVal != null) {
-      startLevel = iVal.intValue();
+      startLevel = iVal;
     }
     if (startLevel<1) {
       startLevel = getFrameworkInitialStartLevel();
@@ -175,21 +175,21 @@ public class Config
 
     final Long lVal = (Long) props.get(PROP_INTERVAL);
     if (lVal != null) {
-      interval = lVal.longValue();
+      interval = lVal;
     }
 
     final Boolean uVal = (Boolean) props.get(PROP_UNINSTALL);
     if (uVal != null) {
-      uninstallOnStop = uVal.booleanValue();
+      uninstallOnStop = uVal;
     }
     
     final Boolean usefm = (Boolean) props.get(PROP_USE_FILE_MARKERS);
     if (usefm != null) {
-      useFileMarkers = usefm.booleanValue();
+      useFileMarkers = usefm;
     }
     final Boolean regc = (Boolean) props.get(PROP_REGISTER_CONTROLS);
     if (regc != null) {
-      registerBundleControls = regc.booleanValue();
+      registerBundleControls = regc;
     }
     
     Activator.logger.info("Config values");
@@ -201,52 +201,52 @@ public class Config
   Dictionary<String,?> getDefaults()
   {
 
-    final Dictionary<String,Object> props = new Hashtable<String,Object>();
+    final Dictionary<String,Object> props = new Hashtable<>();
 
     final Object dirs = Activator.bc.getProperty(PROP_DIRS);
     props.put(PROP_DIRS, null == dirs ? DEFAULT_DIR : dirs);
 
     Boolean useInitialStartLevel = Boolean.TRUE;
-    final Object useInitialStartLevelO = Activator.bc.getProperty(PROP_USE_INITIAL_START_LEVEL);
+    final String useInitialStartLevelO = Activator.bc.getProperty(PROP_USE_INITIAL_START_LEVEL);
     if (null != useInitialStartLevelO) {
-      useInitialStartLevel = new Boolean((String) useInitialStartLevelO);
+      useInitialStartLevel = Boolean.valueOf(useInitialStartLevelO);
     }
     props.put(PROP_USE_INITIAL_START_LEVEL, useInitialStartLevel);
 
-    final Object startLevelO = Activator.bc.getProperty(PROP_STARTLEVEL);
+    final String startLevelO = Activator.bc.getProperty(PROP_STARTLEVEL);
     int startLevel = -1;
     if (null != startLevelO) {
       try {
-        startLevel = Integer.parseInt((String) startLevelO);
-      } catch (final NumberFormatException nfe) {
+        startLevel = Integer.parseInt(startLevelO);
+      } catch (final NumberFormatException ignored) {
       }
     }
     if (startLevel < 1) {
       startLevel = getFrameworkInitialStartLevel();
     }
-    props.put(PROP_STARTLEVEL, new Integer(startLevel));
+    props.put(PROP_STARTLEVEL, startLevel);
 
-    long intervall = 1000;
-    final Object intervallO = Activator.bc.getProperty(PROP_INTERVAL);
-    if (null != intervallO) {
+    long interval = 1000;
+    final String intervalO = Activator.bc.getProperty(PROP_INTERVAL);
+    if (null != intervalO) {
       try {
-        intervall = Long.parseLong((String) intervallO);
-      } catch (final NumberFormatException nfe) {
+        interval = Long.parseLong(intervalO);
+      } catch (final NumberFormatException ignored) {
       }
     }
-    props.put(PROP_INTERVAL, new Long(intervall));
+    props.put(PROP_INTERVAL, interval);
 
     Boolean uninstallOnStop = Boolean.TRUE;
-    final Object uninstallOnStopO = Activator.bc.getProperty(PROP_UNINSTALL);
+    final String uninstallOnStopO = Activator.bc.getProperty(PROP_UNINSTALL);
     if (null != uninstallOnStopO) {
-      uninstallOnStop = new Boolean((String) uninstallOnStopO);
+      uninstallOnStop = Boolean.valueOf(uninstallOnStopO);
     }
     props.put(PROP_UNINSTALL, uninstallOnStop);
     
     props.put(PROP_USE_FILE_MARKERS, 
-              getBoolProperty(Activator.bc, PROP_USE_FILE_MARKERS, USE_FILE_MARKERS_DEFALT));
+              getBoolProperty(Activator.bc, PROP_USE_FILE_MARKERS, USE_FILE_MARKERS_DEFAULT));
     props.put(PROP_REGISTER_CONTROLS, 
-              getBoolProperty(Activator.bc, PROP_REGISTER_CONTROLS, REGISTER_BUNDLE_CONTROLS_DEFALT));
+              getBoolProperty(Activator.bc, PROP_REGISTER_CONTROLS, REGISTER_BUNDLE_CONTROLS_DEFAULT));
     
 
     return props;
@@ -274,11 +274,12 @@ public class Config
   private static Boolean getBoolProperty(BundleContext bc, String p, Boolean def) {
     Boolean ret;
     
-    final Object o = bc.getProperty(p);
-    if (null != o)
-      ret = new Boolean((String)o);
-    else
+    final String o = bc.getProperty(p);
+    if (null != o) {
+      ret = Boolean.valueOf(o);
+    } else {
       ret = def;
+    }
     
     Activator.logger.info( p + " : " + ret);
     return ret;

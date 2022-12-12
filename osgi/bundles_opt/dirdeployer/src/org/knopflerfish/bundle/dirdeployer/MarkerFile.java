@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, KNOPFLERFISH project
+ * Copyright (c) 2016-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,9 +73,9 @@ public class MarkerFile
   public static boolean isMarkerFile(File f)
   {
     String name = f.getName();
-    
-    for (int i = 0; i < allMarkers.length; i++) {
-      if (name.endsWith(allMarkers[i]))
+
+    for (String allMarker : allMarkers) {
+      if (name.endsWith(allMarker))
         return true;
     }
     return false;
@@ -100,8 +100,8 @@ public class MarkerFile
   
   public static boolean clearAllMarkers(File f) throws IOException {
     boolean success = true;
-    for (int i = 0; i < allMarkers.length; i++) {
-      File mf = new File(f.getCanonicalPath() + allMarkers[i]);
+    for (String allMarker : allMarkers) {
+      File mf = new File(f.getCanonicalPath() + allMarker);
       if (mf.exists() && !mf.delete()) {
         Activator.logger.error("Failed to delete: " + mf.getCanonicalPath());
         success = false;
@@ -140,12 +140,12 @@ public class MarkerFile
   }
   
   public static Collection<String> getAllMarkers(File f) throws IOException {
-    Vector<String> markers = new Vector<String>();
-    
-    for (int i = 0; i < allMarkers.length; i++) {
-      File mf = new File(f.getCanonicalPath() + allMarkers[i]);
+    Vector<String> markers = new Vector<>();
+
+    for (String allMarker : allMarkers) {
+      File mf = new File(f.getCanonicalPath() + allMarker);
       if (mf.exists())
-        markers.add(allMarkers[i]);
+        markers.add(allMarker);
     }
     return markers;
   }

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Directory Deployer
 Bundle-SymbolicName: org.knopflerfish.bundle.dirdeployer
-Bundle-Version: 4.1.0
+Bundle-Version: 4.1.1
 Bundle-Category: util
 Bundle-Description: Monitors a set of file system directory for bundles
  and configurations to deploy

@@ -327,6 +327,10 @@ Knopflerfish Services
 
 * Code cleanup and refactoring.
 
+### Directory Deployer 4.1.1
+
+* Code cleanup and refactoring.
+
 ### FW-Tray 4.1.0
 
 * Internally use StringBuilder instead of StringBuffer.

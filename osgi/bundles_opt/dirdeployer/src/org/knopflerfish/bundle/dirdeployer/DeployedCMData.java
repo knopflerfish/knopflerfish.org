@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -52,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.osgi.framework.BundleException;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -70,15 +68,14 @@ class DeployedCMData
    * from. Used to detect stray configurations (configurations that are
    * installed, but whose XML-file is not in any of the scanned directories).
    */
-  static final Map<String, File> installedCfgs = new HashMap<String, File>();
+  static final Map<String, File> installedCfgs = new HashMap<>();
 
   /**
    * For factory configurations we need a mapping from the description of it in
    * the file to the actual PID it is saved under in CM. The key in this mapping
    * defined by the return value of {@link #getFilePidForPid(String)}.
    */
-  static final Map<String, String> filePidToCmPid =
-    new HashMap<String, String>();
+  static final Map<String, String> filePidToCmPid = new HashMap<>();
 
   /**
    * Build the key in {@link DeployedCMData#filePidToCmPid} for a factory
@@ -120,9 +117,7 @@ class DeployedCMData
    */
   private static File getStateFile()
   {
-    final File stateFile =
-      Activator.bc.getDataFile(DeployedCMData.class.getName());
-    return stateFile;
+    return Activator.bc.getDataFile(DeployedCMData.class.getName());
   }
 
   /**
@@ -218,27 +213,21 @@ class DeployedCMData
    */
   static private Hashtable<String, Object>[] loadCMDataFile(final File f)
   {
-    PushbackReader reader = null;
-    try {
+    try (PushbackReader reader = new PushbackReader(
+        new BufferedReader(
+            new InputStreamReader(
+                new FileInputStream(f),
+                CMDataConstants.ENCODING
+            ),
+            8192
+        ),
+        8
+    )) {
       final CMDataReader cmDataReader = new CMDataReader();
-      final InputStream is = new FileInputStream(f);
-      final InputStreamReader isr =
-        new InputStreamReader(is, CMDataConstants.ENCODING);
-      reader = new PushbackReader(new BufferedReader(isr, 8192), 8);
-
-      final Hashtable<String, Object>[] configs =
-        cmDataReader.readCMDatas(reader);
-      return configs;
+      return cmDataReader.readCMDatas(reader);
     } catch (final Exception e) {
       DirDeployerImpl.log("Failed to load configurations from '" + f + "'; "
-                          + e, e);
-    } finally {
-      if (null != reader) {
-        try {
-          reader.close();
-        } catch (final IOException ioe) {
-        }
-      }
+          + e, e);
     }
     @SuppressWarnings("unchecked")
     final Hashtable<String, Object>[] res = new Hashtable[0];
@@ -294,19 +283,17 @@ class DeployedCMData
    *
    * @see org.knopflerfish.bundle.dirdeployer.DeployedFile#installIfNeeded()
    */
-  public void installIfNeeded()
-      throws BundleException
-  {
+  public void installIfNeeded() {
     final ConfigurationAdmin ca = DirDeployerImpl.caTracker.getService();
     if (pids == null && ca != null) {
       try {
         fileLastModified = file.lastModified();
         // List with all PIDs that is created from the current file.
-        final List<String> pidList = new ArrayList<String>();
+        final List<String> pidList = new ArrayList<>();
 
         // List with all PIDs for factory configurations that are defined in the
         // current file, used for duplicate detection.
-        final List<String> pidListFactory = new ArrayList<String>();
+        final List<String> pidListFactory = new ArrayList<>();
 
         final Hashtable<String, Object>[] configs = loadCMDataFile(file);
         for (final Hashtable<String, Object> config : configs) {
@@ -355,7 +342,7 @@ class DeployedCMData
           pidList.add(cfg.getPid());
           installedCfgs.put(cfg.getPid(), file);
         }
-        pids = pidList.toArray(new String[pidList.size()]);
+        pids = pidList.toArray(new String[0]);
 
         DirDeployerImpl.log("installed " + this);
       } catch (final Exception e) {
@@ -375,9 +362,7 @@ class DeployedCMData
    *
    * @see org.knopflerfish.bundle.dirdeployer.DeployedFile#start()
    */
-  public void start()
-      throws BundleException
-  {
+  public void start() {
     // Start is a no-operation for configurations.
   }
 
@@ -386,9 +371,7 @@ class DeployedCMData
    *
    * @see org.knopflerfish.bundle.dirdeployer.DeployedFile#updateIfNeeded()
    */
-  public void updateIfNeeded()
-      throws BundleException
-  {
+  public void updateIfNeeded() {
     if (needUpdate()) {
       if (pids == null) {
         // The initial file was not a valid CM_Data XML file, must try an
@@ -404,11 +387,11 @@ class DeployedCMData
           try {
             // List with all PIDs that has been created or updated from the
             // current file.
-            final List<String> pidList = new ArrayList<String>();
+            final List<String> pidList = new ArrayList<>();
 
             // List with all PIDs for factory configurations that are defined in
             // the current file.
-            final List<String> pidListFactory = new ArrayList<String>();
+            final List<String> pidListFactory = new ArrayList<>();
 
             final Hashtable<String, Object>[] configs = loadCMDataFile(file);
             for (final Hashtable<String, Object> config : configs) {
@@ -496,7 +479,7 @@ class DeployedCMData
             }
 
             saveState();
-            pids = pidList.toArray(new String[pidList.size()]);
+            pids = pidList.toArray(new String[0]);
 
             DirDeployerImpl.log("updated " + this);
           } catch (final Exception e) {
@@ -516,9 +499,7 @@ class DeployedCMData
    *
    * @see org.knopflerfish.bundle.dirdeployer.DeployedFile#uninstall()
    */
-  public void uninstall()
-      throws BundleException
-  {
+  public void uninstall() {
     final ConfigurationAdmin ca = DirDeployerImpl.caTracker.getService();
     if (pids != null && ca != null) {
       for (final String pid : pids) {
