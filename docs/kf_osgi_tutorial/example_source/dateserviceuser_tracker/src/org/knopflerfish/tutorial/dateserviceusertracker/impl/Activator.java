@@ -1,12 +1,9 @@
 package org.knopflerfish.tutorial.dateserviceusertracker.impl; 
 
-import java.util.Date;
-import org.osgi.framework.BundleActivator; 
+import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants; 
 import org.osgi.framework.ServiceReference; 
-import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceEvent;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
@@ -29,7 +26,7 @@ public class Activator implements BundleActivator {
   } 
 
   ServiceTrackerCustomizer customizer = new ServiceTrackerCustomizer() {
-      public Object addingService(ServiceReference reference) { 
+      public Object addingService(ServiceReference reference) {
         log("addingService");
         DateService service = (DateService) bc.getService(reference); 
         if (thread == null) { 

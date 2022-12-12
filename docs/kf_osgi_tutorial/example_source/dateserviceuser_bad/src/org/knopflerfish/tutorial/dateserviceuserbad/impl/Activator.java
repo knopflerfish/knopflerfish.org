@@ -16,10 +16,10 @@ public class Activator implements BundleActivator {
                        .get(Constants.BUNDLE_NAME) + 
                        " starting..."); 
     Activator.bc = bc; 
-    ServiceReference reference = 
-      bc.getServiceReference(DateService.class.getName()); 
+    ServiceReference<DateService> reference =
+      bc.getServiceReference(DateService.class);
 
-    DateService service = (DateService)bc.getService(reference); 
+    DateService service = bc.getService(reference);
     System.out.println("Using DateService: formatting date: " + 
                        service.getFormattedDate(new Date())); 
     bc.ungetService(reference); 

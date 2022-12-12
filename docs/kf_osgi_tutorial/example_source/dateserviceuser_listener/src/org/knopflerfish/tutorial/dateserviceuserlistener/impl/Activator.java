@@ -1,7 +1,6 @@
 package org.knopflerfish.tutorial.dateserviceuserlistener.impl; 
 
-import java.util.Date;
-import org.osgi.framework.BundleActivator; 
+import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants; 
 import org.osgi.framework.ServiceReference; 
@@ -24,7 +23,7 @@ public class Activator implements BundleActivator {
     String filter = "(objectclass=" + DateService.class.getName() + ")"; 
     bc.addServiceListener(listener, filter); 
     
-    ServiceReference references[] = bc.getServiceReferences(null, filter); 
+    ServiceReference<?>[] references = bc.getServiceReferences((String) null, filter);
     for (int i = 0; references != null && i < references.length; i++) 
       { 
         listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, 

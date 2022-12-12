@@ -4,7 +4,7 @@ import java.util.Date;
 import org.knopflerfish.tutorial.dateservice.DateService; 
 
 public class ServiceUserThread extends Thread { 
-  private DateService  dateService = null; 
+  private DateService  dateService;
   private boolean      running = true; 
 
   public ServiceUserThread(DateService dateService, String threadName) { 
@@ -20,7 +20,7 @@ public class ServiceUserThread extends Thread {
       try { 
         formattedDate = dateService.getFormattedDate(date); 
       } catch (RuntimeException e) { 
-        System.out.println("RuntimeException occured during service usage: " 
+        System.out.println("RuntimeException occurred during service usage: "
                             + e); 
       } 
       System.out.println(getName() + ": converted date has value: " 
