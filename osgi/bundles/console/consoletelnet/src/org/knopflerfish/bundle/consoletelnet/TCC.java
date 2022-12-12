@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ package org.knopflerfish.bundle.consoletelnet;
  * Telnet command codes and option codes. The RFC where the code is
  * defined is specified for each of code.
  */
+@SuppressWarnings("unused")
 public class TCC {
     // General constants.
 
@@ -173,7 +174,7 @@ public class TCC {
     protected static final String RECONNECTION_string = String
             .valueOf((char) RECONNECTION);
 
-    /** RFC 858: Telnet negotiable option: Supress Go Ahead */
+    /** RFC 858: Telnet negotiable option: Suppress Go Ahead */
     protected static final int SUPGA = 3;
 
     protected static final String SUPGA_string = String.valueOf((char) SUPGA);

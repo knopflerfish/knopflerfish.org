@@ -65,8 +65,9 @@ public class TelnetCommandStatus extends TelnetCommand {
 
         switch (action) {
         case TCC.DO:
+            //noinspection StatementWithEmptyBody
             if (doStatus) {
-                // willing and ready, send no resonse,
+                // willing and ready, send no response,
                 // to prevent creation of negotiation loop
             } else {
                 doStatus = true;
@@ -75,8 +76,9 @@ public class TelnetCommandStatus extends TelnetCommand {
             break;
 
         case TCC.WILL:
+            //noinspection StatementWithEmptyBody
             if (doStatus) {
-                // willing and ready, send no resonse,
+                // willing and ready, send no response,
                 // to prevent creation of negotiation loop
             } else {
                 doStatus = true;
@@ -87,23 +89,20 @@ public class TelnetCommandStatus extends TelnetCommand {
         case TCC.DONT:
             if (doStatus) {
                 sb.append(getWONT());
-                doStatus = false;
-                // now not willing, send no resonse,
+                // now not willing, send no response,
                 // to prevent creation of negotiation loop
-            } else {
-                doStatus = false;
             }
+            doStatus = false;
             break;
 
         case TCC.WONT:
+            //noinspection StatementWithEmptyBody
             if (doStatus) {
                 // no appropriate answer to send
-                doStatus = false;
-                // now not willing, send no resonse,
+                // now not willing, send no response,
                 // to prevent creation of negotiation loop
-            } else {
-                doStatus = false;
             }
+            doStatus = false;
             break;
 
         // SB .... SE, command execution, when negotiations
@@ -138,16 +137,14 @@ public class TelnetCommandStatus extends TelnetCommand {
 
                     if (tc.getDoStatus()) {
                         sb.append(TCC.DO_string);
-                        sb.append((char) i);
                     } else {
                         sb.append(TCC.DONT_string);
-                        sb.append((char) i);
                     }
+                    sb.append((char) i);
                 }
             }
             sb.append(TCC.IAC_string).append(TCC.SE_string);
-        } else if (parameters != null && (parameters[0] == (byte) TCC.IS)) {
-
+        // } else if (parameters != null && (parameters[0] == (byte) TCC.IS)) {
         }
         return sb.toString();
     }

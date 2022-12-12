@@ -65,6 +65,7 @@ public class TelnetCommandEcho extends TelnetCommand {
 
         switch (action) {
         case TCC.DO:
+            //noinspection StatementWithEmptyBody
             if (doStatus) {
                 // willing and ready, send no response,
                 // to prevent creation of negotiation loop
@@ -75,6 +76,7 @@ public class TelnetCommandEcho extends TelnetCommand {
             break;
 
         case TCC.WILL:
+            //noinspection StatementWithEmptyBody
             if (doStatus) {
                 // willing and ready, send no response,
                 // to prevent creation of negotiation loop
@@ -86,24 +88,20 @@ public class TelnetCommandEcho extends TelnetCommand {
         case TCC.DONT:
             if (doStatus) {
                 sb.append(getWONT());
-                doStatus = false;
                 // now not willing, send no response,
                 // to prevent creation of negotiation loop
-            } else {
-                doStatus = false;
             }
+            doStatus = false;
             break;
 
         // handle the case of WONT, which means that
         // the other end wont echo but this end will still echo
         case TCC.WONT:
+            //noinspection StatementWithEmptyBody
             if (doStatus) {
                 // no appropriate answer to send
-                doStatus = true;
                 // now not willing, send no response,
                 // to prevent creation of negotiation loop
-            } else {
-                doStatus = false;
             }
             break;
 
@@ -111,9 +109,7 @@ public class TelnetCommandEcho extends TelnetCommand {
         // are finished and both parties have agreed
 
         case TCC.SE:
-            if (doStatus) {
-
-            } else { // not in right state
+            if (!doStatus) { // not in right state
                 sb.append(getDONT());
             }
             break;

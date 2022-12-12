@@ -66,17 +66,10 @@ public class TelnetCommandSupga extends TelnetCommand {
 
         switch (action) {
         case TCC.DO:
-            if (doStatus) {
-                // willing and ready, send no resonse,
-                // to prevent creation of negotiation loop
-            } else {
-                doStatus = true;
-            }
-            break;
-
         case TCC.WILL:
+            //noinspection StatementWithEmptyBody
             if (doStatus) {
-                // willing and ready, send no resonse,
+                // willing and ready, send no response,
                 // to prevent creation of negotiation loop
             } else {
                 doStatus = true;
@@ -86,32 +79,27 @@ public class TelnetCommandSupga extends TelnetCommand {
         case TCC.DONT:
             if (doStatus) {
                 sb.append(getWONT());
-                doStatus = false;
-                // now not willing, send no resonse,
+                // now not willing, send no response,
                 // to prevent creation of negotiation loop
-            } else {
-                doStatus = false;
             }
+            doStatus = false;
             break;
 
         case TCC.WONT:
+            //noinspection StatementWithEmptyBody
             if (doStatus) {
                 // no appropriate answer to send
-                doStatus = false;
-                // now not willing, send no resonse,
+                // now not willing, send no response,
                 // to prevent creation of negotiation loop
-            } else {
-                doStatus = false;
             }
+            doStatus = false;
             break;
 
         // SB .... SE, command execution, when negotiations
         // are finished and both parties have agreed
 
         case TCC.SE:
-            if (doStatus) {
-
-            } else { // not in right state
+            if (!doStatus) { // not in right state
                 sb.append(getDONT());
             }
             break;

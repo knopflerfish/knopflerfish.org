@@ -61,10 +61,9 @@ public abstract class TelnetCommand {
      * Parameters in the constructor:
      *
      * @param ts TelnetSession, to provide callback to the telnet session
-     * @param commandCode
-     * @param doStatus, if true the command has been asked to be
-     *            active
-     * @param show, if true the commands is shown
+     * @param commandCode the command code of this command
+     * @param doStatus if true the command has been asked to be active
+     * @param show if true the commands is shown
      */
     public TelnetCommand(TelnetSession ts, int commandCode, boolean doStatus,
             boolean show) {
