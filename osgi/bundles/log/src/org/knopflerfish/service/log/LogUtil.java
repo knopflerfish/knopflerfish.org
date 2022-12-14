@@ -34,7 +34,7 @@
 
 package org.knopflerfish.service.log;
 
-import org.osgi.service.log.LogService;
+import org.osgi.service.log.LogLevel;
 
 /**
  * Utility class for the LogService interface.
@@ -50,8 +50,10 @@ public class LogUtil {
    * @param level
    *            is the log severity level.
    * @return string representation of a numeric log level.
+   * @deprecated Replaced by {@link #fromLogLevel(LogLevel)}.
    */
-  static public String fromLevel(int level) {
+  @Deprecated
+  public static String fromLevel(int level) {
     return fromLevel(level, 0);
   }
 
@@ -64,34 +66,68 @@ public class LogUtil {
    * @param length
    *            the minimum length of the resulting string.
    * @return left justified string representation of a numeric log level.
+   * @deprecated Replaced by {@link #fromLogLevel(LogLevel, int)}.
    */
-  static public String fromLevel(int level, int length) {
-    final StringBuilder sb = new StringBuilder(length > 7 ? length : 7);
-    switch (level) {
-    case LogService.LOG_INFO:
-      sb.append("info");
-      break;
-    case LogService.LOG_DEBUG:
-      sb.append("debug");
-      break;
-    case LogService.LOG_WARNING:
-      sb.append("Warning");
-      break;
-    case LogService.LOG_ERROR:
-      sb.append("ERROR");
-      break;
-    case 0:
-      sb.append("DEFAULT");
-      break;
-    default:
-      sb.append("[");
-      sb.append(level);
-      sb.append("]");
-    }
-    for (int i = sb.length(); i < length; i++) {
+  @Deprecated
+  public static String fromLevel(int level, int length) {
+    return fromLogLevel(ordinalToLogLevel(level), length);
+  }
+
+  /**
+   * Converts from a log severity level to a string.
+   *
+   * @param logLevel
+   *            is the log severity level.
+   * @return string representation of a log level.
+   */
+  public static String fromLogLevel(LogLevel logLevel) {
+    return fromLogLevel(logLevel, 0);
+  }
+
+  /**
+   * Converts from a log severity level to a left justified
+   * string of at least the given length.
+   *
+   * @param logLevel
+   *            is the log severity level.
+   * @param length
+   *            the minimum length of the resulting string.
+   * @return left justified string representation of a log level.
+   */
+  public static String fromLogLevel(LogLevel logLevel, int length) {
+    final StringBuilder sb = new StringBuilder(Math.max(length, 7));
+    sb.append(toString(logLevel));
+    while (sb.length() < length) {
       sb.append(" ");
     }
     return sb.toString();
+  }
+
+  private static String toString(LogLevel logLevel) {
+    switch (logLevel) {
+      case AUDIT:
+        return "audit";
+      case INFO:
+        return "info";
+      case DEBUG:
+        return "debug";
+      case WARN:
+        return "Warning";
+      case ERROR:
+        return "ERROR";
+      case TRACE:
+        return "trace";
+      default:
+        return "[" + logLevel + "]";
+    }
+  }
+
+  public static LogLevel ordinalToLogLevel(int ordinal) {
+    final LogLevel[] logLevels = LogLevel.values();
+    if (ordinal < 0 || ordinal >= logLevels.length) {
+      throw new IllegalArgumentException("Unknown log level: " + ordinal);
+    }
+    return logLevels[ordinal];
   }
 
   /**
@@ -104,25 +140,56 @@ public class LogUtil {
    *            as a log level.
    * @return the log level, or the default value if the string can not
    *         be recognized.
+   * @deprecated Replaced by {@link #toLogLevel(String, LogLevel)}.
    */
-  static public int toLevel(String level, int def) {
-    if (level==null) {
+  @Deprecated
+  public static int toLevel(String level, int def) {
+    final LogLevel logLevel = toLogLevel(level);
+    if (logLevel == null) {
       return def;
+    }
+    return logLevel.ordinal();
+  }
+
+  /**
+   * Converts a string representing a log severity level to a LogLevel.
+   *
+   * @param level
+   *            The string to convert.
+   * @param def
+   *            Default value to use if the string is not recognized
+   *            as a log level.
+   * @return the log level, or the default value if the string can not
+   *         be recognized.
+   */
+  public static LogLevel toLogLevel(String level, LogLevel def) {
+    LogLevel logLevel = toLogLevel(level);
+    if (logLevel == null) {
+      return def;
+    }
+    return logLevel;
+  }
+
+  private static LogLevel toLogLevel(String level) {
+    if (level == null) {
+      return null;
     }
 
     level = level.trim();
     if (level.equalsIgnoreCase("INFO")) {
-      return LogService.LOG_INFO;
+      return LogLevel.INFO;
+    } else if (level.equalsIgnoreCase("TRACE")) {
+      return LogLevel.TRACE;
     } else if (level.equalsIgnoreCase("DEBUG")) {
-      return LogService.LOG_DEBUG;
+      return LogLevel.DEBUG;
     } else if (level.equalsIgnoreCase("WARNING")) {
-      return LogService.LOG_WARNING;
+      return LogLevel.WARN;
     } else if (level.equalsIgnoreCase("ERROR")) {
-      return LogService.LOG_ERROR;
-    } else if (level.equalsIgnoreCase("DEFAULT")) {
-      return 0;
+      return LogLevel.ERROR;
+    } else if (level.equalsIgnoreCase("AUDIT")) {
+      return LogLevel.AUDIT;
     }
-    return def;
+    return null;
   }
 
 }

@@ -90,7 +90,8 @@ OSGi Compendium Specification
 ### Log 7.0.0
 
 * Updated API classes to match OSGi R7.
-* Added dependency to new Push Stream bundle
+* Added dependency to new Push Stream bundle.
+* Uses LogLevel enum internally.
 
 ### Metatype API 7.0.0
 

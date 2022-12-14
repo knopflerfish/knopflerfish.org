@@ -59,7 +59,7 @@ public final class LogEntryImpl implements LogEntry {
     synchronized(simpleDateFormat) {
       try {
         simpleDateFormat.applyPattern(pattern);
-      } catch (Throwable t) {
+      } catch (Throwable ignored) {
       }
     }
   }
@@ -74,7 +74,6 @@ public final class LogEntryImpl implements LogEntry {
   // Log entry data.
   private final Bundle bundle;
   private final ServiceReference<?> serviceReference;
-  private final int level;
   private final String message;
   private final Throwable throwable;
   private final long timestamp;
@@ -82,8 +81,8 @@ public final class LogEntryImpl implements LogEntry {
   private final String threadInfo;
   private StackTraceElement location;
 
+  private LogLevel logLevel;
   //TODO: assign proper values
-  private final LogLevel logLevel = LogLevel.DEBUG;
   private final String loggerName = "";
   private final long sequence = 0;
 
@@ -105,7 +104,7 @@ public final class LogEntryImpl implements LogEntry {
                       final String message,  final Throwable throwable) {
     this.bundle = bundle;
     this.serviceReference = serviceReference;
-    this.level = level;
+    this.logLevel = LogUtil.ordinalToLogLevel(level);
     this.message = message;
     this.throwable = throwable;
     this.timestamp = System.currentTimeMillis();
@@ -125,7 +124,7 @@ public final class LogEntryImpl implements LogEntry {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder(100);
-    sb.append(LogUtil.fromLevel(level, 8));
+    sb.append(LogUtil.fromLogLevel(logLevel, 8));
     sb.append(" ");
     sb.append(formatTimestamp(new Date(timestamp)));
     sb.append(" ");
@@ -174,7 +173,7 @@ public final class LogEntryImpl implements LogEntry {
 
   @Override
   public int getLevel() {
-    return level;
+    return logLevel.ordinal();
   }
 
   @Override
