@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,8 +63,7 @@ public class Activator implements BundleActivator {
   static long queueHandlerTimeout = 1100;
   static long timeWarning = 0;
 
-  public void start(BundleContext bc) throws Exception
-  {
+  public void start(BundleContext bc) {
     Activator.bc = bc;
     log = new LogRef(bc);
     handlerTracker = new EventHandlerTracker(bc);
@@ -108,8 +107,7 @@ public class Activator implements BundleActivator {
     eventAdmin.start();
   }
 
-  public void stop(BundleContext bc) throws Exception
-  {
+  public void stop(BundleContext bc) {
     eventAdmin.stop();
     handlerTracker.close();
   }

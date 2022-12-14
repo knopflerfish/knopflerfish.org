@@ -73,6 +73,7 @@ OSGi Compendium Specification
 * Added osgi.service capability
 * Updated API classes to match OSGi R7.
 * Javadoc fixes.
+* Internal code cleanup.
 
 ### Foreign Applications 7.0.0
 

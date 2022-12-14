@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,8 +57,7 @@ public class QueueHandler extends Thread {
   private Object key;
 
   /** The queue with events to be delivered by this thread.*/
-  private LinkedList<InternalAdminEvent> syncQueue
-    = new LinkedList<InternalAdminEvent>();
+  private LinkedList<InternalAdminEvent> syncQueue = new LinkedList<>();
 
   /** The state of this queue handler thread.*/
   private boolean running;
@@ -133,9 +132,9 @@ public class QueueHandler extends Thread {
         }
         if (0<Activator.queueHandlerTimeout
             && duration > Activator.queueHandlerTimeout) {
-          // Must allways lock on queueHandlers before this when both
+          // Must always lock on queueHandlers before this when both
           // are needed.
-          boolean isTimeout = false;
+          boolean isTimeout;
           synchronized(queueHandlers) {
             synchronized (this) {
               if (isTimeout = syncQueue.isEmpty()) {

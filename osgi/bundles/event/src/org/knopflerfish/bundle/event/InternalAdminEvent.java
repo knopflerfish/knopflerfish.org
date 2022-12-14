@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 import org.osgi.service.event.TopicPermission;
-
 
 /**
  * A wrapper class for events. Connects an event with
@@ -114,7 +113,7 @@ public class InternalAdminEvent {
       deliverToHandles();
     } else if (canSubscribe) {
       // no publish permission
-      Activator.log.error("No permission to publishto topic:"
+      Activator.log.error("No permission to publish to topic:"
                           + event.getTopic());
     } else if (canPublish) {
       // no subscribe permission

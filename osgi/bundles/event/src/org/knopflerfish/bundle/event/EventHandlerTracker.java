@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,24 +45,23 @@ import org.osgi.service.event.EventHandler;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-
 public class EventHandlerTracker
   implements ServiceTrackerCustomizer<EventHandler, TrackedEventHandler>
 {
   private final BundleContext bc;
   private final ServiceTracker<EventHandler, TrackedEventHandler> tracker;
   private final Hashtable<String, Set<TrackedEventHandler>> topicsToHandlers
-    = new Hashtable<String, Set<TrackedEventHandler>>();
+    = new Hashtable<>();
   private final Hashtable<String, Set<TrackedEventHandler>> wildcardsToHandlers
-    = new Hashtable<String, Set<TrackedEventHandler>>();
+    = new Hashtable<>();
 
   public EventHandlerTracker(BundleContext bc)
   {
     this.bc = bc;
-    tracker = new ServiceTracker<EventHandler, TrackedEventHandler>(
-                                                                    bc,
-                                                                    EventHandler.class,
-                                                                    this);
+    tracker = new ServiceTracker<>(
+        bc,
+        EventHandler.class,
+        this);
   }
 
   public void open() {
@@ -111,14 +110,12 @@ public class EventHandlerTracker
                                  TrackedEventHandler teh,
                                  Hashtable<String, Set<TrackedEventHandler>> h)
   {
-    Set<TrackedEventHandler> s = null;
+    Set<TrackedEventHandler> s;
+    //noinspection SynchronizationOnLocalVariableOrMethodParameter
     synchronized (h) {
-      s = h.get(key);
-      if (s == null) {
-        s = new HashSet<TrackedEventHandler>();
-        h.put(key, s);
-      }
+      s = h.computeIfAbsent(key, k -> new HashSet<>());
     }
+    //noinspection SynchronizationOnLocalVariableOrMethodParameter
     synchronized (s) {
       s.add(teh);
       teh.referencedIn(s);
@@ -127,6 +124,7 @@ public class EventHandlerTracker
 
   private static <A> void addSetMatching(Set<A> result, Set<A> matching) {
     if (matching != null) {
+      //noinspection SynchronizationOnLocalVariableOrMethodParameter
       synchronized (matching) {
         result.addAll(matching);
       }
@@ -136,7 +134,7 @@ public class EventHandlerTracker
 
   public Set<TrackedEventHandler> getHandlersMatching(String topic)
   {
-    Set<TrackedEventHandler> result = new HashSet<TrackedEventHandler>();
+    Set<TrackedEventHandler> result = new HashSet<>();
     addSetMatching(result, topicsToHandlers.get(topic));
     synchronized (wildcardsToHandlers) {
       for (Entry<String, Set<TrackedEventHandler>> entry : wildcardsToHandlers
@@ -150,6 +148,7 @@ public class EventHandlerTracker
     return result;
   }
 
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   public boolean anyHandlersMatching(String topic)
   {
     Set<TrackedEventHandler> matching = topicsToHandlers.get(topic);

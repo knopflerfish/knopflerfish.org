@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
   }
 
   public void configurationEvent(ConfigurationEvent event) {
-    Map<String,Object> props = new HashMap<String,Object>();
+    Map<String,Object> props = new HashMap<>();
     String topic = null;
     boolean knownMessageType = true;
     switch (event.getType()) {
@@ -101,7 +101,7 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
         Activator.log.error("EXCEPTION in configurationEvent()", e);
       }
     } else {
-      Activator.log.error("Recieved unknown configuration event (type="
+      Activator.log.error("Received unknown configuration event (type="
                 +event.getType() +"), discarding");
     }
   }

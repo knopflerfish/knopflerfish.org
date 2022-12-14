@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,9 +59,9 @@ public class TimeoutDeliver extends Thread {
     return delivered;
   }
 
-  private synchronized void setDelivered(boolean delivered)
+  private synchronized void setDelivered()
   {
-    this.delivered = delivered;
+    delivered = true;
   }
 
   private synchronized boolean isTimedOut()
@@ -119,6 +119,7 @@ public class TimeoutDeliver extends Thread {
         synchronized (this) {
           // Synchronized to ensure that this thread sees the current values
           // of the instance fields
+          // TODO: What does this do?
           handler.isBlacklisted();
         }
         try {
@@ -127,13 +128,15 @@ public class TimeoutDeliver extends Thread {
           Activator.log
               .error("Handler threw exception in handleEvent: " + e, e);
         } finally {
+          //noinspection SynchronizeOnNonFinalField
           synchronized (caller) {
-            setDelivered(true);
+            setDelivered();
           }
         }
 
         /* tell the owner that notification is done */
         if (!isTimedOut()) {
+          //noinspection SynchronizeOnNonFinalField
           synchronized (caller) {
             caller.notifyAll();
           }

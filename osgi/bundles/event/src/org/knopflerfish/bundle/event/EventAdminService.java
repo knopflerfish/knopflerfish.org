@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ import org.osgi.service.event.EventAdmin;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -60,8 +59,7 @@ import java.util.Set;
 public class EventAdminService
   implements EventAdmin
 {
-  final private Map<Object, QueueHandler> queueHandlers
-    = new HashMap<Object, QueueHandler>();
+  final private Map<Object, QueueHandler> queueHandlers = new HashMap<>();
   final private MultiListener ml;
   final private ConfigurationListenerImpl cli;
   private ServiceRegistration<EventAdmin> reg;
@@ -79,7 +77,7 @@ public class EventAdminService
         return;
       }
 
-      QueueHandler queueHandler = null;
+      QueueHandler queueHandler;
       boolean newQueueHandlerCreated = false;
       synchronized(queueHandlers) {
         final Thread currentThread = Thread.currentThread();
@@ -90,7 +88,7 @@ public class EventAdminService
           queueHandler = (QueueHandler) currentThread;
         } else {
           final Object key = Activator.useMultipleQueueHandlers
-            ? (Object) currentThread : (Object) this;
+            ? currentThread : this;
           queueHandler = queueHandlers.get(key);
           if (null==queueHandler) {
             queueHandler = new QueueHandler(queueHandlers, key);
@@ -137,18 +135,17 @@ public class EventAdminService
   }
 
   synchronized void stop() {
-    reg.unregister();;
+    reg.unregister();
     reg = null;
 
     cli.stop();
     ml.stop();
 
-    Set<QueueHandler> activeQueueHandlers = null;
+    Set<QueueHandler> activeQueueHandlers;
     synchronized(queueHandlers) {
-      activeQueueHandlers = new HashSet<QueueHandler>(queueHandlers.values());
+      activeQueueHandlers = new HashSet<>(queueHandlers.values());
     }
-    for (Iterator<QueueHandler> it = activeQueueHandlers.iterator(); it.hasNext(); ) {
-      final QueueHandler queueHandler = it.next();
+    for (final QueueHandler queueHandler : activeQueueHandlers) {
       queueHandler.stopIt();
     }
   }

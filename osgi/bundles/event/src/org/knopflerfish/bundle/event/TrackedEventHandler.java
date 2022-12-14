@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2010-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,8 +53,7 @@ public class TrackedEventHandler {
   private Filter filter = null;
   private boolean destroyed = false;
   private boolean blacklisted = false;
-  private HashSet<Set<TrackedEventHandler>> referencingSets
-    = new HashSet<Set<TrackedEventHandler>>();
+  private HashSet<Set<TrackedEventHandler>> referencingSets = new HashSet<>();
 
   private TrackedEventHandler(EventHandlerTracker tracker, EventHandler tracked)
   {
@@ -62,17 +61,15 @@ public class TrackedEventHandler {
     this.tracked = tracked;
   }
 
-  public boolean handleEventSubjectToFilter(Event event)
+  public void handleEventSubjectToFilter(Event event)
   {
     if (destroyed || isBlacklisted()) {
-      return false;
+      return;
     }
     if (filter == null || event.matches(filter)) {
       tracked.handleEvent(event);
       setBlacklist(false);
-      return true;
     }
-    return false;
   }
 
   public synchronized boolean isBlacklisted()
@@ -135,8 +132,8 @@ public class TrackedEventHandler {
 
   private void updateTopicsAndWildcards()
   {
-    Object o = sr.getProperty(EventConstants.EVENT_TOPIC);
-    if (o == null) {
+    Object topicObject = sr.getProperty(EventConstants.EVENT_TOPIC);
+    if (topicObject == null) {
       if (!isBlacklisted()) {
         setBlacklist(true);
         if (Activator.log.doError()) {
@@ -149,21 +146,24 @@ public class TrackedEventHandler {
       return;
     }
 
-    String[] topics = null;
-    if(o instanceof String) {
-      topics = new String[] {(String) o};
-    } else if(o instanceof String[]) {
-      topics = (String[]) o;
-    } else if(o instanceof Collection ) {
-        Collection<?> c = (Collection<?>)o;
-        topics = c.toArray(new String[c.size()]);
+    String[] topics;
+    if(topicObject instanceof String) {
+      topics = new String[] {(String) topicObject};
+    } else if(topicObject instanceof String[]) {
+      topics = (String[]) topicObject;
+    } else if(topicObject instanceof Collection ) {
+      Collection<?> topicCollection = (Collection<?>) topicObject;
+      topics = new String[topicCollection.size()];
+      int i = 0;
+      for (Object topicItem : topicCollection) {
+        topics[i++] = topicItem.toString();
+      }
     } else {
       setBlacklist(true);
       return;
     }
 
-    for (int i = 0; i < topics.length; ++i) {
-      String t = topics[i];
+    for (String t : topics) {
       if (t.length() == 0) {
         setBlacklist(true);
         return;
@@ -189,6 +189,7 @@ public class TrackedEventHandler {
   void removeAllReferences()
   {
     for (Set<TrackedEventHandler> s : referencingSets)
+      //noinspection SynchronizationOnLocalVariableOrMethodParameter
       synchronized (s) {
         s.remove(this);
       }

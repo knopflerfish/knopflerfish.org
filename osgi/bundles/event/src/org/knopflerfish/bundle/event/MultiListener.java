@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2013, KNOPFLERFISH project
+ * Copyright (c) 2005-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,13 +53,11 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.log.LogEntry;
+import org.osgi.service.log.LogLevel;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
-
-import org.knopflerfish.service.log.LogRef;
-import org.knopflerfish.service.log.LogService;
 
 /**
  * Listen for LogEntries, ServiceEvents, FrameworkEvents, BundleEvents
@@ -71,25 +69,25 @@ public class MultiListener
 {
   private long ourBundleId;
   ServiceTracker<LogReaderService,LogReaderService> logReaderTracker
-    = new ServiceTracker<LogReaderService,LogReaderService>(Activator.bc,
-        LogReaderService.class,
-        new ServiceTrackerCustomizer<LogReaderService,LogReaderService>() {
+    = new ServiceTracker<>(Activator.bc,
+      LogReaderService.class,
+      new ServiceTrackerCustomizer<LogReaderService, LogReaderService>() {
 
-    public LogReaderService addingService(ServiceReference<LogReaderService> sr) {
-      LogReaderService logReader = (LogReaderService) Activator.bc.getService(sr);
-      if (logReader != null) {
-        logReader.addLogListener(MultiListener.this);
-      }
-      return logReader;
-    }
+        public LogReaderService addingService(ServiceReference<LogReaderService> sr) {
+          LogReaderService logReader = Activator.bc.getService(sr);
+          if (logReader != null) {
+            logReader.addLogListener(MultiListener.this);
+          }
+          return logReader;
+        }
 
-    public void modifiedService(ServiceReference<LogReaderService> sr, LogReaderService o) {
-    }
+        public void modifiedService(ServiceReference<LogReaderService> sr, LogReaderService o) {
+        }
 
-    public void removedService(ServiceReference<LogReaderService> sr, LogReaderService o) {
-      o.removeLogListener(MultiListener.this);
-    }
-  });
+        public void removedService(ServiceReference<LogReaderService> sr, LogReaderService o) {
+          o.removeLogListener(MultiListener.this);
+        }
+      });
 
 
   void start()
@@ -164,10 +162,10 @@ public class MultiListener
       if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
         return;
       }
-      Map<String,Object> props = new HashMap<String,Object>();
+      Map<String,Object> props = new HashMap<>();
       Bundle bundle = bundleEvent.getBundle();
       putProp(props, EventConstants.EVENT, bundleEvent);
-      putProp(props, "bundle.id", new Long(bundle.getBundleId()));
+      putProp(props, "bundle.id", bundle.getBundleId());
       putProp(props, EventConstants.BUNDLE_SYMBOLICNAME, bundle.getSymbolicName());
       putProp(props, "bundle", bundle);
       /* Tries posting the event once the properties are set */
@@ -191,17 +189,17 @@ public class MultiListener
   private static final String LOG_DEBUG_TOPIC = LOG_PREFIX + "LOG_DEBUG";
   private static final String LOG_OTHER_TOPIC = LOG_PREFIX + "LOG_OTHER";
 
+  private Hashtable<Throwable,Long> thrownByPostEvent = new Hashtable<>();
+
   /**
    * A listener for entries in the log
    * @param logEntry the entry of the log
    * @author Johnny Baveras
    */
-  private Hashtable<Throwable,Long> thrownByPostEvent
-    = new Hashtable<Throwable,Long>();
   public void logged(LogEntry logEntry) {
     // In order to prevent endless loops we ignore errors logged by this method
     if(logEntry.getBundle().getBundleId() ==  ourBundleId &&
-       logEntry.getLevel() == LogService.LOG_ERROR &&
+       logEntry.getLogLevel() == LogLevel.ERROR &&
        thrownByPostEvent.contains(logEntry.getException())) {
 
       thrownByPostEvent.remove(logEntry.getException());
@@ -217,26 +215,26 @@ public class MultiListener
       long now = Timer.timeMillis();
       while(entries.hasNext()) {
         Entry<Throwable, Long> timestampedThrowable = entries.next();
-        long timestamp = timestampedThrowable.getValue().longValue();
+        long timestamp = timestampedThrowable.getValue();
         if ((now - timestamp) > timeout) {
           entries.remove();
         }
       }
     }
 
-    String topic = null;
+    String topic;
 
-    switch (logEntry.getLevel()) {
-    case LogRef.LOG_ERROR:
+    switch (logEntry.getLogLevel()) {
+    case ERROR:
       topic = LOG_ERROR_TOPIC;
       break;
-    case LogRef.LOG_WARNING:
+    case WARN:
       topic = LOG_WARNING_TOPIC;
       break;
-    case LogRef.LOG_INFO:
+    case INFO:
       topic = LOG_INFO_TOPIC;
       break;
-    case LogRef.LOG_DEBUG:
+    case DEBUG:
       topic = LOG_DEBUG_TOPIC;
       break;
     default:
@@ -251,25 +249,24 @@ public class MultiListener
 
 
     Bundle bundle = logEntry.getBundle();
-    Map<String,Object> props = new HashMap<String,Object>();
+    Map<String,Object> props = new HashMap<>();
 
     /* Stores the properties of the event in the dictionary */
     if (bundle != null) {
-      putProp(props, "bundle.id", new Long(bundle.getBundleId()));
+      putProp(props, "bundle.id", bundle.getBundleId());
       putProp(props, EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());
       putProp(props, "bundle", bundle);
     }
-    if (logEntry != null) {
-      putProp(props, "log.level", new Integer(logEntry.getLevel()));
-      putProp(props, EventConstants.MESSAGE, logEntry.getMessage());
-      putProp(props, EventConstants.TIMESTAMP, new Long(logEntry.getTime()));
-      putProp(props, "log.entry", logEntry);
-    }
+
+    putProp(props, "log.level", logEntry.getLevel());
+    putProp(props, EventConstants.MESSAGE, logEntry.getMessage());
+    putProp(props, EventConstants.TIMESTAMP, logEntry.getTime());
+    putProp(props, "log.entry", logEntry);
 
     /* If the event contains an exception, further properties shall be set */
     if (logEntry.getException() != null) {
       Throwable e = logEntry.getException();
-      putProp(props, EventConstants.EXECPTION_CLASS, e.getClass().getName());
+      putProp(props, EventConstants.EXCEPTION_CLASS, e.getClass().getName());
       putProp(props, EventConstants.EXCEPTION_MESSAGE, e.getMessage());
       putProp(props, EventConstants.EXCEPTION, e);
     }
@@ -291,7 +288,7 @@ public class MultiListener
       // within a certain time
       // See beginning of this method
       if(thrownByPostEvent.size() < 5) {
-        thrownByPostEvent.put(t, new Long(Timer.timeMillis()));
+        thrownByPostEvent.put(t, Timer.timeMillis());
         if(Activator.log.doError()) {
           Activator.log.error("EXCEPTION in logged(LogEntry logEntry):", t);
         }
@@ -321,8 +318,8 @@ public class MultiListener
       String[] objectClass = (String[]) serviceEvent.getServiceReference().getProperty(Constants.OBJECTCLASS);
       boolean isLogReaderService = false;
       if (objectClass != null) {
-        for (int i=0; i<objectClass.length; i++) {
-          if (LogReaderService.class.getName().equals(objectClass[i])) {
+        for (String aClass : objectClass) {
+          if (LogReaderService.class.getName().equals(aClass)) {
             isLogReaderService = true;
           }
         }
@@ -355,7 +352,7 @@ public class MultiListener
       if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
         return;
       }
-      Map<String,Object> props = new HashMap<String,Object>();
+      Map<String,Object> props = new HashMap<>();
       putProp(props, EventConstants.EVENT, serviceEvent);
       putProp(props, EventConstants.SERVICE, serviceEvent.getServiceReference());
       putProp(props, EventConstants.SERVICE_PID, serviceEvent.getServiceReference().getProperty(Constants.SERVICE_PID));
@@ -420,12 +417,12 @@ public class MultiListener
       if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
         return;
       }
-      Map<String,Object> props = new HashMap<String,Object>();
+      Map<String,Object> props = new HashMap<>();
       Bundle bundle = frameworkEvent.getBundle();
       putProp(props, "event", frameworkEvent);
       /* If the event contains a bundle, further properties shall be set */
       if (frameworkEvent.getBundle() != null) {
-        putProp(props, "bundle.id", new Long(bundle.getBundleId()));
+        putProp(props, "bundle.id", bundle.getBundleId());
         putProp(props,
                 EventConstants.BUNDLE_SYMBOLICNAME,
                 bundle.getLocation());
@@ -436,7 +433,7 @@ public class MultiListener
       if (frameworkEvent.getThrowable() != null) {
         Throwable e = frameworkEvent.getThrowable();
         putProp(props,
-                EventConstants.EXECPTION_CLASS,
+                EventConstants.EXCEPTION_CLASS,
                 Throwable.class.getName());
         putProp(props, EventConstants.EXCEPTION_MESSAGE, e.getMessage());
         putProp(props, EventConstants.EXCEPTION, e);
