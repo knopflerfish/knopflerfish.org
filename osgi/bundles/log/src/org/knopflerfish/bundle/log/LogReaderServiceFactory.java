@@ -70,12 +70,12 @@ public final class LogReaderServiceFactory
   FileLog fileLog;
 
   /**
-   * The logReaderServicies table maps LogReaderServiceImpl object
+   * The logReaderServices table maps LogReaderServiceImpl object
    * to the bundle that owns the instance. The key is an instance of
    * LogReaderServiceImpl and the value the Bundle object for the
    * bundle that uses the service.
    */
-  final Hashtable<LogReaderServiceImpl, Bundle> logReaderServicies = new Hashtable<LogReaderServiceImpl, Bundle>();
+  final Hashtable<LogReaderServiceImpl, Bundle> logReaderServices = new Hashtable<>();
 
   final LogConfigImpl configuration;
 
@@ -101,7 +101,7 @@ public final class LogReaderServiceFactory
       if (configuration.getFile()) {
         fileLog = new FileLog(bc, configuration);
       }
-    } catch (Exception e) {
+    } catch (Exception ignored) {
     }
 
     configuration.init(this);
@@ -164,7 +164,7 @@ public final class LogReaderServiceFactory
       }
     } else {
       // Copy the last size entries from history
-      int s = (size > memorySize) ? memorySize : size;
+      int s = Math.min(size, memorySize);
       int fromPos = (size > memorySize) ? 0 : memorySize - s;
       System.arraycopy(history, fromPos, new_history, size - s, s);
     }
@@ -187,8 +187,8 @@ public final class LogReaderServiceFactory
       fileLog = new FileLog(bc, configuration);
       if (oldValue == null) {
         synchronized (history) {
-          fileLog.saveMemEntries(new ArrayEnumeration<LogEntry>(history,
-                                                      historyInsertionPoint));
+          fileLog.saveMemEntries(new ArrayEnumeration<>(history,
+              historyInsertionPoint));
         }
       }
     } else if (!newValue && fileLog != null) {
@@ -209,6 +209,7 @@ public final class LogReaderServiceFactory
     } else if (propName.equals(LogConfigImpl.FILE)) {
       resetFile((Boolean) newValue, (Boolean) oldValue);
     } else if (propName.equals(LogConfigImpl.GEN) && fileLog != null) {
+      // TODO: resetGenerations is already synchronized
       synchronized (fileLog) {
         fileLog.resetGenerations((Integer) newValue,
                 (Integer) oldValue);
@@ -226,7 +227,7 @@ public final class LogReaderServiceFactory
                                      ServiceRegistration<LogReaderService> sd)
   {
     LogReaderServiceImpl lrsi = new LogReaderServiceImpl(this);
-    logReaderServicies.put(lrsi, bc);
+    logReaderServices.put(lrsi, bc);
     return lrsi;
   }
 
@@ -234,7 +235,8 @@ public final class LogReaderServiceFactory
                            ServiceRegistration<LogReaderService> sd,
                            LogReaderService s)
   {
-    logReaderServicies.remove(s);
+    //noinspection SuspiciousMethodCalls
+    logReaderServices.remove(s);
   }
 
   /*
@@ -250,13 +252,13 @@ public final class LogReaderServiceFactory
    * The index in <code>history</code> where the next entry shall be *
    * inserted.
    */
-  private int historyInsertionPoint = 0;
+  private int historyInsertionPoint;
 
   /*
    * Return an enumeration of the historyLength last entries in the log.
    */
   public Enumeration<LogEntry> getLog() {
-    return new ArrayEnumeration<LogEntry>(history, historyInsertionPoint);
+    return new ArrayEnumeration<>(history, historyInsertionPoint);
   }
 
   /**
@@ -269,13 +271,8 @@ public final class LogReaderServiceFactory
     // The synchronized block below is needed to work around a bug in
     // JDK1.2.2 on Linux (with green threads).
     synchronized (configuration) {
-      Integer res = AccessController
-        .doPrivileged(new PrivilegedAction<Integer>() {
-            public Integer run() {
-              return getFilterLevel(bundle);
-            }
-          });
-      return res;
+      return AccessController
+        .doPrivileged((PrivilegedAction<Integer>) () -> getFilterLevel(bundle));
     }
   }
 
@@ -306,7 +303,7 @@ public final class LogReaderServiceFactory
               }
             }
           }
-          for (Enumeration<LogReaderServiceImpl> e = logReaderServicies.keys();
+          for (Enumeration<LogReaderServiceImpl> e = logReaderServices.keys();
                e.hasMoreElements();) {
             try {
               e.nextElement().callback(le);
@@ -351,7 +348,7 @@ class ArrayEnumeration<E> implements Enumeration<E> {
   private boolean more = true;
 
   public ArrayEnumeration(E[] a, int start) {
-    this.array = (E[]) a.clone();
+    this.array = a.clone();
     endPos = start;
     pos = start;
     nextPos();

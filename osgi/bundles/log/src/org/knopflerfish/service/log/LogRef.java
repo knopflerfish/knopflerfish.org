@@ -315,7 +315,7 @@ public class LogRef
       System.out.print(msg);
       if (e != null) {
         System.out.print(" (");
-        System.out.print(e);
+        System.out.print(e.toString());
         System.out.print(")");
 
         System.out.println();
@@ -395,7 +395,7 @@ public class LogRef
    */
   public void debug(String msg)
   {
-    doLog(msg, LOG_DEBUG, (ServiceReference<?>) null, (Throwable) null);
+    doLog(msg, LOG_DEBUG, null, null);
   }
 
   /**
@@ -409,7 +409,7 @@ public class LogRef
    */
   public void debug(String msg, ServiceReference<?> sr)
   {
-    doLog(msg, LOG_DEBUG, sr, (Throwable) null);
+    doLog(msg, LOG_DEBUG, sr, null);
   }
 
   /**
@@ -422,7 +422,7 @@ public class LogRef
    */
   public void debug(String msg, Throwable e)
   {
-    doLog(msg, LOG_DEBUG, (ServiceReference<?>) null, e);
+    doLog(msg, LOG_DEBUG, null, e);
   }
 
   /**
@@ -449,7 +449,7 @@ public class LogRef
    */
   public void info(String msg)
   {
-    doLog(msg, LOG_INFO, (ServiceReference<?>) null, (Throwable) null);
+    doLog(msg, LOG_INFO, null, null);
   }
 
   /**
@@ -463,7 +463,7 @@ public class LogRef
    */
   public void info(String msg, ServiceReference<?> sr)
   {
-    doLog(msg, LOG_INFO, sr, (Throwable) null);
+    doLog(msg, LOG_INFO, sr, null);
   }
 
   /**
@@ -476,7 +476,7 @@ public class LogRef
    */
   public void info(String msg, Throwable e)
   {
-    doLog(msg, LOG_INFO, (ServiceReference<?>) null, e);
+    doLog(msg, LOG_INFO, null, e);
   }
 
   /**
@@ -503,7 +503,7 @@ public class LogRef
    */
   public void warn(String msg)
   {
-    doLog(msg, LOG_WARNING, (ServiceReference<?>) null, (Throwable) null);
+    doLog(msg, LOG_WARNING, null, null);
   }
 
   /**
@@ -517,7 +517,7 @@ public class LogRef
    */
   public void warn(String msg, ServiceReference<?> sr)
   {
-    doLog(msg, LOG_WARNING, sr, (Throwable) null);
+    doLog(msg, LOG_WARNING, sr, null);
   }
 
   /**
@@ -530,7 +530,7 @@ public class LogRef
    */
   public void warn(String msg, Throwable e)
   {
-    doLog(msg, LOG_WARNING, (ServiceReference<?>) null, e);
+    doLog(msg, LOG_WARNING, null, e);
   }
 
   /**
@@ -557,7 +557,7 @@ public class LogRef
    */
   public void error(String msg)
   {
-    doLog(msg, LOG_ERROR, (ServiceReference<?>) null, (Throwable) null);
+    doLog(msg, LOG_ERROR, null, null);
   }
 
   /**
@@ -571,7 +571,7 @@ public class LogRef
    */
   public void error(String msg, ServiceReference<?> sr)
   {
-    doLog(msg, LOG_ERROR, sr, (Throwable) null);
+    doLog(msg, LOG_ERROR, sr, null);
   }
 
   /**
@@ -584,7 +584,7 @@ public class LogRef
    */
   public void error(String msg, Throwable e)
   {
-    doLog(msg, LOG_ERROR, (ServiceReference<?>) null, e);
+    doLog(msg, LOG_ERROR, null, e);
   }
 
   /**
@@ -615,7 +615,7 @@ public class LogRef
    */
   public void log(int level, String message)
   {
-    doLog(message, level, (ServiceReference<?>) null, (Throwable) null);
+    doLog(message, level, null, null);
   }
 
   /**
@@ -632,7 +632,7 @@ public class LogRef
    */
   public void log(int level, String message, Throwable exception)
   {
-    doLog(message, level, (ServiceReference<?>) null, exception);
+    doLog(message, level, null, exception);
   }
 
   /**
@@ -648,11 +648,11 @@ public class LogRef
    * @param message
    *          Human readable string describing the condition.
    */
-  public void log(@SuppressWarnings("rawtypes") ServiceReference sr,
+  public void log(ServiceReference<?> sr,
                   int level,
                   String message)
   {
-    doLog(message, level, sr, (Throwable) null);
+    doLog(message, level, sr, null);
   }
 
   /**
@@ -669,7 +669,7 @@ public class LogRef
    * @param exception
    *          The exception that reflects the condition.
    */
-  public void log(@SuppressWarnings("rawtypes") ServiceReference sr,
+  public void log(ServiceReference<?> sr,
                   int level,
                   String message,
                   Throwable exception)

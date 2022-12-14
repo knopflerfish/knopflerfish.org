@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,7 +107,7 @@ public class LogServiceImpl implements LogService {
    *          The message of the entry to create.
    */
   @Override
-  public void log(@SuppressWarnings("rawtypes") ServiceReference sref,
+  public void log(ServiceReference<?> sref,
                   int level,
                   String msg)
   {

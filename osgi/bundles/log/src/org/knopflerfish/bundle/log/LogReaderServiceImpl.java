@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ public class LogReaderServiceImpl implements LogReaderService {
   /**
    * A Vector with LogListener objects.
    */
-  Vector<LogListener> listeners = new Vector<LogListener>(2);
+  Vector<LogListener> listeners = new Vector<>(2);
 
   /**
    * The constructor saves the LogReaderServiceFactory.
@@ -120,7 +120,7 @@ public class LogReaderServiceImpl implements LogReaderService {
     while (i.hasMoreElements()) {
       try {
         i.nextElement().logged(le);
-      } catch (Exception exc) {
+      } catch (Exception ignored) {
       }
     }
   }

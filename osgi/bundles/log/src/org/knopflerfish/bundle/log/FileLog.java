@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ public final class FileLog implements LogListener {
   private int logSize;
 
   /** Directory where the log files are stored. */
-  private File logdir = null;
+  private File logdir;
 
   // ********** Instance data **********
   /**
@@ -266,12 +266,12 @@ public final class FileLog implements LogListener {
   synchronized void saveMemEntries(Enumeration<LogEntry> logEntries) {
     // The log entires in the enumeration are in the wrong order,
     // i.e., latest first and oldest last thus we must reverse them.
-    List<LogEntry> entries = new ArrayList<LogEntry>();
+    List<LogEntry> entries = new ArrayList<>();
     while (logEntries.hasMoreElements()) {
       entries.add(logEntries.nextElement());
     }
     for (int i=entries.size()-1; i>-1; --i) {
-      logged((LogEntry) (entries.get(i)));
+      logged(entries.get(i));
     }
     entries.clear();
   }

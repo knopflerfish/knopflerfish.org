@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -130,19 +130,17 @@ class LogConfigImpl
   /** The directory that the file log is written to. */
   private File dir;
 
-  private final Hashtable<String,Object> configCollection
-    = new Hashtable<String, Object>();
+  private final Hashtable<String,Object> configCollection = new Hashtable<>();
 
   // Mapping from bundle pattern
   // (location/BundleSymbolicName/BundleName) to log level (Integer),
   // each entry in this map corresponds to an entry in the
   // actual configuration.
-  private final HashMap<String, Integer> blFilters
-    = new HashMap<String, Integer>();
+  private final HashMap<String, Integer> blFilters = new HashMap<>();
 
   // Mapping from bundle id to log level. This is a cache computed
   // by evaluate all installed bundles against the current blFilters
-  private final Map<Long, Integer> bidFilters = new HashMap<Long, Integer>();
+  private final Map<Long, Integer> bidFilters = new HashMap<>();
 
   private LogReaderServiceFactory logReaderCallback;
 
@@ -227,7 +225,7 @@ class LogConfigImpl
   public synchronized void setMemorySize(int size) {
     final int oldSize = getMemorySize();
     if (size != oldSize) {
-      final Integer newSize = new Integer(size);
+      final Integer newSize = size;
       notify(MEM, newSize);
       set(MEM, newSize);
     }
@@ -241,7 +239,7 @@ class LogConfigImpl
 
   @Override
   public int getMemorySize() {
-    return ((Integer) get(MEM)).intValue();
+    return (Integer) get(MEM);
   }
 
   /*
@@ -287,8 +285,8 @@ class LogConfigImpl
     if (filter == 0 && f != null) {
       blFilters.remove(bundleLocation);
       setCollection(true, bundleLocation, filter);
-    } else if ((f != null && filter != f.intValue()) || f == null) {
-      blFilters.put(bundleLocation, new Integer(filter));
+    } else if (f == null || filter != f) {
+      blFilters.put(bundleLocation, filter);
       setCollection(false, bundleLocation, filter);
     }
     computeBidFilters();
@@ -302,7 +300,7 @@ class LogConfigImpl
 
   @Override
   public synchronized HashMap<String, Integer> getFilters() {
-    return new HashMap<String, Integer>(blFilters);
+    return new HashMap<>(blFilters);
   }
 
   /*
@@ -315,7 +313,7 @@ class LogConfigImpl
   public synchronized void setOut(boolean b) {
     final boolean oldOut = getOut();
     if (b != oldOut) {
-      set(OUT, new Boolean(b));
+      set(OUT, b);
     }
   }
 
@@ -327,7 +325,7 @@ class LogConfigImpl
 
   @Override
   public boolean getOut() {
-    return ((Boolean) get(OUT)).booleanValue();
+    return (Boolean) get(OUT);
   }
 
   /**
@@ -358,7 +356,7 @@ class LogConfigImpl
 
   @Override
   public boolean getFile() {
-    return (((Boolean) get(FILE)).booleanValue() && (getDir() != null));
+    return ((Boolean) get(FILE) && (getDir() != null));
   }
 
   /*
@@ -382,7 +380,7 @@ class LogConfigImpl
   public synchronized void setFileSize(int fS) {
     final int oldSize = getFileSize();
     if (oldSize != fS) {
-      set(FILE_S, new Integer(fS));
+      set(FILE_S, fS);
     }
   }
 
@@ -394,7 +392,7 @@ class LogConfigImpl
 
   @Override
   public int getFileSize() {
-    return ((Integer) get(FILE_S)).intValue();
+    return (Integer) get(FILE_S);
   }
 
   /*
@@ -407,7 +405,7 @@ class LogConfigImpl
   public synchronized void setMaxGen(final int maxGen) {
     final int oldGen = getMaxGen();
     if (oldGen != maxGen) {
-      final Integer newGen = new Integer(maxGen);
+      final Integer newGen = maxGen;
       notify(GEN, newGen);
       set(GEN, newGen);
     }
@@ -421,8 +419,8 @@ class LogConfigImpl
 
   @Override
   public int getMaxGen() {
-    final int gen = ((Integer) get(GEN)).intValue();
-    return (gen < 1) ? 1 : gen;
+    final int gen = (Integer) get(GEN);
+    return Math.max(gen, 1);
   }
 
   /*
@@ -435,7 +433,7 @@ class LogConfigImpl
   public synchronized void setFlush(boolean f) {
     final boolean oldFlush = getFlush();
     if (f != oldFlush) {
-      set(FLUSH, new Boolean(f));
+      set(FLUSH, f);
     }
   }
 
@@ -447,7 +445,7 @@ class LogConfigImpl
 
   @Override
   public boolean getFlush() {
-    return ((Boolean) get(FLUSH)).booleanValue();
+    return (Boolean) get(FLUSH);
   }
 
 
@@ -491,8 +489,8 @@ class LogConfigImpl
    * Return the log filter level for the given bundle.
    */
   int getLevel(final Bundle bundle) {
-    final Long key = new Long(bundle.getBundleId());
-    Integer level = null;
+    final Long key = bundle.getBundleId();
+    Integer level;
     synchronized (bidFilters) {
       level = bidFilters.get(key);
     }
@@ -500,7 +498,7 @@ class LogConfigImpl
     // final PrintStream out = (null!=origOut) ? origOut : System.out;
     // out.println("LogConfigImpl.getLevel(" +key +"): " +level);
 
-    return (level != null) ? level.intValue() : getFilter();
+    return (level != null) ? level : getFilter();
   }
 
   static String[] getBL(final String bundleStr) {
@@ -522,7 +520,7 @@ class LogConfigImpl
   private void computeBidFilters()
   {
     // Use a temporary map to avoid holding lock during the computation.
-    final Map<Long, Integer> bidFiltersTmp = new HashMap<Long, Integer>();
+    final Map<Long, Integer> bidFiltersTmp = new HashMap<>();
 
     final Bundle[] bundles = bc.getBundles();
     for (int i = bundles.length - 1; 0 <= i; i--) {
@@ -565,7 +563,7 @@ class LogConfigImpl
     }
 
     if (null != level) {
-      final Long key = new Long(bundle.getBundleId());
+      final Long key = bundle.getBundleId();
       synchronized (bidFilters) {
         bidFilters.put(key, level);
       }
@@ -609,7 +607,7 @@ class LogConfigImpl
         computeBidFilter(bidFilters, event.getBundle());
         break;
       case BundleEvent.UNINSTALLED:
-        final Long key = new Long(event.getBundle().getBundleId());
+        final Long key = event.getBundle().getBundleId();
         synchronized (bidFilters) {
           bidFilters.remove(key);
         }
@@ -640,14 +638,14 @@ class LogConfigImpl
           }
         }
       }
-      if (notFound && !remove) {
+      if (v != null && notFound && !remove) {
         v.addElement(bundleLocation + ";" + LogUtil.fromLevel(filter));
       }
     }
   }
 
   boolean getGrabIO() {
-    return ((Boolean) get(GRABIO)).booleanValue();
+    return (Boolean) get(GRABIO);
   }
 
   private Object get(String key) {
@@ -680,9 +678,7 @@ class LogConfigImpl
         }
         bc.ungetService(sr);
       }
-    } catch (final IOException io) {
-    } catch (final java.lang.IllegalArgumentException iae) {
-    } catch (final java.lang.IllegalStateException ise) {
+    } catch (final IOException | IllegalArgumentException | IllegalStateException ignored) {
     }
   }
 
@@ -691,22 +687,22 @@ class LogConfigImpl
   /* ======================================================================== */
 
   private Hashtable<String, Serializable> getDefault() {
-    final Hashtable<String, Serializable> ht = new Hashtable<String, Serializable>();
-    final Vector<String> bundleLogFilters = new Vector<String>();
+    final Hashtable<String, Serializable> ht = new Hashtable<>();
+    final Vector<String> bundleLogFilters = new Vector<>();
     final String o = getProperty(PROP_LOG_OUT, "false");
 
     final String levelStr = getProperty(PROP_LOG_LEVEL,
                                         LogUtil.fromLevel(LOG_WARNING));
 
     ht.put(L_FILTER, levelStr);
-    ht.put(MEM, getIntegerProperty(PROP_LOG_MEMORY_SIZE, new Integer(250)));
+    ht.put(MEM, getIntegerProperty(PROP_LOG_MEMORY_SIZE, 250));
     ht.put(OUT, ("true".equalsIgnoreCase(o)) ? Boolean.TRUE : Boolean.FALSE);
     ht.put(GRABIO,
         ("true".equalsIgnoreCase(getProperty(PROP_LOG_GRABIO, "false")) ? Boolean.TRUE : Boolean.FALSE));
     ht.put(FILE, ("true".equalsIgnoreCase(getProperty(PROP_LOG_FILE, "false")) ? Boolean.TRUE : Boolean.FALSE));
     ht.put(DIR, getProperty(PROP_LOG_FILE_DIR, ""));
-    ht.put(FILE_S, new Integer(20000));
-    ht.put(GEN, new Integer(4));
+    ht.put(FILE_S, 20000);
+    ht.put(GEN, 4);
     ht.put(FLUSH, Boolean.TRUE);
     ht.put(BL_FILTERS, bundleLogFilters);
     ht.put(PID, LogConfigImpl.pid);
@@ -724,7 +720,7 @@ class LogConfigImpl
   }
 
   static String getProperty(final String key, final String def) {
-    String result = def;
+    String result;
     try {
       result = bc.getProperty(key);
       if (result == null) {
@@ -847,7 +843,7 @@ class LogConfigImpl
     }
 
     void log(String s) {
-      if (s != null && -1 != s.indexOf(prefix)) {
+      if (s != null && s.contains(prefix)) {
         return;
       }
 
@@ -881,7 +877,7 @@ class LogConfigImpl
   {
     boolean valid = false;
     final Hashtable<String,Object> rollBack
-      = new Hashtable<String, Object>(configCollection);
+      = new Hashtable<>(configCollection);
     try {
       checkLogLevel((Dictionary<String, Object>) cfg);
       checkBundleLogLevel(cfg);
@@ -919,12 +915,12 @@ class LogConfigImpl
 
   private void checkLogLevel(Dictionary<String, Object> cfg)
       throws ConfigurationException, IllegalArgumentException {
-    String filter = null;
     final Object obj = cfg.get(L_FILTER);
     if (obj == null) {
       throw new IllegalArgumentException(
           "No log level given. Please supply a valid log level.");
     }
+    String filter;
     try {
       filter = ((String) obj).trim();
     } catch (final ClassCastException cce) {
@@ -946,11 +942,10 @@ class LogConfigImpl
   /* Check bundle log level property for faults. */
   private void checkBundleLogLevel(Dictionary<String, ?> cfg)
       throws ConfigurationException, IllegalArgumentException {
-    Vector<String> v = null;
+    Vector<String> v;
     try {
       @SuppressWarnings("unchecked")
-      final
-      Vector<String> v1 = (Vector<String>) cfg.get(BL_FILTERS);
+      final Vector<String> v1 = (Vector<String>) cfg.get(BL_FILTERS);
       v = v1;
     } catch (final ClassCastException cce) {
       throw new IllegalArgumentException
@@ -958,7 +953,7 @@ class LogConfigImpl
               + "specific bundle. Correct type to use is Vector of String.");
     }
     if (v != null) {
-      String[] bundle = null;
+      String[] bundle;
       for (int i = 0; i < v.size(); i++) {
         try {
           bundle = getBL(v.elementAt(i));
@@ -966,11 +961,6 @@ class LogConfigImpl
           throw new IllegalArgumentException
               ("Wrong type supplied when attempting to set log level for "
                   + "specific bundle. Correct type to use is String.");
-        }
-        if (bundle == null) {
-          throw new IllegalArgumentException
-              ("Empty configuration supplied when attempting to set log level "
-                  + " for specific bundle.");
         }
         if (bundle[LOCATION_POS] == null
             || bundle[LOCATION_POS].length() <= 0) {
@@ -984,8 +974,7 @@ class LogConfigImpl
                   + bundle[LOCATION_POS] + ". "
                   + "Please supply a valid log level.");
         }
-        int testFilter = 0;
-        testFilter = LogUtil.toLevel(bundle[FILTER_POS], -1);
+        int testFilter = LogUtil.toLevel(bundle[FILTER_POS], -1);
         if (testFilter == -1) {
           throw new ConfigurationException
               (BL_FILTERS,
@@ -1043,7 +1032,7 @@ class LogConfigImpl
     Vector<String> bls = (Vector<String>) cfg.get(BL_FILTERS);
     setFilterCfg(bls);
 
-    Object newV = null;
+    Object newV;
     if ((newV = diff(L_FILTER, cfg)) != null) {
       set(L_FILTER, newV);
     }
@@ -1104,17 +1093,17 @@ class LogConfigImpl
 
   private void setFilterCfg(Vector<String> newV) {
     if (newV != null) {
-      String[] bundle = null;
-      int newFilter = -1;
-      final Set<String> newKeys = new HashSet<String>();
+      String[] bundle;
+      int newFilter;
+      final Set<String> newKeys = new HashSet<>();
       for (int i = 0; (i < newV.size()); i++) {
         bundle = getBL(newV.elementAt(i));
         newFilter = LogUtil.toLevel((bundle[FILTER_POS]), LOG_WARNING);
-        blFilters.put(bundle[LOCATION_POS], new Integer(newFilter));
+        blFilters.put(bundle[LOCATION_POS], newFilter);
         newKeys.add(bundle[LOCATION_POS]);
       }
       // Remove obsolete bl filter mappings.
-      final Set<String> obsoleteKeys = new HashSet<String>(blFilters.keySet());
+      final Set<String> obsoleteKeys = new HashSet<>(blFilters.keySet());
       obsoleteKeys.removeAll(newKeys);
       for (final String string : obsoleteKeys) {
         blFilters.remove(string);
@@ -1125,7 +1114,7 @@ class LogConfigImpl
   }
 
   private Object diff(String key, Dictionary<String, ?> cfg) {
-    Object newV = null;
+    Object newV;
     return ((newV = cfg.get(key)) != null
         && !newV.equals(configCollection.get(key))) ? newV : null;
   }

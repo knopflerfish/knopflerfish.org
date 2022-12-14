@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2022, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,13 +41,13 @@ public interface LogConfig {
   /**
    * If CM is available, upload the current configuration to CM.
    */
-  public void commit();
+  void commit();
 
   /**
    * Returns <code>false</code> when the configuration is obtained
    * from CM.
    */
-  public boolean isDefaultConfig();
+  boolean isDefaultConfig();
 
   /**
    * Set number of log entries that are kept in memory.
@@ -55,14 +55,14 @@ public interface LogConfig {
    * @param size
    *            the new maximum number of log entries in memory.
    */
-  public void setMemorySize(int size);
+  void setMemorySize(int size);
 
   /**
    * Get the number of log entries that are kept in memory.
    *
    * @return number of log entries that are kept in memory.
    */
-  public int getMemorySize();
+  int getMemorySize();
 
   /**
    * Set the default filter level.
@@ -70,9 +70,9 @@ public interface LogConfig {
    * @param filter
    *            the new default filter level.
    */
-  public void setFilter(int filter);
+  void setFilter(int filter);
 
-  public int getFilter();
+  int getFilter();
 
   /**
    * Set the filter level for bundles that matches the pattern.
@@ -87,9 +87,9 @@ public interface LogConfig {
    * @param filter
    *            the new default filter level.
    */
-  public void setFilter(String bundleLocation, int filter);
+  void setFilter(String bundleLocation, int filter);
 
-  public HashMap<String,Integer> getFilters();
+  HashMap<String,Integer> getFilters();
 
   /**
    * Property controlling if log entries are written to
@@ -99,30 +99,30 @@ public interface LogConfig {
    *            if <code>true</code> log entries will be written to
    *            <code>System.out</code>.
    */
-  public void setOut(boolean b);
+  void setOut(boolean b);
 
-  public boolean getOut();
+  boolean getOut();
 
-  public void setFile(boolean f);
+  void setFile(boolean f);
 
-  public boolean getFile();
+  boolean getFile();
 
   /**
    * @return the directory that the file log is written to.
    */
-  public File getDir();
+  File getDir();
 
-  public void setFileSize(int fS);
+  void setFileSize(int fS);
 
-  public int getFileSize();
+  int getFileSize();
 
-  public void setMaxGen(int maxGen);
+  void setMaxGen(int maxGen);
 
-  public int getMaxGen();
+  int getMaxGen();
 
-  public void setFlush(boolean f);
+  void setFlush(boolean f);
 
-  public boolean getFlush();
+  boolean getFlush();
 
   /**
    * Define the format of the time-stamp used when presenting log
@@ -131,13 +131,13 @@ public interface LogConfig {
    * @param pattern Date time pattern as defined in
    *                <code>java.text.SimpleDateFormat(java.lang.String)</code>.
    *                If the given pattern is invalid, the old pattern
-   *                is keept.
+   *                is kept.
    */
-  public void setTimestampPattern(String pattern);
+  void setTimestampPattern(String pattern);
 
   /**
    * @return the current timestamp pattern.
    */
-  public String getTimestampPattern();
+  String getTimestampPattern();
 
 }
