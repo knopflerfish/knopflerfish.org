@@ -69,7 +69,7 @@ public class ExtLogEntry implements LogEntry {
 
   @Deprecated
   public int getLevel() {
-    return entry.getLevel();
+    return entry.getLogLevel().ordinal();
   }
 
   public String getMessage() {

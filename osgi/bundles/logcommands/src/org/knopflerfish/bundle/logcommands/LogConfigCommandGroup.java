@@ -129,7 +129,7 @@ public class LogConfigCommandGroup
   public final static String[] HELP_SETLEVEL =
     new String[] {
                   "Set log level",
-                  "<level>   The new log level (one of error,warning,info,debug or default)",
+                  "<level>   The new log level (one of error, warning, info, debug or default)",
                   "<bundle>  The bundle(s) that the new level applies to. If no bundles are",
                   "          given the default level is changed. The bundle may be given as",
                   "          the bundle id, the file location of the bundle or the bundle's",
@@ -152,10 +152,10 @@ public class LogConfigCommandGroup
       return 1;
     }
 
-    final String l = (String) opts.get("level");
-    final int level = LogUtil.toLevel((l.trim()), -1);
+    final String levelString = (String) opts.get("level");
+    final int level = LogUtil.toLevel((levelString.trim()), -1);
     if (level == -1) {
-      out.println("Unknown level: " + l);
+      out.println("Unknown level: " + levelString);
       return 1;
     }
     final String[] selection = (String[]) opts.get("bundle");

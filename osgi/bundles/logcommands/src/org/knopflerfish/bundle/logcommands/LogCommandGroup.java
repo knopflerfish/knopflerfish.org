@@ -90,7 +90,7 @@ public class LogCommandGroup
                   "If no parameters are given show all entries",
                   "-f         Show framework events that aren't connected to a bundle",
                   "-h #hours# Show only entries entered in the #hours# last hours",
-                  "-l #level# Show only entries with minimum level error,warning,info or debug",
+                  "-l #level# Show only entries with minimum level error, warning, info or debug",
                   "-n #count# Show the #count# latest entries",
                   "-r         Show entries in reversed order",
                   "-s         Show stacktrace for exceptions",
@@ -173,7 +173,6 @@ public class LogCommandGroup
         }
       }
 
-      @SuppressWarnings("unchecked")
       Enumeration<LogEntry> e = lr.getLog();
       final Vector<LogEntry> lv = new Vector<>();
       final boolean rflag = opts.get("-r") == null;
@@ -207,18 +206,21 @@ public class LogCommandGroup
         sb.setLength(0);
         sb.append(tf.format(new Date(le.getTime())));
         pad(sb, 16);
-        switch (le.getLevel()) {
-        case LogService.LOG_INFO:
+        switch (le.getLogLevel()) {
+        case INFO:
           sb.append("INFO");
           break;
-        case LogService.LOG_DEBUG:
+        case DEBUG:
           sb.append("DEBUG");
           break;
-        case LogService.LOG_WARNING:
+        case WARN:
           sb.append("WARNING");
           break;
-        case LogService.LOG_ERROR:
+        case ERROR:
           sb.append("ERROR");
+          break;
+        case AUDIT:
+          sb.append("AUDIT");
           break;
         default:
           sb.append("UNKNOWN");
