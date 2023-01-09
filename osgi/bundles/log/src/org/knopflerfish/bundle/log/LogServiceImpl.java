@@ -35,9 +35,16 @@
 package org.knopflerfish.bundle.log;
 
 import org.knopflerfish.service.log.LogService;
+import org.knopflerfish.service.log.LogUtil;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.FormatterLogger;
+import org.osgi.service.log.LogLevel;
 import org.osgi.service.log.Logger;
+import org.osgi.service.log.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The LogServiceImpl is responsible for creating a LogEntry with the log
@@ -73,7 +80,10 @@ public class LogServiceImpl implements LogService {
    *          The severity level of the entry to create.
    * @param msg
    *          The message of the entry to create.
+   * @deprecated Since 1.4. Replaced by {@link Logger}. See
+   *             {@link LoggerFactory}.
    */
+  @Deprecated
   @Override
   public void log(int level, String msg)
   {
@@ -89,7 +99,10 @@ public class LogServiceImpl implements LogService {
    *          The message of the entry to create.
    * @param t
    *          A Throwable that goes with the entry.
+   * @deprecated Since 1.4. Replaced by {@link Logger}. See
+   *             {@link LoggerFactory}.
    */
+  @Deprecated
   @Override
   public void log(int level, String msg, Throwable t)
   {
@@ -105,7 +118,10 @@ public class LogServiceImpl implements LogService {
    *          The severity level of the entry to create.
    * @param msg
    *          The message of the entry to create.
+   * @deprecated Since 1.4. Replaced by {@link Logger}. See
+   *             {@link LoggerFactory}.
    */
+  @Deprecated
   @Override
   public void log(ServiceReference<?> sref,
                   int level,
@@ -125,9 +141,12 @@ public class LogServiceImpl implements LogService {
    *          The message of the entry to create.
    * @param t
    *          A Throwable that goes with the entry.
+   * @deprecated Since 1.4. Replaced by {@link Logger}. See
+   *             {@link LoggerFactory}.
    */
+  @Deprecated
   @Override
-  public void log(@SuppressWarnings("rawtypes") ServiceReference sref,
+  public void log(ServiceReference<?> sref,
                   int level,
                   String msg,
                   Throwable t)
@@ -149,7 +168,9 @@ public class LogServiceImpl implements LogService {
    * intended log entry is less severe than the current log level.
    * 
    * @return the lowest severity level that is accepted into the log.
+   * @deprecated Replaced by {@link LogService#getCurrentLogLevel()}.
    */
+  @Deprecated
   @Override
   public int getLogLevel()
   {
@@ -157,28 +178,61 @@ public class LogServiceImpl implements LogService {
   }
 
   @Override
+  public LogLevel getCurrentLogLevel()
+  {
+    return LogUtil.ordinalToLogLevel(getLogLevel());
+  }
+
+  private Map<String, Logger> loggers = new HashMap<>();
+
+  @Override
   public Logger getLogger(String name) {
-	  return null;
+    return getLogger(name, bundle);
+  }
+
+  private Logger getLogger(String name, Bundle bundle) {
+    return loggers.computeIfAbsent(name, k ->
+        new LoggerImpl(name, bundle.getBundleContext())
+    );
   }
 
   @Override
   public Logger getLogger(Class<?> clazz) {
-	  return null;
+	  return getLogger(clazz.getName());
   }
 
   @Override
   public <L extends Logger> L getLogger(String name, Class<L> loggerType) {
-	  return null;
+    checkLoggerType(loggerType);
+    //noinspection unchecked
+    return (L) getLogger(name);
   }
 
   @Override
   public <L extends Logger> L getLogger(Class<?> clazz, Class<L> loggerType) {
-	  return null;
+    checkLoggerType(loggerType);
+    //noinspection unchecked
+    return (L) getLogger(clazz);
   }
 
   @Override
   public <L extends Logger> L getLogger(Bundle bundle, String name, Class<L> loggerType) {
-	  return null;
+    checkLoggerType(loggerType);
+    checkBundle(bundle);
+    //noinspection unchecked
+    return (L) getLogger(name, bundle);
+  }
+
+  private void checkBundle(Bundle bundle) {
+    if (bundle.getBundleContext() == null) {
+      throw new IllegalArgumentException("Bundle has no context: " + bundle);
+    }
+  }
+
+  private <L extends Logger> void checkLoggerType(Class<L> loggerType) {
+    if (!loggerType.equals(Logger.class) && !loggerType.equals(FormatterLogger.class)) {
+      throw new IllegalArgumentException("Unsupported Logger type: " + loggerType);
+    }
   }
 
 }

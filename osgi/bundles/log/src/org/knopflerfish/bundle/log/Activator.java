@@ -34,9 +34,11 @@
 
 package org.knopflerfish.bundle.log;
 
+import org.knopflerfish.bundle.log.admin.LoggerAdminImpl;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
+import org.osgi.service.log.admin.LoggerAdmin;
 
 /**
  * Bundle activator for the Knopflerfish log implementation.
@@ -50,11 +52,16 @@ public class Activator implements BundleActivator {
   static final String LOG_READER_SERVICE_CLASS
     = org.osgi.service.log.LogReaderService.class.getName();
 
+  static final String LOG_ADMIN_CLASS
+    = org.osgi.service.log.admin.LoggerAdmin.class.getName();
+
   private LogServiceFactory lsf;
 
   private LogReaderServiceFactory lrsf;
 
   private LogConfigImpl lc;
+
+  private LoggerAdminImpl loggerAdmin;
 
   // BundleActivator callback.
   public void start(BundleContext bc) {
@@ -62,6 +69,7 @@ public class Activator implements BundleActivator {
     lc = new LogConfigImpl(bc);
     lrsf = new LogReaderServiceFactory(bc, lc);
     lsf = new LogServiceFactory(lrsf);
+    loggerAdmin = new LoggerAdminImpl();
 
     // Catch all framework error and place in the log.
     LogFrameworkListener lfl = new LogFrameworkListener(lrsf);
@@ -72,6 +80,7 @@ public class Activator implements BundleActivator {
     // Register our services
     bc.registerService(LOG_READER_SERVICE_CLASS, lrsf, null);
     bc.registerService(LOG_SERVICE_CLASSES, lsf, null);
+    bc.registerService(LOG_ADMIN_CLASS, loggerAdmin, null);
   }
 
   // BundleActivator callback.

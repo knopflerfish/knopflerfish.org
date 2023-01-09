@@ -34,6 +34,8 @@
 
 package org.knopflerfish.service.log;
 
+import org.osgi.service.log.LogLevel;
+
 /**
  * This LogService provides an extra method for querying the service about the
  * current log level. Log entries that are less severe than the current log
@@ -61,6 +63,22 @@ public interface LogService extends org.osgi.service.log.LogService {
    * the current log level.
    *
    * @return the lowest severity level that is accepted into the log.
+   * @deprecated Replaced by {@link LogService#getCurrentLogLevel()}.
    */
+  @Deprecated
   int getLogLevel();
+
+  /**
+   * Get the current log level. The log will discard log entries with a
+   * level that is less severe than the current level. E.g., if the current
+   * log level is {@link LogLevel#WARN} then the log will discard all log
+   * entries with level {@link LogLevel#INFO} and {@link LogLevel#DEBUG}. I.e.
+   * there is no need for a bundle to try to send such log entries to the log.
+   * The bundle may actually save a number of CPU-cycles by getting the
+   * log level and do nothing if the intended log entry is less severe than
+   * the current log level.
+   *
+   * @return the lowest severity level that is accepted into the log.
+   */
+  LogLevel getCurrentLogLevel();
 }

@@ -43,32 +43,31 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogLevel;
 import org.osgi.service.log.Logger;
+
+import static org.osgi.service.log.LogLevel.AUDIT;
+import static org.osgi.service.log.LogLevel.DEBUG;
+import static org.osgi.service.log.LogLevel.ERROR;
+import static org.osgi.service.log.LogLevel.INFO;
+import static org.osgi.service.log.LogLevel.TRACE;
+import static org.osgi.service.log.LogLevel.WARN;
 
 /**
  * LogRef is an utility class that simplifies the use of the LogService.
  * 
  * <P>
- * 
  * LogRef let you use the log without worrying about getting new
- * 
  * service objects when the log service is restarted. It also supplies methods
  * with short names that does logging with all the different LogService severity
  * types.
- * 
- * 
  * </P>
  * <P>
- * 
  * To use the LogRef you need to import
- * 
  * <code>org.knopflerfish.service.log.LogRef</code> and instantiate LogRef with
  * your bundle context as parameter. The bundle context is used for getting the
  * LogService and adding a service listener.
- * 
- * 
  * </P>
- * 
  * 
  * <H2>Example usage</H2>
  * 
@@ -106,7 +105,6 @@ import org.osgi.service.log.Logger;
  * }
  * </PRE>
  * 
- * 
  * @author Gatespace AB
  * 
  * @see org.osgi.service.log.LogService
@@ -135,6 +133,9 @@ public class LogRef
   // Handle to the framework
   private BundleContext bc;
 
+  // Logger name (TODO)
+  private String name;
+
   // Service reference for the current log service
   private ServiceReference<?> logSR;
 
@@ -162,17 +163,15 @@ public class LogRef
    */
   public LogRef(BundleContext bc, boolean out)
   {
-    init(bc, out);
+    init(bc, out, LogRef.class.getName());
   }
 
   /**
    * Create new LogRef object for a given bundle.
    * 
    * <p>
-   * 
    * If the system property <tt>org.knopflerfish.log.out</tt> equals "true",
    * system.out will be used as fallback if no log service is found.
-   * 
    * </p>
    * 
    * @param bc
@@ -190,12 +189,42 @@ public class LogRef
       t.printStackTrace();
     }
 
-    init(bc, b);
+    init(bc, b, LogRef.class.getName());
   }
 
-  private void init(BundleContext bc, boolean out)
+  /**
+   * Create new LogRef object for a given bundle.
+   *
+   * <p>
+   * If the system property <tt>org.knopflerfish.log.out</tt> equals "true",
+   * system.out will be used as fallback if no log service is found.
+   * </p>
+   *
+   * @param bc
+   *          the bundle context of the bundle that this log ref instance
+   *          belongs too.
+   *
+   * @param name
+   *          the name of the logger
+   */
+  public LogRef(BundleContext bc, String name)
+  {
+    boolean b = false;
+
+    try {
+      b = "true".equals(bc.getProperty("org.knopflerfish.log.out"));
+    } catch (Throwable t) {
+      System.err.println("get system property failed: " + t);
+      t.printStackTrace();
+    }
+
+    init(bc, b, name);
+  }
+
+  private void init(BundleContext bc, boolean out, String name)
   {
     this.bc = bc;
+    this.name = name;
     useOut = out;
     bundleId = bc.getBundle().getBundleId();
     try {
@@ -260,16 +289,48 @@ public class LogRef
    *          is associated with.
    * @param e
    *          The exception that reflects the condition.
+   * @deprecated Replaced by {@link #doLog(String, LogLevel, ServiceReference, Throwable)}.
    */
+  @Deprecated
   protected synchronized void doLog(String msg,
                                     int level,
                                     ServiceReference<?> sr,
                                     Throwable e)
   {
+    doLog(msg, LogUtil.ordinalToLogLevel(level), sr, e);
+  }
+
+  /**
+   * Sends a message to the log if possible.
+   *
+   * @param msg
+   *          Human readable string describing the condition.
+   * @param level
+   *          The severity of the message.
+   * @param sr
+   *          The <code>ServiceReference</code> of the service that this message
+   *          is associated with.
+   * @param e
+   *          The exception that reflects the condition.
+   */
+  protected synchronized void doLog(String msg,
+                                    LogLevel level,
+                                    ServiceReference<?> sr,
+                                    Throwable e)
+  {
+    refreshService();
+    if (log != null) {
+      doLog(getLogger(), level, msg, e);
+    } else {
+      doLogToSystemOut(msg, level, sr, e);
+    }
+  }
+
+  private void refreshService() {
     if (bc != null && log == null) {
       try {
         logSR = bc
-            .getServiceReference(org.knopflerfish.service.log.LogService.class);
+            .getServiceReference(LogService.class);
         if (logSR == null) {
           // No service implementing the Knopflerfish
           // extended log, try to look for a standard OSGi
@@ -290,15 +351,23 @@ public class LogRef
         logSR = null;
       }
     }
-    if (log != null) {
-      log.log(sr, level, msg, e);
-    } else if (useOut || doWarnIfClosed) {
+  }
+
+  private Logger getLogger() {
+    if (bc == null) {
+      return log.getLogger(name, Logger.class);
+    }
+    return log.getLogger(bc.getBundle(), name, Logger.class);
+  }
+
+  private void doLogToSystemOut(String msg, LogLevel level, ServiceReference<?> sr, Throwable e) {
+    if (useOut || doWarnIfClosed) {
       if (bc == null) {
         System.err.println("WARNING! Bundle #" + bundleId
                            + " called closed LogRef object");
       }
       // No log service and request for messages on System.out
-      System.out.print(LogUtil.fromLevel(level, 8));
+      System.out.print(LogUtil.fromLogLevel(level, 8));
       System.out.print(" ");
       if (simpleDateFormat == null) {
         simpleDateFormat = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
@@ -325,77 +394,141 @@ public class LogRef
     }
   }
 
+  private void doLog(Logger logger, LogLevel level, String msg, Throwable e) {
+    switch (level) {
+      case AUDIT:
+        logger.audit(msg, e);
+        break;
+      case ERROR:
+        if (logger.isErrorEnabled()) {
+          logger.error(msg, e);
+        }
+        break;
+      case WARN:
+        if (logger.isWarnEnabled()) {
+          logger.warn(msg, e);
+        }
+        break;
+      case INFO:
+        if (logger.isInfoEnabled()) {
+          logger.info(msg, e);
+        }
+        break;
+      case DEBUG:
+        if (logger.isDebugEnabled()) {
+          logger.debug(msg, e);
+        }
+        break;
+      case TRACE:
+        if (logger.isTraceEnabled()) {
+          logger.trace(msg, e);
+        }
+        break;
+    }
+  }
+
   /**
    * Returns the current log level. There is no use to generate log entries with
    * a severity level less than this value since such entries will be thrown
    * away by the log.
    * 
    * @return the current severity log level for this bundle.
+   * @deprecated Replaced by {@link LogRef#getCurrentLogLevel()}.
    */
+  @Deprecated
+  @Override
   public int getLogLevel()
   {
+    return getCurrentLogLevel().ordinal();
+  }
+
+  /**
+   * Returns the current log level. There is no use to generate log entries with
+   * a severity level less than this value since such entries will be thrown
+   * away by the log.
+   *
+   * @return the current severity log level for this bundle.
+   */
+  @Override
+  public LogLevel getCurrentLogLevel()
+  {
     if (log != null && (log instanceof LogService)) {
-      return ((LogService) log).getLogLevel();
+      return ((LogService) log).getCurrentLogLevel();
     }
-    return LOG_DEBUG;
+    return DEBUG;
   }
 
   /**
    * Returns true if messages with severity debug or higher are saved by the
    * log.
    * 
-   * @return <code>true</code> if messages with severity LOG_DEBUG or higher are
+   * @return <code>true</code> if messages with severity DEBUG or higher are
    *         included in the log, otherwise <code>false</code>.
    */
   public boolean doDebug()
   {
-    return getLogLevel() >= LOG_DEBUG;
+    return doLogLevel(DEBUG);
   }
 
   /**
    * Returns true if messages with severity warning or higher are saved by the
    * log.
    * 
-   * @return <code>true</code> if messages with severity LOG_WARNING or higher
+   * @return <code>true</code> if messages with severity WARN or higher
    *         are included in the log, otherwise <code>false</code>.
    */
   public boolean doWarn()
   {
-    return getLogLevel() >= LOG_WARNING;
+    return doLogLevel(WARN);
   }
 
   /**
    * Returns true if messages with severity info or higher are saved by the log.
    * 
-   * @return <code>true</code> if messages with severity LOG_INFO or higher are
+   * @return <code>true</code> if messages with severity INFO or higher are
    *         included in the log, otherwise <code>false</code>.
    */
   public boolean doInfo()
   {
-    return getLogLevel() >= LOG_INFO;
+    return doLogLevel(INFO);
   }
 
   /**
    * Returns true if messages with severity error or higher are saved by the
    * log.
    * 
-   * @return <code>true</code> if messages with severity LOG_ERROR or higher are
+   * @return <code>true</code> if messages with severity ERROR or higher are
    *         included in the log, otherwise <code>false</code>.
    */
   public boolean doError()
   {
-    return getLogLevel() >= LOG_ERROR;
+    return doLogLevel(ERROR);
+  }
+
+  private boolean doLogLevel(LogLevel logLevel) {
+    return getCurrentLogLevel().implies(logLevel);
+  }
+
+  /**
+   * Log a trace level message
+   * 
+   * @param msg
+   *          Log message.
+   */
+  public void trace(String msg)
+  {
+    doLog(msg, TRACE, null, null);
   }
 
   /**
    * Log a debug level message
-   * 
+   *
    * @param msg
    *          Log message.
    */
   public void debug(String msg)
   {
-    doLog(msg, LOG_DEBUG, null, null);
+    doLog(msg, DEBUG, null, null);
   }
 
   /**
@@ -409,7 +542,7 @@ public class LogRef
    */
   public void debug(String msg, ServiceReference<?> sr)
   {
-    doLog(msg, LOG_DEBUG, sr, null);
+    doLog(msg, DEBUG, sr, null);
   }
 
   /**
@@ -422,7 +555,7 @@ public class LogRef
    */
   public void debug(String msg, Throwable e)
   {
-    doLog(msg, LOG_DEBUG, null, e);
+    doLog(msg, DEBUG, null, e);
   }
 
   /**
@@ -438,7 +571,7 @@ public class LogRef
    */
   public void debug(String msg, ServiceReference<?> sr, Throwable e)
   {
-    doLog(msg, LOG_DEBUG, sr, e);
+    doLog(msg, DEBUG, sr, e);
   }
 
   /**
@@ -449,7 +582,7 @@ public class LogRef
    */
   public void info(String msg)
   {
-    doLog(msg, LOG_INFO, null, null);
+    doLog(msg, INFO, null, null);
   }
 
   /**
@@ -463,7 +596,7 @@ public class LogRef
    */
   public void info(String msg, ServiceReference<?> sr)
   {
-    doLog(msg, LOG_INFO, sr, null);
+    doLog(msg, INFO, sr, null);
   }
 
   /**
@@ -476,7 +609,7 @@ public class LogRef
    */
   public void info(String msg, Throwable e)
   {
-    doLog(msg, LOG_INFO, null, e);
+    doLog(msg, INFO, null, e);
   }
 
   /**
@@ -492,7 +625,7 @@ public class LogRef
    */
   public void info(String msg, ServiceReference<?> sr, Throwable e)
   {
-    doLog(msg, LOG_INFO, sr, e);
+    doLog(msg, INFO, sr, e);
   }
 
   /**
@@ -503,7 +636,7 @@ public class LogRef
    */
   public void warn(String msg)
   {
-    doLog(msg, LOG_WARNING, null, null);
+    doLog(msg, WARN, null, null);
   }
 
   /**
@@ -517,7 +650,7 @@ public class LogRef
    */
   public void warn(String msg, ServiceReference<?> sr)
   {
-    doLog(msg, LOG_WARNING, sr, null);
+    doLog(msg, WARN, sr, null);
   }
 
   /**
@@ -530,7 +663,7 @@ public class LogRef
    */
   public void warn(String msg, Throwable e)
   {
-    doLog(msg, LOG_WARNING, null, e);
+    doLog(msg, WARN, null, e);
   }
 
   /**
@@ -546,7 +679,7 @@ public class LogRef
    */
   public void warn(String msg, ServiceReference<?> sr, Throwable e)
   {
-    doLog(msg, LOG_WARNING, sr, e);
+    doLog(msg, WARN, sr, e);
   }
 
   /**
@@ -557,7 +690,7 @@ public class LogRef
    */
   public void error(String msg)
   {
-    doLog(msg, LOG_ERROR, null, null);
+    doLog(msg, ERROR, null, null);
   }
 
   /**
@@ -571,7 +704,7 @@ public class LogRef
    */
   public void error(String msg, ServiceReference<?> sr)
   {
-    doLog(msg, LOG_ERROR, sr, null);
+    doLog(msg, ERROR, sr, null);
   }
 
   /**
@@ -584,7 +717,7 @@ public class LogRef
    */
   public void error(String msg, Throwable e)
   {
-    doLog(msg, LOG_ERROR, null, e);
+    doLog(msg, ERROR, null, e);
   }
 
   /**
@@ -600,7 +733,18 @@ public class LogRef
    */
   public void error(String msg, ServiceReference<?> sr, Throwable e)
   {
-    doLog(msg, LOG_ERROR, sr, e);
+    doLog(msg, ERROR, sr, e);
+  }
+
+  /**
+   * Log an audit level message
+   *
+   * @param msg
+   *          Log message.
+   */
+  public void audit(String msg)
+  {
+    doLog(msg, AUDIT, null, null);
   }
 
   /**
@@ -608,11 +752,20 @@ public class LogRef
    * LogEntry will be set to null.
    * 
    * @param level
-   *          The severity of the message. (Should be one of the four predefined
-   *          severities.)
+   *          The severity of the message.
    * @param message
    *          Human readable string describing the condition.
    */
+  public void log(LogLevel level, String message)
+  {
+    doLog(message, level, null, null);
+  }
+
+  /**
+   * @deprecated Replaced by {@link #log(LogLevel, String)}.
+   */
+  @Deprecated
+  @Override
   public void log(int level, String message)
   {
     doLog(message, level, null, null);
@@ -623,13 +776,22 @@ public class LogRef
    * LogEntry will be set to null.
    * 
    * @param level
-   *          The severity of the message. (Should be one of the four predefined
-   *          severities.)
+   *          The severity of the message.
    * @param message
    *          Human readable string describing the condition.
    * @param exception
    *          The exception that reflects the condition.
    */
+  public void log(LogLevel level, String message, Throwable exception)
+  {
+    doLog(message, level, null, exception);
+  }
+
+  /**
+   * @deprecated Replaced by {@link #log(LogLevel, String)}.
+   */
+  @Deprecated
+  @Override
   public void log(int level, String message, Throwable exception)
   {
     doLog(message, level, null, exception);
@@ -643,11 +805,22 @@ public class LogRef
    *          The <code>ServiceReference</code> of the service that this message
    *          is associated with.
    * @param level
-   *          The severity of the message. (Should be one of the four predefined
-   *          severities.)
+   *          The severity of the message.
    * @param message
    *          Human readable string describing the condition.
    */
+  public void log(ServiceReference<?> sr,
+                  LogLevel level,
+                  String message)
+  {
+    doLog(message, level, sr, null);
+  }
+
+  /**
+   * @deprecated Replaced by {@link #log(ServiceReference, LogLevel, String)}.
+   */
+  @Deprecated
+  @Override
   public void log(ServiceReference<?> sr,
                   int level,
                   String message)
@@ -662,13 +835,25 @@ public class LogRef
    *          The <code>ServiceReference</code> of the service that this message
    *          is associated with.
    * @param level
-   *          The severity of the message. (Should be one of the four predefined
-   *          severities.)
+   *          The severity of the message.
    * @param message
    *          Human readable string describing the condition.
    * @param exception
    *          The exception that reflects the condition.
    */
+  public void log(ServiceReference<?> sr,
+                  LogLevel level,
+                  String message,
+                  Throwable exception)
+  {
+    doLog(message, level, sr, exception);
+  }
+
+  /**
+   * @deprecated Replaced by {@link #log(ServiceReference, LogLevel, String, Throwable)}.
+   */
+  @Deprecated
+  @Override
   public void log(ServiceReference<?> sr,
                   int level,
                   String message,
